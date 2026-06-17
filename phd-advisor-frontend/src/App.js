@@ -19,24 +19,51 @@ function App() {
   const [user, setUser] = useState(null);
   const [authToken, setAuthToken] = useState(null);
 
+  const clearAuth = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setAuthToken(null);
+    setIsAuthenticated(false);
+  };
+
   // Check for existing authentication on app start
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
+
+    if (!token || !userData) return;
+
+    try {
+      JSON.parse(userData);
+    } catch (error) {
+      clearAuth();
+      return;
+    }
+
+    const validateSession = async () => {
       try {
-        const parsedUser = JSON.parse(userData);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          clearAuth();
+          setCurrentView('auth');
+          return;
+        }
+
+        const freshUser = await response.json();
         setAuthToken(token);
-        setUser(parsedUser);
+        setUser(freshUser);
         setIsAuthenticated(true);
         setCurrentView('chat');
       } catch (error) {
-        // Clear invalid data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        clearAuth();
       }
-    }
+    };
+
+    validateSession();
   }, []);
 
   const navigateToAuth = () => {
@@ -70,11 +97,7 @@ function App() {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
-    setAuthToken(null);
-    setIsAuthenticated(false);
+    clearAuth();
     setCurrentView('home');
   };
 
