@@ -193,9 +193,15 @@ rag:
 
 # TODO: For development/testing only. PhD Advisor will likely not use these tools.
 tools:
+  # search_courses is CU Boulder / FOSE-specific. For any non-CU school, set
+  # `enabled: false` (it queries classes.colorado.edu and cannot serve other
+  # schools).
   search_courses:
     enabled: true
     max_results: 20   # Limit the number of results returned by the search_courses tool
+  # rate_my_professor is locked to a single school. `school_id` is REQUIRED
+  # whenever this tool is enabled — the app refuses to start without it, and
+  # results are limited strictly to this school (no cross-school fallback).
   rate_my_professor:
     enabled: true
     # Run `python3 scripts/rmp_school_lookup.py "<school name>"` to find this value

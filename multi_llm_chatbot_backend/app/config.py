@@ -322,6 +322,20 @@ class ToolsConfig(BaseModel):
         cfg = self.__pydantic_extra__.get(name, {})
         return cfg if isinstance(cfg, dict) else {}
 
+    @model_validator(mode="after")
+    def _require_rmp_school_id(self):
+        """Fail fast when the RateMyProfessor tool is enabled without a
+        ``school_id``.  This tool is locked to a single school per deployment,
+        so a missing ID is a configuration error rather than a runtime no-op."""
+        cfg = self.get_tool_config("rate_my_professor")
+        if cfg and cfg.get("enabled", True) and not cfg.get("school_id"):
+            raise ValueError(
+                "tools.rate_my_professor is enabled but 'school_id' is missing. "
+                "Set the school_id for this deployment (find it with "
+                "scripts/rmp_school_lookup.py) or disable the tool."
+            )
+        return self
+
 
 class VoiceConfig(BaseModel):
     stt_endpoint: str = "https://whisper.neonaiservices.com"

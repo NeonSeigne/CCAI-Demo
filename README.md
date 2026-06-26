@@ -452,12 +452,17 @@ school requires no code changes.
    referenced by `personas.personas_dir`.
 3. **Use unique storage** so schools don't share data: set a distinct
    `mongodb.database_name` and `rag.chroma_collection`.
-4. **Point the app at it** by setting `CONFIG_PATH=/ccai/<school>_config.yaml`
+4. **Configure the tools for the school** under `tools:`:
+   - `rate_my_professor` is locked to one school. A `school_id` is **required**
+     whenever the tool is enabled — the app refuses to start without it. Find the
+     value with `python3 scripts/rmp_school_lookup.py "<school name>"`. Results are
+     limited strictly to that school (no cross-school fallback).
+   - `search_courses` is **CU Boulder / FOSE-specific** (it queries
+     `classes.colorado.edu`). For any non-CU school, set
+     `tools.search_courses.enabled: false`.
+5. **Point the app at it** by setting `CONFIG_PATH=/ccai/<school>_config.yaml`
    (e.g. in `docker-compose.yml` or your environment) and restart. Run a separate
    instance/stack per school.
-
-> Note: course-search (CU FOSE) and Rate My Professor tools are still CU-specific
-> and are not yet generalized per school.
 
 ### Extending Document Support
 

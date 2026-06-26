@@ -4,8 +4,11 @@ rate_my_professor tool — live query against RateMyProfessors' GraphQL API.
 Exposes TOOL_DEFINITION (OpenAI tool format) and an execute() coroutine
 that the tool-calling loop dispatches to.
 
-Requires ``school_id`` in the tool config (see phd_config.yaml).
-Use ``scripts/rmp_school_lookup.py`` to find the ID for a given school.
+This tool is locked to a single school per deployment. A ``school_id`` is
+REQUIRED in the tool config (see the ``rate_my_professor`` section of each
+``<school>_config.yaml``); the app refuses to start if the tool is enabled
+without one. Results are filtered to that school only — no cross-school
+fallback. Use ``scripts/rmp_school_lookup.py`` to find the ID for a school.
 """
 
 import logging
@@ -19,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 RMP_GRAPHQL_URL = "https://www.ratemyprofessors.com/graphql"
 RMP_LANDING_URL = "https://www.ratemyprofessors.com/"
-RMP_SEARCH_URL = "https://www.ratemyprofessors.com/search/professors/1087"
+RMP_SEARCH_URL = "https://www.ratemyprofessors.com/search/professors"
 
 
 TEACHER_SEARCH_QUERY = """
@@ -55,15 +58,27 @@ query TeacherSearchPaginationQuery(
 }
 """
 
+def _build_description() -> str:
+    """Build the LLM-facing description, tying the tool to the configured
+    institution so the model knows ratings are for this school only."""
+    institution = ""
+    try:
+        institution = (get_settings().app.institution or "").strip()
+    except Exception:
+        institution = ""
+    where = f"a professor at {institution}" if institution else "a professor at the configured school"
+    return (
+        f"Look up RateMyProfessors ratings for {where}. "
+        "Returns rating, difficulty, percentage of students who would "
+        "take the professor again, and number of ratings."
+    )
+
+
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
     "function": {
         "name": "rate_my_professor",
-        "description": (
-            "Look up RateMyProfessors ratings for a CU Boulder professor. "
-            "Returns rating, difficulty, percentage of students who would "
-            "take the professor again, and number of ratings."
-        ),
+        "description": _build_description(),
         "parameters": {
             "type": "object",
             "properties": {
@@ -120,14 +135,17 @@ async def execute(
     name: str = "",
     professor_name: str,
 ) -> Dict[str, Any]:
-    """Query RateMyProfessors for a CU Boulder professor by name.
+    """Query RateMyProfessors for a professor at the configured school by name.
 
     The 'name' kwarg is passed by the dispatch loop and ignored here.
+    Results are strictly limited to the configured ``school_id`` (no
+    cross-school fallback).
     Returns {"professors": [...], "query": {...}}.
     """
     tool_cfg = get_settings().tools.get_tool_config("rate_my_professor")
     school_id = tool_cfg.get("school_id")
     if not school_id:
+        # The config validator should prevent this; kept as defense-in-depth.
         logger.error("No school_id configured for rate_my_professor")
         return {
             "professors": [],
@@ -155,7 +173,7 @@ async def execute(
                 "query": {
                     "text": professor_name,
                     "schoolID": school_id,
-                    "fallback": True,
+                    "fallback": False,
                     "departmentID": None,
                 },
             }
@@ -185,8 +203,13 @@ async def execute(
 
             for edge in teachers.get("edges", []):
                 node = edge.get("node", {})
-                if node:
-                    professors.append(_node_to_professor(node))
+                if not node:
+                    continue
+                # Strict: only keep professors from the configured school.
+                node_school_id = (node.get("school") or {}).get("id")
+                if node_school_id and node_school_id != school_id:
+                    continue
+                professors.append(_node_to_professor(node))
 
     except Exception as exc:
         logger.error("RMP API error for %s: %s", professor_name, exc)
