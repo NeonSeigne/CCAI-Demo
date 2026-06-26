@@ -15,6 +15,7 @@ app:
   subtitle: "AI-Powered Guidance for Your College Journey"
   primary_color: "#2563EB"
   logo_icon: "GraduationCap"
+  institution: "University of Colorado Boulder"
   footer_text: "© 2025 University of Colorado Boulder. All rights reserved."
 
 homepage:
@@ -437,3 +438,12 @@ llm:
 rag:
   embedding_model: "all-MiniLM-L6-v2"
   chroma_collection: "undergrad_advisor_documents"
+
+tools:
+  search_courses:
+    enabled: true
+    max_results: 20   # Limit the number of results returned by the search_courses tool
+  rate_my_professor:
+    enabled: true
+    # Run `python3 scripts/rmp_school_lookup.py "<school name>"` to find this value
+    school_id: "U2Nob29sLTEwODc="   # CU Boulder school ID

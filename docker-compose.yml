@@ -12,7 +12,7 @@ services:
       - database
     environment:
       MONGODB_CONNECTION_STRING: "mongodb://database:27017"
-      MONGODB_DATABASE: phd_advisor
+      MONGODB_DATABASE: undergrad_advisor
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-CHANGEME-by-overriding-in-dot-env-file}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-?}
       VLLM_API_KEY: ${VLLM_API_KEY:-}
@@ -20,7 +20,7 @@ services:
       BRAINFORGE_PASSWORD: ${BRAINFORGE_PASSWORD:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       GEMINI_MODEL: gemini-2.5-flash
-      CONFIG_PATH: ${CONFIG_PATH:-/ccai/phd_config.yaml}
+      CONFIG_PATH: ${CONFIG_PATH:-/ccai/undergrad_config.yaml}
   frontend:
     build:
       context: .

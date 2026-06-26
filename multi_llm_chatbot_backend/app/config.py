@@ -53,6 +53,7 @@ class AppConfig(BaseModel):
     title: str = "Advisor Canvas"
     subtitle: str = "AI-Powered Guidance"
     primary_color: str = "#7C3AED"
+    institution: str = ""
     footer_text: str = ""
 
 

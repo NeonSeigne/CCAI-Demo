@@ -438,6 +438,27 @@ phd-advisor-panel/
 3. Restart the backend server
 4. The new persona will be available in chat
 
+### Adding a New School
+
+The app is config-driven and uses a per-deployment model: each school is a single
+config file selected at startup via the `CONFIG_PATH` environment variable. Adding a
+school requires no code changes.
+
+1. **Create a config file** by copying an existing one (e.g. `undergrad_config.yaml`)
+   to `<school>_config.yaml` at the repo root.
+2. **Edit the branding** under `app:` -- `title`, `institution` (drives the footer
+   copyright line), `primary_color`, plus the `homepage`, `login`, and `chat_page`
+   text. Define advisors either inline under `personas.items` or in a directory
+   referenced by `personas.personas_dir`.
+3. **Use unique storage** so schools don't share data: set a distinct
+   `mongodb.database_name` and `rag.chroma_collection`.
+4. **Point the app at it** by setting `CONFIG_PATH=/ccai/<school>_config.yaml`
+   (e.g. in `docker-compose.yml` or your environment) and restart. Run a separate
+   instance/stack per school.
+
+> Note: course-search (CU FOSE) and Rate My Professor tools are still CU-specific
+> and are not yet generalized per school.
+
 ### Extending Document Support
 
 1. Add new file type to `app/utils/document_extractor.py`

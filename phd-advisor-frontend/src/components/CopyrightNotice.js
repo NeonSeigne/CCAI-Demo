@@ -1,6 +1,9 @@
 import React from 'react';
+import { useAppConfig } from '../contexts/AppConfigContext';
 
 const CopyrightNotice = ({ variant = 'footer', className = '' }) => {
+  const { config } = useAppConfig();
+  const institution = config?.app?.institution;
   const isSidebar = variant === 'sidebar';
   const textClass = isSidebar ? 'sidebar-copyright-text' : 'footer-text';
   const patentsClass = isSidebar ? 'sidebar-patents-link' : 'footer-patents-link';
@@ -22,7 +25,7 @@ const CopyrightNotice = ({ variant = 'footer', className = '' }) => {
           Neon.ai
         </a>
       )}
-      , {'\u00A9 '}University of Colorado Boulder. All rights reserved.{' '}
+      {institution ? `, \u00A9 ${institution}. All rights reserved. ` : ' '}
       <a
         href="https://www.neon.ai/contact"
         target="_blank"

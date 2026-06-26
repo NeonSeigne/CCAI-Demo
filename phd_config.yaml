@@ -14,6 +14,7 @@ app:
   title: "PhD Advisory Panel"
   subtitle: "AI-Powered Academic Guidance"
   primary_color: "#7C3AED"
+  institution: "University of Colorado Boulder"
   footer_text: "© 2025 University of Colorado Boulder. All rights reserved."
 
 homepage:
