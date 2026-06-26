@@ -889,7 +889,6 @@ const handleNewChat = async (sessionId = null) => {
         onMobileToggle={setIsMobileMenuOpen}
         onNavigateToCanvas={onNavigateToCanvas}
         refreshTrigger={sidebarRefreshTrigger}
-        onOpenSettings={() => setIsSettingsOpen(true)}
       />
       
       <div className={`main-chat-area ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -943,6 +942,15 @@ const handleNewChat = async (sessionId = null) => {
                   title="Open user guide"
                 >
                   <HelpCircle />
+                </button>
+
+                {/* Settings */}
+                <button
+                  className="header-help-btn"
+                  onClick={() => setIsSettingsOpen(true)}
+                  title="Settings"
+                >
+                  <Settings2 />
                 </button>
               </div>
             </div>

@@ -20,6 +20,8 @@ services:
       BRAINFORGE_PASSWORD: ${BRAINFORGE_PASSWORD:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       GEMINI_MODEL: gemini-2.5-flash
+      # Available configs: /ccai/undergrad_config.yaml, /ccai/phd_config.yaml,
+      # /ccai/wisconsin_config.yaml. Override via CONFIG_PATH in your .env.
       CONFIG_PATH: ${CONFIG_PATH:-/ccai/undergrad_config.yaml}
   frontend:
     build:

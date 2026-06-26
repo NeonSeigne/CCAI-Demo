@@ -5,6 +5,11 @@ import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
 
+const SCHOOLS = [
+  { id: 'cu-boulder', name: 'CU Boulder' },
+  { id: 'uw-madison', name: 'UW-Madison' },
+];
+
 const overlay = {
   position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
@@ -104,6 +109,7 @@ const SettingsModal = ({
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
+  const [school, setSchool] = useState(() => localStorage.getItem('selectedSchool') || 'cu-boulder');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -348,6 +354,22 @@ const SettingsModal = ({
                   <label style={label}>Last Name</label>
                   <input style={input} value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={label}>School</label>
+                <select
+                  style={input}
+                  value={school}
+                  onChange={(e) => {
+                    setSchool(e.target.value);
+                    localStorage.setItem('selectedSchool', e.target.value);
+                    setMessage({ type: 'success', text: 'School updated.' });
+                  }}
+                >
+                  {SCHOOLS.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <button type="submit" style={primaryBtn} disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Save Changes'}

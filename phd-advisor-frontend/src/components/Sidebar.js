@@ -9,7 +9,6 @@ import {
   Edit3,
   LogOut,
   User,
-  Settings,
   PanelLeft,
   FileText
 } from 'lucide-react';
@@ -33,7 +32,6 @@ const Sidebar = ({
   onNavigateToCanvas,
   refreshTrigger,
   onCurrentSessionDeleted,
-  onOpenSettings,
 }) => {
   const { config } = useAppConfig();
   const canvasLabel = config?.app?.title ? `${config.app.title} Canvas` : 'Canvas';
@@ -244,16 +242,6 @@ const Sidebar = ({
                     
                     {showUserMenu && (
                       <div className="user-menu">
-                        <button
-                          className="user-menu-item"
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            onOpenSettings?.();
-                          }}
-                        >
-                          <Settings size={16} />
-                          <span>Settings</span>
-                        </button>
                         <button className="user-menu-item sign-out" onClick={onSignOut}>
                           <LogOut size={16} />
                           <span>Sign Out</span>
