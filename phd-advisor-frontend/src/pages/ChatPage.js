@@ -475,6 +475,11 @@ const handleNewChat = async (sessionId = null) => {
     setGroupViews(prev => ({ ...prev, [responseGroupId]: next }));
   };
 
+  const handleCourseSelect = (identifier) => {
+    const course = (identifier || '').trim();
+    if (course) handleSendMessage(`Tell me about ${course}`);
+  };
+
   const handleSendMessage = async (inputMessage) => {
     if (!inputMessage.trim()) return;
 
@@ -558,6 +563,7 @@ const handleNewChat = async (sessionId = null) => {
                 responseGroupId,
                 is_aggregated: d.is_aggregated || false,
                 source_personas: d.source_personas || null,
+                visuals: d.visuals || null,
               };
               collectedAdvisorResponses.push(msg);
               setThinkingAdvisors(prev => prev.filter(a => a !== d.persona_id));
@@ -1034,6 +1040,7 @@ const handleNewChat = async (sessionId = null) => {
                                 onReply={handleReplyToMessage}
                                 onExpand={handleExpandMessage}
                                 onClick={handleMessageClick}
+                                onCourseSelect={handleCourseSelect}
                               />
                             )}
                           </div>

@@ -79,7 +79,12 @@ class ImprovedChatOrchestrator:
             "how many total results were found and suggest they narrow their "
             "search for more specific results. "
             "Format your responses using markdown. Use bullet points "
-            "to present structured data like course listings or professor ratings."
+            "to present structured data like course listings or professor ratings. "
+            "Whenever you mention a specific UW-Madison course, render its "
+            "identifier as a markdown link using the 'course:' scheme, e.g. "
+            "[COMP SCI 300](course:COMP SCI 300) or [MATH 240](course:MATH 240). "
+            "Use the real course identifier (subject and number) in both the link "
+            "text and the target."
         )
 
         return await effective_llm.generate_with_tools(

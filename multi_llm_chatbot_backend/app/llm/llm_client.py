@@ -21,6 +21,10 @@ class ToolCallResult:
     tool_name: Optional[str] = None
     tool_args: dict = field(default_factory=dict)
     tool_calls_made: List["ToolCallInfo"] = field(default_factory=list)
+    # Raw structured results from each tool call, in execution order. Each entry
+    # is ``{"name": <tool_name>, "result": <tool_result>}``. Preserved so the API
+    # layer can render structured visuals (charts, trees) instead of only prose.
+    tool_outputs: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class LLMClient(ABC):

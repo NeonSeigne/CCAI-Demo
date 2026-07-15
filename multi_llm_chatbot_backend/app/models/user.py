@@ -125,6 +125,8 @@ class PersistMessage(BaseModel):
     response_group_id: Optional[str] = None
     is_aggregated: Optional[bool] = None
     source_personas: Optional[List[str]] = None
+    # Structured visual specs (e.g. GPA chart, prereq tree) rendered alongside content
+    visuals: Optional[List[Dict[str, Any]]] = None
 
     @model_validator(mode='after')
     def check_type_constraints(self):

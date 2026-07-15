@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useTheme } from '../contexts/ThemeContext';
+import VisualBlock from './visuals/VisualBlock';
+import CourseChip from './visuals/CourseChip';
 const stripMarkdown = (md) => {
   if (!md) return '';
   return md
@@ -29,7 +31,8 @@ const MessageBubble = ({
   showReplyButton = false,
   inlineAvatar = false,
   userAvatarId,
-  userAvatarOptions
+  userAvatarOptions,
+  onCourseSelect
 }) => {
   const { isDark } = useTheme();
   const { allPersonas: advisors, getAllPersonaColors: getAdvisorColors } = useAppConfig();
@@ -148,6 +151,14 @@ const MessageBubble = ({
     // 3) Unicode bullets -> '-' (so GFM parses lists)
     processed = processed.replace(/^\s*[•●▪◦]\s+/gm, '- ');
 
+    // 3b) Percent-encode spaces inside course: link targets. CommonMark won't
+    // parse a link whose destination contains a raw space, so "[ECON 410]
+    // (course:ECON 410)" would otherwise render as literal text.
+    processed = processed.replace(
+      /\]\(course:([^)\n]+)\)/gi,
+      (_m, p1) => `](course:${p1.trim().replace(/ /g, '%20')})`
+    );
+
     // 4) Merge orphan numbered items: "1.\nText" => "1. Text"
     processed = processed.replace(/(^\s*(\d+)\.\s*$)\n^\s*(\S.*)$/gm, (_m, _a, num, next) => `${num}. ${next}`);
 
@@ -228,6 +239,21 @@ const MessageBubble = ({
       </li>
     ),
     
+    // Course links (course:<identifier>) render as clickable chips; all other
+    // links open normally in a new tab.
+    a: ({ href, children }) => {
+      if (typeof href === 'string' && href.toLowerCase().startsWith('course:')) {
+        const identifier = decodeURIComponent(href.slice('course:'.length)).trim();
+        const text = Array.isArray(children) ? children.join('') : (children || '');
+        return <CourseChip identifier={identifier || text} size="sm" onSelect={onCourseSelect} />;
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+          {children}
+        </a>
+      );
+    },
+
     // Inline code styling
     code: ({ inline, children }) => (
       inline ? (
@@ -394,10 +420,23 @@ const MessageBubble = ({
               components={markdownComponents}
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[]}
+              urlTransform={(url) =>
+                (typeof url === 'string' && url.toLowerCase().startsWith('course:'))
+                  ? url
+                  : defaultUrlTransform(url)
+              }
             >
               {preprocessMarkdown(message?.compact_markdown || message?.content || message?.text)}
             </ReactMarkdown>
           </div>
+
+          {Array.isArray(message?.visuals) && message.visuals.length > 0 && (
+            <div className="advisor-message-visuals">
+              {message.visuals.map((visual, idx) => (
+                <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} />
+              ))}
+            </div>
+          )}
           
           {showReplyButton && (
             <div className="message-actions">

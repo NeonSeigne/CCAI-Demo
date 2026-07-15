@@ -112,6 +112,7 @@ class ImprovedVllmClient(LLMClient):
         openai_tools = tool_definitions or []
 
         all_tool_calls: List[ToolCallInfo] = []
+        tool_outputs: List[Dict[str, Any]] = []
 
         try:
             for _round in range(self._MAX_TOOL_ROUNDS):
@@ -132,6 +133,7 @@ class ImprovedVllmClient(LLMClient):
                         tool_name=all_tool_calls[0].name if all_tool_calls else None,
                         tool_args=all_tool_calls[0].args if all_tool_calls else {},
                         tool_calls_made=all_tool_calls,
+                        tool_outputs=tool_outputs,
                     )
 
                 messages.append(choice.model_dump())
@@ -148,6 +150,7 @@ class ImprovedVllmClient(LLMClient):
                         logger.error("Tool %s failed: %s", fn_name, exc)
                         tool_result = {"error": str(exc)}
 
+                    tool_outputs.append({"name": fn_name, "result": tool_result})
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
@@ -164,6 +167,7 @@ class ImprovedVllmClient(LLMClient):
                 tool_name=all_tool_calls[0].name if all_tool_calls else None,
                 tool_args=all_tool_calls[0].args if all_tool_calls else {},
                 tool_calls_made=all_tool_calls,
+                tool_outputs=tool_outputs,
             )
 
         except APIConnectionError:
