@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-app);
+  color: var(--ink);
+  background: var(--paper-sunken);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+@layer components {
+  .nav-pill {
+    @apply bg-paper rounded-full border border-border-primary shadow-soft;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent-primary px-5 py-2.5 text-sm font-semibold text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .surface-card,
+  .glass-card {
+    @apply rounded-2xl border border-border-primary bg-paper shadow-soft;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .pill-active {
+    background: #f0f0ee;
+    color: var(--ink);
+    border-radius: 9999px;
+  }
+
+  .accent-dot {
+    @apply inline-block h-2 w-2 shrink-0 rounded-full;
+  }
+}

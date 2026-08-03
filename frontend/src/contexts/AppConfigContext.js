@@ -1,0 +1,343 @@
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import * as LucideIcons from 'lucide-react';
+
+const AppConfigContext = createContext(null);
+
+const SYNTHETIC_PERSONAS = {
+  aggregated: {
+    name: 'Orchestrator',
+    role: 'Synthesized Response',
+    description: 'A single combined response merging all advisor perspectives.',
+    color: 'var(--accent-blue)',
+    bgColor: 'var(--paper-sunken)',
+    darkColor: 'var(--accent-blue)',
+    darkBgColor: 'var(--paper-sunken)',
+    icon: LucideIcons.User,
+  },
+};
+
+const ADVISOR_PREFS_URL = `${process.env.REACT_APP_API_URL}/api/me/advisor-preferences`;
+
+// The frontend tracks disabled advisors as an object keyed by id
+// ({ critic: true }) for fast lookups; the backend speaks a flat string[].
+// These two helpers translate between the shapes. A null/undefined array
+// from the backend means "no preferences set" → nothing disabled.
+const disabledObjToArray = (obj) =>
+  Object.keys(obj || {}).filter((id) => obj[id]);
+const disabledArrayToObj = (arr) =>
+  Array.isArray(arr)
+    ? arr.reduce((acc, id) => { acc[id] = true; return acc; }, {})
+    : {};
+
+const getAuthToken = () => {
+  try { return localStorage.getItem('authToken'); } catch { return null; }
+};
+
+/**
+ * Resolve a Lucide icon name string (e.g. "BookOpen") to the actual React
+ * component.  Falls back to HelpCircle if the name isn't found.
+ */
+const resolveIcon = (iconName) => {
+  if (!iconName) return LucideIcons.User;
+  return LucideIcons[iconName] || LucideIcons.User;
+};
+
+/**
+ * Build the advisors lookup object (keyed by persona id) from the config
+ * personas array, mirroring the shape that components already expect.
+ */
+const buildAdvisors = (personaItems, overrides = {}) => {
+  if (!personaItems || !Array.isArray(personaItems)) return {};
+  const advisors = {};
+  for (const p of personaItems) {
+    const image = p.image || '';
+    const isIcon = image.startsWith('icon://');
+    const rawImageUrl = isIcon ? null : image || null;
+    const configImageUrl = rawImageUrl && rawImageUrl.startsWith('/')
+      ? `${process.env.REACT_APP_API_URL}${rawImageUrl}`
+      : rawImageUrl;
+
+    // Override takes precedence if the advisor has one set.
+    // Override = truthy URL → use it. Override = '' → force default icon.
+    // No override key → fall back to config image.
+    const hasOverride = Object.prototype.hasOwnProperty.call(overrides, p.id);
+    const overrideValue = overrides[p.id];
+    const avatarUrl = hasOverride ? (overrideValue || null) : configImageUrl;
+
+    advisors[p.id] = {
+      name: p.name,
+      role: p.role || '',
+      description: p.summary || '',
+      color: p.color || '#6B7280',
+      bgColor: p.bg_color || '#F3F4F6',
+      darkColor: p.dark_color || '#9CA3AF',
+      darkBgColor: p.dark_bg_color || '#374151',
+      icon: resolveIcon(isIcon ? image.replace('icon://', '') : null),
+      avatarUrl,
+      defaultBackend: p.default_backend || null,
+      backendLocked: Boolean(p.brainforge || p.backend_locked),
+    };
+  }
+  return advisors;
+};
+
+/**
+ * Derive display colors for a given advisor.
+ * Persona color is for accent dots / small badges only — chrome stays monochrome.
+ */
+const buildGetAdvisorColors = (advisors) => (advisorId, _isDark = false) => {
+  const advisor = advisors[advisorId];
+  if (!advisor) {
+    return {
+      color: 'var(--ink-soft)',
+      bgColor: 'var(--paper-sunken)',
+      textColor: 'var(--ink)',
+      dotColor: 'var(--ink-soft)',
+    };
+  }
+  return {
+    color: advisor.color,
+    bgColor: 'var(--paper-sunken)',
+    textColor: 'var(--ink)',
+    dotColor: advisor.color,
+  };
+};
+
+export const useAppConfig = () => {
+  const ctx = useContext(AppConfigContext);
+  if (!ctx) {
+    throw new Error('useAppConfig must be used within an AppConfigProvider');
+  }
+  return ctx;
+};
+
+export const AppConfigProvider = ({ children }) => {
+  const [config, setConfig] = useState(null);
+  const [personaItems, setPersonaItems] = useState([]);
+  const [advisors, setAdvisors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [avatarOverrides, setAvatarOverrides] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('advisorAvatarOverrides') || '{}'); }
+    catch { return {}; }
+  });
+  const [myCustomAvatars, setMyCustomAvatars] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('myCustomAvatars') || '[]'); }
+    catch { return []; }
+  });
+  // Per-user enable/disable for each advisor. Missing key = enabled by default
+  // so new advisors light up automatically when added on the backend.
+  const [disabledAdvisors, setDisabledAdvisors] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('disabledAdvisors') || '{}'); }
+    catch { return {}; }
+  });
+  // Advisor ids the backend considers selectable (system-level allow list).
+  const [availableAdvisors, setAvailableAdvisors] = useState([]);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/config`);
+        if (!response.ok) throw new Error(`Config fetch failed: ${response.status}`);
+        const data = await response.json();
+        setConfig(data);
+        setPersonaItems(data.personas?.items || []);
+      } catch (err) {
+        console.error('Failed to load app config:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  useEffect(() => {
+    const built = buildAdvisors(personaItems, avatarOverrides);
+    setAdvisors(built);
+  }, [personaItems, avatarOverrides]);
+
+  const setAdvisorAvatar = (advisorId, url) => {
+    const next = { ...avatarOverrides, [advisorId]: url };
+    setAvatarOverrides(next);
+    localStorage.setItem('advisorAvatarOverrides', JSON.stringify(next));
+  };
+
+  const addMyAvatar = (url) => {
+    if (myCustomAvatars.includes(url)) return;
+    const next = [url, ...myCustomAvatars];
+    setMyCustomAvatars(next);
+    localStorage.setItem('myCustomAvatars', JSON.stringify(next));
+  };
+
+  // Advisor enable/disable. Disabled advisors are filtered out of orchestrator
+  // calls (server-side, per user) and visually dimmed in the UI.
+  const isAdvisorEnabled = (id) => !disabledAdvisors[id];
+
+  // Apply a disabled map locally + cache it. localStorage keeps the last known
+  // state so the UI is correct instantly on reload before the backend answers.
+  const applyDisabled = (obj) => {
+    setDisabledAdvisors(obj);
+    try { localStorage.setItem('disabledAdvisors', JSON.stringify(obj)); }
+    catch { /* storage full / unavailable — non-fatal */ }
+  };
+
+  // Reconcile local state with whatever the backend returns (it is the source
+  // of truth; it also distinguishes "no prefs / null" from an explicit list).
+  const applyServerResponse = (data) => {
+    applyDisabled(disabledArrayToObj(data?.disabled_advisors));
+    if (Array.isArray(data?.available_advisors)) {
+      setAvailableAdvisors(data.available_advisors);
+    }
+  };
+
+  // Pull the authenticated user's preferences from the backend.
+  const hydrateAdvisorPreferences = async () => {
+    const token = getAuthToken();
+    if (!token) return;
+    try {
+      const res = await fetch(ADVISOR_PREFS_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        console.error('Failed to load advisor preferences:', res.status);
+        return;
+      }
+      applyServerResponse(await res.json());
+    } catch (err) {
+      // Offline / network error — keep the cached localStorage state.
+      console.error('Failed to load advisor preferences:', err);
+    }
+  };
+
+  // Persist the full disabled set to the backend. We send the whole array
+  // (not a delta) so the PUT is idempotent and the server stays authoritative.
+  const persistAdvisorPreferences = async (obj) => {
+    const token = getAuthToken();
+    if (!token) return;
+    try {
+      const res = await fetch(ADVISOR_PREFS_URL, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ disabled_advisors: disabledObjToArray(obj) }),
+      });
+      if (!res.ok) {
+        console.error('Failed to save advisor preferences:', res.status);
+        return;
+      }
+      applyServerResponse(await res.json());
+    } catch (err) {
+      // Optimistic local state is already applied; surface the failure only.
+      console.error('Failed to save advisor preferences:', err);
+    }
+  };
+
+  const setAdvisorEnabled = (id, enabled) => {
+    const next = { ...disabledAdvisors };
+    if (enabled) delete next[id];
+    else next[id] = true;
+    applyDisabled(next);            // optimistic
+    persistAdvisorPreferences(next); // sync (reconciles on response)
+  };
+
+  // Bulk enable/disable in one shot — a single state update and one PUT,
+  // instead of N racing requests when toggling every advisor.
+  const setAllAdvisorsEnabled = (enabled) => {
+    const next = enabled
+      ? {}
+      : Object.keys(advisors || {}).reduce(
+          (acc, id) => { acc[id] = true; return acc; }, {});
+    applyDisabled(next);
+    persistAdvisorPreferences(next);
+  };
+
+  // Load preferences once on mount when a session token is already present
+  // (returning user). Fresh logins reconcile when the Settings modal opens.
+  useEffect(() => {
+    hydrateAdvisorPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Inject the primary colour as a CSS custom property on <html> so it is
+  // available everywhere without prop-drilling.
+  useEffect(() => {
+    if (config?.app?.primary_color) {
+      document.documentElement.style.setProperty(
+        '--accent-primary',
+        config.app.primary_color
+      );
+    }
+    // Also update the <title> tag dynamically
+    if (config?.app?.title) {
+      document.title = config.app.title;
+    }
+  }, [config]);
+
+  const getAdvisorColors = buildGetAdvisorColors(advisors);
+  const allPersonas = useMemo(() => ({ ...advisors, ...SYNTHETIC_PERSONAS }), [advisors]);
+  const getAllPersonaColors = buildGetAdvisorColors(allPersonas);
+
+  const value = {
+    config,
+    advisors,
+    allPersonas,
+    getAdvisorColors,
+    getAllPersonaColors,
+    resolveIcon,
+    loading,
+    error,
+    setAdvisorAvatar,
+    addMyAvatar,
+    myCustomAvatars,
+    disabledAdvisors,
+    availableAdvisors,
+    isAdvisorEnabled,
+    setAdvisorEnabled,
+    setAllAdvisorsEnabled,
+    hydrateAdvisorPreferences,
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontFamily: 'system-ui, sans-serif',
+        color: '#6B7280',
+      }}>
+        Loading configuration…
+      </div>
+    );
+  }
+
+  if (error && !config) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontFamily: 'system-ui, sans-serif',
+        color: '#EF4444',
+        gap: '8px',
+      }}>
+        <p>Failed to load application configuration.</p>
+        <p style={{ fontSize: '14px', color: '#6B7280' }}>{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <AppConfigContext.Provider value={value}>
+      {children}
+    </AppConfigContext.Provider>
+  );
+};
+
+export default AppConfigContext;

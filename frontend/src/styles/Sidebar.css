@@ -1,0 +1,82 @@
+/* MUI owns sidebar structure; these selectors preserve shared/tour hooks. */
+.sidebar {
+  background: var(--paper);
+  border-color: var(--line);
+  font-size: 12px;
+}
+
+.sidebar .MuiTypography-root,
+.sidebar .MuiListItemText-primary,
+.sidebar .MuiButtonBase-root {
+  font-size: 12px;
+}
+
+.sidebar .MuiTypography-caption,
+.sidebar .MuiListItemText-secondary {
+  font-size: 10px;
+}
+
+.sidebar .MuiTypography-overline {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.sidebar .MuiInputBase-input {
+  font-size: 12px;
+}
+
+.sidebar-neon-link {
+  font-size: 12px;
+}
+
+.sidebar-scroll-region {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+  overscroll-behavior: contain;
+}
+
+.sidebar-command-area,
+.sidebar-account-footer {
+  background: var(--paper);
+}
+
+.advisor-thinking-dot {
+  animation: advisor-thinking-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes advisor-thinking-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.session-menu-button {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.session-item:hover .session-menu-button,
+.session-menu-button:focus-visible {
+  opacity: 1;
+}
+
+.sidebar-neon-link {
+  transition: opacity 150ms ease;
+}
+
+.sidebar-neon-link:hover {
+  opacity: 0.72;
+}
+
+@media (max-width: 768px) {
+  .session-menu-button {
+    opacity: 1;
+  }
+}
