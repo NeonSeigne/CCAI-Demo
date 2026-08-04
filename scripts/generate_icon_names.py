@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Fetch valid Lucide icon names by introspecting the installed lucide-react package.
 
-Requires node_modules to be installed in phd-advisor-frontend/:
+Requires node_modules to be installed in frontend/:
 
-    cd phd-advisor-frontend && npm install
+    cd frontend && npm install
     python3 scripts/generate_icon_names.py
 """
 
@@ -13,11 +13,11 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_JSON = REPO_ROOT / "phd-advisor-frontend" / "package.json"
-FRONTEND_DIR = REPO_ROOT / "phd-advisor-frontend"
+PACKAGE_JSON = REPO_ROOT / "frontend" / "package.json"
+FRONTEND_DIR = REPO_ROOT / "frontend"
 OUTPUT_FILE = (
     REPO_ROOT
-    / "multi_llm_chatbot_backend"
+    / "backend"
     / "app"
     / "utils"
     / "_lucide_icon_names.json"
@@ -38,7 +38,7 @@ def main() -> int:
     if not node_modules.exists():
         print(
             f"Error: lucide-react not found at {node_modules}\n"
-            f"Run 'cd phd-advisor-frontend && npm install' first.",
+            f"Run 'cd frontend && npm install' first.",
             file=sys.stderr,
         )
         return 1

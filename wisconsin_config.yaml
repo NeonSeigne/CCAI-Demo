@@ -462,7 +462,7 @@ tools:
 
   # ---- UW-Madison SQLite-backed course tools -------------------------------
   # All four read the same committed snapshot. db_path is resolved relative to
-  # the backend root (multi_llm_chatbot_backend/) when not absolute.
+  # the backend root (backend/) when not absolute.
   uw_search_courses:
     enabled: true
     db_path: "data/uw_courses.db"

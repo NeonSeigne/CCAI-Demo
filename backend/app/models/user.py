@@ -181,6 +181,7 @@ class ChatSessionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     message_count: int
+    document_count: int = 0
 
 class Token(BaseModel):
     access_token: str

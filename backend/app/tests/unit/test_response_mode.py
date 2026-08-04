@@ -89,7 +89,7 @@ class TestSynthesizeAggregatedResponse(unittest.TestCase):
         self.assertEqual(result["persona_id"], "aggregated")
         self.assertTrue(result["is_aggregated"])
         self.assertEqual(result["source_personas"], ["mentor", "methodologist"])
-        self.assertIn("### Thought", result["response"])
+        self.assertEqual(result["response"], "A unified answer.")
         self.assertEqual(result["context_quality"], "synthesized")
 
     def test_aggregates_document_usage(self):
@@ -145,7 +145,7 @@ class TestSynthesizeAggregatedResponse(unittest.TestCase):
         ))
         override_llm.generate.assert_called_once()
         default_llm.generate.assert_not_called()
-        self.assertIn("### Thought", result["response"])
+        self.assertEqual(result["response"], "Override answer.")
 
     def test_respects_response_length(self):
         orch, mock_llm = self._make_orchestrator("Short.")
@@ -156,6 +156,20 @@ class TestSynthesizeAggregatedResponse(unittest.TestCase):
         ))
         call_kwargs = mock_llm.generate.call_args.kwargs
         self.assertEqual(call_kwargs["max_tokens"], 800)
+
+    def test_rich_markdown_passes_through(self):
+        rich = (
+            "Comparing the two options:\n\n"
+            "| Path | Cost |\n| --- | --- |\n| A | $O(n)$ |\n\n"
+            "$$\\sum_{i=1}^{n} x_i$$\n\n"
+            "```python\n# • not a bullet\nprint(1)\n```"
+        )
+        orch, _ = self._make_orchestrator(rich)
+        result = _run(orch.synthesize_aggregated_response(
+            user_input="question",
+            panel_results=SAMPLE_PANEL_RESULTS,
+        ))
+        self.assertEqual(result["response"], rich)
 
     def test_persona_name_is_set(self):
         orch, _ = self._make_orchestrator("Answer.")

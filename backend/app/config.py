@@ -53,6 +53,7 @@ class AppConfig(BaseModel):
     title: str = "Advisor Canvas"
     subtitle: str = "AI-Powered Guidance"
     primary_color: str = "#7C3AED"
+    logo_icon: str = "GraduationCap"
     institution: str = ""
     footer_text: str = ""
 
@@ -77,11 +78,13 @@ class LoginConfig(BaseModel):
 
 
 class ExampleCategory(_IconValidatorMixin):
+    id: Optional[str] = None
     title: str
     icon: str = "BookOpen"
     color: str = "#3B82F6"
     bg_color: str = "#EFF6FF"
     suggestions: List[str] = []
+    advisor_ids: List[str] = []
 
 
 class ChatPageConfig(BaseModel):
@@ -93,6 +96,11 @@ class OnboardingConfig(BaseModel):
     features: List[FeatureConfig] = []
     tour_title: str = ""
     tour_body: str = ""
+
+
+class CanvasConfig(BaseModel):
+    tour_title: str = "Academic Progress Canvas"
+    tour_body: str = "Review your extracted insights, degree roadmaps, and academic goals"
 
 
 class PersonaItemConfig(_IconValidatorMixin):
@@ -349,6 +357,7 @@ class AppSettings(BaseModel):
     login: LoginConfig = LoginConfig()
     chat_page: ChatPageConfig = ChatPageConfig()
     onboarding: OnboardingConfig = OnboardingConfig()
+    canvas: CanvasConfig = CanvasConfig()
     personas: PersonasConfig = PersonasConfig()
     orchestrator: OrchestratorConfig = OrchestratorConfig()
     auth: AuthConfig = AuthConfig()
@@ -377,6 +386,7 @@ class AppSettings(BaseModel):
             "login": self.login.dict(),
             "chat_page": self.chat_page.dict(),
             "onboarding": self.onboarding.dict(),
+            "canvas": self.canvas.dict(),
             "personas": {
                 "items": [p.to_frontend_config() for p in persona_items],
             },

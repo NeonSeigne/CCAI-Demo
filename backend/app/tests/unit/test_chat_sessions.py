@@ -131,6 +131,7 @@ class TestCreateChatSession(unittest.TestCase):
         self.assertEqual(result["id"], str(FAKE_SESSION_ID))
         self.assertEqual(result["title"], "My Chat")
         self.assertEqual(result["message_count"], 0)
+        self.assertEqual(result["document_count"], 0)
         self.assertIn("created_at", result)
         self.assertIn("updated_at", result)
 
@@ -169,6 +170,26 @@ class TestGetUserChatSessions(unittest.TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].title, "Test Chat")
         self.assertEqual(result[0].message_count, 1)
+        self.assertEqual(result[0].document_count, 0)
+
+    def test_counts_document_upload_messages(self, mock_get_db):
+        db = _mock_db()
+        mock_get_db.return_value = db
+
+        session_doc = _make_session_doc(messages=[
+            {"type": "user", "content": "hello"},
+            {"type": "document_upload", "content": "uploaded resume.pdf"},
+            {"type": "document_upload", "content": "uploaded transcript.pdf"},
+            {"type": "advisor", "content": "looks good"},
+        ])
+        db.chat_sessions.find.return_value = _make_find_cursor([session_doc])
+
+        user = _make_fake_user()
+        result = asyncio.run(get_user_chat_sessions(current_user=user))
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].message_count, 4)
+        self.assertEqual(result[0].document_count, 2)
 
     def test_returns_empty_list_when_no_sessions(self, mock_get_db):
         db = _mock_db()

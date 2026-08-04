@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Any
-from app.models.persona import Persona, COMPACT_MARKDOWN_V1, STRUCTURE_HINTS, _ensure_compact_shape
+from app.models.persona import Persona, RESPONSE_FORMAT_V2, STRUCTURE_HINTS, tidy_markdown
 from app.core.session_manager import ConversationContext, get_session_manager
 from app.core.context_manager import get_context_manager
 from app.core.rag_manager import get_rag_manager
@@ -84,7 +84,12 @@ class ImprovedChatOrchestrator:
             "identifier as a markdown link using the 'course:' scheme, e.g. "
             "[COMP SCI 300](course:COMP SCI 300) or [MATH 240](course:MATH 240). "
             "Use the real course identifier (subject and number) in both the link "
-            "text and the target."
+            "text and the target. "
+            "When the user asks about course GPA, completion/A rates, class size, "
+            "grade distribution, historical grade trends, schedules/sections, "
+            "instructors, or prerequisites, call the matching UW course tool "
+            "(uw_course_grades, uw_course_sections, or uw_prerequisites). "
+            "Those tool calls attach interactive course cards inline in chat."
         )
 
         return await effective_llm.generate_with_tools(
@@ -530,7 +535,7 @@ class ImprovedChatOrchestrator:
             "- Do NOT list or label the individual perspectives.\n"
             "- Resolve contradictions by noting the trade-off briefly.\n"
             "- Keep the tone warm, clear, and actionable.\n\n"
-            f"{COMPACT_MARKDOWN_V1}\n\n"
+            f"{RESPONSE_FORMAT_V2}\n\n"
             f"{structure_hint}"
         )
 
@@ -554,7 +559,7 @@ class ImprovedChatOrchestrator:
             if not stripped:
                 logger.warning("Synthesis LLM returned empty response")
                 return None
-            content = _ensure_compact_shape(stripped, response_length)
+            content = tidy_markdown(stripped)
 
             return {
                 "persona_id": "aggregated",
@@ -858,7 +863,7 @@ When analyzing the document context:
     
     def _is_valid_response(self, response: str, persona_id: str) -> bool:
         """Validate response quality"""
-        if len(response) < 10 or len(response) > 5000:
+        if len(response) < 10 or len(response) > 20000:
             return False
         
         # Check for AI confusion indicators

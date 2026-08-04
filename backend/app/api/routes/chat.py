@@ -16,7 +16,10 @@ from app.core.auth import get_current_active_user
 from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
 from app.core.database import get_database
-from app.core.persona_filter import get_available_persona_ids
+from app.core.persona_filter import (
+    get_available_persona_ids,
+    get_requested_persona_ids,
+)
 from app.core.session_manager import get_session_manager
 from app.models.user import PersistMessage, ReplyToRef, User
 
@@ -234,12 +237,21 @@ async def chat_stream(
                 user_disabled=current_user.disabled_advisors,
             )
 
-            # Get personas most relevant to the current session
-            top_personas = await chat_orchestrator.get_top_personas(
-                session_id=sid,
-                allowed_ids=available,
-                llm_client=orchestrator_llm,
+            requested_personas = get_requested_persona_ids(
+                message.active_advisors,
+                available,
             )
+            if message.active_advisors:
+                # Starter prompts and per-message advisor selections are exact:
+                # preserve the frontend's order and do not rerank the panel.
+                top_personas = requested_personas
+            else:
+                # Unmapped/manual messages retain automatic relevance routing.
+                top_personas = await chat_orchestrator.get_top_personas(
+                    session_id=sid,
+                    allowed_ids=available,
+                    llm_client=orchestrator_llm,
+                )
 
             # Guard against race condition where all selected advisors
             # become unavailable (e.g. service update) between preference

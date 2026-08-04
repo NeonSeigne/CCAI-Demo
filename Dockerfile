@@ -15,14 +15,14 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Python dependencies (cached unless requirements.txt changes) ----------
-WORKDIR /ccai/multi_llm_chatbot_backend
-COPY multi_llm_chatbot_backend/requirements.txt ./
+WORKDIR /ccai/backend
+COPY backend/requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --break-system-packages -r requirements.txt
 
 # ---- Node dependencies (cached unless package.json changes) ----------------
-WORKDIR /ccai/phd-advisor-frontend
-COPY phd-advisor-frontend/package.json phd-advisor-frontend/package-lock.json* ./
+WORKDIR /ccai/frontend
+COPY frontend/package.json frontend/package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
     npm install
 
@@ -36,10 +36,10 @@ FROM base AS backend
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg && \
     rm -rf /var/lib/apt/lists/*
-WORKDIR /ccai/multi_llm_chatbot_backend
+WORKDIR /ccai/backend
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # ---- Frontend target -------------------------------------------------------
 FROM base AS frontend
-WORKDIR /ccai/phd-advisor-frontend
+WORKDIR /ccai/frontend
 CMD [ "npm", "start" ]

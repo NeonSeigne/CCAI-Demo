@@ -23,6 +23,9 @@ services:
       # Available configs: /ccai/undergrad_config.yaml, /ccai/phd_config.yaml,
       # /ccai/wisconsin_config.yaml. Override via CONFIG_PATH in your .env.
       CONFIG_PATH: ${CONFIG_PATH:-/ccai/undergrad_config.yaml}
+      # Local-only auth bypass for the homepage "Developer mode" button.
+      # Set ENABLE_DEV_LOGIN=false (and REACT_APP_ENABLE_DEV_LOGIN=false) in real deployments.
+      ENABLE_DEV_LOGIN: ${ENABLE_DEV_LOGIN:-true}
   frontend:
     build:
       context: .
@@ -37,6 +40,7 @@ services:
     environment:
       REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
       REACT_APP_TESTING_ONBOARDING: ${REACT_APP_TESTING_ONBOARDING:-false}
+      REACT_APP_ENABLE_DEV_LOGIN: ${REACT_APP_ENABLE_DEV_LOGIN:-true}
   database:
     image: mongo:8.0
     volumes:

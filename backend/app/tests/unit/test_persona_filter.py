@@ -1,5 +1,8 @@
 import unittest
-from app.core.persona_filter import get_available_persona_ids
+from app.core.persona_filter import (
+    get_available_persona_ids,
+    get_requested_persona_ids,
+)
 
 ALL_IDS = ["pragmatist", "theorist", "methodologist", "mentor", "critic"]
 
@@ -55,3 +58,23 @@ class TestGetAvailablePersonaIds(unittest.TestCase):
         """An explicit empty whitelist means no advisors are allowed."""
         result = get_available_persona_ids(ALL_IDS, system_allowed=[])
         self.assertEqual(result, [])
+
+
+class TestGetRequestedPersonaIds(unittest.TestCase):
+
+    def test_preserves_requested_order(self):
+        result = get_requested_persona_ids(
+            ["critic", "pragmatist"],
+            ["pragmatist", "critic"],
+        )
+        self.assertEqual(result, ["critic", "pragmatist"])
+
+    def test_removes_unavailable_and_duplicate_ids(self):
+        result = get_requested_persona_ids(
+            ["critic", "missing", "critic", "mentor"],
+            ["critic"],
+        )
+        self.assertEqual(result, ["critic"])
+
+    def test_absent_request_returns_empty(self):
+        self.assertEqual(get_requested_persona_ids(None, ALL_IDS), [])

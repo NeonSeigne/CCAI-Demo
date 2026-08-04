@@ -21,10 +21,10 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# The ``app`` package lives under multi_llm_chatbot_backend/. Make it importable
+# The ``app`` package lives under backend/. Make it importable
 # whether this script is run from the repo root or inside the container.
 REPO_ROOT = Path(__file__).resolve().parents[1]
-BACKEND_DIR = REPO_ROOT / "multi_llm_chatbot_backend"
+BACKEND_DIR = REPO_ROOT / "backend"
 for candidate in (BACKEND_DIR, REPO_ROOT):
     if (candidate / "app").is_dir():
         sys.path.insert(0, str(candidate))

@@ -10,13 +10,13 @@ goal is that adding a new school requires only a new `<school>_config.yaml` and 
 
 ### Added
 - `app.institution` config field in the backend `AppConfig`
-  (`multi_llm_chatbot_backend/app/config.py`) so the school/institution name is
+  (`backend/app/config.py`) so the school/institution name is
   config-driven. It is exposed to the frontend automatically via
   `get_frontend_config()` (`app.dict()`).
 - "Adding a school" section in `README.md` documenting the per-deployment recipe.
 
 ### Changed
-- `phd-advisor-frontend/src/components/CopyrightNotice.js` now renders the
+- `frontend/src/components/CopyrightNotice.js` now renders the
   institution name from `config.app.institution` (via `useAppConfig`) instead of a
   hard-coded "University of Colorado Boulder". When `institution` is empty the
   school clause is omitted gracefully.
@@ -26,9 +26,9 @@ goal is that adding a new school requires only a new `<school>_config.yaml` and 
 
 ### Changed
 - `rate_my_professor` is now locked to a single school per deployment
-  (`multi_llm_chatbot_backend/app/tools/rate_my_professor.py`):
+  (`backend/app/tools/rate_my_professor.py`):
   - `school_id` is **required** whenever the tool is enabled. A new validator on
-    `ToolsConfig` in `multi_llm_chatbot_backend/app/config.py` makes the app fail
+    `ToolsConfig` in `backend/app/config.py` makes the app fail
     fast on startup if it is missing.
   - Results are strict to that school: the RMP query now uses `fallback: false`
     and any returned professor whose `school.id` does not match the configured
@@ -36,7 +36,7 @@ goal is that adding a new school requires only a new `<school>_config.yaml` and 
   - The tool description is built from `app.institution`, and the leftover
     hard-coded CU school number in `RMP_SEARCH_URL` plus CU-specific docstrings
     were removed.
-- `search_courses` (`multi_llm_chatbot_backend/app/tools/search_courses.py`) is
+- `search_courses` (`backend/app/tools/search_courses.py`) is
   explicitly marked CU Boulder / FOSE-only and now returns a graceful "unsupported"
   result for non-CU `catalog` values. Non-CU schools disable it via
   `tools.search_courses.enabled: false`.

@@ -65,7 +65,8 @@ async def create_chat_session(
             "title": session.title,
             "created_at": session.created_at,
             "updated_at": session.updated_at,
-            "message_count": 0
+            "message_count": 0,
+            "document_count": 0,
         }
         
     except Exception as e:
@@ -98,12 +99,18 @@ async def get_user_chat_sessions(
         
         sessions = []
         async for session_data in cursor:
+            messages = session_data.get("messages", [])
+            document_count = sum(
+                1 for msg in messages
+                if isinstance(msg, dict) and msg.get("type") == "document_upload"
+            )
             sessions.append(ChatSessionResponse(
                 id=str(session_data["_id"]),
                 title=session_data["title"],
                 created_at=session_data["created_at"],
                 updated_at=session_data["updated_at"],
-                message_count=len(session_data.get("messages", []))
+                message_count=len(messages),
+                document_count=document_count,
             ))
         
         return sessions

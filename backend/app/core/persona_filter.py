@@ -27,3 +27,23 @@ def get_available_persona_ids(
         ids = [pid for pid in ids if pid not in user_disabled]
 
     return ids
+
+
+def get_requested_persona_ids(
+    requested_ids: Optional[List[str]],
+    available_ids: List[str],
+) -> List[str]:
+    """Return requested personas that are available, in request order.
+
+    Duplicate and unknown IDs are discarded. An empty result lets callers
+    distinguish an unavailable explicit request from automatic selection.
+    """
+    if not requested_ids:
+        return []
+
+    available = set(available_ids)
+    selected: List[str] = []
+    for persona_id in requested_ids:
+        if persona_id in available and persona_id not in selected:
+            selected.append(persona_id)
+    return selected

@@ -22,7 +22,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 # Backend root = directory that contains the ``app`` package
-# (.../multi_llm_chatbot_backend). __file__ is .../app/tools/_uw_db.py.
+# (.../backend). __file__ is .../app/tools/_uw_db.py.
 _BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
 DEFAULT_DB_PATH = "data/uw_courses.db"

@@ -54,34 +54,42 @@ login:
 chat_page:
   placeholder: "Ask your advisors anything about college life, classes, or career plans..."
   examples:
-    - title: "Academic Planning"
+    - id: "academic"
+      title: "Academic Planning"
       icon: "BookOpen"
       color: "#2563EB"
       bg_color: "#EFF6FF"
+      advisor_ids: ["academic_planner", "career_coach"]
       suggestions:
         - "How do I choose a major that fits my interests and career goals?"
         - "What's the best strategy for building a four-year graduation plan?"
         - "Should I double-major, pick up a minor, or focus on one field?"
-    - title: "Career & Internships"
+    - id: "career"
+      title: "Career & Internships"
       icon: "Briefcase"
       color: "#059669"
       bg_color: "#ECFDF5"
+      advisor_ids: ["career_coach", "writing_tutor"]
       suggestions:
         - "When should I start looking for internships, and how do I find them?"
         - "How do I write a resume with little or no work experience?"
         - "What can I do now as a freshman to prepare for the job market after graduation?"
-    - title: "Study Skills & Time Management"
+    - id: "study-skills"
+      title: "Study Skills & Time Management"
       icon: "Clock"
       color: "#7C3AED"
       bg_color: "#F3E8FF"
+      advisor_ids: ["study_strategist", "academic_planner"]
       suggestions:
         - "How do I manage my time between classes, studying, a part-time job, and a social life?"
         - "What are the best study techniques for hard STEM classes?"
         - "How do I recover from a bad midterm grade?"
-    - title: "Campus Life & Well-being"
+    - id: "wellness"
+      title: "Campus Life & Well-being"
       icon: "Heart"
       color: "#E11D48"
       bg_color: "#FFF1F2"
+      advisor_ids: ["wellness_advisor", "campus_guide"]
       suggestions:
         - "I'm feeling overwhelmed and lonely -- how do I find my community on campus?"
         - "How do I balance self-care with a heavy course load?"

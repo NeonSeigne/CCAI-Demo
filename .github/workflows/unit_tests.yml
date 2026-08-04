@@ -19,13 +19,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        working-directory: multi_llm_chatbot_backend
+        working-directory: backend
         run: |
           pip install wheel
           pip install -r requirements.txt -r test_requirements.txt
 
       - name: Run unit tests
-        working-directory: multi_llm_chatbot_backend
+        working-directory: backend
         run: |
           pytest app/tests/unit/ --junitxml=test-results/results.xml
 
@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results-py${{ matrix.python-version }}
-          path: multi_llm_chatbot_backend/test-results/
+          path: backend/test-results/

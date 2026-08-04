@@ -81,10 +81,18 @@ class ImprovedOllamaClient(LLMClient):
             if response.startswith(prefix):
                 response = response[len(prefix):].strip()
         
-        # Remove trailing incomplete sentences
-        sentences = response.split('.')
-        if len(sentences) > 1 and len(sentences[-1].strip()) < 10:
-            response = '.'.join(sentences[:-1]) + '.'
+        # Remove trailing incomplete sentences, but only when the answer ends in plain
+        # prose. Tables, lists, code fences and display math legitimately end without
+        # a period and would otherwise get chopped.
+        last_line = response.rstrip().split("\n")[-1].strip()
+        ends_in_prose = not (
+            re.match(r"^(\||>|#{1,6}\s|[-*+]\s|\d+\.\s|```|~~~|\$\$)", last_line)
+            or last_line.endswith(("|", "`", "$$"))
+        )
+        if ends_in_prose:
+            sentences = response.split('.')
+            if len(sentences) > 1 and len(sentences[-1].strip()) < 10:
+                response = '.'.join(sentences[:-1]) + '.'
         
         # Remove excessive academic fluff
         fluff_patterns = [
