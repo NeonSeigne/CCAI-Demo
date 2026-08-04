@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -146,8 +149,23 @@ const MessageBubble = ({
     processed = processed.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     processed = processed.split('\n').map(ln => ln.replace(/\s+$/, '')).join('\n');
 
-    // 3) Unicode bullets -> '-' (so GFM parses lists)
-    processed = processed.replace(/^\s*[•●▪◦]\s+/gm, '- ');
+    // 3) Line fixes outside fenced code: unicode bullets -> '-' (so GFM parses
+    //    lists), and a lone "$$...$$" line split across three lines, which is
+    //    the only form remark-math treats as display math.
+    let inFence = false;
+    processed = processed
+      .split('\n')
+      .flatMap((line) => {
+        if (/^\s*(```|~~~)/.test(line)) {
+          inFence = !inFence;
+          return [line];
+        }
+        if (inFence) return [line];
+        const bulleted = line.replace(/^\s*[•●▪◦]\s+/, '- ');
+        const display = bulleted.match(/^\s*\$\$((?:(?!\$\$).)+)\$\$\s*$/);
+        return display ? ['', '$$', display[1].trim(), '$$', ''] : [bulleted];
+      })
+      .join('\n');
 
     // 3b) Percent-encode spaces inside course: link targets. CommonMark won't
     // parse a link whose destination contains a raw space, so "[ECON 410]
@@ -252,32 +270,112 @@ const MessageBubble = ({
       );
     },
 
-    // Inline code styling
-    code: ({ inline, children }) => (
-      inline ? (
-        <code style={{ 
+    // Headings
+    h1: ({ children }) => (
+      <h1 style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--ink)', margin: '1.25rem 0 0.6rem' }}>
+        {children}
+      </h1>
+    ),
+
+    h2: ({ children }) => (
+      <h2 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--ink)', margin: '1.15rem 0 0.55rem' }}>
+        {children}
+      </h2>
+    ),
+
+    h3: ({ children }) => (
+      <h3 style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--ink)', margin: '1rem 0 0.5rem' }}>
+        {children}
+      </h3>
+    ),
+
+    h4: ({ children }) => (
+      <h4 style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, color: 'var(--ink-soft)', margin: '0.9rem 0 0.45rem' }}>
+        {children}
+      </h4>
+    ),
+
+    // Tables (remark-gfm)
+    table: ({ children }) => (
+      <div style={{ overflowX: 'auto', margin: '0.75rem 0 1rem' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.875rem' }}>
+          {children}
+        </table>
+      </div>
+    ),
+
+    th: ({ children }) => (
+      <th style={{
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--paper-sunken)',
+        padding: '0.45rem 0.65rem',
+        textAlign: 'left',
+        fontWeight: 600,
+        color: 'var(--ink)'
+      }}>
+        {children}
+      </th>
+    ),
+
+    td: ({ children }) => (
+      <td style={{ border: '1px solid var(--line)', padding: '0.45rem 0.65rem', color: 'var(--ink)' }}>
+        {children}
+      </td>
+    ),
+
+    blockquote: ({ children }) => (
+      <blockquote style={{
+        borderLeft: '3px solid var(--line)',
+        paddingLeft: '0.85rem',
+        margin: '0.75rem 0',
+        color: 'var(--ink-soft)'
+      }}>
+        {children}
+      </blockquote>
+    ),
+
+    hr: () => (
+      <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '1.25rem 0' }} />
+    ),
+
+    // Fenced code blocks. react-markdown no longer passes an `inline` prop, so
+    // the block case is handled by `pre` and `code` only styles inline spans.
+    pre: ({ children }) => (
+      <pre style={{
+        backgroundColor: 'rgba(17,17,20,0.04)',
+        border: '1px solid var(--line)',
+        padding: '0.85rem',
+        borderRadius: '8px',
+        overflowX: 'auto',
+        margin: '0.5rem 0 1rem',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        fontSize: '0.8125rem',
+        lineHeight: 1.5
+      }}>
+        {children}
+      </pre>
+    ),
+
+    code: ({ node, className, children, ...props }) => {
+      // Fenced blocks carry a language class or, when unlabelled, a trailing
+      // newline in their content; inline spans have neither.
+      const text = Array.isArray(children) ? children.join('') : String(children ?? '');
+      const isBlock = (typeof className === 'string' && className.includes('language-')) || text.includes('\n');
+      if (isBlock) {
+        return <code className={className} {...props}>{children}</code>;
+      }
+      return (
+        <code style={{
           backgroundColor: 'rgba(17,17,20,0.06)',
           padding: '0.2rem 0.35rem',
           borderRadius: '4px',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
           fontSize: '0.875rem'
-        }}>
+        }} {...props}>
           {children}
         </code>
-      ) : (
-        <pre style={{ 
-          backgroundColor: 'rgba(17,17,20,0.04)',
-          padding: '0.85rem',
-          borderRadius: '8px',
-          overflowX: 'auto',
-          margin: '0.5rem 0 1rem'
-        }}>
-          <code>
-            {children}
-          </code>
-        </pre>
-      )
-    )
+      );
+    }
   };
 
   // USER MESSAGE
@@ -420,8 +518,8 @@ const MessageBubble = ({
           >
             <ReactMarkdown 
               components={markdownComponents}
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[]}
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
               urlTransform={(url) =>
                 (typeof url === 'string' && url.toLowerCase().startsWith('course:'))
                   ? url

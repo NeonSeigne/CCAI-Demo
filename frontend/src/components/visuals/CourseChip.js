@@ -1,14 +1,16 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * A clickable pill representing a UW-Madison course.
  *
  * Rendered both inline (from `course:` markdown links) and inside the
- * prerequisite tree. Clicking invokes `onSelect(identifier)`, which the chat
- * page uses to submit a "Tell me about <course>" prompt.
+ * prerequisite tree. Clicking invokes `onSelect(identifier)` when supplied,
+ * otherwise it opens the protected course-detail route.
  */
 const CourseChip = ({ identifier, title, onSelect, size = 'md' }) => {
+  const navigate = useNavigate();
   const label = (identifier || '').trim();
   if (!label) return null;
 
@@ -17,6 +19,7 @@ const CourseChip = ({ identifier, title, onSelect, size = 'md' }) => {
   const handleClick = (e) => {
     e.preventDefault();
     if (onSelect) onSelect(label);
+    else navigate(`/courses/${encodeURIComponent(label)}`);
   };
 
   return (

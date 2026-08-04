@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -14,6 +14,8 @@ import CanvasPage from './pages/CanvasPage';
 import UserGuide from './components/UserGuide';
 import muiTheme from './theme/muiTheme';
 import './styles/components.css';
+
+const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
@@ -50,6 +52,14 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route
+          path="/courses/:courseIdentifier"
+          element={(
+            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading course…</div>}>
+              <CourseDetailPage />
+            </Suspense>
+          )}
+        />
       </Route>
 
       <Route path="*" element={<CatchAllRedirect />} />

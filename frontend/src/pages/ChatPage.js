@@ -545,7 +545,7 @@ const handleNewChat = async (sessionId = null) => {
 
   const handleCourseSelect = (identifier) => {
     const course = (identifier || '').trim();
-    if (course) handleSendMessage(`Tell me about ${course}`);
+    if (course) navigate(`/courses/${encodeURIComponent(course)}`);
   };
 
   const handleSendMessage = async (inputMessage, activeAdvisorIds = null) => {

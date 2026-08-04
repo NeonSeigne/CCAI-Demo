@@ -243,7 +243,7 @@
 .advisor-carousel.grid-mode .carousel-slide {
   flex: 1 1 0;
   min-width: 240px;
-  max-width: 400px;
+  max-width: none;
 }
 
 /* Carousel mode: narrow layout, one card at a time with arrows */
@@ -326,7 +326,7 @@
 .single-response-wide {
   margin-bottom: 24px;
   width: 100%;
-  max-width: 512px;
+  max-width: none;
 }
 
 
