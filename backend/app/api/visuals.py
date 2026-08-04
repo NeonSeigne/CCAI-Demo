@@ -92,6 +92,29 @@ def _prereq_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     ]
 
 
+def _next_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    course = (result.get("course_identifier") or "").strip()
+    next_courses = result.get("next_courses") or []
+    if not course or not next_courses:
+        return []
+    return [
+        {
+            "type": "next_courses_tree",
+            "course": course,
+            "title": result.get("title", ""),
+            "note": (result.get("note") or "").strip(),
+            "next_courses": [
+                {
+                    "identifier": p.get("identifier", ""),
+                    "title": p.get("title") or "",
+                }
+                for p in next_courses
+                if p.get("identifier")
+            ],
+        },
+    ]
+
+
 def _sections_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     course = (result.get("course_identifier") or "").strip()
     sections = result.get("sections") or []
@@ -117,6 +140,7 @@ def _search_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 _BUILDERS = {
     "uw_course_grades": _grades_specs,
     "uw_prerequisites": _prereq_specs,
+    "uw_next_courses": _next_specs,
     "uw_course_sections": _sections_specs,
     "uw_search_courses": _search_specs,
 }

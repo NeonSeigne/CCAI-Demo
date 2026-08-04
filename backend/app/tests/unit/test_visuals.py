@@ -55,6 +55,40 @@ class BuildVisualsTests(unittest.TestCase):
         self.assertEqual(visuals[1]["type"], "prereq_tree")
         self.assertEqual(visuals[1]["prerequisites"][0]["identifier"], "COMPSCI 200")
 
+    def test_next_courses_tool_emits_tree(self):
+        visuals = build_visuals([
+            {
+                "name": "uw_next_courses",
+                "result": {
+                    "course_identifier": "ART 100",
+                    "title": "INTRODUCTION TO ART",
+                    "note": "May still require additional courses.",
+                    "next_courses": [
+                        {"identifier": "ART 232", "title": "LIFE DRAWING I"},
+                        {"identifier": "ART 376", "title": ""},
+                    ],
+                },
+            }
+        ])
+        self.assertEqual(len(visuals), 1)
+        self.assertEqual(visuals[0]["type"], "next_courses_tree")
+        self.assertEqual(visuals[0]["course"], "ART 100")
+        self.assertEqual(visuals[0]["next_courses"][0]["identifier"], "ART 232")
+        self.assertIn("additional", visuals[0]["note"].lower())
+
+    def test_next_courses_empty_skipped(self):
+        visuals = build_visuals([
+            {
+                "name": "uw_next_courses",
+                "result": {
+                    "course_identifier": "ART 100",
+                    "next_courses": [],
+                    "has_next_courses": False,
+                },
+            }
+        ])
+        self.assertEqual(visuals, [])
+
     def test_sections_tool_emits_schedule_and_instructors(self):
         visuals = build_visuals([
             {

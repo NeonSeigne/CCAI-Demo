@@ -24,7 +24,10 @@ const payload = {
     description: 'Descriptive lectures on chamber music.',
     cumulative_grade_data: { total: 100, a: 80, ab: 5, b: 5, bc: 0, c: 3, d: 2, f: 5 },
     prerequisites: { linked_requisite_text: ['None'], course_references: [] },
-    satisfies: [],
+    satisfies: [
+      { subjects: ['MUSIC'], course_number: 269 },
+      { subjects: ['MUSIC'], course_number: 211 },
+    ],
     term_data: {
       1254: { grade_data: { total: 20, a: 18, ab: 1, b: 0, bc: 0, c: 0, d: 0, f: 1 } },
     },
@@ -68,6 +71,15 @@ describe('CourseDetailPage', () => {
     expect(screen.getByText('Johanna Wienholts')).toBeInTheDocument();
     expect(screen.getByText('STRING ENSEMBLE')).toBeInTheDocument();
     expect(screen.getByText('Spring 2025 grade distribution')).toBeInTheDocument();
+    expect(screen.getByText('What you can take next')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'MUSIC 269' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'MUSIC 211' })).toBeInTheDocument();
+  });
+
+  it('navigates next-course pills to another detail route', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'MUSIC 211' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/courses/MUSIC%20211');
   });
 
   it('stores tab selection in the URL and renders the schedule', () => {

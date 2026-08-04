@@ -2,14 +2,22 @@ import React from 'react';
 import CourseChip from './CourseChip';
 
 /**
- * Single-level prerequisite tree: the target course on top, its direct
- * prerequisites below, connected by simple lines. Falls back to the official
- * requisite text when no linked prerequisite courses are available.
+ * Single-level course link tree used for both prerequisites (courses you need
+ * before) and next courses (courses that list yours as a prerequisite).
  */
 const PrereqTree = ({ visual, onSelectCourse }) => {
   if (!visual) return null;
-  const { course, title, prereq_text, prerequisites = [] } = visual;
-  const hasPrereqs = prerequisites.length > 0;
+
+  const isNext = visual.type === 'next_courses_tree';
+  const { course, title, prereq_text, note } = visual;
+  const linked = isNext
+    ? visual.next_courses || []
+    : visual.prerequisites || [];
+  const hasLinked = linked.length > 0;
+
+  const heading = isNext
+    ? `After ${course || 'course'} you can take`
+    : `Prerequisites for ${course || 'course'}`;
 
   return (
     <div
@@ -22,11 +30,10 @@ const PrereqTree = ({ visual, onSelectCourse }) => {
       }}
     >
       <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 12 }}>
-        Prerequisites for {course || 'course'}
+        {heading}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {/* Target course node */}
         <div
           style={{
             padding: '6px 14px',
@@ -45,11 +52,9 @@ const PrereqTree = ({ visual, onSelectCourse }) => {
           )}
         </div>
 
-        {hasPrereqs ? (
+        {hasLinked ? (
           <>
-            {/* Vertical connector */}
             <div style={{ width: 2, height: 16, background: 'var(--border-primary)' }} />
-            {/* Horizontal rail */}
             <div
               style={{
                 display: 'flex',
@@ -61,7 +66,7 @@ const PrereqTree = ({ visual, onSelectCourse }) => {
                 width: '100%',
               }}
             >
-              {prerequisites.map((p) => (
+              {linked.map((p) => (
                 <CourseChip
                   key={p.identifier}
                   identifier={p.identifier}
@@ -70,6 +75,20 @@ const PrereqTree = ({ visual, onSelectCourse }) => {
                 />
               ))}
             </div>
+            {isNext && note && (
+              <div
+                style={{
+                  marginTop: 12,
+                  fontSize: '0.78rem',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.45,
+                  textAlign: 'center',
+                  maxWidth: 520,
+                }}
+              >
+                {note}
+              </div>
+            )}
           </>
         ) : (
           prereq_text && (

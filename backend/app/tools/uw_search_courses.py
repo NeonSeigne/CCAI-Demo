@@ -1,18 +1,12 @@
 """
-uw_search_courses tool — search the UW-Madison course catalog from the
-committed SQLite snapshot produced by ``scripts/scrape_uw_courses.py``.
-
-Exposes TOOL_DEFINITION (OpenAI tool format) and an async execute() that the
-tool-calling loop dispatches to. This is the UW-Madison counterpart to the
-CU-Boulder-only ``search_courses`` tool; enable one or the other per school.
+uw_search_courses tool — search the UW-Madison course catalog via UW Course Map.
 """
 
-import asyncio
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from app.config import get_settings
-from app.tools._uw_db import get_db_path, query
+from app.tools import _uw_source
 
 logger = logging.getLogger(__name__)
 
@@ -57,32 +51,6 @@ TOOL_DEFINITION: Dict[str, Any] = {
 }
 
 
-def _run(db_path, subject: str, course_number: str, keyword: str, limit: int) -> List[Dict[str, Any]]:
-    clauses: List[str] = []
-    params: List[Any] = []
-
-    if subject:
-        token = subject.replace(" ", "").upper()
-        clauses.append("UPPER(REPLACE(subjects, ' ', '')) LIKE ?")
-        params.append(f"%{token}%")
-
-    if course_number:
-        clauses.append("number = ?")
-        params.append(course_number.strip())
-
-    if keyword:
-        clauses.append("(title LIKE ? OR description LIKE ?)")
-        params.extend([f"%{keyword}%", f"%{keyword}%"])
-
-    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
-    sql = (
-        "SELECT identifier, subjects, number, title, description, prereq_text "
-        f"FROM courses {where} ORDER BY number LIMIT ?"
-    )
-    params.append(limit)
-    return query(db_path, sql, params)
-
-
 async def execute(
     *,
     name: str = "",
@@ -90,10 +58,9 @@ async def execute(
     course_number: str = "",
     keyword: str = "",
 ) -> Dict[str, Any]:
-    """Query the UW course catalog snapshot. Returns {"courses": [...]}."""
+    """Query the UW course catalog. Returns {"courses": [...]}."""
     tool_cfg = get_settings().tools.get_tool_config(TOOL_NAME)
     max_results = tool_cfg.get("max_results", 20)
-    db_path = get_db_path(TOOL_NAME)
 
     query_meta = {
         "subject": subject or None,
@@ -109,12 +76,13 @@ async def execute(
         }
 
     try:
-        rows = await asyncio.to_thread(
-            _run, db_path, subject, course_number, keyword, max_results + 1
+        rows = await _uw_source.search_courses(
+            tool_name=TOOL_NAME,
+            subject=subject,
+            course_number=course_number,
+            keyword=keyword,
+            limit=max_results + 1,
         )
-    except FileNotFoundError as exc:
-        logger.error("uw_search_courses: %s", exc)
-        return {"courses": [], "error": str(exc), "query": query_meta}
     except Exception as exc:
         logger.error("uw_search_courses query failed: %s", exc)
         return {"courses": [], "error": str(exc), "query": query_meta}

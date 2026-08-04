@@ -25,7 +25,6 @@ jest.mock('../contexts/AppConfigContext', () => ({
     advisors: {},
   }),
 }));
-
 jest.mock('../components/Sidebar', () => () => <aside />);
 jest.mock('../components/OnboardingTour', () => ({ children }) => <>{children}</>);
 jest.mock('../components/ExportButton', () => () => null);

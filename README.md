@@ -51,6 +51,8 @@ CORS_ORIGINS=http://localhost:3000
 > `REACT_APP_API_URL` and `CORS_ORIGINS` must match the real addresses used if accessing the demo from a remote host.
 >
 > Local Docker Compose enables **Developer mode** by default (`ENABLE_DEV_LOGIN` / `REACT_APP_ENABLE_DEV_LOGIN`). Use the homepage top-right control to skip sign-in. Set both to `false` in real deployments.
+>
+> UW-Madison chat tools, course detail pages, and inline course cards all use the live [UW Course Map](https://uwcourses.com) public APIs (`static.uwcourses.com` / `search.uwcourses.com`).
 
 2. **Build and Run Containers**
 ```bash

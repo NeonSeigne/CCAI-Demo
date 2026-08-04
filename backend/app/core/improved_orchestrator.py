@@ -87,8 +87,10 @@ class ImprovedChatOrchestrator:
             "text and the target. "
             "When the user asks about course GPA, completion/A rates, class size, "
             "grade distribution, historical grade trends, schedules/sections, "
-            "instructors, or prerequisites, call the matching UW course tool "
-            "(uw_course_grades, uw_course_sections, or uw_prerequisites). "
+            "instructors, prerequisites, or what to take next / what a course "
+            "unlocks / post-requisites, call the matching UW course tool "
+            "(uw_course_grades, uw_course_sections, uw_prerequisites, or "
+            "uw_next_courses). "
             "Those tool calls attach interactive course cards inline in chat."
         )
 

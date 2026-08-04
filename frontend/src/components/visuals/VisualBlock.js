@@ -36,6 +36,7 @@ function LegacyGpaChart({ visual }) {
 const REGISTRY = {
   gpa_chart: LegacyGpaChart,
   prereq_tree: PrereqTree,
+  next_courses_tree: PrereqTree,
 };
 
 const VisualBlock = ({ visual, onSelectCourse }) => {

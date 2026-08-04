@@ -454,26 +454,23 @@ tools:
   # whenever this tool is enabled — the app refuses to start without one, and
   # results are limited strictly to this school (no cross-school fallback).
   # Ratings stay live (always fresh); catalog/grades/prereqs/sections come from
-  # the committed SQLite snapshot built by scripts/scrape_uw_courses.py.
+  # the UW Course Map public APIs (static.uwcourses.com / search.uwcourses.com).
   rate_my_professor:
     enabled: true
     # Run `python3 scripts/rmp_school_lookup.py "University of Wisconsin"` to verify.
     school_id: "U2Nob29sLTE4NDE4"   # UW–Madison school ID
 
-  # ---- UW-Madison SQLite-backed course tools -------------------------------
-  # All four read the same committed snapshot. db_path is resolved relative to
-  # the backend root (backend/) when not absolute.
+  # ---- UW-Madison Course Map–backed course tools ---------------------------
   uw_search_courses:
     enabled: true
-    db_path: "data/uw_courses.db"
     max_results: 20
   uw_course_grades:
     enabled: true
-    db_path: "data/uw_courses.db"
   uw_prerequisites:
     enabled: true
-    db_path: "data/uw_courses.db"
+  uw_next_courses:
+    enabled: true
+    max_results: 40
   uw_course_sections:
     enabled: true
-    db_path: "data/uw_courses.db"
     max_results: 25

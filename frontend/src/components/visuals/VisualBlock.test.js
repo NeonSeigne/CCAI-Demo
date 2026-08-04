@@ -21,7 +21,14 @@ jest.mock('../course/CourseVisuals', () => ({
   ),
 }));
 
-jest.mock('./PrereqTree', () => () => <div data-testid="prereq-tree" />);
+jest.mock('./PrereqTree', () => {
+  const React = require('react');
+  return ({ visual }) => (
+    <div data-testid={visual.type === 'next_courses_tree' ? 'next-courses-tree' : 'prereq-tree'}>
+      {visual.course}
+    </div>
+  );
+});
 
 describe('VisualBlock', () => {
   it('routes course_* refs to CourseVisualCard', () => {
@@ -57,6 +64,19 @@ describe('VisualBlock', () => {
       />,
     );
     expect(screen.getByTestId('prereq-tree')).toBeInTheDocument();
+  });
+
+  it('renders next_courses_tree specs', () => {
+    render(
+      <VisualBlock
+        visual={{
+          type: 'next_courses_tree',
+          course: 'ART 100',
+          next_courses: [{ identifier: 'ART 232', title: 'LIFE DRAWING I' }],
+        }}
+      />,
+    );
+    expect(screen.getByTestId('next-courses-tree')).toHaveTextContent('ART 100');
   });
 
   it('ignores unknown types', () => {

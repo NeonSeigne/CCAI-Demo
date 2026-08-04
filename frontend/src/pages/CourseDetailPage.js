@@ -72,12 +72,22 @@ function CourseDetails({ course, enrollment, onCourse }) {
         )}
       </div>
       <div className="course-details-block">
-        <p className="course-eyebrow">Satisfies</p>
-        <p>
-          {satisfies.length
-            ? satisfies.join(', ')
-            : 'This course does not satisfy any prerequisites.'}
-        </p>
+        <p className="course-eyebrow">What you can take next</p>
+        {satisfies.length > 0 ? (
+          <div className="course-inline-pills">
+            {satisfies.map((reference) => (
+              <button
+                key={courseLabel(reference)}
+                type="button"
+                onClick={() => onCourse(courseLabel(reference))}
+              >
+                {courseLabel(reference)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p>No downstream courses list this as a prerequisite.</p>
+        )}
       </div>
       <dl className="course-facts">
         <div><dt>Credits</dt><dd>{creditText}</dd></div>

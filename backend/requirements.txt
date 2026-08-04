@@ -43,11 +43,6 @@ python-jose[cryptography]~=3.5
 # Data validation (required for EmailStr in Pydantic)
 email-validator~=2.3
 
-# UW-Madison course-data scraper (scripts/scrape_uw_courses.py)
-aiohttp~=3.12
+# HTTP helpers used by integration/test scripts
 requests~=2.32
-beautifulsoup4~=4.13
-lxml~=5.3
-tqdm~=4.67
-fake-useragent~=2.0
 certifi~=2025.1
