@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover } from '@mui/material';
-import { Send, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles } from 'lucide-react';
+import { Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { useAppConfig } from '../contexts/AppConfigContext';
 
@@ -24,6 +24,9 @@ const EnhancedChatInput = ({
   selectedAdvisorIds = null,
   onSelectedAdvisorIdsChange,
   isLanding = false,
+  onInvokeSkill,
+  activeSkills = [],
+  onDismissSkill,
 }) => {
   const { advisors, isAdvisorEnabled } = useAppConfig();
   const [inputMessage, setInputMessage] = useState(initialMessage || '');
@@ -36,9 +39,10 @@ const EnhancedChatInput = ({
   const audioChunksRef = useRef([]);
   const textareaRef = useRef(null);
   const uploadRef = useRef(null);
-  const uploadBtnRef = useRef(null);
+  const plusBtnRef = useRef(null);
   const appliedInitialRef = useRef('');
   const [advisorAnchorEl, setAdvisorAnchorEl] = useState(null);
+  const [plusAnchorEl, setPlusAnchorEl] = useState(null);
 
   useEffect(() => {
     if (typeof messageValue === 'string' && messageValue !== inputMessage) {
@@ -148,16 +152,23 @@ const EnhancedChatInput = ({
     setIsUploading(true);
   };
 
-  const toggleUpload = () => {
+  const openUploadPanel = () => {
     if (!isUploading) {
-      setShowUpload(!showUpload);
-      setShowDocuments(false); // Close documents panel when opening upload
+      setShowUpload(true);
+      setShowDocuments(false);
+      setPlusAnchorEl(null);
     }
   };
 
   const toggleDocuments = () => {
     setShowDocuments(!showDocuments);
-    setShowUpload(false); // Close upload panel when opening documents
+    setShowUpload(false);
+  };
+
+  const handleInvokeSkill = (skillId) => {
+    setPlusAnchorEl(null);
+    setShowUpload(false);
+    onInvokeSkill?.(skillId);
   };
 
   // Auto-resize textarea
@@ -174,7 +185,7 @@ const EnhancedChatInput = ({
     const handleClickOutside = (e) => {
       if (
         uploadRef.current && !uploadRef.current.contains(e.target) &&
-        uploadBtnRef.current && !uploadBtnRef.current.contains(e.target)
+        plusBtnRef.current && !plusBtnRef.current.contains(e.target)
       ) {
         setShowUpload(false);
       }
@@ -316,15 +327,48 @@ const EnhancedChatInput = ({
           {/* Left - File Controls */}
           <div className="file-controls">
             <button
-              ref={uploadBtnRef}
-              onClick={toggleUpload}
-              className={`add-docs-btn ${showUpload ? 'active' : ''}`}
+              ref={plusBtnRef}
+              onClick={(event) => setPlusAnchorEl(event.currentTarget)}
+              className={`composer-plus-btn ${showUpload || Boolean(plusAnchorEl) ? 'active' : ''}`}
               disabled={isUploading}
               type="button"
+              aria-haspopup="menu"
+              aria-expanded={Boolean(plusAnchorEl)}
+              title="Add documents or skills"
             >
-              <Paperclip size={16} />
-              <span>Add documents</span>
+              <Plus size={16} />
             </button>
+            <Popover
+              open={Boolean(plusAnchorEl)}
+              anchorEl={plusAnchorEl}
+              onClose={() => setPlusAnchorEl(null)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              slotProps={{ paper: { className: 'composer-plus-popover' } }}
+            >
+              <div className="composer-plus-menu" role="menu">
+                <button
+                  type="button"
+                  className="composer-plus-item"
+                  role="menuitem"
+                  onClick={openUploadPanel}
+                  disabled={isUploading}
+                >
+                  <Paperclip size={15} />
+                  <span>Upload documents</span>
+                </button>
+                <div className="composer-plus-section-label">Skills</div>
+                <button
+                  type="button"
+                  className="composer-plus-item"
+                  role="menuitem"
+                  onClick={() => handleInvokeSkill('plan_semester')}
+                >
+                  <CalendarDays size={15} />
+                  <span>Plan my Semester</span>
+                </button>
+              </div>
+            </Popover>
             
             {uploadedDocuments.length > 0 && (
               <button
@@ -485,6 +529,23 @@ const EnhancedChatInput = ({
           </div>
         </div>
       </div>
+
+      {activeSkills.length > 0 && (
+        <div className="composer-active-skills" aria-label="Active skills">
+          {activeSkills.map((skill) => (
+            <button
+              key={skill.id}
+              type="button"
+              className="composer-skill-pill pill-active"
+              onClick={() => onDismissSkill?.(skill.id)}
+              title={`Dismiss ${skill.label}`}
+            >
+              <span>{skill.label}</span>
+              <X size={12} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
