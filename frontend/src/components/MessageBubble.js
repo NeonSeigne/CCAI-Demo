@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
-import { useTheme } from '../contexts/ThemeContext';
+import VisualBlock from './visuals/VisualBlock';
+import CourseChip from './visuals/CourseChip';
 const stripMarkdown = (md) => {
   if (!md) return '';
   return md
@@ -29,9 +33,9 @@ const MessageBubble = ({
   showReplyButton = false,
   inlineAvatar = false,
   userAvatarId,
-  userAvatarOptions
+  userAvatarOptions,
+  onCourseSelect
 }) => {
-  const { isDark } = useTheme();
   const { allPersonas: advisors, getAllPersonaColors: getAdvisorColors } = useAppConfig();
   const [showTooltip, setShowTooltip] = useState(null);
   const [copiedStates, setCopiedStates] = useState({});
@@ -145,8 +149,31 @@ const MessageBubble = ({
     processed = processed.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     processed = processed.split('\n').map(ln => ln.replace(/\s+$/, '')).join('\n');
 
-    // 3) Unicode bullets -> '-' (so GFM parses lists)
-    processed = processed.replace(/^\s*[•●▪◦]\s+/gm, '- ');
+    // 3) Line fixes outside fenced code: unicode bullets -> '-' (so GFM parses
+    //    lists), and a lone "$$...$$" line split across three lines, which is
+    //    the only form remark-math treats as display math.
+    let inFence = false;
+    processed = processed
+      .split('\n')
+      .flatMap((line) => {
+        if (/^\s*(```|~~~)/.test(line)) {
+          inFence = !inFence;
+          return [line];
+        }
+        if (inFence) return [line];
+        const bulleted = line.replace(/^\s*[•●▪◦]\s+/, '- ');
+        const display = bulleted.match(/^\s*\$\$((?:(?!\$\$).)+)\$\$\s*$/);
+        return display ? ['', '$$', display[1].trim(), '$$', ''] : [bulleted];
+      })
+      .join('\n');
+
+    // 3b) Percent-encode spaces inside course: link targets. CommonMark won't
+    // parse a link whose destination contains a raw space, so "[ECON 410]
+    // (course:ECON 410)" would otherwise render as literal text.
+    processed = processed.replace(
+      /\]\(course:([^)\n]+)\)/gi,
+      (_m, p1) => `](course:${p1.trim().replace(/ /g, '%20')})`
+    );
 
     // 4) Merge orphan numbered items: "1.\nText" => "1. Text"
     processed = processed.replace(/(^\s*(\d+)\.\s*$)\n^\s*(\S.*)$/gm, (_m, _a, num, next) => `${num}. ${next}`);
@@ -163,7 +190,7 @@ const MessageBubble = ({
     strong: ({ children }) => (
       <strong style={{ 
         fontWeight: '700',
-        color: isDark ? '#ffffff' : '#1f2937'
+        color: 'var(--ink)'
       }}>
         {children}
       </strong>
@@ -173,7 +200,7 @@ const MessageBubble = ({
     em: ({ children }) => (
       <em style={{ 
         fontStyle: 'italic',
-        color: isDark ? '#93c5fd' : '#3b82f6',
+        color: 'var(--ink-soft)',
         fontWeight: '500'
       }}>
         {children}
@@ -185,7 +212,7 @@ const MessageBubble = ({
       <p style={{ 
         marginBottom: '0.75rem',
         lineHeight: '1.7',
-        color: isDark ? '#e5e7eb' : '#111827'
+        color: 'var(--ink)'
       }}>
         {children}
       </p>
@@ -198,7 +225,7 @@ const MessageBubble = ({
         paddingLeft: '1.5rem',
         marginBottom: '1rem',
         marginTop: '0.5rem',
-        color: isDark ? '#e5e7eb' : '#374151'
+        color: 'var(--ink)'
       }}>
         {children}
       </ul>
@@ -211,7 +238,7 @@ const MessageBubble = ({
         paddingLeft: '1.5rem',
         marginBottom: '1rem',
         marginTop: '0.5rem',
-        color: isDark ? '#e5e7eb' : '#374151',
+        color: 'var(--ink)',
         counterReset: 'list-counter'
       }}>
         {children}
@@ -228,32 +255,127 @@ const MessageBubble = ({
       </li>
     ),
     
-    // Inline code styling
-    code: ({ inline, children }) => (
-      inline ? (
-        <code style={{ 
-          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+    // Course links (course:<identifier>) render as clickable chips; all other
+    // links open normally in a new tab.
+    a: ({ href, children }) => {
+      if (typeof href === 'string' && href.toLowerCase().startsWith('course:')) {
+        const identifier = decodeURIComponent(href.slice('course:'.length)).trim();
+        const text = Array.isArray(children) ? children.join('') : (children || '');
+        return <CourseChip identifier={identifier || text} size="sm" onSelect={onCourseSelect} />;
+      }
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+          {children}
+        </a>
+      );
+    },
+
+    // Headings
+    h1: ({ children }) => (
+      <h1 style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--ink)', margin: '1.25rem 0 0.6rem' }}>
+        {children}
+      </h1>
+    ),
+
+    h2: ({ children }) => (
+      <h2 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--ink)', margin: '1.15rem 0 0.55rem' }}>
+        {children}
+      </h2>
+    ),
+
+    h3: ({ children }) => (
+      <h3 style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--ink)', margin: '1rem 0 0.5rem' }}>
+        {children}
+      </h3>
+    ),
+
+    h4: ({ children }) => (
+      <h4 style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, color: 'var(--ink-soft)', margin: '0.9rem 0 0.45rem' }}>
+        {children}
+      </h4>
+    ),
+
+    // Tables (remark-gfm)
+    table: ({ children }) => (
+      <div style={{ overflowX: 'auto', margin: '0.75rem 0 1rem' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.875rem' }}>
+          {children}
+        </table>
+      </div>
+    ),
+
+    th: ({ children }) => (
+      <th style={{
+        border: '1px solid var(--line)',
+        backgroundColor: 'var(--paper-sunken)',
+        padding: '0.45rem 0.65rem',
+        textAlign: 'left',
+        fontWeight: 600,
+        color: 'var(--ink)'
+      }}>
+        {children}
+      </th>
+    ),
+
+    td: ({ children }) => (
+      <td style={{ border: '1px solid var(--line)', padding: '0.45rem 0.65rem', color: 'var(--ink)' }}>
+        {children}
+      </td>
+    ),
+
+    blockquote: ({ children }) => (
+      <blockquote style={{
+        borderLeft: '3px solid var(--line)',
+        paddingLeft: '0.85rem',
+        margin: '0.75rem 0',
+        color: 'var(--ink-soft)'
+      }}>
+        {children}
+      </blockquote>
+    ),
+
+    hr: () => (
+      <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '1.25rem 0' }} />
+    ),
+
+    // Fenced code blocks. react-markdown no longer passes an `inline` prop, so
+    // the block case is handled by `pre` and `code` only styles inline spans.
+    pre: ({ children }) => (
+      <pre style={{
+        backgroundColor: 'rgba(17,17,20,0.04)',
+        border: '1px solid var(--line)',
+        padding: '0.85rem',
+        borderRadius: '8px',
+        overflowX: 'auto',
+        margin: '0.5rem 0 1rem',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        fontSize: '0.8125rem',
+        lineHeight: 1.5
+      }}>
+        {children}
+      </pre>
+    ),
+
+    code: ({ node, className, children, ...props }) => {
+      // Fenced blocks carry a language class or, when unlabelled, a trailing
+      // newline in their content; inline spans have neither.
+      const text = Array.isArray(children) ? children.join('') : String(children ?? '');
+      const isBlock = (typeof className === 'string' && className.includes('language-')) || text.includes('\n');
+      if (isBlock) {
+        return <code className={className} {...props}>{children}</code>;
+      }
+      return (
+        <code style={{
+          backgroundColor: 'rgba(17,17,20,0.06)',
           padding: '0.2rem 0.35rem',
           borderRadius: '4px',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
           fontSize: '0.875rem'
-        }}>
+        }} {...props}>
           {children}
         </code>
-      ) : (
-        <pre style={{ 
-          backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-          padding: '0.85rem',
-          borderRadius: '8px',
-          overflowX: 'auto',
-          margin: '0.5rem 0 1rem'
-        }}>
-          <code>
-            {children}
-          </code>
-        </pre>
-      )
-    )
+      );
+    }
   };
 
   // USER MESSAGE
@@ -299,7 +421,7 @@ const MessageBubble = ({
 
     const advisor = advisors[personaId] || advisors[message.persona_id] || {};
     const Icon = advisor.icon;
-    const colors = getAdvisorColors(personaId, isDark);
+    const colors = getAdvisorColors(personaId);
     const isCopied = copiedStates[message.id];
 
     const avatarElement = (size = 40) => (
@@ -312,18 +434,18 @@ const MessageBubble = ({
       ) : Icon ? (
         <div
           style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: colors.bgColor || 'var(--bg-muted)',
+            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--paper-sunken)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden'
           }}
         >
-          <Icon style={{ color: colors.color || 'var(--text-secondary)', width: size * 0.5, height: size * 0.5 }} />
+          <Icon style={{ color: 'var(--ink)', width: size * 0.5, height: size * 0.5 }} />
         </div>
       ) : (
         <div
           style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: colors.bgColor || 'var(--bg-muted)',
+            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--paper-sunken)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            color: colors.color || 'var(--text-secondary)', fontWeight: 600, fontSize: size * 0.4
+            color: 'var(--ink)', fontWeight: 600, fontSize: size * 0.4
           }}
         >
           {advisor.name ? advisor.name.charAt(0) : 'A'}
@@ -336,7 +458,7 @@ const MessageBubble = ({
         {!inlineAvatar && (
           <div
             className="advisor-avatar"
-            style={{ backgroundColor: colors.bgColor || 'var(--bg-muted)', overflow: 'hidden' }}
+            style={{ backgroundColor: 'var(--paper-sunken)', overflow: 'hidden' }}
           >
             {advisor.avatarUrl ? (
               <img
@@ -345,9 +467,9 @@ const MessageBubble = ({
                 style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : Icon ? (
-              <Icon style={{ color: colors.color || 'var(--text-secondary)', width: 20, height: 20 }} />
+              <Icon style={{ color: 'var(--ink)', width: 20, height: 20 }} />
             ) : (
-              <span style={{ color: colors.color || 'var(--text-secondary)', fontWeight: 600, fontSize: 16 }}>
+              <span style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 16 }}>
                 {(advisor.name || message.advisorName || 'A').charAt(0)}
               </span>
             )}
@@ -355,10 +477,10 @@ const MessageBubble = ({
         )}
 
         <div 
-          className="advisor-message-bubble"
+          className="advisor-message-bubble surface-card"
           style={{ 
-            backgroundColor: colors.bgColor || 'var(--bg-primary)',
-            borderColor: (colors.color ? colors.color + '40' : 'var(--border-muted)'),
+            backgroundColor: 'var(--paper)',
+            borderColor: 'var(--line)',
             position: 'relative'
           }}
         >
@@ -366,8 +488,12 @@ const MessageBubble = ({
             {inlineAvatar && avatarElement(32)}
             <h4 
               className="advisor-message-name" 
-              style={{ color: colors.color || 'var(--text-primary)' }}
+              style={{ color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}
             >
+              <span
+                className="accent-dot"
+                style={{ backgroundColor: colors.dotColor || colors.color }}
+              />
               {advisor.name || message.advisorName || 'Advisor'}
               {message.isReply && <span className="reply-badge">↳ Reply</span>}
               {message.isExpansion && <span className="expansion-badge">⤴ Expanded</span>}
@@ -375,7 +501,7 @@ const MessageBubble = ({
             <span 
               className="message-time"
               style={{ 
-                color: colors.color || 'var(--text-secondary)',
+                color: 'var(--ink)',
                 opacity: 0.7 
               }}
             >
@@ -388,16 +514,29 @@ const MessageBubble = ({
           {/* Enhanced markdown rendering with preprocessing */}
           <div 
             className="advisor-message-text"
-            style={{ color: colors.textColor || (isDark ? '#e5e7eb' : '#111827') }}
+            style={{ color: colors.textColor || ('var(--ink)') }}
           >
             <ReactMarkdown 
               components={markdownComponents}
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[]}
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              urlTransform={(url) =>
+                (typeof url === 'string' && url.toLowerCase().startsWith('course:'))
+                  ? url
+                  : defaultUrlTransform(url)
+              }
             >
               {preprocessMarkdown(message?.compact_markdown || message?.content || message?.text)}
             </ReactMarkdown>
           </div>
+
+          {Array.isArray(message?.visuals) && message.visuals.length > 0 && (
+            <div className="advisor-message-visuals">
+              {message.visuals.map((visual, idx) => (
+                <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} />
+              ))}
+            </div>
+          )}
           
           {showReplyButton && (
             <div className="message-actions">
@@ -410,8 +549,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('reply')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: colors.color || 'var(--text-secondary)',
-                      borderColor: (colors.color ? colors.color + '40' : 'var(--border-muted)')
+                      color: 'var(--ink)',
+                      borderColor: 'var(--line)'
                     }}
                   >
                     <Reply size={14} stroke="currentColor" fill="none" />
@@ -429,8 +568,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('copy')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: isCopied ? '#10B981' : (colors.color || 'var(--text-secondary)'),
-                      borderColor: isCopied ? '#10B98140' : (colors.color ? colors.color + '40' : 'var(--border-muted)')
+                      color: isCopied ? 'var(--accent-green)' : 'var(--ink-soft)',
+                      borderColor: isCopied ? 'var(--accent-green)' : 'var(--line)'
                     }}
                   >
                     {isCopied ? <Check size={14} /> : <Copy size={14} />}
@@ -450,8 +589,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('expand')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: colors.color || 'var(--text-secondary)',
-                      borderColor: (colors.color ? colors.color + '40' : 'var(--border-muted)')
+                      color: 'var(--ink)',
+                      borderColor: 'var(--line)'
                     }}
                   >
                     <Maximize2 size={14} />
@@ -488,8 +627,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('search')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: colors.color || 'var(--text-secondary)',
-                      borderColor: (colors.color ? colors.color + '40' : 'var(--border-muted)')
+                      color: 'var(--ink)',
+                      borderColor: 'var(--line)'
                     }}
                   >
                     <Search size={14} />

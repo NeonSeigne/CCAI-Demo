@@ -19,11 +19,7 @@
   color: #15803D;
 }
 
-[data-theme="dark"] .upload-status.success {
-  background-color: #14532D;
-  border-color: #22C55E;
-  color: #22C55E;
-}
+
 
 .upload-status.error {
   background-color: #FEF2F2;
@@ -31,11 +27,7 @@
   color: #DC2626;
 }
 
-[data-theme="dark"] .upload-status.error {
-  background-color: #7F1D1D;
-  border-color: #EF4444;
-  color: #FCA5A5;
-}
+
 
 .status-content {
   display: flex;
@@ -81,10 +73,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .file-upload-area {
-  border-color: #374151;
-  background-color: #1F2937;
-}
+
 
 .file-upload-area:hover:not(.uploading) {
   border-color: #3B82F6;
@@ -92,10 +81,7 @@
   transform: translateY(-1px);
 }
 
-[data-theme="dark"] .file-upload-area:hover:not(.uploading) {
-  border-color: #60A5FA;
-  background-color: #1E3A8A;
-}
+
 
 .file-upload-area.drag-active {
   border-color: #3B82F6;
@@ -103,10 +89,7 @@
   transform: scale(1.02);
 }
 
-[data-theme="dark"] .file-upload-area.drag-active {
-  border-color: #60A5FA;
-  background-color: #1E3A8A;
-}
+
 
 .file-upload-area.uploading {
   cursor: not-allowed;
@@ -125,17 +108,13 @@
   margin-bottom: 4px;
 }
 
-[data-theme="dark"] .upload-icon {
-  color: #9CA3AF;
-}
+
 
 .file-upload-area:hover:not(.uploading) .upload-icon {
   color: #3B82F6;
 }
 
-[data-theme="dark"] .file-upload-area:hover:not(.uploading) .upload-icon {
-  color: #60A5FA;
-}
+
 
 .upload-text {
   margin: 0;
@@ -143,18 +122,14 @@
   color: #374151;
 }
 
-[data-theme="dark"] .upload-text {
-  color: #D1D5DB;
-}
+
 
 .upload-primary {
   font-weight: 600;
   color: #3B82F6;
 }
 
-[data-theme="dark"] .upload-primary {
-  color: #60A5FA;
-}
+
 
 .upload-secondary {
   margin: 0;
@@ -163,9 +138,7 @@
   margin-top: 4px;
 }
 
-[data-theme="dark"] .upload-secondary {
-  color: #9CA3AF;
-}
+
 
 /* Upload Spinner */
 .upload-spinner {
@@ -183,10 +156,7 @@
   animation: spin 1s linear infinite;
 }
 
-[data-theme="dark"] .spinner {
-  border-color: #374151;
-  border-top-color: #60A5FA;
-}
+
 
 /* Supported File Types */
 .supported-types {
@@ -210,11 +180,7 @@
   border: 1px solid #E5E7EB;
 }
 
-[data-theme="dark"] .file-type-chip {
-  background-color: #374151;
-  border-color: #4B5563;
-  color: #9CA3AF;
-}
+
 
 /* Enhanced Chat Input with Upload */
 .enhanced-chat-input {
@@ -245,20 +211,14 @@
   height: 40px;
 }
 
-[data-theme="dark"] .upload-toggle-btn {
-  background-color: #374151;
-  border-color: #4B5563;
-}
+
 
 .upload-toggle-btn:hover {
   background-color: #E5E7EB;
   border-color: #3B82F6;
 }
 
-[data-theme="dark"] .upload-toggle-btn:hover {
-  background-color: #4B5563;
-  border-color: #60A5FA;
-}
+
 
 .upload-toggle-btn.active {
   background-color: #3B82F6;
@@ -270,9 +230,7 @@
   color: #6B7280;
 }
 
-[data-theme="dark"] .upload-toggle-btn svg {
-  color: #9CA3AF;
-}
+
 
 .upload-toggle-btn:hover svg,
 .upload-toggle-btn.active svg {

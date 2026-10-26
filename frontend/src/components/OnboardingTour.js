@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { TourProvider, useTour } from '@reactour/tour';
 import { Hand, GraduationCap, Plus, MessageCircle, Paperclip, BarChart3 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { TESTING_ONBOARDING } from '../App';
 import '../styles/OnboardingTour.css';
@@ -39,16 +38,16 @@ const buildFeatures = (config, resolveIcon) => {
 };
 
 // Theme-resolved colors that match the rest of the app exactly
-const palette = (isDark) => ({
-  bg: isDark ? '#1F2937' : '#FFFFFF',
-  bgSubtle: isDark ? '#111827' : '#F9FAFB',
-  text: isDark ? '#F9FAFB' : '#111827',
-  textMuted: isDark ? '#D1D5DB' : '#6B7280',
-  textDim: isDark ? '#9CA3AF' : '#9CA3AF',
-  border: isDark ? '#374151' : '#E5E7EB',
-  accent: '#2663EB',
-  accentGrad: '#2663EB',
-  accentShadow: 'rgba(38, 99, 235, 0.45)',
+const palette = () => ({
+  bg: 'var(--paper)',
+  bgSubtle: 'var(--paper-sunken)',
+  text: 'var(--ink)',
+  textMuted: 'var(--ink-soft)',
+  textDim: 'var(--ink-soft)',
+  border: 'var(--line)',
+  accent: 'var(--ink)',
+  accentGrad: 'var(--ink)',
+  accentShadow: 'rgba(17, 17, 20, 0.12)',
 });
 
 // --- Step content -------------------------------------------------------
@@ -150,7 +149,7 @@ const buildSteps = (c, data) => [
     },
   },
   {
-    selector: '.advisor-status-button',
+    selector: '.advisor-sidebar-picker',
     content: <StepBody c={c} Icon={GraduationCap} title="Meet your advisors" body={data.advisorBody} />,
   },
   {
@@ -250,9 +249,9 @@ const TourLauncher = () => {
 };
 
 const OnboardingTour = ({ children }) => {
-  const { isDark } = useTheme();
+
   const { config, advisors, resolveIcon } = useAppConfig();
-  const c = useMemo(() => palette(isDark), [isDark]);
+  const c = useMemo(() => palette(), []);
 
   const stepData = useMemo(() => ({
     title: config?.app?.title || 'PhD Advisory Panel',

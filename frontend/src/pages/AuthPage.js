@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Login from '../components/Login';
 import Signup from '../components/Signup';
+import { useAuth } from '../contexts/AuthContext';
 
-const AuthPage = ({ onAuthSuccess }) => {
+const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const { handleAuthSuccess } = useAuth();
 
-  const handleNavigateToLogin = () => setIsLogin(true);
-  const handleNavigateToSignup = () => setIsLogin(false);
+  const handleAuthComplete = (userData, token) => {
+    handleAuthSuccess(userData, token);
+    navigate('/home', { replace: true });
+  };
 
   return (
     <>
       {isLogin ? (
-        <Login 
-          onNavigateToSignup={handleNavigateToSignup}
-          onNavigateToHome={onAuthSuccess}
+        <Login
+          onNavigateToSignup={() => setIsLogin(false)}
+          onAuthSuccess={handleAuthComplete}
         />
       ) : (
-        <Signup 
-          onNavigateToLogin={handleNavigateToLogin}
-          onNavigateToHome={onAuthSuccess}
+        <Signup
+          onNavigateToLogin={() => setIsLogin(true)}
+          onAuthSuccess={handleAuthComplete}
         />
       )}
     </>

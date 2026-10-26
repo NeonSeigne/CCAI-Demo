@@ -5,7 +5,7 @@ import AvatarPickerModal from './AvatarPickerModal';
 import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';
 
-const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, isDark }) => {
+const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
   const [pickerAdvisor, setPickerAdvisor] = useState(null);
@@ -115,7 +115,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
           <div className="advisor-list">
             {advisorEntries.map(([id, advisor]) => {
               const IconComponent = advisor.icon;
-              const colors = getAdvisorColors(id, isDark);
+              const colors = getAdvisorColors(id);
               const isThinking = Array.isArray(thinkingAdvisors) && thinkingAdvisors.includes(id);
               const enabled = isAdvisorEnabled(id);
 
@@ -123,7 +123,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
                 <div
                   key={id}
                   className={`advisor-item ${isThinking ? 'thinking' : ''} ${enabled ? '' : 'disabled'}`}
-                  style={{ '--advisor-color': colors.color, '--advisor-bg': colors.bgColor }}
+                  style={{ '--advisor-color': 'var(--ink)', '--advisor-bg': 'var(--paper-sunken)' }}
                 >
                   <div
                     className="advisor-icon"
@@ -143,7 +143,10 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
                     )}
                   </div>
                   <div className="advisor-details">
-                    <div className="advisor-name">{advisor.name}</div>
+                    <div className="advisor-name" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="accent-dot" style={{ backgroundColor: colors.dotColor || colors.color }} />
+                      {advisor.name}
+                    </div>
                     <div className="advisor-description">
                       {!enabled
                         ? <span className="advisor-off-label">Off — won't reply</span>
@@ -176,7 +179,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
           align-items: center;
           gap: 8px;
           padding: 8px 12px;
-          background: var(--bg-primary);
+          background: var(--paper);
           border: 1px solid var(--border-primary);
           border-radius: 12px;
           cursor: pointer;
@@ -236,19 +239,17 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
           right: 0;
           min-width: 280px;
           max-width: 320px;
-          background: var(--bg-primary);
+          background: var(--paper);
           border: 1px solid var(--border-primary);
           border-radius: 12px;
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
           z-index: 1000;
           overflow: hidden;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
         
-        [data-theme="dark"] .advisor-dropdown-panel {
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-        }
+        
         
         .advisor-list {
           max-height: 300px;
@@ -398,7 +399,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors, i
         }
 
         .disable-all-modal {
-          background: var(--bg-primary);
+          background: var(--paper);
           border-radius: 16px;
           width: 420px;
           max-width: 95vw;

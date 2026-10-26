@@ -1,48 +1,9 @@
-/* === User Guide modal ============================================== */
-.ug-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: ug-fade 0.18s ease;
-}
-
-@keyframes ug-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.ug-modal {
-  width: 92vw;
-  max-width: 1000px;
-  height: 80vh;
-  max-height: 720px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 18px;
-  box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: ug-pop 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes ug-pop {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
 /* Header bar */
 .ug-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 22px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-primary);
 }
 
@@ -62,23 +23,13 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #2663EB;
-  color: #fff;
+  background: var(--ink);
+  color: var(--paper);
   flex-shrink: 0;
 }
 
 .ug-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  cursor: pointer;
   color: var(--text-secondary);
-  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .ug-close:hover {
@@ -92,6 +43,8 @@
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* Sidebar */
@@ -173,7 +126,7 @@
 
 .ug-toc-item.active {
   background: rgba(38, 99, 235, 0.1);
-  color: #2663EB;
+  color: var(--ink);
 }
 
 .ug-toc-item.active .ug-toc-arrow {
@@ -251,12 +204,12 @@
   border-radius: 4px;
   background: var(--bg-secondary);
   font-size: 0.9em;
-  color: #2663EB;
-  font-family: 'SF Mono', ui-monospace, monospace;
+  color: var(--ink);
+  font-family: var(--font-mono);
 }
 
 .ug-content a {
-  color: #2663EB;
+  color: var(--ink);
   text-decoration: none;
 }
 

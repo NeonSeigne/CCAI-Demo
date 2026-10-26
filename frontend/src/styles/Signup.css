@@ -12,19 +12,17 @@
 .signup-container {
   width: 100%;
   max-width: 520px;
-  background: var(--bg-primary);
+  background: var(--paper);
   border: 1px solid var(--border-primary);
-  border-radius: 20px;
+  border-radius: 1rem;
   box-shadow: var(--shadow-xl);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   overflow: hidden;
   animation: fadeInUp 0.6s ease-out;
 }
 
-[data-theme="dark"] .signup-container {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-}
+
 
 /* Header Section */
 .signup-header {
@@ -37,8 +35,8 @@
 .logo-container {
   width: 56px;
   height: 56px;
-  background: var(--accent-gradient);
-  border-radius: 16px;
+  background: var(--ink);
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,9 +148,7 @@
   padding-right: 48px;
 }
 
-[data-theme="dark"] .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-}
+
 
 .form-input:focus,
 .form-select:focus {
@@ -235,21 +231,20 @@
 /* Submit Button */
 .submit-btn {
   width: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--accent-gradient);
-  color: #FFFFFF;
+  background: var(--ink);
+  color: #fff;
   border: none;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 14px 24px;
+  border-radius: 9999px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-md);
-  margin-bottom: 24px;
+  transition: opacity 0.2s ease;
+  box-shadow: var(--shadow-soft);
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -304,7 +299,7 @@
 }
 
 .divider span {
-  background: var(--bg-primary);
+  background: var(--paper);
   color: var(--text-tertiary);
   font-size: 13px;
   font-weight: 500;
@@ -331,7 +326,7 @@
   padding: 14px 20px;
   border: 1px solid var(--border-secondary);
   border-radius: 12px;
-  background: var(--bg-primary);
+  background: var(--paper);
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 500;
@@ -411,7 +406,7 @@
   
   .signup-container {
     max-width: 100%;
-    border-radius: 16px;
+    border-radius: 9999px;
   }
   
   .signup-header {

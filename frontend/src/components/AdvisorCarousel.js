@@ -4,7 +4,7 @@ import MessageBubble from './MessageBubble';
 
 const CAROUSEL_BREAKPOINT = 700;
 
-const AdvisorCarousel = ({ messages = [], onReply, onExpand, onClick, onSearchReferences, userAvatarId, userAvatarOptions }) => {
+const AdvisorCarousel = ({ messages = [], onReply, onExpand, onClick, onSearchReferences, userAvatarId, userAvatarOptions, onCourseSelect }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isCarouselMode, setIsCarouselMode] = useState(false);
   const containerRef = useRef(null);
@@ -45,6 +45,7 @@ const AdvisorCarousel = ({ messages = [], onReply, onExpand, onClick, onSearchRe
           showReplyButton={true}
           userAvatarId={userAvatarId}
           userAvatarOptions={userAvatarOptions}
+          onCourseSelect={onCourseSelect}
         />
       </div>
     );
@@ -83,6 +84,7 @@ const AdvisorCarousel = ({ messages = [], onReply, onExpand, onClick, onSearchRe
                 inlineAvatar={true}
                 userAvatarId={userAvatarId}
                 userAvatarOptions={userAvatarOptions}
+                onCourseSelect={onCourseSelect}
               />
             </div>
           ))}
