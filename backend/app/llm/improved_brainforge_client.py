@@ -1,31 +1,13 @@
-import json
 import logging
-import re
-from typing import Any, Callable, Dict, List, Optional
+from typing import List, Optional
 
 import httpx
 
-from app.llm.llm_client import LLMClient, ToolCallResult
+from app.llm.llm_client import LLMClient
 from app.llm.brainforge_auth import BrainForgeAuthManager
 from app.core.context_manager import get_context_manager
 
 logger = logging.getLogger(__name__)
-
-_STRUCTURED_OUTPUT_SCHEMA: Dict[str, Any] = {
-    "type": "object",
-    "properties": {
-        "thought": {"type": "string", "maxLength": 225},
-        "what_to_do": {
-            "type": "array",
-            "items": {"type": "string", "maxLength": 160},
-            "minItems": 3,
-            "maxItems": 3,
-        },
-        "next_step": {"type": "string", "maxLength": 225},
-    },
-    "required": ["thought", "what_to_do", "next_step"],
-}
-
 
 class ImprovedBrainForgeClient(LLMClient):
     """LLM client for BrainForge via its OpenAI-compatible endpoint.
@@ -102,9 +84,6 @@ class ImprovedBrainForgeClient(LLMClient):
                 "messages": context_window.messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
-                "extra_body": {
-                    "structured_outputs": {"json": _STRUCTURED_OUTPUT_SCHEMA},
-                },
             }
 
             async with httpx.AsyncClient(timeout=90) as client:
@@ -131,30 +110,6 @@ class ImprovedBrainForgeClient(LLMClient):
             data = resp.json()
             text = data["choices"][0]["message"]["content"].strip()
 
-            try:
-                parsed = json.loads(text)
-                expected_keys = {"thought", "what_to_do", "next_step"}
-                if isinstance(parsed, dict) and expected_keys.issubset(parsed.keys()):
-                    # Structured JSON response from vLLM constrained decoding.
-                    # Clean up bullet items: strip leading "- " or "1." prefixes
-                    # and convert **bold** labels to plain text.
-                    bullets = []
-                    for item in parsed["what_to_do"]:
-                        cleaned = re.sub(r"^-\s*", "", item)
-                        cleaned = re.sub(r"^\d+\.\s*", "", cleaned)
-                        cleaned = re.sub(r"\*\*(.+?)\*\*:?\s*", r"\1: ", cleaned)
-                        bullets.append(cleaned.strip())
-                    md = (
-                        f"### Thought\n{parsed['thought']}\n\n"
-                        f"### What to do\n"
-                        + "\n".join(f"- {b}" for b in bullets)
-                        + f"\n\n### Next step\n{parsed['next_step']}"
-                    )
-                    return md
-            except (json.JSONDecodeError, KeyError, TypeError) as exc:
-                logger.warning("BrainForge JSON parse failed (%s): %s", type(exc).__name__, exc)
-
-            # Fallback: plain text response (structured_outputs not active)
             return self._clean_response(text)
 
         except httpx.ConnectError:

@@ -42,3 +42,7 @@ python-jose[cryptography]~=3.5
 
 # Data validation (required for EmailStr in Pydantic)
 email-validator~=2.3
+
+# HTTP helpers used by integration/test scripts
+requests~=2.32
+certifi~=2025.1

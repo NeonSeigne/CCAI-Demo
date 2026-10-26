@@ -11,11 +11,15 @@ from pydantic import BaseModel, Field
 
 from app.api.routes.chat_sessions import persist_message
 from app.api.utils import get_or_create_session_for_request_async
+from app.api.visuals import build_visuals
 from app.core.auth import get_current_active_user
 from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
 from app.core.database import get_database
-from app.core.persona_filter import get_available_persona_ids
+from app.core.persona_filter import (
+    get_available_persona_ids,
+    get_requested_persona_ids,
+)
 from app.core.session_manager import get_session_manager
 from app.models.user import PersistMessage, ReplyToRef, User
 
@@ -194,6 +198,8 @@ async def chat_stream(
                 message.user_input, llm_client=orchestrator_llm,
             )
             if tool_result.used_tool:
+                # Preserve structured tool output as renderable visual specs.
+                visuals = build_visuals(tool_result.tool_outputs)
                 # Append user message to in-memory session and persist to MongoDB
                 session.append_message("orchestrator", tool_result.text)
                 if message.chat_session_id:
@@ -204,6 +210,7 @@ async def chat_stream(
                             persona_id="orchestrator",
                             advisorName="Orchestrator",
                             content=tool_result.text,
+                            visuals=visuals or None,
                         ),
                     )
                 yield ChatStreamLine(
@@ -214,6 +221,7 @@ async def chat_stream(
                         "content": tool_result.text,
                         "used_documents": False,
                         "document_chunks_used": 0,
+                        "visuals": visuals,
                     },
                 ).to_ndjson()
                 yield ChatStreamLine(
@@ -229,12 +237,21 @@ async def chat_stream(
                 user_disabled=current_user.disabled_advisors,
             )
 
-            # Get personas most relevant to the current session
-            top_personas = await chat_orchestrator.get_top_personas(
-                session_id=sid,
-                allowed_ids=available,
-                llm_client=orchestrator_llm,
+            requested_personas = get_requested_persona_ids(
+                message.active_advisors,
+                available,
             )
+            if message.active_advisors:
+                # Starter prompts and per-message advisor selections are exact:
+                # preserve the frontend's order and do not rerank the panel.
+                top_personas = requested_personas
+            else:
+                # Unmapped/manual messages retain automatic relevance routing.
+                top_personas = await chat_orchestrator.get_top_personas(
+                    session_id=sid,
+                    allowed_ids=available,
+                    llm_client=orchestrator_llm,
+                )
 
             # Guard against race condition where all selected advisors
             # become unavailable (e.g. service update) between preference
