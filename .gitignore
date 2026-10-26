@@ -34,3 +34,6 @@ frontend/firebase.json
 
 # Dependencies
 node_modules/
+
+# Local-only dev fixtures (contain personal transcript data)
+frontend/public/dev/

@@ -9,6 +9,16 @@ import PlannerResultsView from './PlannerResultsView';
 
 const PLAN_STORAGE_KEY = 'semesterPlanId';
 
+const DEV_QUICKSTART = {
+  majorId: 'economics_ba',
+  certificateIds: ['cert_computer_sciences'],
+  year: 'sophomore',
+  // Plain-text extract — the source PDF is AES-encrypted and fails without pycryptodome.
+  transcriptUrl: '/dev/transcript-fall-24.txt',
+  transcriptName: 'transcript-fall-24.txt',
+  transcriptMime: 'text/plain',
+};
+
 /**
  * Plan My Semester skill overlay: modal wizard → loading → floating results card.
  * Mounted on ChatPage; schedule edits also arrive via onExternalPlan from /chat-stream.
@@ -21,6 +31,7 @@ const SemesterPlannerSkill = ({
   onDeactivate,
   sidebarCollapsed = false,
   cardSlot = null,
+  devQuickStartNonce = 0,
 }) => {
   const { authToken } = useAuth();
 
@@ -43,6 +54,7 @@ const SemesterPlannerSkill = ({
   const [selecting, setSelecting] = useState(false);
   const [mutating, setMutating] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const lastDevQuickStartRef = useRef(0);
   const runGenerateRef = useRef(null);
 
   const persistPlanId = useCallback((id) => {
@@ -280,6 +292,96 @@ const SemesterPlannerSkill = ({
     persistPlanId,
     runGenerate,
   ]);
+
+  // Dev hammer: skip wizard with econ + CS cert + bundled transcript.
+  // Do not depend on handleStart — updating profile state recreates it and
+  // would cancel this effect. Only mark the nonce processed after success so
+  // React Strict Mode remounts still retry.
+  useEffect(() => {
+    if (!active || !authToken || !devQuickStartNonce) return undefined;
+    if (devQuickStartNonce === lastDevQuickStartRef.current) return undefined;
+
+    let cancelled = false;
+    const token = authToken;
+    const nonce = devQuickStartNonce;
+
+    const run = async () => {
+      clearPersistedPlanId();
+      setPlanId(null);
+      setPlan(null);
+      setProgress({ percent: 5, stage: 'parsing_transcript', message: 'Starting analysis…' });
+      setStartError('');
+      setMajorId(DEV_QUICKSTART.majorId);
+      setCertificateIds(DEV_QUICKSTART.certificateIds);
+      setYear(DEV_QUICKSTART.year);
+      setStep('loading');
+      setStarting(true);
+
+      try {
+        const transcriptResponse = await fetch(DEV_QUICKSTART.transcriptUrl);
+        if (!transcriptResponse.ok) {
+          throw new Error(`Could not load dev transcript (${transcriptResponse.status})`);
+        }
+        const blob = await transcriptResponse.blob();
+        if (cancelled) return;
+        if (!blob.size) {
+          throw new Error('Dev transcript file is empty');
+        }
+
+        const file = new File([blob], DEV_QUICKSTART.transcriptName, {
+          type: DEV_QUICKSTART.transcriptMime,
+        });
+        setTranscriptFile(file);
+
+        const form = new FormData();
+        form.append('major_id', DEV_QUICKSTART.majorId);
+        form.append('year', DEV_QUICKSTART.year);
+        form.append('certificate_ids', JSON.stringify(DEV_QUICKSTART.certificateIds));
+        form.append('transcript', file, DEV_QUICKSTART.transcriptName);
+
+        const createResponse = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/planner/plans`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: form,
+          }
+        );
+        if (cancelled) return;
+        if (!createResponse.ok) {
+          const detail = await createResponse.json().catch(() => ({}));
+          throw new Error(
+            typeof detail.detail === 'string'
+              ? detail.detail
+              : detail.detail
+                ? JSON.stringify(detail.detail)
+                : 'Could not create plan'
+          );
+        }
+        const created = await createResponse.json();
+        if (cancelled) return;
+        setPlanId(created.plan_id);
+        setPlan(created);
+        persistPlanId(created.plan_id);
+
+        // Mark processed only once create succeeded so Strict Mode can retry.
+        lastDevQuickStartRef.current = nonce;
+        await runGenerateRef.current?.(created.plan_id);
+      } catch (err) {
+        if (cancelled) return;
+        setStartError(err.message || 'Dev quick start failed');
+        setStep('transcript');
+      } finally {
+        if (!cancelled) setStarting(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally omit runGenerate identity churn
+  }, [active, authToken, devQuickStartNonce, clearPersistedPlanId, persistPlanId]);
 
   const handleSelectOption = async (optionId) => {
     if (!planId || optionId === plan?.selected_option_id) return;

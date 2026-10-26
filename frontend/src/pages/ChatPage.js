@@ -13,7 +13,7 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 
-import { MessageCircle, Reply, X, Sparkles, Users, FileText } from 'lucide-react';
+import { MessageCircle, Reply, X, Sparkles, Users, FileText, Hammer } from 'lucide-react';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
@@ -25,6 +25,7 @@ import Sidebar from '../components/Sidebar';
 import SemesterPlannerSkill from '../components/planner/SemesterPlannerSkill';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
+import { ENABLE_DEV_LOGIN } from '../App';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/SemesterPlanner.css';
@@ -88,6 +89,7 @@ const ChatPage = () => {
   const [plannerRestoreId, setPlannerRestoreId] = useState(null);
   const [semesterPlanId, setSemesterPlanId] = useState(null);
   const [plannerExternalPlan, setPlannerExternalPlan] = useState(null);
+  const [plannerDevQuickStart, setPlannerDevQuickStart] = useState(0);
   const [plannerCardSlot, setPlannerCardSlot] = useState(null);
   const semesterPlanIdRef = useRef(null);
 
@@ -105,6 +107,16 @@ const ChatPage = () => {
     setSemesterPlanId(null);
     setPlannerExternalPlan(null);
   }, []);
+
+  const handleDevSemesterPlan = useCallback(() => {
+    setPlannerRestoreId(null);
+    setPlannerExternalPlan(null);
+    setPlannerDevQuickStart((n) => n + 1);
+    setPlannerSkillActive(true);
+    if (chatPhase === 'landing') {
+      setChatPhase('active');
+    }
+  }, [chatPhase]);
 
   const handleInvokeSkill = useCallback((skillId) => {
     if (skillId === 'plan_semester') {
@@ -1088,6 +1100,17 @@ const handleNewChat = async (sessionId = null) => {
                   authToken={authToken}
                 />
 
+                {ENABLE_DEV_LOGIN && (
+                  <Tooltip title="Dev: semester plan (Econ + CS cert)">
+                    <IconButton
+                      aria-label="Developer semester plan"
+                      onClick={handleDevSemesterPlan}
+                    >
+                      <Hammer size={20} strokeWidth={1.75} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+
                 <Tooltip title="Open user guide">
                   <IconButton
                   aria-label="Open user guide"
@@ -1346,6 +1369,7 @@ const handleNewChat = async (sessionId = null) => {
         onDeactivate={handleDeactivatePlanner}
         sidebarCollapsed={isSidebarCollapsed}
         cardSlot={plannerCardSlot}
+        devQuickStartNonce={plannerDevQuickStart}
       />
 
       {isSettingsOpen && (
