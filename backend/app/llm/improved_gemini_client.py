@@ -12,6 +12,9 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+# Thinking tokens allowed per free-text generation (see generate()).
+THINKING_BUDGET = 1024
+
 class ImprovedGeminiClient(LLMClient):
     def __init__(self, model_name: str = None):
         settings = get_settings()
@@ -88,6 +91,11 @@ class ImprovedGeminiClient(LLMClient):
                 payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
             else:
                 payload["generationConfig"]["stopSequences"] = ["</END>", "Student:", "Question:", "\n\nStudent:", "\n\nQuestion:"]
+                # Gemini 2.5 counts thinking tokens against maxOutputTokens, which
+                # cut advisor replies off mid-sentence. Cap thinking and add that
+                # budget on top so max_tokens stays the visible-answer budget.
+                payload["generationConfig"]["thinkingConfig"] = {"thinkingBudget": THINKING_BUDGET}
+                payload["generationConfig"]["maxOutputTokens"] = max_tokens + THINKING_BUDGET
             
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
