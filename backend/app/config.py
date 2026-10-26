@@ -53,6 +53,8 @@ class AppConfig(BaseModel):
     title: str = "Advisor Canvas"
     subtitle: str = "AI-Powered Guidance"
     primary_color: str = "#7C3AED"
+    logo_icon: str = "GraduationCap"
+    institution: str = ""
     footer_text: str = ""
 
 
@@ -76,11 +78,13 @@ class LoginConfig(BaseModel):
 
 
 class ExampleCategory(_IconValidatorMixin):
+    id: Optional[str] = None
     title: str
     icon: str = "BookOpen"
     color: str = "#3B82F6"
     bg_color: str = "#EFF6FF"
     suggestions: List[str] = []
+    advisor_ids: List[str] = []
 
 
 class ChatPageConfig(BaseModel):
@@ -92,6 +96,11 @@ class OnboardingConfig(BaseModel):
     features: List[FeatureConfig] = []
     tour_title: str = ""
     tour_body: str = ""
+
+
+class CanvasConfig(BaseModel):
+    tour_title: str = "Academic Progress Canvas"
+    tour_body: str = "Review your extracted insights, degree roadmaps, and academic goals"
 
 
 class PersonaItemConfig(_IconValidatorMixin):
@@ -321,6 +330,20 @@ class ToolsConfig(BaseModel):
         cfg = self.__pydantic_extra__.get(name, {})
         return cfg if isinstance(cfg, dict) else {}
 
+    @model_validator(mode="after")
+    def _require_rmp_school_id(self):
+        """Fail fast when the RateMyProfessor tool is enabled without a
+        ``school_id``.  This tool is locked to a single school per deployment,
+        so a missing ID is a configuration error rather than a runtime no-op."""
+        cfg = self.get_tool_config("rate_my_professor")
+        if cfg and cfg.get("enabled", True) and not cfg.get("school_id"):
+            raise ValueError(
+                "tools.rate_my_professor is enabled but 'school_id' is missing. "
+                "Set the school_id for this deployment (find it with "
+                "scripts/rmp_school_lookup.py) or disable the tool."
+            )
+        return self
+
 
 class VoiceConfig(BaseModel):
     stt_endpoint: str = "https://whisper.neonaiservices.com"
@@ -334,6 +357,7 @@ class AppSettings(BaseModel):
     login: LoginConfig = LoginConfig()
     chat_page: ChatPageConfig = ChatPageConfig()
     onboarding: OnboardingConfig = OnboardingConfig()
+    canvas: CanvasConfig = CanvasConfig()
     personas: PersonasConfig = PersonasConfig()
     orchestrator: OrchestratorConfig = OrchestratorConfig()
     auth: AuthConfig = AuthConfig()
@@ -362,6 +386,7 @@ class AppSettings(BaseModel):
             "login": self.login.dict(),
             "chat_page": self.chat_page.dict(),
             "onboarding": self.onboarding.dict(),
+            "canvas": self.canvas.dict(),
             "personas": {
                 "items": [p.to_frontend_config() for p in persona_items],
             },

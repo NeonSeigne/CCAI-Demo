@@ -3,6 +3,12 @@ search_courses tool — live query against CU Boulder's FOSE class-search API.
 
 Exposes TOOL_DEFINITION (OpenAI tool format) and an execute() coroutine
 that the tool-calling loop dispatches to.
+
+NOTE: This tool is specific to the CU Boulder / FOSE catalog platform
+(``classes.colorado.edu``), including its term-code and response formats.
+It is NOT generic across schools. For a non-CU deployment, set
+``tools.search_courses.enabled: false`` in that school's config (or override
+``catalog`` to a non-FOSE value to get a graceful "unsupported" response).
 """
 
 import logging
@@ -22,8 +28,9 @@ TOOL_DEFINITION: Dict[str, Any] = {
     "function": {
         "name": "search_courses",
         "description": (
-            "Search the CU Boulder course catalog for classes in a given "
-            "subject, optionally filtered by course number and semester. "
+            "Search the CU Boulder (FOSE) course catalog for classes in a "
+            "given subject, optionally filtered by course number and semester. "
+            "Only available for CU Boulder deployments. "
             "Returns a list of matching sections with title, instructor, "
             "schedule, and location."
         ),
@@ -131,7 +138,27 @@ async def execute(
 
     The 'name' kwarg is passed by the dispatch loop and ignored here.
     Returns {"courses": [...], "query": {...}}.
+
+    This tool only supports the CU Boulder / FOSE catalog. If a deployment
+    configures a different ``catalog``, it returns a graceful empty result
+    rather than querying the wrong school's data.
     """
+    tool_cfg = get_settings().tools.get_tool_config("search_courses")
+    catalog = (tool_cfg.get("catalog") or "cu_fose").strip().lower()
+    if catalog != "cu_fose":
+        logger.info(
+            "search_courses is CU/FOSE-only but catalog=%r; returning empty result",
+            catalog,
+        )
+        return {
+            "courses": [],
+            "error": (
+                "Course search is only available for CU Boulder (FOSE) "
+                "deployments and is not configured for this school."
+            ),
+            "query": {"subject": subject, "semester": semester},
+        }
+
     srcdb = _term_to_srcdb(semester)
     subject = subject.upper().strip()
 
@@ -173,7 +200,7 @@ async def execute(
         cn = course_number.strip()
         courses = [c for c in courses if cn in c["course_code"]]
 
-    max_results = get_settings().tools.get_tool_config("search_courses").get("max_results", 20)
+    max_results = tool_cfg.get("max_results", 20)
 
     total = len(courses)
     truncated = total > max_results
