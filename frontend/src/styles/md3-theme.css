@@ -1,0 +1,47 @@
+/* Theme aliases — map legacy CSS vars to Co-Panel brand tokens (light-only) */
+html[data-theme="light"],
+:root {
+  /* Backgrounds */
+  --bg-primary: var(--paper-sunken);
+  --bg-secondary: var(--paper);
+  --bg-tertiary: #F0F0EE;
+  --bg-gradient: var(--paper-sunken);
+  --card-bg: var(--paper);
+
+  /* Text */
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-soft);
+  --text-tertiary: #9A9A9E;
+  --text-accent: var(--ink);
+
+  /* Borders */
+  --border-primary: var(--line);
+  --border-secondary: rgba(17, 17, 20, 0.12);
+  --border-tertiary: rgba(17, 17, 20, 0.05);
+
+  /* Accents — ink replaces indigo/violet */
+  --accent-primary: var(--ink);
+  --accent-secondary: var(--ink-soft);
+  --accent-gradient: var(--ink);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: var(--shadow-soft-md);
+  --shadow-lg: 0 12px 32px rgba(17, 17, 20, 0.1);
+  --shadow-xl: 0 20px 48px rgba(17, 17, 20, 0.12);
+
+  /* Feature */
+  --feature-bg: var(--paper);
+  --feature-icon-color: var(--ink);
+
+  /* Error */
+  --error-bg: #FEF2F2;
+  --error-border: #FECACA;
+  --error-text: #DC2626;
+
+  /* Inputs */
+  --input-bg: var(--paper);
+  --input-border: var(--line);
+  --input-focus: var(--ink);
+  --input-focus-shadow: 0 0 0 3px rgba(17, 17, 20, 0.08);
+}
