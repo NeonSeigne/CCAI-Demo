@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
       - name: Get Version
         run: |
-          VERSION=$(python multi_llm_chatbot_backend/app/version.py)
+          VERSION=$(python backend/app/version.py)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - uses: ncipollo/release-action@v1
         with:
