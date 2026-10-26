@@ -1,0 +1,54 @@
+{
+  "programs": [
+    {
+      "id": "comp_sci_bs",
+      "name": "Computer Sciences, B.S.",
+      "type": "major",
+      "college": "College of Letters & Science",
+      "file": "comp_sci_bs.json"
+    },
+    {
+      "id": "data_science_bs",
+      "name": "Data Science, B.S.",
+      "type": "major",
+      "college": "College of Letters & Science",
+      "file": "data_science_bs.json"
+    },
+    {
+      "id": "economics_ba",
+      "name": "Economics, B.A.",
+      "type": "major",
+      "college": "College of Letters & Science",
+      "file": "economics_ba.json"
+    },
+    {
+      "id": "psychology_bs",
+      "name": "Psychology, B.S.",
+      "type": "major",
+      "college": "College of Letters & Science",
+      "file": "psychology_bs.json"
+    },
+    {
+      "id": "cert_entrepreneurship",
+      "name": "Certificate in Entrepreneurship",
+      "type": "certificate",
+      "college": "School of Business",
+      "file": "cert_entrepreneurship.json"
+    },
+    {
+      "id": "cert_data_science",
+      "name": "Certificate in Data Science",
+      "type": "certificate",
+      "college": "College of Letters & Science",
+      "file": "cert_data_science.json"
+    },
+    {
+      "id": "cert_computer_sciences",
+      "name": "Certificate in Computer Sciences",
+      "type": "certificate",
+      "college": "College of Letters & Science",
+      "file": "cert_computer_sciences.json"
+    }
+  ],
+  "disclaimer": "Curated demo subset based on published UW–Madison Guide summaries. Not an official DARS degree audit."
+}

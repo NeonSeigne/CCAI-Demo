@@ -1,0 +1,60 @@
+{
+  "id": "psychology_bs",
+  "name": "Psychology, B.S.",
+  "type": "major",
+  "college": "College of Letters & Science",
+  "total_credits": 120,
+  "major_credits": 33,
+  "source_note": "Curated from UW–Madison Guide Psychology B.S. summary for demo use.",
+  "requirements": [
+    {
+      "id": "psych_intro",
+      "title": "Introductory psychology",
+      "rule": "all_of",
+      "courses": ["PSYCH 202"]
+    },
+    {
+      "id": "psych_methods",
+      "title": "Methods and statistics",
+      "rule": "all_of",
+      "courses": ["PSYCH 210", "PSYCH 225"]
+    },
+    {
+      "id": "psych_breadth",
+      "title": "Breadth areas",
+      "rule": "n_of",
+      "n": 4,
+      "courses": [
+        "PSYCH 403",
+        "PSYCH 406",
+        "PSYCH 408",
+        "PSYCH 411",
+        "PSYCH 414",
+        "PSYCH 428",
+        "PSYCH 454",
+        "PSYCH 456"
+      ]
+    },
+    {
+      "id": "psych_advanced",
+      "title": "Advanced electives",
+      "rule": "n_of",
+      "n": 3,
+      "courses": [
+        "PSYCH 501",
+        "PSYCH 502",
+        "PSYCH 503",
+        "PSYCH 513",
+        "PSYCH 528",
+        "PSYCH 560"
+      ]
+    },
+    {
+      "id": "gened_breadth",
+      "title": "Supporting coursework",
+      "rule": "n_of",
+      "n": 2,
+      "courses": ["BIOLOGY 151", "STAT 240", "SOC 134", "ANTHRO 104"]
+    }
+  ]
+}

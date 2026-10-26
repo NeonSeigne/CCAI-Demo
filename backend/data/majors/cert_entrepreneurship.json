@@ -1,0 +1,31 @@
+{
+  "id": "cert_entrepreneurship",
+  "name": "Certificate in Entrepreneurship",
+  "type": "certificate",
+  "college": "School of Business",
+  "total_credits": 16,
+  "major_credits": 16,
+  "source_note": "Curated entrepreneurship certificate summary for demo use.",
+  "requirements": [
+    {
+      "id": "ent_core",
+      "title": "Entrepreneurship core",
+      "rule": "all_of",
+      "courses": ["M H R 322", "FINANCE 300"]
+    },
+    {
+      "id": "ent_electives",
+      "title": "Entrepreneurship electives",
+      "rule": "n_of",
+      "n": 3,
+      "courses": [
+        "M H R 365",
+        "M H R 399",
+        "MARKETNG 300",
+        "GEN BUS 310",
+        "COMP SCI 407",
+        "ECON 330"
+      ]
+    }
+  ]
+}

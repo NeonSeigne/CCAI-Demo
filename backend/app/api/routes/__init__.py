@@ -8,6 +8,7 @@ from .root import router as root_router
 from .phd_canvas import router as canvas_router
 from .voice import router as voice_router
 from .courses import router as courses_router
+from .planner import router as planner_router
 
 router = APIRouter()
 router.include_router(chat_router)
@@ -19,3 +20,4 @@ router.include_router(root_router)
 router.include_router(canvas_router)
 router.include_router(voice_router)
 router.include_router(courses_router, prefix="/api")
+router.include_router(planner_router)

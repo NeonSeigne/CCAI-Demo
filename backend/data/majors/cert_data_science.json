@@ -1,0 +1,31 @@
+{
+  "id": "cert_data_science",
+  "name": "Certificate in Data Science",
+  "type": "certificate",
+  "college": "College of Letters & Science",
+  "total_credits": 16,
+  "major_credits": 16,
+  "source_note": "Curated data science certificate summary for demo use.",
+  "requirements": [
+    {
+      "id": "cds_foundation",
+      "title": "Foundations",
+      "rule": "all_of",
+      "courses": ["STAT 240", "COMP SCI 220"]
+    },
+    {
+      "id": "cds_core",
+      "title": "Core methods",
+      "rule": "n_of",
+      "n": 2,
+      "courses": ["STAT 303", "COMP SCI 320", "STAT 451"]
+    },
+    {
+      "id": "cds_electives",
+      "title": "Electives",
+      "rule": "n_of",
+      "n": 2,
+      "courses": ["COMP SCI 540", "STAT 433", "INFO SYS 322", "ECON 410"]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "data_science_bs",
+  "name": "Data Science, B.S.",
+  "type": "major",
+  "college": "College of Letters & Science",
+  "total_credits": 120,
+  "major_credits": 48,
+  "source_note": "Curated from UW–Madison Guide Data Science B.S. summary for demo use.",
+  "requirements": [
+    {
+      "id": "ds_math",
+      "title": "Foundational math",
+      "rule": "all_of",
+      "courses": ["MATH 221", "MATH 222", "MATH 340"]
+    },
+    {
+      "id": "ds_stats",
+      "title": "Statistics foundation",
+      "rule": "all_of",
+      "courses": ["STAT 240", "STAT 303", "STAT 340"]
+    },
+    {
+      "id": "ds_cs",
+      "title": "Computing foundation",
+      "rule": "all_of",
+      "courses": ["COMP SCI 220", "COMP SCI 300", "COMP SCI 320"]
+    },
+    {
+      "id": "ds_core",
+      "title": "Data Science core",
+      "rule": "all_of",
+      "courses": ["STAT 451", "COMP SCI 540"]
+    },
+    {
+      "id": "ds_electives",
+      "title": "Data Science electives",
+      "rule": "n_of",
+      "n": 3,
+      "courses": [
+        "STAT 433",
+        "STAT 456",
+        "COMP SCI 544",
+        "COMP SCI 564",
+        "COMP SCI 570",
+        "ECON 410",
+        "INFO SYS 322"
+      ]
+    },
+    {
+      "id": "gened_breadth",
+      "title": "Breadth / communication",
+      "rule": "n_of",
+      "n": 2,
+      "courses": ["ENGL 100", "COM ARTS 100", "PHILOS 241", "SOC 134"]
+    }
+  ]
+}

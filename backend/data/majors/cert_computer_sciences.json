@@ -1,0 +1,37 @@
+{
+  "id": "cert_computer_sciences",
+  "name": "Certificate in Computer Sciences",
+  "type": "certificate",
+  "college": "College of Letters & Science",
+  "total_credits": 16,
+  "major_credits": 16,
+  "source_note": "Curated computer sciences certificate summary for demo use.",
+  "requirements": [
+    {
+      "id": "ccs_intro",
+      "title": "Introductory programming",
+      "rule": "n_of",
+      "n": 1,
+      "courses": ["COMP SCI 200", "COMP SCI 220", "COMP SCI 300"]
+    },
+    {
+      "id": "ccs_core",
+      "title": "Core CS",
+      "rule": "all_of",
+      "courses": ["COMP SCI 300", "COMP SCI 400"]
+    },
+    {
+      "id": "ccs_electives",
+      "title": "CS electives",
+      "rule": "n_of",
+      "n": 2,
+      "courses": [
+        "COMP SCI 354",
+        "COMP SCI 407",
+        "COMP SCI 540",
+        "COMP SCI 544",
+        "COMP SCI 577"
+      ]
+    }
+  ]
+}

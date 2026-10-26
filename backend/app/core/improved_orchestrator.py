@@ -46,29 +46,50 @@ class ImprovedChatOrchestrator:
         return list(self.personas.keys())
 
     async def get_tool_response(self, user_message: str,
-                               llm_client: LLMClient = None) -> ToolCallResult:
+                               llm_client: LLMClient = None,
+                               *,
+                               extra_system: str = "",
+                               force_enable: Optional[List[str]] = None,
+                               inject_tool_args: Optional[Dict[str, Dict[str, Any]]] = None,
+                               ) -> ToolCallResult:
         """Check whether a tool can handle *user_message*.
 
         If tools are disabled in config, no LLM client is available, or the
         model decides no tool is needed, returns
         ``ToolCallResult(used_tool=False)``.  Otherwise executes the tool and
         returns the grounded response with ``used_tool=True``.
+
+        *extra_system* is appended to the tool-routing system prompt (e.g. active
+        semester plan context). *force_enable* adds tool names even if not in
+        config. *inject_tool_args* maps tool name → kwargs merged into each call
+        (used to force ``plan_id`` for ``update_semester_plan``).
         """
         effective_llm = llm_client or self.llm_client
         if effective_llm is None:
             return ToolCallResult(text="", used_tool=False)
 
         settings = get_settings()
-        tools_enabled = settings.tools.get_enabled_names()
+        tools_enabled = list(settings.tools.get_enabled_names())
+        if force_enable:
+            for name in force_enable:
+                if name not in tools_enabled:
+                    tools_enabled.append(name)
 
         if not tools_enabled:
             return ToolCallResult(text="", used_tool=False)
 
         tool_definitions = get_tool_definitions(enabled=tools_enabled)
-        tool_executor = get_tool_executor(enabled=tools_enabled)
+        base_executor = get_tool_executor(enabled=tools_enabled)
 
         if not tool_definitions:
             return ToolCallResult(text="", used_tool=False)
+
+        inject_tool_args = inject_tool_args or {}
+
+        async def tool_executor(name: str, **kwargs: Any) -> Dict[str, Any]:
+            extra = inject_tool_args.get(name) or {}
+            merged = {**kwargs, **extra}
+            return await base_executor(name=name, **merged)
 
         system_prompt = (
             "You are a helpful assistant with access to external tools. "
@@ -93,6 +114,8 @@ class ImprovedChatOrchestrator:
             "uw_next_courses). "
             "Those tool calls attach interactive course cards inline in chat."
         )
+        if extra_system:
+            system_prompt = f"{system_prompt}\n\n{extra_system}"
 
         return await effective_llm.generate_with_tools(
             system_prompt=system_prompt,
@@ -433,12 +456,14 @@ class ImprovedChatOrchestrator:
     
     async def generate_single_persona_response(self, session, persona,
                                                response_length: str = "medium",
-                                               llm_client: LLMClient = None):
+                                               llm_client: LLMClient = None,
+                                               extra_context: str = ""):
         """
         Enhanced version - Generate response from a single persona with enhanced RAG integration.
 
         *llm_client* is forwarded to ``persona.respond()``; when ``None`` the
         persona uses its default (system-default) client.
+        *extra_context* is appended to the persona system message (e.g. active plan).
         """
         try:
             # Get the user's latest message for document retrieval
@@ -451,7 +476,7 @@ class ImprovedChatOrchestrator:
                     if msg.get('role') == 'user':
                         user_message = msg.get('content', '')
                         break
-            
+
             # Retrieve relevant document context using enhanced RAG
             document_context = ""
             if user_message:
@@ -460,10 +485,11 @@ class ImprovedChatOrchestrator:
                     session_id=session.session_id,
                     persona_id=persona.id
                 )
-            
+
             # Build enhanced context for the LLM
             enhanced_context = await self._build_enhanced_context_for_persona(
-                session, persona, user_message, document_context
+                session, persona, user_message, document_context,
+                extra_context=extra_context,
             )
             
             # Generate response with enhanced context
@@ -799,7 +825,7 @@ When analyzing the document context:
         
         return instructions.get(persona_id, "Provide helpful guidance based on the document context.")
 
-    async def _build_enhanced_context_for_persona(self, session, persona, user_message: str, document_context: str) -> List[Dict[str, str]]:
+    async def _build_enhanced_context_for_persona(self, session, persona, user_message: str, document_context: str, extra_context: str = "") -> List[Dict[str, str]]:
         """
         Build enhanced context that properly integrates document information with conversation history
         FIXED VERSION - Ensures document context is properly preserved for both providers
@@ -852,6 +878,13 @@ When analyzing the document context:
                 "role": "system", 
                 "content": system_message
             })
+
+        if extra_context and extra_context.strip():
+            enhanced_context[0]["content"] = (
+                enhanced_context[0]["content"]
+                + "\n\n"
+                + extra_context.strip()
+            )
 
         # Add recent conversation messages (excluding system messages to avoid duplication)
         for message in recent_messages:

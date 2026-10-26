@@ -1,0 +1,75 @@
+{
+  "id": "comp_sci_bs",
+  "name": "Computer Sciences, B.S.",
+  "type": "major",
+  "college": "College of Letters & Science",
+  "total_credits": 120,
+  "major_credits": 48,
+  "source_note": "Curated from UW–Madison Guide Computer Sciences B.S. summary for demo use.",
+  "requirements": [
+    {
+      "id": "cs_calc",
+      "title": "Calculus sequence",
+      "rule": "all_of",
+      "courses": ["MATH 221", "MATH 222"]
+    },
+    {
+      "id": "cs_intro",
+      "title": "Introductory programming",
+      "rule": "n_of",
+      "n": 1,
+      "courses": ["COMP SCI 200", "COMP SCI 220", "COMP SCI 300"]
+    },
+    {
+      "id": "cs_core",
+      "title": "Computer Sciences core",
+      "rule": "all_of",
+      "courses": [
+        "COMP SCI 240",
+        "COMP SCI 252",
+        "COMP SCI 300",
+        "COMP SCI 354",
+        "COMP SCI 400",
+        "MATH 340"
+      ]
+    },
+    {
+      "id": "cs_theory",
+      "title": "Theory electives",
+      "rule": "n_of",
+      "n": 1,
+      "courses": ["COMP SCI 577", "COMP SCI 520"]
+    },
+    {
+      "id": "cs_electives",
+      "title": "Additional CS electives",
+      "rule": "n_of",
+      "n": 4,
+      "courses": [
+        "COMP SCI 407",
+        "COMP SCI 536",
+        "COMP SCI 537",
+        "COMP SCI 540",
+        "COMP SCI 544",
+        "COMP SCI 552",
+        "COMP SCI 564",
+        "COMP SCI 570",
+        "COMP SCI 571",
+        "COMP SCI 640"
+      ]
+    },
+    {
+      "id": "gened_comm",
+      "title": "Communication / breadth electives",
+      "rule": "n_of",
+      "n": 2,
+      "courses": [
+        "ENGL 100",
+        "COM ARTS 100",
+        "PHILOS 210",
+        "STAT 240",
+        "L I S 202"
+      ]
+    }
+  ]
+}

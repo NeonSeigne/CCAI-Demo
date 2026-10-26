@@ -1,0 +1,53 @@
+{
+  "id": "economics_ba",
+  "name": "Economics, B.A.",
+  "type": "major",
+  "college": "College of Letters & Science",
+  "total_credits": 120,
+  "major_credits": 30,
+  "source_note": "Curated from UW–Madison Guide Economics B.A. summary for demo use.",
+  "requirements": [
+    {
+      "id": "econ_intro",
+      "title": "Introductory economics",
+      "rule": "all_of",
+      "courses": ["ECON 101", "ECON 102"]
+    },
+    {
+      "id": "econ_math",
+      "title": "Quantitative preparation",
+      "rule": "n_of",
+      "n": 1,
+      "courses": ["MATH 221", "MATH 217", "MATH 211"]
+    },
+    {
+      "id": "econ_core",
+      "title": "Intermediate theory",
+      "rule": "all_of",
+      "courses": ["ECON 301", "ECON 302", "ECON 310"]
+    },
+    {
+      "id": "econ_electives",
+      "title": "Economics electives",
+      "rule": "n_of",
+      "n": 4,
+      "courses": [
+        "ECON 330",
+        "ECON 410",
+        "ECON 435",
+        "ECON 441",
+        "ECON 450",
+        "ECON 464",
+        "ECON 468",
+        "ECON 521"
+      ]
+    },
+    {
+      "id": "gened_breadth",
+      "title": "Breadth electives",
+      "rule": "n_of",
+      "n": 2,
+      "courses": ["STAT 240", "POLI SCI 104", "HISTORY 102", "PHILOS 210"]
+    }
+  ]
+}

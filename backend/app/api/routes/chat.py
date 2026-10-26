@@ -21,6 +21,7 @@ from app.core.persona_filter import (
     get_requested_persona_ids,
 )
 from app.core.session_manager import get_session_manager
+from app.core.semester_planner import format_plan_context, get_plan
 from app.models.user import PersistMessage, ReplyToRef, User
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class ChatMessage(BaseModel):
     response_length: str = "medium"
     active_advisors: Optional[List[str]] = None
     response_mode: ResponseMode = "panel"
+    semester_plan_id: Optional[str] = None  # Active Plan My Semester skill
 
 class PanelResult(BaseModel):
     persona_id: str
@@ -111,7 +113,7 @@ class SwitchChatRequest(BaseModel):
 class NewChatRequest(BaseModel):
     title: Optional[str] = "New Chat"
 
-ChatStreamEventType = Literal["error", "progress", "clarification", "advisor"]
+ChatStreamEventType = Literal["error", "progress", "clarification", "advisor", "plan_update"]
 
 
 class ChatStreamLine(BaseModel):
@@ -122,6 +124,18 @@ class ChatStreamLine(BaseModel):
 
     def to_ndjson(self) -> str:
         return json.dumps(self.model_dump(mode="json"), ensure_ascii=False) + "\n"
+
+
+def _plan_from_tool_outputs(tool_outputs: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Return the latest public plan embedded in update_semester_plan tool results."""
+    plan = None
+    for entry in tool_outputs or []:
+        if entry.get("name") != "update_semester_plan":
+            continue
+        result = entry.get("result") or {}
+        if isinstance(result, dict) and result.get("plan"):
+            plan = result["plan"]
+    return plan
 
 # TODO: Refactor this function into smaller composable helpers so it's more readable and maintainable.
 @router.post("/chat-stream")
@@ -159,6 +173,14 @@ async def chat_stream(
 
             session = session_manager.get_session(sid)
 
+            # Resolve active semester plan (Plan My Semester skill)
+            plan_context = ""
+            active_plan = None
+            if message.semester_plan_id:
+                active_plan = get_plan(message.semester_plan_id)
+                if active_plan:
+                    plan_context = format_plan_context(active_plan)
+
             # Append user message to in-memory session and persist to MongoDB
             response_group_id = str(ObjectId())
             session.append_message("user", message.user_input)
@@ -194,8 +216,15 @@ async def chat_stream(
 
             # If an enabled tool can handle this query, return its response
             # directly and skip persona generation.
+            tool_kwargs: Dict[str, Any] = {"llm_client": orchestrator_llm}
+            if plan_context:
+                tool_kwargs["extra_system"] = plan_context
+                tool_kwargs["force_enable"] = ["update_semester_plan"]
+                tool_kwargs["inject_tool_args"] = {
+                    "update_semester_plan": {"plan_id": message.semester_plan_id},
+                }
             tool_result = await chat_orchestrator.get_tool_response(
-                message.user_input, llm_client=orchestrator_llm,
+                message.user_input, **tool_kwargs,
             )
             if tool_result.used_tool:
                 # Preserve structured tool output as renderable visual specs.
@@ -213,6 +242,12 @@ async def chat_stream(
                             visuals=visuals or None,
                         ),
                     )
+                updated_plan = _plan_from_tool_outputs(tool_result.tool_outputs)
+                if updated_plan:
+                    yield ChatStreamLine(
+                        type="plan_update",
+                        data={"plan": updated_plan},
+                    ).to_ndjson()
                 yield ChatStreamLine(
                     type="advisor",
                     data={
@@ -302,6 +337,7 @@ async def chat_stream(
                         session, persona,
                         message.response_length or "medium",
                         llm_client=persona_llm,
+                        extra_context=plan_context,
                     )
                     session.append_message(pid, result["response"])
                     await done_queue.put(result)

@@ -474,3 +474,7 @@ tools:
   uw_course_sections:
     enabled: true
     max_results: 25
+
+  # Mutate the active Plan My Semester schedule from normal chat
+  update_semester_plan:
+    enabled: true
