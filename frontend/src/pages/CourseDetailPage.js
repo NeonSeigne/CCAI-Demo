@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   BookOpen,
@@ -128,6 +128,7 @@ function CourseLoading() {
 function CourseDetailPage() {
   const { courseIdentifier = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { authToken } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTerm = searchParams.get('term') || undefined;
@@ -140,6 +141,26 @@ function CourseDetailPage() {
     requestedTerm,
   );
 
+  const planId =
+    location.state?.planId ||
+    (() => {
+      try {
+        return sessionStorage.getItem('semesterPlanId');
+      } catch (_) {
+        return null;
+      }
+    })();
+
+  const handleBack = () => {
+    if (planId) {
+      navigate('/chat', {
+        state: { openSemesterPlanner: true, planId },
+      });
+      return;
+    }
+    navigate(-1);
+  };
+
   const setQuery = useCallback((changes) => {
     const next = new URLSearchParams(searchParams);
     Object.entries(changes).forEach(([key, value]) => (
@@ -149,8 +170,8 @@ function CourseDetailPage() {
   }, [searchParams, setSearchParams]);
 
   const openCourse = useCallback(
-    (identifier) => navigate(courseRoute(identifier)),
-    [navigate],
+    (identifier) => navigate(courseRoute(identifier), { state: { planId } }),
+    [navigate, planId],
   );
 
   const rows = useMemo(
@@ -209,8 +230,8 @@ function CourseDetailPage() {
       <div className="course-shell">
         <header className="course-header">
           <div className="course-header-top">
-            <button type="button" className="course-back" onClick={() => navigate(-1)}>
-              <ArrowLeft size={17} /> Back
+            <button type="button" className="course-back" onClick={handleBack}>
+              <ArrowLeft size={17} /> {planId ? 'Back to semester plan' : 'Back'}
             </button>
             <select
               aria-label="Course term"

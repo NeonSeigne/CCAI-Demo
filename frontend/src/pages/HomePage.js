@@ -10,11 +10,15 @@ import {
   FileText,
   ArrowRight,
   LayoutDashboard,
+  CalendarRange,
+  GraduationCap,
 } from 'lucide-react';
 import CopyrightNotice from '../components/CopyrightNotice';
 import SettingsModal from '../components/SettingsModal';
+import PlannerModeCard from '../components/planner/PlannerModeCard';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
+import '../styles/SemesterPlanner.css';
 
 const ACCENT_DOTS = ['bg-accent-red', 'bg-accent-blue', 'bg-accent-green'];
 
@@ -211,6 +215,26 @@ const HomePage = () => {
               <Plus size={18} />
               Start New Conversation
             </button>
+          </div>
+        </section>
+
+        <section className="planner-modes-section">
+          <h3 className="home-section-label">Planning modes</h3>
+          <div className="planner-modes-grid">
+            <PlannerModeCard
+              title="Plan My Semester"
+              description="Build a balanced course load from your major, certificates, and transcript."
+              icon={CalendarRange}
+              accentClass="bg-accent-blue"
+              onClick={() => navigate('/chat', { state: { openSemesterPlanner: true, startNew: true } })}
+            />
+            <PlannerModeCard
+              title="Plan My Degree"
+              description="Map remaining requirements across semesters through graduation."
+              icon={GraduationCap}
+              accentClass="bg-accent-green"
+              disabled
+            />
           </div>
         </section>
 
