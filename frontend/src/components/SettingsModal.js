@@ -1,25 +1,22 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+} from '@mui/material';
 import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from 'lucide-react';
 import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
+import AppDialog from './AppDialog';
 
-const overlay = {
-  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-};
-
-const modal = {
-  background: 'var(--bg-primary)', borderRadius: 16, padding: 0, width: 640,
-  maxWidth: '95vw', maxHeight: '85vh', overflow: 'hidden',
-  boxShadow: 'var(--shadow-xl)', display: 'flex', flexDirection: 'column',
-};
-
-const header = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  padding: '20px 24px', borderBottom: '1px solid var(--border-primary)',
-};
+const SCHOOLS = [
+  { id: 'cu-boulder', name: 'CU Boulder' },
+  { id: 'uw-madison', name: 'UW-Madison' },
+];
 
 const tabRow = {
   display: 'flex', gap: 4, padding: '12px 16px 0',
@@ -34,8 +31,6 @@ const tabBtn = (active) => ({
   cursor: 'pointer', fontSize: 13.5, fontWeight: 500,
   marginBottom: -1,
 });
-
-const body = { padding: 24, overflowY: 'auto', flex: 1 };
 
 const label = { display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 };
 
@@ -79,6 +74,7 @@ const SettingsModal = ({
   llmConfig,
   isSaving,
   onSubmitConfig,
+  leftInset = 0,
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const {
@@ -93,17 +89,9 @@ const SettingsModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const mouseDownOnOverlay = useRef(false);
-  const handleOverlayMouseDown = (e) => {
-    mouseDownOnOverlay.current = e.target === e.currentTarget;
-  };
-  const handleOverlayMouseUp = (e) => {
-    if (mouseDownOnOverlay.current && e.target === e.currentTarget) onClose();
-    mouseDownOnOverlay.current = false;
-  };
-
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
+  const [school, setSchool] = useState(() => localStorage.getItem('selectedSchool') || 'cu-boulder');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -302,15 +290,31 @@ const SettingsModal = ({
     setPendingDisable(null);
   };
 
-  return ReactDOM.createPortal(
-    <div style={overlay} onMouseDown={handleOverlayMouseDown} onMouseUp={handleOverlayMouseUp}>
-      <div style={modal}>
-        <div style={header}>
-          <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: 18 }}>Settings</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4, display: 'flex' }} aria-label="Close settings">
+  return (
+    <AppDialog
+      open
+      onClose={onClose}
+      leftInset={leftInset}
+      maxWidth="md"
+      aria-labelledby="settings-dialog-title"
+      slotProps={{
+        paper: {
+          sx: {
+            maxWidth: 640,
+            maxHeight: '85vh',
+          },
+        },
+      }}
+    >
+        <DialogTitle
+          id="settings-dialog-title"
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          Settings
+          <IconButton onClick={onClose} aria-label="Close settings" size="small">
             <X size={20} />
-          </button>
-        </div>
+          </IconButton>
+        </DialogTitle>
 
         <div style={tabRow}>
           <button style={tabBtn(activeTab === 'profile')} onClick={() => { setActiveTab('profile'); setMessage(null); }}>
@@ -330,7 +334,7 @@ const SettingsModal = ({
           </button>
         </div>
 
-        <div style={body}>
+        <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
           {message && <div style={messageStyle(message.type)}>{message.text}</div>}
 
           {activeTab === 'profile' && (
@@ -348,6 +352,22 @@ const SettingsModal = ({
                   <label style={label}>Last Name</label>
                   <input style={input} value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={label}>School</label>
+                <select
+                  style={input}
+                  value={school}
+                  onChange={(e) => {
+                    setSchool(e.target.value);
+                    localStorage.setItem('selectedSchool', e.target.value);
+                    setMessage({ type: 'success', text: 'School updated.' });
+                  }}
+                >
+                  {SCHOOLS.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <button type="submit" style={primaryBtn} disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Save Changes'}
@@ -508,38 +528,36 @@ const SettingsModal = ({
               </button>
             </form>
           )}
-        </div>
+        </DialogContent>
 
-        {pendingDisable && (
-          <div
-            style={{ ...overlay, zIndex: 1100 }}
-            onMouseDown={(e) => { if (e.target === e.currentTarget) setPendingDisable(null); }}
-          >
-            <div style={{ ...modal, width: 420 }}>
-              <div style={header}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <AlertTriangle size={18} style={{ color: '#dc2626' }} />
-                  <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: 16 }}>Disable all advisors?</h3>
-                </div>
-                <button onClick={() => setPendingDisable(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4, display: 'flex' }} aria-label="Close">
-                  <X size={20} />
-                </button>
-              </div>
-              <div style={body}>
-                <div style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  Disabling all advisors makes it so chat won't work. You'll need to re-enable at least one advisor before you can have a conversation.
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
-                  <button onClick={() => setPendingDisable(null)} style={miniBtn}>Go back</button>
-                  <button onClick={confirmPendingDisable} style={dangerBtn}>Continue</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>,
-    document.body
+        <AppDialog
+          open={Boolean(pendingDisable)}
+          onClose={() => setPendingDisable(null)}
+          leftInset={leftInset}
+          maxWidth="xs"
+          aria-labelledby="disable-advisors-title"
+        >
+          <DialogTitle id="disable-advisors-title">
+            {pendingDisable?.type === 'single'
+              ? 'Disable your final advisor?'
+              : 'Disable all advisors?'}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Disabling all advisors means chat will not work. You will need to
+              re-enable at least one advisor before starting another conversation.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="outlined" onClick={() => setPendingDisable(null)}>
+              Go back
+            </Button>
+            <Button variant="contained" color="error" onClick={confirmPendingDisable}>
+              Continue
+            </Button>
+          </DialogActions>
+        </AppDialog>
+    </AppDialog>
   );
 };
 

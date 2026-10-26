@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
-import { Download, FileText, FileType, File, Check, X, Loader2 } from 'lucide-react';
-import '../styles/ExportButton.css';
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Snackbar,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
+import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
 
 const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken = null }) => {
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState(null);
   const [selectedType, setSelectedType] = useState('chat');
@@ -28,34 +46,34 @@ const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken 
       id: 'txt',
       name: 'Text File',
       description: 'Plain text format (.txt)',
-      icon: FileText,
+      icon: TextSnippetOutlinedIcon,
       extension: '.txt'
     },
     {
       id: 'docx',
       name: 'Word Document',
       description: 'Microsoft Word format (.docx)',
-      icon: FileType,
+      icon: ArticleOutlinedIcon,
       extension: '.docx'
     },
     {
       id: 'pdf',
       name: 'PDF Document',
       description: 'Portable Document Format (.pdf)',
-      icon: File,
+      icon: PictureAsPdfOutlinedIcon,
       extension: '.pdf'
     }
   ];
 
-  const handleExportClick = () => {
+  const handleExportClick = (event) => {
     if (!hasMessages) return;
-    setShowDropdown(!showDropdown);
+    setAnchorEl(event.currentTarget);
     setExportStatus(null);
   };
 
   const handleFormatSelect = async (format) => {
     setIsExporting(true);
-    setShowDropdown(false);
+    setAnchorEl(null);
     setExportStatus(null);
 
     try {
@@ -110,146 +128,145 @@ const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken 
       window.URL.revokeObjectURL(url_blob);
 
       setExportStatus('success');
-      setTimeout(() => setExportStatus(null), 3000);
 
     } catch (error) {
       console.error('Export error:', error);
       setExportStatus('error');
-      setTimeout(() => setExportStatus(null), 5000);
     } finally {
       setIsExporting(false);
     }
   };
 
-  const handleClickOutside = (e) => {
-    if (!e.target.closest('.export-button-container')) {
-      setShowDropdown(false);
-    }
-  };
-
-  React.useEffect(() => {
-    if (showDropdown) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [showDropdown]);
-
-  const getButtonIcon = () => {
-    if (isExporting) return <Loader2 size={16} className="spinning" />;
-    if (exportStatus === 'success') return <Check size={16} />;
-    if (exportStatus === 'error') return <X size={16} />;
-    return <Download size={16} />;
-  };
-
-  const getButtonClass = () => {
-    let baseClass = 'export-button';
-    if (!hasMessages) baseClass += ' disabled';
-    if (showDropdown) baseClass += ' active';
-    if (exportStatus === 'success') baseClass += ' success';
-    if (exportStatus === 'error') baseClass += ' error';
-    return baseClass;
-  };
-
   const getButtonTitle = () => {
-    if (!hasMessages) return 'No messages to export';
+    if (!hasMessages) return 'No messages to share';
     if (isExporting) return 'Exporting chat...';
-    if (exportStatus === 'success') return 'Export successful!';
-    if (exportStatus === 'error') return 'Export failed - click to retry';
-    
-    // Show whether we're exporting current session or specific saved chat
-    const sessionInfo = currentSessionId ? 'this saved chat' : 'current session';
-    return `Export ${sessionInfo}`;
+    return 'Share or export chat';
   };
 
   return (
-    <div className="export-button-container">
-      <button
-        onClick={handleExportClick}
-        className={getButtonClass()}
-        disabled={!hasMessages || isExporting}
-        title={getButtonTitle()}
+    <>
+      <Tooltip title={getButtonTitle()}>
+        <span>
+          <IconButton
+            aria-label="Share or export chat"
+            aria-controls={anchorEl ? 'share-export-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={anchorEl ? 'true' : undefined}
+            onClick={handleExportClick}
+            disabled={!hasMessages || isExporting}
+          >
+            {isExporting ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <ShareOutlinedIcon />
+            )}
+          </IconButton>
+        </span>
+      </Tooltip>
+
+      <Menu
+        id="share-export-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: 340,
+              maxWidth: 'calc(100vw - 24px)',
+              border: '1px solid var(--line)',
+              boxShadow: 'var(--shadow-soft-md)',
+            },
+          },
+        }}
       >
-        {getButtonIcon()}
-        <span className="export-text">Export</span>
-      </button>
+        <Box sx={{ px: 2, pt: 1, pb: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight={700}>
+            Share or export
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {currentSessionId
+              ? 'Download this saved conversation'
+              : 'Download the current conversation'}
+          </Typography>
+        </Box>
 
-      {showDropdown && (
-        <div className="export-dropdown">
-          <div className="export-dropdown-header">
-            <h4>Export Options</h4>
-            <p>
-              {currentSessionId 
-                ? 'Export this saved chat conversation' 
-                : 'Export current session'
-              }
-            </p>
-          </div>
-          
-          {/* Export Type Selection */}
-          <div className="export-type-section">
-            <h5>What to export:</h5>
-            <div className="export-type-buttons">
-              {exportTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`export-type-button ${selectedType === type.id ? 'active' : ''}`}
-                  disabled={isExporting}
-                >
-                  <div className="type-info">
-                    <div className="type-name">{type.name}</div>
-                    <div className="type-description">{type.description}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Format Selection */}
-          <div className="export-format-section">
-            <h5>Format:</h5>
-            <div className="export-format-list">
-              {exportFormats.map((format) => {
-                const Icon = format.icon;
-                return (
-                  <button
-                    key={format.id}
-                    onClick={() => handleFormatSelect(format.id)}
-                    className="export-format-button"
-                    disabled={isExporting}
-                  >
-                    <div className="format-icon">
-                      <Icon size={20} />
-                    </div>
-                    <div className="format-info">
-                      <div className="format-name">{format.name}</div>
-                      <div className="format-description">{format.description}</div>
-                    </div>
-                    <div className="format-extension">{format.extension}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          
-          <div className="export-dropdown-footer">
-            <span>
-              {selectedType === 'chat' 
-                ? 'Full conversation history will be included' 
-                : 'AI will generate a concise summary of your conversation'
-              }
-            </span>
-          </div>
-        </div>
-      )}
+        <Box sx={{ px: 2, pb: 2 }}>
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ display: 'block', mb: 0.75 }}
+          >
+            What to export
+          </Typography>
+          <ToggleButtonGroup
+            value={selectedType}
+            exclusive
+            fullWidth
+            size="small"
+            onChange={(_, value) => value && setSelectedType(value)}
+            aria-label="Export type"
+          >
+            {exportTypes.map((type) => (
+              <ToggleButton key={type.id} value={type.id}>
+                {type.name}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
 
-      {exportStatus && (
-        <div className={`export-status ${exportStatus}`}>
-          {exportStatus === 'success' && 'Chat exported successfully!'}
-          {exportStatus === 'error' && 'Export failed. Please try again.'}
-        </div>
-      )}
-    </div>
+        <Divider />
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ display: 'block', px: 2, pt: 1.5, pb: 0.5 }}
+        >
+          Format
+        </Typography>
+        {exportFormats.map((format) => {
+          const Icon = format.icon;
+          return (
+            <MenuItem
+              key={format.id}
+              onClick={() => handleFormatSelect(format.id)}
+              disabled={isExporting}
+              sx={{ py: 1.25 }}
+            >
+              <ListItemIcon>
+                <Icon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary={format.name}
+                secondary={format.description}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {format.extension}
+              </Typography>
+            </MenuItem>
+          );
+        })}
+      </Menu>
+
+      <Snackbar
+        open={Boolean(exportStatus)}
+        autoHideDuration={exportStatus === 'error' ? 5000 : 3000}
+        onClose={() => setExportStatus(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={exportStatus === 'error' ? 'error' : 'success'}
+          variant="filled"
+          onClose={() => setExportStatus(null)}
+        >
+          {exportStatus === 'error'
+            ? 'Export failed. Please try again.'
+            : 'Chat exported successfully.'}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

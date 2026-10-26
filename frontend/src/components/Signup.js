@@ -3,7 +3,7 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowRight, BookOpen, Phone, GraduationC
 import { useAppConfig } from '../contexts/AppConfigContext';
 import '../styles/Signup.css';
 
-const Signup = ({ onNavigateToLogin, onNavigateToHome }) => {
+const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
   const { config } = useAppConfig();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -111,7 +111,7 @@ const Signup = ({ onNavigateToLogin, onNavigateToHome }) => {
         // Store the token and user info
         localStorage.setItem('authToken', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        onNavigateToHome?.(data.user, data.access_token);
+        onAuthSuccess?.(data.user, data.access_token);
       } else {
         setErrors({ submit: data.detail || 'Signup failed. Please try again.' });
       }
@@ -352,7 +352,7 @@ const Signup = ({ onNavigateToLogin, onNavigateToHome }) => {
             {/* Submit Button */}
             <button 
               type="submit" 
-              className={`submit-btn ${isLoading ? 'loading' : ''}`}
+              className={`submit-btn btn-primary ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
               {isLoading ? (

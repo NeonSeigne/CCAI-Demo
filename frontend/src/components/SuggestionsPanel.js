@@ -1,62 +1,101 @@
-// src/components/SuggestionsPanel.js
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 
-const SuggestionsPanel = ({ onSuggestionClick }) => {
-  const { config, resolveIcon } = useAppConfig();
+const ACCENT_DOTS = ['var(--accent-red)', 'var(--accent-blue)', 'var(--accent-green)'];
+const FILTER_LABELS = {
+  academic: 'Academic',
+  career: 'Career',
+  'study-skills': 'Study Skills',
+  wellness: 'Wellness',
+};
 
-  const examples = config?.chat_page?.examples || [];
+const SuggestionsPanel = ({ onSuggestionClick }) => {
+  const { config, resolveIcon, advisors } = useAppConfig();
+  const [activeFilter, setActiveFilter] = useState('all');
+  const examples = useMemo(
+    () => config?.chat_page?.examples || [],
+    [config?.chat_page?.examples],
+  );
+  const filters = useMemo(
+    () => [
+      { id: 'all', label: 'All' },
+      ...examples.map((category) => ({
+        id: category.id || category.title,
+        label: FILTER_LABELS[category.id] || category.title,
+      })),
+    ],
+    [examples],
+  );
+  const visibleExamples = activeFilter === 'all'
+    ? examples
+    : examples.filter((category) => (category.id || category.title) === activeFilter);
 
   return (
     <div className="suggestions-panel">
-      <div className="suggestions-header">
-        <h2 className="suggestions-title">Getting Started</h2>
-        <p className="suggestions-subtitle">
-          Choose a topic to get advice from all personas
-        </p>
+      <div className="suggestion-filters" role="group" aria-label="Filter starter prompts">
+        {filters.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            className={`suggestion-filter ${activeFilter === filter.id ? 'pill-active' : ''}`}
+            aria-pressed={activeFilter === filter.id}
+            onClick={() => setActiveFilter(filter.id)}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
-      
-      <div className="suggestions-grid">
-        {examples.map((category, categoryIndex) => {
+
+      <div className={`suggestions-grid ${visibleExamples.length === 1 ? 'single-card' : ''}`}>
+        {visibleExamples.map((category, categoryIndex) => {
           const Icon = resolveIcon(category.icon);
+          const dot = ACCENT_DOTS[categoryIndex % ACCENT_DOTS.length];
+          const mappedAdvisors = (category.advisor_ids || [])
+            .map((id) => ({ id, ...advisors[id] }))
+            .filter((advisor) => advisor.name);
           return (
-            <div key={categoryIndex} className="suggestion-category">
+            <section key={category.id || category.title} className="suggestion-category surface-card">
               <div className="category-header">
-                <div 
-                  className="category-icon"
-                  style={{ 
-                    backgroundColor: category.bg_color || '#F3F4F6',
-                    color: category.color || '#6B7280'
-                  }}
-                >
+                <div className="category-icon">
                   <Icon size={20} />
                 </div>
-                <h3 
-                  className="category-title"
-                  style={{ color: category.color || '#6B7280' }}
-                >
+                <h3 className="category-title">
+                  <span className="accent-dot" style={{ backgroundColor: dot }} />
                   {category.title}
                 </h3>
               </div>
-              
+
               <div className="suggestion-buttons">
                 {(category.suggestions || []).map((suggestion, suggestionIndex) => (
                   <button
                     key={suggestionIndex}
-                    onClick={() => onSuggestionClick(suggestion)}
+                    type="button"
+                    onClick={() => onSuggestionClick(suggestion, category.advisor_ids || [])}
                     className="suggestion-button"
-                    style={{
-                      borderColor: (category.color || '#6B7280') + '20',
-                      '--hover-bg': category.bg_color || '#F3F4F6',
-                      '--hover-border': category.color || '#6B7280',
-                      '--hover-text': category.color || '#6B7280'
-                    }}
                   >
                     {suggestion}
                   </button>
                 ))}
               </div>
-            </div>
+
+              {mappedAdvisors.length > 0 && (
+                <div className="prompt-advisors" aria-label="Advisors for these prompts">
+                  {mappedAdvisors.map((advisor) => {
+                    const AdvisorIcon = advisor.icon;
+                    return (
+                      <span key={advisor.id} className="prompt-advisor-chip">
+                        <span className="prompt-advisor-avatar" aria-hidden="true">
+                          {advisor.avatarUrl
+                            ? <img src={advisor.avatarUrl} alt="" />
+                            : <AdvisorIcon size={13} />}
+                        </span>
+                        {advisor.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           );
         })}
       </div>

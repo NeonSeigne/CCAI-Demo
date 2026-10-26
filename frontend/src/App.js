@@ -1,119 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AppConfigProvider } from './contexts/AppConfigContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
+import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
+import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import CanvasPage from './pages/CanvasPage';
 import UserGuide from './components/UserGuide';
+import muiTheme from './theme/muiTheme';
 import './styles/components.css';
+
+const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
 // show once per user (localStorage).
 export const TESTING_ONBOARDING = process.env.REACT_APP_TESTING_ONBOARDING === 'true';
 
-function App() {
-  const [currentView, setCurrentView] = useState('home');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [authToken, setAuthToken] = useState(null);
+// Set REACT_APP_ENABLE_DEV_LOGIN=true to show the homepage "Developer mode"
+// button (auto-login as the seeded developer user). Requires ENABLE_DEV_LOGIN=true
+// on the backend. Leave unset/false in real deployments.
+export const ENABLE_DEV_LOGIN = process.env.REACT_APP_ENABLE_DEV_LOGIN === 'true';
 
-  // Check for existing authentication on app start
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setAuthToken(token);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        setCurrentView('chat');
-      } catch (error) {
-        // Clear invalid data
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
+function CatchAllRedirect() {
+  const { isAuthenticated, authReady } = useAuth();
+  if (!authReady) {
+    return (
+      <div className="auth-boot-screen" role="status" aria-live="polite">
+        Checking session…
+      </div>
+    );
+  }
+  return <Navigate to={isAuthenticated ? '/home' : '/'} replace />;
+}
 
-  const navigateToAuth = () => {
-    setCurrentView('auth');
-  };
-
-  const navigateToCanvas = () => {
-    setCurrentView('canvas');
-  };
-
-  const navigateToChat = () => {
-    setCurrentView('chat');
-  };
-
-  
-
-  const navigateToHome = () => {
-    setCurrentView('home');
-  };
-
-  const handleAuthSuccess = (userData, token) => {
-    setUser(userData);
-    setAuthToken(token);
-    setIsAuthenticated(true);
-    setCurrentView('chat');
-  };
-
-  const handleUserUpdate = (updatedUser) => {
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-  };
-
-  const handleSignOut = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
-    setAuthToken(null);
-    setIsAuthenticated(false);
-    setCurrentView('home');
-  };
-
+function AppRoutes() {
   return (
-    <AppConfigProvider>
-      <ThemeProvider>
-        <div className="App">
-          {currentView === 'home' && (
-            <HomePage
-              onNavigateToChat={isAuthenticated ? navigateToChat : navigateToAuth}
-              isAuthenticated={isAuthenticated}
-            />
+    <Routes>
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/" element={<OnboardingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/search" element={<ChatSearchPage />} />
+        <Route path="/canvas" element={<CanvasPage />} />
+        <Route
+          path="/courses/:courseIdentifier"
+          element={(
+            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading course…</div>}>
+              <CourseDetailPage />
+            </Suspense>
           )}
-          {currentView === 'auth' && (
-            <AuthPage onAuthSuccess={handleAuthSuccess} />
-          )}
-          {currentView === 'canvas' && isAuthenticated && (
-            <CanvasPage 
-              user={user}
-              authToken={authToken}
-              onNavigateToChat={navigateToChat}
-              onSignOut={handleSignOut}
-            />
-          )}
-          {currentView === 'chat' && isAuthenticated && (
-            <ChatPage
-              user={user}
-              authToken={authToken}
-              onNavigateToHome={navigateToHome}
-              onNavigateToCanvas={navigateToCanvas}
-              onSignOut={handleSignOut}
-              onUserUpdate={handleUserUpdate}
-            />
-          )}
-          {/* Global help center — listens for the 'open-user-guide' event */}
-          <UserGuide />
-        </div>
-      </ThemeProvider>
-    </AppConfigProvider>
+        />
+      </Route>
+
+      <Route path="*" element={<CatchAllRedirect />} />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppConfigProvider>
+        <ThemeProvider>
+          <MuiThemeProvider theme={muiTheme}>
+            <AuthProvider>
+              <div className="App">
+                <AppRoutes />
+                <UserGuide />
+              </div>
+            </AuthProvider>
+          </MuiThemeProvider>
+        </ThemeProvider>
+      </AppConfigProvider>
+    </BrowserRouter>
   );
 }
 

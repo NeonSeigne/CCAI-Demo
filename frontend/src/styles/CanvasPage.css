@@ -51,7 +51,7 @@
   padding: 10px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  border-radius: 12px;
+  border-radius: 9999px;
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -136,7 +136,7 @@
   padding: 0;
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  border-radius: 12px;
+  border-radius: 9999px;
   color: var(--text-primary);
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
@@ -174,16 +174,9 @@
   box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.45);
 }
 
-[data-theme="dark"] .clear-canvas-btn {
-  color: #f87171;
-  border-color: rgba(248, 113, 113, 0.4);
-}
 
-[data-theme="dark"] .clear-canvas-btn:hover:not(:disabled) {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #ef4444;
-}
+
+
 
 .action-button {
   display: flex;
@@ -192,7 +185,7 @@
   padding: 10px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
-  border-radius: 12px;
+  border-radius: 9999px;
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -302,10 +295,10 @@
 
 .start-chatting-button {
   padding: 16px 32px;
-  background: var(--accent-gradient);
+  background: var(--ink);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 9999px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -413,10 +406,7 @@
   font-weight: 500;
 }
 
-[data-theme="dark"] .insight-count {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
+
 
 .print-view .insight-count {
   background: var(--bg-tertiary);
@@ -464,7 +454,7 @@
 
 .insight-card {
   background: var(--bg-secondary);
-  border-radius: 12px;
+  border-radius: 9999px;
   padding: 1.25rem;
   border: 1px solid var(--border-primary);
   transition: all 0.3s ease;
@@ -506,7 +496,7 @@
   gap: 10px;
   height: 46px;
   padding: 0 22px;
-  border-radius: 12px;
+  border-radius: 9999px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -533,15 +523,15 @@
 
 /* Primary — Start Chatting */
 .empty-canvas-btn.primary {
-  background: var(--accent-gradient);
+  background: var(--ink);
   color: #ffffff;
-  box-shadow: 0 6px 18px -6px rgba(99, 102, 241, 0.55),
+  box-shadow: 0 6px 18px -6px rgba(17, 17, 20, 0.55),
               inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .empty-canvas-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px -8px rgba(99, 102, 241, 0.7),
+  box-shadow: 0 12px 28px -8px rgba(17, 17, 20, 0.7),
               inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
@@ -560,17 +550,9 @@
   box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="dark"] .empty-canvas-btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: var(--text-primary);
-}
 
-[data-theme="dark"] .empty-canvas-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-primary);
-  color: #ffffff;
-}
+
+
 
 .inline-loading-spinner {
   display: flex;

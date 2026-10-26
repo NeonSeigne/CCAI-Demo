@@ -1,31 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import {
+  DialogContent,
+  DialogTitle,
+  IconButton,
+} from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import * as LucideIcons from 'lucide-react';
 import { X, Search, ChevronRight, BookOpen } from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { userGuideTopics } from '../data/userGuide';
+import AppDialog from './AppDialog';
 import '../styles/UserGuide.css';
 
-const UserGuide = () => {
+const UserGuide = ({ leftInset = 0 }) => {
   const { config, advisors } = useAppConfig();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeInset, setActiveInset] = useState(leftInset);
   const [activeId, setActiveId] = useState(userGuideTopics[0].id);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const open = () => setIsOpen(true);
-    window.addEventListener('open-user-guide', open);
-    return () => window.removeEventListener('open-user-guide', open);
-  }, []);
+    setActiveInset(leftInset);
+  }, [leftInset]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => e.key === 'Escape' && setIsOpen(false);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen]);
+    const updateInset = (event) => {
+      setActiveInset(Math.max(0, Number(event.detail?.leftInset) || 0));
+    };
+    const open = (event) => {
+      updateInset(event);
+      setIsOpen(true);
+    };
+    window.addEventListener('open-user-guide', open);
+    window.addEventListener('dialog-inset-change', updateInset);
+    return () => {
+      window.removeEventListener('open-user-guide', open);
+      window.removeEventListener('dialog-inset-change', updateInset);
+    };
+  }, []);
 
   const appName = config?.app?.title || 'the app';
   const advisorEntries = Object.values(advisors || {});
@@ -40,25 +53,41 @@ const UserGuide = () => {
     : userGuideTopics;
   const activeTopic = userGuideTopics.find(t => t.id === activeId) || userGuideTopics[0];
 
-  if (!isOpen) return null;
-
-  return ReactDOM.createPortal(
-    <div className="ug-overlay" onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}>
-      <div className="ug-modal" role="dialog" aria-label="User Guide">
-        {/* Header */}
-        <div className="ug-header">
-          <div className="ug-title">
-            <span className="ug-title-icon">
-              <BookOpen size={18} />
-            </span>
-            <span>User Guide</span>
-          </div>
-          <button className="ug-close" onClick={() => setIsOpen(false)} aria-label="Close">
+  return (
+    <AppDialog
+      open={isOpen}
+      onClose={() => setIsOpen(false)}
+      leftInset={activeInset}
+      maxWidth="lg"
+      aria-labelledby="user-guide-title"
+      slotProps={{
+        paper: {
+          sx: {
+            height: '80vh',
+            maxHeight: 720,
+            overflow: 'hidden',
+          },
+        },
+      }}
+    >
+      <DialogTitle id="user-guide-title" className="ug-header">
+        <span className="ug-title">
+          <span className="ug-title-icon">
+            <BookOpen size={18} />
+          </span>
+          <span>User Guide</span>
+        </span>
+        <IconButton
+          className="ug-close"
+          onClick={() => setIsOpen(false)}
+          aria-label="Close user guide"
+          size="small"
+        >
             <X size={20} />
-          </button>
-        </div>
+        </IconButton>
+      </DialogTitle>
 
-        <div className="ug-body">
+      <DialogContent className="ug-body" sx={{ p: 0, overflow: 'hidden' }}>
           {/* Sidebar / TOC */}
           <aside className="ug-sidebar">
             <div className="ug-search">
@@ -100,10 +129,8 @@ const UserGuide = () => {
                 .replace(/\{\{advisorList\}\}/g, advisorList)}
             </ReactMarkdown>
           </main>
-        </div>
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </AppDialog>
   );
 };
 

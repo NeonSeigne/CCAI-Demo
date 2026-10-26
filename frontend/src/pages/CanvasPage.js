@@ -19,9 +19,11 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
+import { useAuth } from '../contexts/AuthContext';
 import CopyrightNotice from '../components/CopyrightNotice';
 import ConfirmDialog from '../components/ConfirmDialog';
 import '../styles/CanvasPage.css';
+import { useNavigate } from 'react-router-dom';
 
 // Section icons mapping
 const sectionIcons = {
@@ -91,7 +93,9 @@ const CanvasSection = ({ section, sectionKey, isExpanded, onToggle }) => {
   );
 };
 
-const CanvasPage = ({ user, authToken, onNavigateToChat, onSignOut }) => {
+const CanvasPage = () => {
+  const navigate = useNavigate();
+  const { user, authToken } = useAuth();
   const { config } = useAppConfig();
   const appName = config?.app_settings?.app_name || 'Advisory Panel';
   const [canvasData, setCanvasData] = useState(null);
@@ -416,7 +420,7 @@ const CanvasPage = ({ user, authToken, onNavigateToChat, onSignOut }) => {
         <div className="canvas-header-top">
           <button
             className="back-button"
-            onClick={onNavigateToChat}
+            onClick={() => navigate('/chat')}
           >
             <ArrowLeft size={20} />
             Back to Chat
@@ -512,7 +516,7 @@ const CanvasPage = ({ user, authToken, onNavigateToChat, onSignOut }) => {
                 <div className="empty-canvas-actions">
                   <button
                     className="empty-canvas-btn primary"
-                    onClick={onNavigateToChat}
+                    onClick={() => navigate('/chat')}
                   >
                     <MessageCircle size={18} />
                     <span>Start Chatting</span>

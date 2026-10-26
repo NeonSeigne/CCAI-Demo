@@ -1,7 +1,14 @@
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react';
+import {
+  Box,
+  Button,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
 import { AlertTriangle } from 'lucide-react';
-import '../styles/ConfirmDialog.css';
+import AppDialog from './AppDialog';
 
 const ConfirmDialog = ({
   isOpen,
@@ -12,48 +19,59 @@ const ConfirmDialog = ({
   onConfirm,
   onCancel,
   tone = 'default',
+  leftInset = 0,
 }) => {
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e) => e.key === 'Escape' && onCancel?.();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onCancel]);
-
-  if (!isOpen) return null;
-
   const isDanger = tone === 'danger';
 
-  return ReactDOM.createPortal(
-    <div
-      className="confirm-overlay"
-      onClick={(e) => e.target === e.currentTarget && onCancel?.()}
+  return (
+    <AppDialog
+      open={isOpen}
+      onClose={onCancel}
+      leftInset={leftInset}
+      maxWidth="xs"
+      aria-labelledby="app-confirm-dialog-title"
     >
-      <div className="confirm-dialog" role="dialog" aria-label={title}>
-        <div className={`confirm-icon ${isDanger ? 'danger' : ''}`}>
+      <DialogTitle
+        id="app-confirm-dialog-title"
+        component="div"
+        sx={{ pt: 3, textAlign: 'center' }}
+      >
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: 2,
+            mx: 'auto',
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'var(--paper-sunken)',
+            color: isDanger ? 'var(--accent-red)' : 'var(--ink-soft)',
+          }}
+        >
           <AlertTriangle size={22} />
-        </div>
-        <h2 className="confirm-title">{title}</h2>
-        {message && <p className="confirm-message">{message}</p>}
-        <div className="confirm-actions">
-          <button
-            type="button"
-            className="confirm-btn confirm-btn-cancel"
-            onClick={onCancel}
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={`confirm-btn ${isDanger ? 'confirm-btn-danger' : 'confirm-btn-primary'}`}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body
+        </Box>
+        <Box component="span">{title}</Box>
+      </DialogTitle>
+      {message && (
+        <DialogContent sx={{ pt: 0, pb: 2, textAlign: 'center' }}>
+          <DialogContentText>{message}</DialogContentText>
+        </DialogContent>
+      )}
+      <DialogActions sx={{ justifyContent: 'center' }}>
+        <Button variant="outlined" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+        <Button
+          variant="contained"
+          color={isDanger ? 'error' : 'primary'}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </Button>
+      </DialogActions>
+    </AppDialog>
   );
 };
 

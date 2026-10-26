@@ -4,7 +4,7 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import CopyrightNotice from './CopyrightNotice';
 import '../styles/Login.css';
 
-const Login = ({ onNavigateToSignup, onNavigateToHome }) => {
+const Login = ({ onNavigateToSignup, onAuthSuccess }) => {
   const { config } = useAppConfig();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,7 +73,7 @@ const Login = ({ onNavigateToSignup, onNavigateToHome }) => {
         // Store the token and user info
         localStorage.setItem('authToken', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        onNavigateToHome?.(data.user, data.access_token);
+        onAuthSuccess?.(data.user, data.access_token);
       } else {
         setErrors({ submit: data.detail || 'Login failed. Please try again.' });
       }
@@ -186,7 +186,7 @@ const Login = ({ onNavigateToSignup, onNavigateToHome }) => {
             {/* Submit Button */}
             <button 
               type="submit" 
-              className={`submit-btn ${isLoading ? 'loading' : ''}`}
+              className={`submit-btn btn-primary ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
               {isLoading ? (

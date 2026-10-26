@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Paperclip, FileText, X, Trash2, Download, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles } from 'lucide-react';
+import { Popover } from '@mui/material';
+import { Send, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles } from 'lucide-react';
 import FileUpload from './FileUpload';
+import { useAppConfig } from '../contexts/AppConfigContext';
 
 const EnhancedChatInput = ({ 
   onSendMessage, 
@@ -16,8 +18,15 @@ const EnhancedChatInput = ({
   responseMode = 'panel',
   onResponseModeChange,
   ensureSessionId,
+  initialMessage = '',
+  messageValue,
+  onMessageChange,
+  selectedAdvisorIds = null,
+  onSelectedAdvisorIdsChange,
+  isLanding = false,
 }) => {
-  const [inputMessage, setInputMessage] = useState('');
+  const { advisors, isAdvisorEnabled } = useAppConfig();
+  const [inputMessage, setInputMessage] = useState(initialMessage || '');
   const [showUpload, setShowUpload] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,6 +37,20 @@ const EnhancedChatInput = ({
   const textareaRef = useRef(null);
   const uploadRef = useRef(null);
   const uploadBtnRef = useRef(null);
+  const appliedInitialRef = useRef('');
+  const [advisorAnchorEl, setAdvisorAnchorEl] = useState(null);
+
+  useEffect(() => {
+    if (typeof messageValue === 'string' && messageValue !== inputMessage) {
+      setInputMessage(messageValue);
+    }
+  }, [messageValue, inputMessage]);
+
+  useEffect(() => {
+    if (!initialMessage || initialMessage === appliedInitialRef.current) return;
+    appliedInitialRef.current = initialMessage;
+    setInputMessage(initialMessage);
+  }, [initialMessage]);
 
   const sendForTranscription = useCallback(async (blob) => {
     if (!blob || blob.size < 100) {
@@ -99,6 +122,7 @@ const EnhancedChatInput = ({
     
     onSendMessage(inputMessage);
     setInputMessage('');
+    onMessageChange?.('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -185,9 +209,24 @@ const EnhancedChatInput = ({
 
   const isDisabled = isLoading || isUploading;
   const canSend = inputMessage.trim() && !isDisabled;
+  const advisorEntries = Object.entries(advisors || {});
+  const hasExactSelection = Array.isArray(selectedAdvisorIds);
+
+  const updateMessage = (value) => {
+    setInputMessage(value);
+    onMessageChange?.(value);
+  };
+
+  const toggleSelectedAdvisor = (advisorId) => {
+    const current = hasExactSelection ? selectedAdvisorIds : [];
+    const next = current.includes(advisorId)
+      ? current.filter((id) => id !== advisorId)
+      : [...current, advisorId];
+    onSelectedAdvisorIdsChange?.(next.length > 0 ? next : null);
+  };
 
   return (
-    <div className="enhanced-chat-input-container">
+    <div className={`enhanced-chat-input-container ${isLanding ? 'landing-composer' : ''}`}>
       {/* File Upload Area */}
       {showUpload && (
         <div className="floating-upload-section" ref={uploadRef}>
@@ -263,7 +302,7 @@ const EnhancedChatInput = ({
           <textarea
             ref={textareaRef}
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            onChange={(e) => updateMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             className="main-textarea"
@@ -298,6 +337,64 @@ const EnhancedChatInput = ({
                 <span className="docs-count">{uploadedDocuments.length}</span>
               </button>
             )}
+
+            <button
+              type="button"
+              className={`advisor-menu-button ${hasExactSelection ? 'active' : ''}`}
+              onClick={(event) => setAdvisorAnchorEl(event.currentTarget)}
+              aria-haspopup="dialog"
+              aria-expanded={Boolean(advisorAnchorEl)}
+              title="Choose advisors for this message"
+            >
+              <Users size={16} />
+              <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors` : 'Advisors'}</span>
+            </button>
+            <Popover
+              open={Boolean(advisorAnchorEl)}
+              anchorEl={advisorAnchorEl}
+              onClose={() => setAdvisorAnchorEl(null)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              slotProps={{ paper: { className: 'composer-advisor-popover' } }}
+            >
+              <div className="composer-advisor-menu">
+                <div className="composer-advisor-menu-header">
+                  <strong>Advisors for this message</strong>
+                  <span>Choose exact responders or let the app decide.</span>
+                </div>
+                <button
+                  type="button"
+                  className={`composer-advisor-option ${!hasExactSelection ? 'selected' : ''}`}
+                  onClick={() => onSelectedAdvisorIdsChange?.(null)}
+                >
+                  <span className="advisor-option-check">{!hasExactSelection ? '✓' : ''}</span>
+                  Automatic selection
+                </button>
+                {advisorEntries.map(([id, advisor]) => {
+                  const AdvisorIcon = advisor.icon;
+                  const selected = hasExactSelection && selectedAdvisorIds.includes(id);
+                  const enabled = isAdvisorEnabled(id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`composer-advisor-option ${selected ? 'selected' : ''}`}
+                      onClick={() => toggleSelectedAdvisor(id)}
+                      disabled={!enabled}
+                    >
+                      <span className="advisor-option-avatar" aria-hidden="true">
+                        {advisor.avatarUrl
+                          ? <img src={advisor.avatarUrl} alt="" />
+                          : <AdvisorIcon size={15} />}
+                      </span>
+                      <span>{advisor.name}</span>
+                      {!enabled && <small>Off</small>}
+                      <span className="advisor-option-check">{selected ? '✓' : ''}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Popover>
             {showProfileButtons && (
               <>
                 <button
@@ -345,7 +442,7 @@ const EnhancedChatInput = ({
                       fontSize: 14, padding: '6px 10px', border: 'none',
                       borderRadius: 6, cursor: isDisabled ? 'default' : 'pointer',
                       fontFamily: 'inherit',
-                      background: active ? 'var(--accent-primary, #6366f1)' : 'transparent',
+                      background: active ? 'var(--ink)' : 'transparent',
                       color: active ? '#fff' : 'var(--text-secondary)',
                     }}
                   >

@@ -36,7 +36,7 @@ const Toggle = ({ checked, onChange, size = 'md', disabled = false, label }) => 
         border: 'none',
         borderRadius: dims.h,
         background: checked
-          ? 'var(--accent-primary, #6366f1)'
+          ? 'var(--ink)'
           : 'var(--border-secondary, #d1d5db)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,

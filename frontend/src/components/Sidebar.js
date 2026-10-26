@@ -1,23 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  MessageSquare,
-  Plus,
-  SquarePen,
-  Search,
-  MoreVertical,
-  Trash2,
-  Edit3,
-  LogOut,
-  User,
-  Settings,
-  PanelLeft,
-  FileText
-} from 'lucide-react';
+  Avatar,
+  Box,
+  Button,
+  ButtonBase,
+  CircularProgress,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
+import { useNavigate } from 'react-router-dom';
 import { useAppConfig } from '../contexts/AppConfigContext';
-import ConfirmDialog from './ConfirmDialog';
-import CopyrightNotice from './CopyrightNotice';
-import SettingsModal from './SettingsModal';
+import muiTheme from '../theme/muiTheme';
+import AppDialog from './AppDialog';
+import AdvisorSidebarPicker from './AdvisorSidebarPicker';
 import '../styles/Sidebar.css';
+
+const EXPANDED_WIDTH = 300;
+const COLLAPSED_WIDTH = 70;
+const MOBILE_WIDTH = 280;
 
 const Sidebar = ({
   user,
@@ -25,87 +49,55 @@ const Sidebar = ({
   onSelectSession,
   onNewChat,
   onSignOut,
-  onUserUpdate,
+  onOpenSettings,
   authToken,
   onSidebarToggle,
   isMobileOpen = false,
   onMobileToggle,
-  onNavigateToCanvas,
   refreshTrigger,
   onCurrentSessionDeleted,
-  onOpenSettings,
+  thinkingAdvisors = [],
+  dialogInset = 0,
 }) => {
-  const { config } = useAppConfig();
-  const canvasLabel = config?.app?.title ? `${config.app.title} Canvas` : 'Canvas';
-  const appVersion = config?.version;
+  const navigate = useNavigate();
+  const { config, hydrateAdvisorPreferences } = useAppConfig();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const hydratedTokenRef = useRef(null);
   const [chatSessions, setChatSessions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
-  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
-  const [isClearingAll, setIsClearingAll] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+  const [accountMenuAnchor, setAccountMenuAnchor] = useState(null);
 
-  useEffect(() => {
-    if (authToken) {
-      fetchChatSessions();
+  const canvasLabel = config?.app?.title ? `${config.app.title} Canvas` : 'Canvas';
+  const showCollapsed = !isMobile && isCollapsed;
+  const drawerWidth = isMobile
+    ? MOBILE_WIDTH
+    : showCollapsed
+      ? COLLAPSED_WIDTH
+      : EXPANDED_WIDTH;
+
+  const fetchChatSessions = useCallback(async () => {
+    if (!authToken) {
+      setChatSessions([]);
+      setIsLoading(false);
+      return;
     }
-  }, [authToken]);
 
-  useEffect(() => {
-    const handleOverlayClick = (e) => {
-      // Only close if clicking the overlay itself, not the sidebar
-      if (e.target.classList.contains('mobile-sidebar-overlay')) {
-        onMobileToggle(false);
-      }
-    };
-
-    if (isMobileOpen) {
-      document.addEventListener('click', handleOverlayClick);
-      return () => document.removeEventListener('click', handleOverlayClick);
-    }
-  }, [isMobileOpen, onMobileToggle]);
-
-  // Notify parent when sidebar state changes
-  useEffect(() => {
-    if (onSidebarToggle) {
-      onSidebarToggle(isCollapsed);
-    }
-  }, [isCollapsed, onSidebarToggle]);
-
-  // Add effect to refresh when currentSessionId changes (new session created)
-  useEffect(() => {
-    if (currentSessionId && authToken) {
-      // Small delay to ensure the session is saved to database
-      const timer = setTimeout(() => {
-        fetchChatSessions();
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [currentSessionId, authToken]);
-
-  // Refresh session list when parent signals a message exchange completed
-  useEffect(() => {
-    if (refreshTrigger > 0 && authToken) {
-      fetchChatSessions();
-    }
-  }, [refreshTrigger]);
-
-
-  const fetchChatSessions = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/chat-sessions`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
       if (response.ok) {
-        const sessions = await response.json();
-        setChatSessions(sessions);
+        setChatSessions(await response.json());
       } else {
         console.error('Failed to fetch chat sessions');
       }
@@ -114,345 +106,594 @@ const Sidebar = ({
     } finally {
       setIsLoading(false);
     }
+  }, [authToken]);
+
+  useEffect(() => {
+    fetchChatSessions();
+  }, [fetchChatSessions]);
+
+  useEffect(() => {
+    onSidebarToggle?.(isCollapsed);
+  }, [isCollapsed, onSidebarToggle]);
+
+  useEffect(() => {
+    if (!authToken) {
+      hydratedTokenRef.current = null;
+      return;
+    }
+    if (hydratedTokenRef.current === authToken) return;
+    hydratedTokenRef.current = authToken;
+    hydrateAdvisorPreferences();
+  }, [authToken, hydrateAdvisorPreferences]);
+
+  useEffect(() => {
+    if (!currentSessionId || !authToken) return undefined;
+
+    const timer = setTimeout(fetchChatSessions, 200);
+    return () => clearTimeout(timer);
+  }, [authToken, currentSessionId, fetchChatSessions]);
+
+  useEffect(() => {
+    if (refreshTrigger > 0 && authToken) {
+      fetchChatSessions();
+    }
+  }, [authToken, fetchChatSessions, refreshTrigger]);
+
+  const closeMobileDrawer = () => {
+    if (isMobile) onMobileToggle?.(false);
   };
 
   const handleNewChat = async () => {
     setIsCreatingNewChat(true);
-    
     try {
-      // Call the parent's new chat handler and wait for it to complete
       await onNewChat();
-      
-      // Refresh the sessions list immediately after new chat is created
-      // The parent should have updated currentSessionId by now
       await fetchChatSessions();
-      
+      closeMobileDrawer();
     } catch (error) {
       console.error('Error creating new chat:', error);
-      // Optionally show an error message to the user
     } finally {
       setIsCreatingNewChat(false);
     }
   };
 
-  const handleDeleteSession = async (sessionId, event) => {
-    event.stopPropagation();
-    
-    if (window.confirm('Are you sure you want to delete this chat?')) {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${sessionId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          setChatSessions(prev => prev.filter(session => session.id !== sessionId));
-          if (currentSessionId === sessionId) {
-            onCurrentSessionDeleted?.();
-          }
-        }
-      } catch (error) {
-        console.error('Error deleting chat session:', error);
-      }
-    }
+  const handleSelectSession = (sessionId) => {
+    onSelectSession(sessionId);
+    closeMobileDrawer();
   };
 
-  const handleClearAllChats = async () => {
-    setIsClearingAll(true);
+  const handleCanvasNavigation = () => {
+    closeMobileDrawer();
+    navigate('/canvas');
+  };
+
+  const handleHomeNavigation = () => {
+    closeMobileDrawer();
+    navigate('/home');
+  };
+
+  const handleSearchNavigation = () => {
+    closeMobileDrawer();
+    navigate('/search');
+  };
+
+  const handleOpenSettings = () => {
+    closeMobileDrawer();
+    onOpenSettings();
+  };
+
+  const handleDeleteSession = async () => {
+    if (!sessionToDelete) return;
+
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/chat-sessions/${sessionToDelete.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
       if (response.ok) {
-        setChatSessions([]);
-        onCurrentSessionDeleted?.();
+        setChatSessions((sessions) =>
+          sessions.filter((session) => session.id !== sessionToDelete.id),
+        );
+        if (currentSessionId === sessionToDelete.id) {
+          onCurrentSessionDeleted?.();
+        }
       }
     } catch (error) {
-      console.error('Error clearing all chat sessions:', error);
+      console.error('Error deleting chat session:', error);
     } finally {
-      setIsClearingAll(false);
-      setShowClearAllConfirm(false);
+      setSessionToDelete(null);
     }
   };
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-    // Close user menu when collapsing
-    if (!isCollapsed) {
-      setShowUserMenu(false);
-    }
+    setIsCollapsed((collapsed) => !collapsed);
+    setAccountMenuAnchor(null);
   };
 
-  const filteredSessions = chatSessions.filter(session =>
-    session.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const navItemSx = {
+    minHeight: 40,
+    px: showCollapsed ? 1 : 1.25,
+    justifyContent: showCollapsed ? 'center' : 'flex-start',
+    borderRadius: 2,
+  };
+
+  const drawerContent = (
+    <Box
+      className="sidebar-content"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minWidth: 0,
+      }}
+    >
+      <Box
+        className="sidebar-command-area"
+        data-sidebar-region="commands"
+        sx={{ flexShrink: 0, px: showCollapsed ? 0.75 : 1.5, pt: 1.25, pb: 1 }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: showCollapsed ? 'column' : 'row',
+            alignItems: 'center',
+            justifyContent: showCollapsed ? 'center' : 'space-between',
+            minHeight: 42,
+            gap: showCollapsed ? 0.5 : 1,
+            mb: 0.75,
+          }}
+        >
+          <Box
+            component="a"
+            href="https://neon.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sidebar-neon-link"
+            title="Neon.ai"
+            aria-label={showCollapsed ? 'Neon.ai' : undefined}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              color: 'var(--ink)',
+              textDecoration: 'none',
+              fontWeight: 700,
+              minWidth: 0,
+            }}
+          >
+            <Box
+              component="img"
+              src="/neon-logo.png"
+              alt=""
+              className="sidebar-neon-logo"
+              sx={{ width: 24, height: 24, objectFit: 'contain' }}
+            />
+            {!showCollapsed && <span>Neon.ai</span>}
+          </Box>
+
+          <Tooltip
+            title={
+              isMobile
+                ? 'Close sidebar'
+                : showCollapsed
+                  ? 'Expand sidebar'
+                  : 'Collapse sidebar'
+            }
+            placement={showCollapsed ? 'right' : 'bottom'}
+          >
+            <IconButton
+              aria-label={
+                isMobile
+                  ? 'Close sidebar'
+                  : showCollapsed
+                    ? 'Expand sidebar'
+                    : 'Collapse sidebar'
+              }
+              size="small"
+              onClick={
+                isMobile ? () => onMobileToggle?.(false) : toggleSidebar
+              }
+            >
+              {isMobile ? (
+                <CloseIcon fontSize="small" />
+              ) : (
+                <ViewSidebarOutlinedIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        <List disablePadding>
+          <Tooltip title={showCollapsed ? 'New chat' : ''} placement="right">
+            <span>
+              <ListItemButton
+                className="new-chat-button"
+                onClick={handleNewChat}
+                disabled={isCreatingNewChat}
+                sx={{
+                  ...navItemSx,
+                  bgcolor: showCollapsed
+                    ? 'var(--paper-sunken)'
+                    : 'var(--bg-tertiary)',
+                  mb: 0.25,
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: showCollapsed ? 0 : 36,
+                    color: 'inherit',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {isCreatingNewChat ? (
+                    <CircularProgress size={18} color="inherit" />
+                  ) : (
+                    <EditOutlinedIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                {!showCollapsed && (
+                  <ListItemText
+                    primary={isCreatingNewChat ? 'Creating…' : 'New chat'}
+                    slotProps={{ primary: { variant: 'body2', fontWeight: 600 } }}
+                  />
+                )}
+              </ListItemButton>
+            </span>
+          </Tooltip>
+
+          <Tooltip title={showCollapsed ? 'Home' : ''} placement="right">
+            <ListItemButton
+              className="sidebar-home-button"
+              onClick={handleHomeNavigation}
+              sx={{ ...navItemSx, mb: 0.25 }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: showCollapsed ? 0 : 36,
+                  color: 'inherit',
+                  justifyContent: 'center',
+                }}
+              >
+                <HomeOutlinedIcon fontSize="small" />
+              </ListItemIcon>
+              {!showCollapsed && (
+                <ListItemText
+                  primary="Home"
+                  slotProps={{ primary: { variant: 'body2', fontWeight: 500 } }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+
+          <Tooltip title={showCollapsed ? 'Search chats' : ''} placement="right">
+            <ListItemButton
+              className="sidebar-search"
+              onClick={handleSearchNavigation}
+              sx={{ ...navItemSx, mb: 0.25 }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: showCollapsed ? 0 : 36,
+                  color: 'inherit',
+                  justifyContent: 'center',
+                }}
+              >
+                <SearchIcon fontSize="small" />
+              </ListItemIcon>
+              {!showCollapsed && (
+                <ListItemText
+                  primary="Search chats"
+                  slotProps={{ primary: { variant: 'body2', fontWeight: 500 } }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+
+          <Tooltip title={showCollapsed ? canvasLabel : ''} placement="right">
+            <ListItemButton
+              className="sidebar-canvas-btn"
+              onClick={handleCanvasNavigation}
+              sx={{ ...navItemSx, mt: 0.25 }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: showCollapsed ? 0 : 36,
+                  color: 'inherit',
+                  justifyContent: 'center',
+                }}
+              >
+                <DescriptionOutlinedIcon fontSize="small" />
+              </ListItemIcon>
+              {!showCollapsed && (
+                <ListItemText
+                  primary={canvasLabel}
+                  slotProps={{ primary: { variant: 'body2', fontWeight: 500 } }}
+                />
+              )}
+            </ListItemButton>
+          </Tooltip>
+        </List>
+      </Box>
+
+      <Divider />
+
+      <Box
+        className="sidebar-scroll-region"
+        data-sidebar-region="scroll"
+        sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
+      >
+        <AdvisorSidebarPicker
+          thinkingAdvisors={thinkingAdvisors}
+          collapsed={showCollapsed}
+          dialogInset={dialogInset}
+        />
+
+        <Divider />
+
+        <Box
+          className="chat-sessions"
+          sx={{ display: showCollapsed ? 'none' : 'block', px: 1 }}
+        >
+          {!showCollapsed && (
+            <Typography
+              variant="overline"
+              sx={{
+                display: 'block',
+                px: 0.75,
+                pt: 1.5,
+                pb: 0.75,
+                color: 'var(--ink-soft)',
+                lineHeight: 1.2,
+              }}
+            >
+              Recent chats
+            </Typography>
+          )}
+
+          {isLoading || isCreatingNewChat ? (
+            <Box
+              role="status"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                py: 4,
+                color: 'var(--ink-soft)',
+              }}
+            >
+              <CircularProgress size={20} color="inherit" />
+              {!showCollapsed && (
+                <Typography variant="body2">
+                  {isCreatingNewChat ? 'Creating new chat…' : 'Loading chats…'}
+                </Typography>
+              )}
+            </Box>
+          ) : chatSessions.length === 0 ? (
+            !showCollapsed && (
+              <Typography
+                align="center"
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 4 }}
+              >
+                No chats yet
+              </Typography>
+            )
+          ) : (
+            <List className="sessions-list" disablePadding>
+              {chatSessions.map((session) => (
+                <Box
+                  className="session-item"
+                  key={session.id}
+                  sx={{ display: 'flex', alignItems: 'center', mb: 0.25 }}
+                >
+                  <Tooltip
+                    title={showCollapsed ? session.title : ''}
+                    placement="right"
+                    disableHoverListener={!showCollapsed}
+                  >
+                    <ListItemButton
+                      selected={currentSessionId === session.id}
+                      aria-current={
+                        currentSessionId === session.id ? 'page' : undefined
+                      }
+                      onClick={() => handleSelectSession(session.id)}
+                      sx={{
+                        minWidth: 0,
+                        minHeight: 40,
+                        px: showCollapsed ? 1 : 1.25,
+                        justifyContent: showCollapsed ? 'center' : 'flex-start',
+                      }}
+                    >
+                      {!showCollapsed && (
+                        <ListItemText
+                          className="sidebar-session-title"
+                          primary={session.title}
+                          sx={{ minWidth: 0, my: 0 }}
+                          slotProps={{
+                            primary: {
+                              noWrap: true,
+                              fontSize: 14,
+                              sx: {
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </Tooltip>
+                  {!showCollapsed && (
+                    <Tooltip title={`Delete ${session.title}`}>
+                      <IconButton
+                        className="session-menu-button"
+                        aria-label={`Delete ${session.title}`}
+                        color="error"
+                        size="small"
+                        onClick={() => setSessionToDelete(session)}
+                      >
+                        <DeleteOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              ))}
+            </List>
+          )}
+        </Box>
+      </Box>
+
+      <Divider />
+
+      <Box
+        className="sidebar-account-footer"
+        data-sidebar-region="account"
+        sx={{
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: showCollapsed ? 'column' : 'row',
+          alignItems: 'center',
+          gap: showCollapsed ? 0.5 : 0.75,
+          p: showCollapsed ? 0.75 : 1,
+        }}
+      >
+        <Tooltip title={showCollapsed ? 'Account' : ''} placement="right">
+          <ButtonBase
+            className="sidebar-profile-button"
+            aria-label="Open account menu"
+            onClick={(event) => setAccountMenuAnchor(event.currentTarget)}
+            sx={{
+              flex: showCollapsed ? 'none' : 1,
+              width: showCollapsed ? 42 : 'auto',
+              minWidth: 0,
+              justifyContent: showCollapsed ? 'center' : 'flex-start',
+              gap: 1,
+              p: 0.75,
+              borderRadius: 2,
+              textAlign: 'left',
+              '&:hover': { bgcolor: 'var(--paper-sunken)' },
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 34,
+                height: 34,
+                bgcolor: 'var(--ink)',
+                color: 'var(--paper)',
+                fontSize: 14,
+              }}
+            >
+              {user?.firstName?.[0] || <PersonOutlinedIcon fontSize="small" />}
+            </Avatar>
+            {!showCollapsed && (
+              <Box sx={{ minWidth: 0 }}>
+                <Typography noWrap variant="body2" fontWeight={600}>
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Typography
+                  noWrap
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', maxWidth: 160 }}
+                >
+                  {user?.email}
+                </Typography>
+              </Box>
+            )}
+          </ButtonBase>
+        </Tooltip>
+
+        <Tooltip title="Settings" placement={showCollapsed ? 'right' : 'top'}>
+          <IconButton
+            className="sidebar-settings-button"
+            aria-label="Open settings"
+            onClick={handleOpenSettings}
+            size="small"
+          >
+            <SettingsOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </Box>
   );
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <>
-      <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
-        {/* Header */}
-        <div className="sidebar-header">
-          {!isCollapsed && (
-            <>
-              <div className="user-section">
-                <div className="user-info">
-                  <div className="user-avatar">
-                    <User size={20} />
-                  </div>
-                  <div className="user-details">
-                    <span className="user-name">{user.firstName} {user.lastName}</span>
-                    <span className="user-email">{user.email}</span>
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {/* Toggle button next to user menu when expanded */}
-                  <button 
-                    className="sidebar-toggle"
-                    onClick={toggleSidebar} 
-                    title="Collapse sidebar"
-                  >
-                    <PanelLeft size={18} />
-                  </button>
-                  
-                  <div className="user-menu-container">
-                    <button 
-                      className="user-menu-button"
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                    
-                    {showUserMenu && (
-                      <div className="user-menu">
-                        <button
-                          className="user-menu-item"
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            onOpenSettings?.();
-                          }}
-                        >
-                          <Settings size={16} />
-                          <span>Settings</span>
-                        </button>
-                        <button className="user-menu-item sign-out" onClick={onSignOut}>
-                          <LogOut size={16} />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+      <Drawer
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? isMobileOpen : true}
+        onClose={() => onMobileToggle?.(false)}
+        ModalProps={{ keepMounted: true }}
+        slotProps={{
+          paper: {
+            className: `sidebar ${showCollapsed ? 'collapsed' : ''} ${
+              isMobileOpen ? 'mobile-open' : ''
+            }`,
+          },
+        }}
+        sx={{
+          width: 0,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+            transition: muiTheme.transitions.create('width', {
+              duration: muiTheme.transitions.duration.shorter,
+            }),
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
 
-              <div className="new-chat-row">
-                <button
-                  className="new-chat-button"
-                  onClick={handleNewChat}
-                  disabled={isCreatingNewChat}
-                >
-                  <Plus size={16} />
-                  <span>{isCreatingNewChat ? 'Creating...' : 'New Chat'}</span>
-                </button>
-                <button
-                  className="clear-all-chats-btn"
-                  onClick={() => setShowClearAllConfirm(true)}
-                  disabled={isClearingAll || chatSessions.length === 0}
-                  title="Clear all chats"
-                  aria-label="Clear all chats"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+      <Menu
+        anchorEl={accountMenuAnchor}
+        open={Boolean(accountMenuAnchor)}
+        onClose={() => setAccountMenuAnchor(null)}
+      >
+        <MenuItem
+          onClick={() => {
+            setAccountMenuAnchor(null);
+            onSignOut();
+          }}
+          sx={{ color: 'var(--accent-red)', gap: 1 }}
+        >
+          <LogoutIcon fontSize="small" />
+          Sign out
+        </MenuItem>
+      </Menu>
 
-              <button 
-                className="sidebar-canvas-btn"
-                onClick={onNavigateToCanvas}
-                title={canvasLabel}
-              >
-                <FileText size={18} />
-                {!isCollapsed && <span>{canvasLabel}</span>}
-              </button>
-            </>
-          )}
-
-          {isCollapsed && (
-            <div className="collapsed-header">
-              {/* Toggle button replaces user avatar when collapsed */}
-              <button 
-                className="collapsed-toggle-avatar"
-                onClick={toggleSidebar} 
-                title="Expand sidebar"
-              >
-                <PanelLeft size={20} />
-              </button>
-              <button
-                className="collapsed-new-chat"
-                onClick={handleNewChat}
-                title="New Chat"
-                disabled={isCreatingNewChat}
-              >
-                <SquarePen size={20} />
-              </button>
-              <button 
-                className="sidebar-canvas-btn"
-                onClick={onNavigateToCanvas}
-                title={canvasLabel}
-              >
-                <FileText size={20} />
-                {!isCollapsed && <span>{canvasLabel}</span>}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Search + New Chat - only show when expanded */}
-        {!isCollapsed && (
-          <div className="sidebar-search">
-            <div className="search-container">
-              <Search size={16} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search chats..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <button
-              className="new-chat-icon-btn"
-              onClick={handleNewChat}
-              disabled={isCreatingNewChat}
-              title={isCreatingNewChat ? 'Creating...' : 'New Chat'}
-            >
-              <SquarePen size={18} />
-            </button>
-          </div>
-        )}
-
-        {/* Chat Sessions */}
-        <div className="chat-sessions">
-          {isLoading ? (
-            <div className="loading-sessions">
-              <div className="loading-spinner"></div>
-              {!isCollapsed && <span>Loading chats...</span>}
-            </div>
-          ) : isCreatingNewChat ? (
-            <div className="loading-sessions">
-              <div className="loading-spinner"></div>
-              {!isCollapsed && <span>Creating new chat...</span>}
-            </div>
-          ) : filteredSessions.length === 0 ? (
-            <div className="no-sessions">
-              {!isCollapsed && (searchTerm ? 'No chats found' : 'No chats yet')}
-            </div>
-          ) : (
-            <div className="sessions-list">
-              {filteredSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className={`session-item ${currentSessionId === session.id ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`}
-                  onClick={() => onSelectSession(session.id)}
-                  title={isCollapsed ? session.title : ''}
-                >
-                  <div className="session-content">
-                    <div className="session-icon">
-                      <MessageSquare size={16} />
-                    </div>
-                    {!isCollapsed && (
-                      <div className="session-details">
-                        <div className="session-title">{session.title}</div>
-                        <div className="session-meta">
-                          <span className="session-date">{formatDate(session.updated_at)}</span>
-                          <span className="session-messages">{session.message_count} messages</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {!isCollapsed && (
-                    <button
-                      className="session-menu-button"
-                      onClick={(e) => handleDeleteSession(session.id, e)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {appVersion && (
-          <div
-            className="sidebar-version"
-            title={`Version ${appVersion}`}
-          >
-            {isCollapsed ? `v${appVersion}` : `Version ${appVersion}`}
-          </div>
-        )}
-        {/* Footer */}
-        <div className={`sidebar-footer ${isCollapsed ? 'collapsed' : ''}`}>
-          <a 
-            href="https://neon.ai" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="sidebar-neon-link"
-            title="Neon.ai"
-          >
-            <img src="/neon-logo.png" alt="" className="sidebar-neon-logo" />
-            {!isCollapsed && <span className="sidebar-neon-text">Neon.ai</span>}
-          </a>
-          {!isCollapsed && <CopyrightNotice variant="sidebar" />}
-        </div>
-      </div>
-      
-      {isMobileOpen && (
-        <div
-          className="mobile-sidebar-overlay visible"
-          onClick={() => onMobileToggle(false)}
-        />
-      )}
-
-      <ConfirmDialog
-        isOpen={showClearAllConfirm}
-        title="Clear all chats?"
-        message="This will permanently delete every chat in your sidebar. This action can't be undone."
-        confirmLabel={isClearingAll ? 'Clearing…' : 'Clear all chats'}
-        cancelLabel="Cancel"
-        tone="danger"
-        onConfirm={handleClearAllChats}
-        onCancel={() => setShowClearAllConfirm(false)}
-      />
-      {showSettings && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={onUserUpdate}
-          onSignOut={onSignOut}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
+      <AppDialog
+        open={Boolean(sessionToDelete)}
+        onClose={() => setSessionToDelete(null)}
+        leftInset={dialogInset}
+        maxWidth="xs"
+        aria-labelledby="delete-chat-title"
+      >
+        <DialogTitle id="delete-chat-title">Delete this chat?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            “{sessionToDelete?.title}” will be permanently deleted.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSessionToDelete(null)}>Cancel</Button>
+          <Button color="error" onClick={handleDeleteSession}>
+            Delete chat
+          </Button>
+        </DialogActions>
+      </AppDialog>
     </>
   );
 };
