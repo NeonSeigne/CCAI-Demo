@@ -8,10 +8,10 @@ const SYNTHETIC_PERSONAS = {
     name: 'Orchestrator',
     role: 'Synthesized Response',
     description: 'A single combined response merging all advisor perspectives.',
-    color: '#7C3AED',
-    bgColor: '#F3E8FF',
-    darkColor: '#A78BFA',
-    darkBgColor: '#3B2A5E',
+    color: 'var(--accent-blue)',
+    bgColor: 'var(--paper-sunken)',
+    darkColor: 'var(--accent-blue)',
+    darkBgColor: 'var(--paper-sunken)',
     icon: LucideIcons.User,
   },
 };
@@ -82,20 +82,24 @@ const buildAdvisors = (personaItems, overrides = {}) => {
 };
 
 /**
- * Derive theme-appropriate colors for a given advisor, identical to the
- * previous `getAdvisorColors` helper.
+ * Derive display colors for a given advisor.
+ * Persona color is for accent dots / small badges only — chrome stays monochrome.
  */
-const buildGetAdvisorColors = (advisors) => (advisorId, isDark = false) => {
+const buildGetAdvisorColors = (advisors) => (advisorId, _isDark = false) => {
   const advisor = advisors[advisorId];
   if (!advisor) {
-    return isDark
-      ? { color: '#9CA3AF', bgColor: '#374151', textColor: '#F9FAFB' }
-      : { color: '#6B7280', bgColor: '#F3F4F6', textColor: '#111827' };
+    return {
+      color: 'var(--ink-soft)',
+      bgColor: 'var(--paper-sunken)',
+      textColor: 'var(--ink)',
+      dotColor: 'var(--ink-soft)',
+    };
   }
   return {
-    color: isDark ? advisor.darkColor : advisor.color,
-    bgColor: isDark ? advisor.darkBgColor : advisor.bgColor,
-    textColor: isDark ? '#F9FAFB' : advisor.color,
+    color: advisor.color,
+    bgColor: 'var(--paper-sunken)',
+    textColor: 'var(--ink)',
+    dotColor: advisor.color,
   };
 };
 

@@ -1,0 +1,19 @@
+/* Co-Panel brand tokens — Flighty + Nova, light-only */
+html[data-theme="light"],
+:root {
+  --ink: #111114;
+  --ink-soft: #6B6B70;
+  --paper: #FFFFFF;
+  --paper-sunken: #F7F7F5;
+  --line: rgba(17, 17, 20, 0.08);
+
+  --accent-red: #FF5A5F;
+  --accent-blue: #2E7CF6;
+  --accent-green: #34C759;
+
+  --font-app: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --shadow-soft: 0 1px 3px rgba(17, 17, 20, 0.06), 0 4px 12px rgba(17, 17, 20, 0.04);
+  --shadow-soft-md: 0 4px 16px rgba(17, 17, 20, 0.08);
+}
