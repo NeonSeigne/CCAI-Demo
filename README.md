@@ -49,6 +49,10 @@ REACT_APP_API_URL=http://localhost:8000
 CORS_ORIGINS=http://localhost:3000
 ```
 > `REACT_APP_API_URL` and `CORS_ORIGINS` must match the real addresses used if accessing the demo from a remote host.
+>
+> Local Docker Compose enables **Developer mode** by default (`ENABLE_DEV_LOGIN` / `REACT_APP_ENABLE_DEV_LOGIN`). Use the homepage top-right control to skip sign-in. Set both to `false` in real deployments.
+>
+> UW-Madison chat tools, course detail pages, and inline course cards all use the live [UW Course Map](https://uwcourses.com) public APIs (`static.uwcourses.com` / `search.uwcourses.com`).
 
 2. **Build and Run Containers**
 ```bash
@@ -163,7 +167,7 @@ ollama list
 
 1. **Navigate to the backend directory:**
 ```bash
-cd multi_llm_chatbot_backend
+cd backend
 ```
 
 2. **Create a Python virtual environment:**
@@ -184,7 +188,7 @@ pip install -r requirements.txt
 ```
 
 4. **Set up environment variables:**
-Create a `.env` file in the `multi_llm_chatbot_backend` directory:
+Create a `.env` file in the `backend` directory:
 
 ```env
 # MongoDB Configuration
@@ -221,7 +225,7 @@ The API will be available at `http://localhost:8000` with interactive docs at `h
 
 1. **Navigate to the frontend directory:**
 ```bash
-cd ../phd-advisor-frontend
+cd ../frontend
 ```
 
 2. **Install dependencies:**
@@ -280,6 +284,8 @@ The application will open at `http://localhost:3000`
 | `GEMINI_API_KEY` | Google Gemini API key | - | No |
 | `GEMINI_MODEL` | Gemini model to use | `gemini-2.0-flash` | No |
 | `OLLAMA_BASE_URL` | Ollama server URL | `http://localhost:11434` | No |
+| `ENABLE_DEV_LOGIN` | Backend gate for `POST /auth/dev-login` (homepage Developer mode). Keep **false** in real deployments. | `true` in local `docker-compose` | No |
+| `REACT_APP_ENABLE_DEV_LOGIN` | Show the homepage “Developer mode” button. Requires `ENABLE_DEV_LOGIN=true` on the backend. Keep **false** in real deployments. | `true` in local `docker-compose` | No |
 
 ### Switching Between LLM Providers
 
@@ -307,6 +313,7 @@ curl -X POST "http://localhost:8000/switch-provider" \
 ### Authentication Endpoints
 - `POST /auth/signup` - Create new user account
 - `POST /auth/login` - Login with email/password
+- `POST /auth/dev-login` - Local-only bypass: upserts `dev@example.com` and returns a JWT (requires `ENABLE_DEV_LOGIN=true`; returns 404 otherwise)
 - `GET /auth/me` - Get current user profile
 
 ### Chat Endpoints
@@ -398,7 +405,7 @@ ollama run llama3.2:1b "Hello"
 
 ```bash
 # Backend tests
-cd multi_llm_chatbot_backend
+cd backend
 python -m pytest app/tests/
 
 # Test specific functionality
@@ -410,7 +417,7 @@ python app/tests/debug_rag.py
 
 ```
 phd-advisor-panel/
-├── multi_llm_chatbot_backend/
+├── backend/
 │   ├── app/
 │   │   ├── api/routes/          # API route handlers
 │   │   ├── core/                # Core business logic
@@ -420,7 +427,7 @@ phd-advisor-panel/
 │   │   └── tests/               # Test files
 │   ├── requirements.txt
 │   └── .env
-├── phd-advisor-frontend/
+├── frontend/
 │   ├── src/
 │   │   ├── components/          # React components
 │   │   ├── pages/               # Page components
@@ -437,6 +444,32 @@ phd-advisor-panel/
 2. Add your persona configuration
 3. Restart the backend server
 4. The new persona will be available in chat
+
+### Adding a New School
+
+The app is config-driven and uses a per-deployment model: each school is a single
+config file selected at startup via the `CONFIG_PATH` environment variable. Adding a
+school requires no code changes.
+
+1. **Create a config file** by copying an existing one (e.g. `undergrad_config.yaml`)
+   to `<school>_config.yaml` at the repo root.
+2. **Edit the branding** under `app:` -- `title`, `institution` (drives the footer
+   copyright line), `primary_color`, plus the `homepage`, `login`, and `chat_page`
+   text. Define advisors either inline under `personas.items` or in a directory
+   referenced by `personas.personas_dir`.
+3. **Use unique storage** so schools don't share data: set a distinct
+   `mongodb.database_name` and `rag.chroma_collection`.
+4. **Configure the tools for the school** under `tools:`:
+   - `rate_my_professor` is locked to one school. A `school_id` is **required**
+     whenever the tool is enabled — the app refuses to start without it. Find the
+     value with `python3 scripts/rmp_school_lookup.py "<school name>"`. Results are
+     limited strictly to that school (no cross-school fallback).
+   - `search_courses` is **CU Boulder / FOSE-specific** (it queries
+     `classes.colorado.edu`). For any non-CU school, set
+     `tools.search_courses.enabled: false`.
+5. **Point the app at it** by setting `CONFIG_PATH=/ccai/<school>_config.yaml`
+   (e.g. in `docker-compose.yml` or your environment) and restart. Run a separate
+   instance/stack per school.
 
 ### Extending Document Support
 
@@ -466,6 +499,17 @@ phd-advisor-panel/
 - Powered by [Ollama](https://ollama.ai/) for local LLM support
 - Uses [ChromaDB](https://www.trychroma.com/) for vector storage
 - Document processing with [PyPDF2](https://pypdf2.readthedocs.io/) and [python-docx](https://python-docx.readthedocs.io/)
+- UW–Madison course-detail data is provided by [UW Course Map](https://uwcourses.com)
+  and its [public static API](https://docs.uwcourses.com/usage/static-api). The
+  React course experience is a clean-room implementation informed by the
+  upstream [course loader](https://github.com/twangodev/uw-coursemap/blob/main/src/routes/courses/%5BcourseIdentifier%5D/+page.ts),
+  [tab structure](https://github.com/twangodev/uw-coursemap/blob/main/src/lib/components/course/course-tabs.svelte),
+  [course data contract](https://github.com/twangodev/uw-coursemap/blob/main/src/lib/types/course.ts),
+  and [grade formulas](https://github.com/twangodev/uw-coursemap/blob/main/src/lib/types/madgrades.ts).
+  The upstream application is licensed under
+  [AGPL-3.0](https://github.com/twangodev/uw-coursemap/blob/main/LICENSE);
+  no upstream Svelte UI source is included here. Grade aggregates originate
+  from MadGrades and instructor ratings originate from Rate My Professors.
 
 ## Copyright
 
