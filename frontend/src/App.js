@@ -11,9 +11,11 @@ import ChatPage from './pages/ChatPage';
 import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import CanvasPage from './pages/CanvasPage';
+import SemesterPlannerPage from './pages/SemesterPlannerPage';
 import UserGuide from './components/UserGuide';
 import muiTheme from './theme/muiTheme';
 import './styles/components.css';
+import './styles/SemesterPlanner.css';
 
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 
@@ -52,6 +54,7 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route path="/plan/semester" element={<SemesterPlannerPage />} />
         <Route
           path="/courses/:courseIdentifier"
           element={(

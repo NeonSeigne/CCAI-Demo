@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -22,10 +22,12 @@ import SuggestionsPanel from '../components/SuggestionsPanel';
 import SettingsModal from '../components/SettingsModal';
 import ExportButton from '../components/ExportButton';
 import Sidebar from '../components/Sidebar';
+import SemesterPlannerSkill from '../components/planner/SemesterPlannerSkill';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
+import '../styles/SemesterPlanner.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
 import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
@@ -80,6 +82,46 @@ const ChatPage = () => {
   // Group ids currently running an on-demand synthesis pass (for lag UX).
   const [synthesizingGroups, setSynthesizingGroups] = useState({});
   const skipAutoScrollRef = useRef(false);
+
+  // Plan My Semester skill (overlay on chat)
+  const [plannerSkillActive, setPlannerSkillActive] = useState(false);
+  const [plannerRestoreId, setPlannerRestoreId] = useState(null);
+  const [semesterPlanId, setSemesterPlanId] = useState(null);
+  const [plannerExternalPlan, setPlannerExternalPlan] = useState(null);
+  const [plannerCardSlot, setPlannerCardSlot] = useState(null);
+  const semesterPlanIdRef = useRef(null);
+
+  useEffect(() => {
+    semesterPlanIdRef.current = semesterPlanId;
+  }, [semesterPlanId]);
+
+  const handlePlannerReadyChange = useCallback((planId) => {
+    setSemesterPlanId(planId);
+  }, []);
+
+  const handleDeactivatePlanner = useCallback(() => {
+    setPlannerSkillActive(false);
+    setPlannerRestoreId(null);
+    setSemesterPlanId(null);
+    setPlannerExternalPlan(null);
+  }, []);
+
+  const handleInvokeSkill = useCallback((skillId) => {
+    if (skillId === 'plan_semester') {
+      setPlannerRestoreId(null);
+      setPlannerExternalPlan(null);
+      setPlannerSkillActive(true);
+      if (chatPhase === 'landing') {
+        setChatPhase('active');
+      }
+    }
+  }, [chatPhase]);
+
+  const handleDismissSkill = useCallback((skillId) => {
+    if (skillId === 'plan_semester') {
+      handleDeactivatePlanner();
+    }
+  }, [handleDeactivatePlanner]);
 
 
 
@@ -396,7 +438,7 @@ const handleNewChat = async (sessionId = null) => {
   }
 };
 
-  // Consume one-shot navigation intent from Home (session resume / new chat / prompt).
+  // Consume one-shot navigation intent from Home (session resume / new chat / prompt / planner).
   useEffect(() => {
     if (!authToken || intentConsumedRef.current) return;
     const intent = location.state;
@@ -414,6 +456,11 @@ const handleNewChat = async (sessionId = null) => {
         }
         if (intent.pendingPrompt) {
           setComposerMessage(intent.pendingPrompt);
+        }
+        if (intent.openSemesterPlanner) {
+          setPlannerRestoreId(intent.planId || null);
+          setPlannerSkillActive(true);
+          setChatPhase('active');
         }
       } finally {
         navigate('/chat', { replace: true, state: null });
@@ -453,19 +500,24 @@ const handleNewChat = async (sessionId = null) => {
   // Reusable streaming call to /chat-stream. Lifted to component scope so the
   // on-demand "generalize" action can reuse it too.
   const streamChat = async (userInput, sessionId = null, activeAdvisorIds = null) => {
+    const body = {
+      user_input: userInput,
+      response_length: 'medium',
+      chat_session_id: sessionId || currentSessionId,
+      response_mode: responseMode,
+      active_advisors: activeAdvisorIds,
+    };
+    const planId = semesterPlanIdRef.current;
+    if (planId) {
+      body.semester_plan_id = planId;
+    }
     const response = await fetch(`${process.env.REACT_APP_API_URL}/chat-stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
       },
-      body: JSON.stringify({
-        user_input: userInput,
-        response_length: 'medium',
-        chat_session_id: sessionId || currentSessionId,
-        response_mode: responseMode,
-        active_advisors: activeAdvisorIds,
-      }),
+      body: JSON.stringify(body),
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response;
@@ -673,6 +725,11 @@ const handleNewChat = async (sessionId = null) => {
                 content: d.detail || 'An error occurred',
                 timestamp: new Date(),
               }]);
+              break;
+            case 'plan_update':
+              if (d.plan) {
+                setPlannerExternalPlan(d.plan);
+              }
               break;
             default:
               break;
@@ -994,7 +1051,7 @@ const handleNewChat = async (sessionId = null) => {
         dialogInset={dialogInset}
       />
       
-      <div className={`main-chat-area ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`main-chat-area ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${semesterPlanId ? 'has-planner-skill' : ''}`}>
         <div className="modern-chat-page">
           <AppBar
             position="static"
@@ -1058,7 +1115,7 @@ const handleNewChat = async (sessionId = null) => {
                 <SuggestionsPanel onSuggestionClick={handleSuggestionSelect} />
               </div>
             )}
-            {hasMessages && (
+            {(hasMessages || plannerSkillActive || semesterPlanId) && (
               <div className="messages-container">
                 {/* Add loading session indicator */}
                 {isLoadingSession && (
@@ -1070,6 +1127,7 @@ const handleNewChat = async (sessionId = null) => {
                 
                 <div className="messages-list">
                   <div className="messages-scroll">
+                    <div ref={setPlannerCardSlot} className="planner-skill-slot" />
                     {messageGroups.map((group) => (
                       group.type === 'advisor_group' ? (() => {
                         const hasAggregated = group.aggregatedMessages.length > 0;
@@ -1261,15 +1319,34 @@ const handleNewChat = async (sessionId = null) => {
               selectedAdvisorIds={selectedAdvisorIds}
               onSelectedAdvisorIdsChange={setSelectedAdvisorIds}
               isLanding={chatPhase !== 'active'}
+              onInvokeSkill={handleInvokeSkill}
+              activeSkills={
+                plannerSkillActive
+                  ? [{ id: 'plan_semester', label: 'Plan my Semester' }]
+                  : []
+              }
+              onDismissSkill={handleDismissSkill}
               placeholder={
-                replyingTo
-                  ? `Reply to ${replyingTo.advisorName}...`
-                  : chatPlaceholder
+                semesterPlanId
+                  ? 'Ask to change your semester plan…'
+                  : replyingTo
+                    ? `Reply to ${replyingTo.advisorName}...`
+                    : chatPlaceholder
               }
             />
           </div>
         </div>
       </div>
+
+      <SemesterPlannerSkill
+        active={plannerSkillActive}
+        restorePlanId={plannerRestoreId}
+        externalPlan={plannerExternalPlan}
+        onReadyChange={handlePlannerReadyChange}
+        onDeactivate={handleDeactivatePlanner}
+        sidebarCollapsed={isSidebarCollapsed}
+        cardSlot={plannerCardSlot}
+      />
 
       {isSettingsOpen && (
         <SettingsModal
