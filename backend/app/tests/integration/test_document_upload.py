@@ -1,7 +1,7 @@
 import requests
 
 # Set your file path here
-file_path = "C:/Projects/Neon AI Project/Neon-AI-Project/multi_llm_chatbot_backend/app/tests/Resume.pdf"
+file_path = "C:/Projects/Neon AI Project/Neon-AI-Project/backend/app/tests/Resume.pdf"
 
 # Step 1: Upload the file
 upload_url = "http://localhost:8000/upload-document"

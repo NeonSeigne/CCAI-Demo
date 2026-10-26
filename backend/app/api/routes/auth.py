@@ -15,8 +15,45 @@ from app.core.auth import (
 )
 from app.core.database import get_database
 import logging
+import os
 
 logger = logging.getLogger(__name__)
+
+DEV_LOGIN_EMAIL = "dev@example.com"
+DEV_LOGIN_PASSWORD = "devpassword"
+DEV_LOGIN_FIRST_NAME = "Dev"
+DEV_LOGIN_LAST_NAME = "User"
+
+
+def _dev_login_enabled() -> bool:
+    return os.getenv("ENABLE_DEV_LOGIN", "").lower() == "true"
+
+
+async def _upsert_dev_user() -> User:
+    """Return the seeded dev user, creating it if it does not exist."""
+    db = get_database()
+    existing = await get_user_by_email(DEV_LOGIN_EMAIL)
+    if existing:
+        if not existing.is_active:
+            await db.users.update_one(
+                {"_id": existing.id}, {"$set": {"is_active": True}}
+            )
+            existing.is_active = True
+        return existing
+
+    user = User(
+        firstName=DEV_LOGIN_FIRST_NAME,
+        lastName=DEV_LOGIN_LAST_NAME,
+        email=DEV_LOGIN_EMAIL,
+        hashed_password=get_password_hash(DEV_LOGIN_PASSWORD),
+        academicStage=None,
+        researchArea=None,
+        created_at=datetime.utcnow(),
+        is_active=True,
+    )
+    result = await db.users.insert_one(user.dict(by_alias=True))
+    user.id = result.inserted_id
+    return user
 
 
 class MessageResponse(BaseModel):
@@ -158,6 +195,51 @@ async def login(user_credentials: UserLogin):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed"
         )
+
+@router.post("/dev-login", response_model=Token)
+async def dev_login():
+    """
+    Upsert the seeded developer user and return an access token.
+
+    Only available when ENABLE_DEV_LOGIN=true. Returns 404 otherwise so the
+    endpoint is not advertised in production.
+    """
+    if not _dev_login_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found",
+        )
+
+    try:
+        user = await _upsert_dev_user()
+        db = get_database()
+        now = datetime.utcnow()
+        await db.users.update_one(
+            {"_id": user.id},
+            {"$set": {"last_login": now}},
+        )
+        user.last_login = now
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": str(user.id)},
+            expires_delta=access_token_expires,
+        )
+
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            user=create_user_response(user),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during dev login: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Dev login failed",
+        )
+
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(current_user: User = Depends(get_current_active_user)):
