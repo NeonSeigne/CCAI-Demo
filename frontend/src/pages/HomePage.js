@@ -1,13 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowUp,
-  LogOut,
-  MapPin,
-  MessageSquare,
-  Plus,
-  Settings2,
-} from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import CampusRail from '../components/CampusRail';
+import { DOMAIN_COLORS } from '../components/domainColors';
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,12 +11,6 @@ import '../styles/CampusHome.css';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-// One color per domain, shared with the "Checked" chips in chat.
-export const DOMAIN_COLORS = {
-  academics: 'var(--domain-academics)',
-  student_life: 'var(--domain-student-life)',
-  campus: 'var(--domain-campus)',
-};
 
 const todayLabel = (timezone) => {
   try {
@@ -38,7 +27,6 @@ const HomePage = () => {
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
   const { config, advisors } = useAppConfig();
   const [question, setQuestion] = useState('');
-  const [sessions, setSessions] = useState([]);
   const [today, setToday] = useState({ loading: true, events: [], error: null });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const inputRef = useRef(null);
@@ -50,11 +38,6 @@ const HomePage = () => {
   useEffect(() => {
     if (!authToken) return;
     const headers = { Authorization: `Bearer ${authToken}` };
-
-    fetch(`${API_URL}/api/chat-sessions`, { headers })
-      .then((response) => (response.ok ? response.json() : []))
-      .then((data) => setSessions(Array.isArray(data) ? data : []))
-      .catch(() => setSessions([]));
 
     fetch(`${API_URL}/api/campus/today`, { headers })
       .then((response) => {
@@ -91,62 +74,15 @@ const HomePage = () => {
     navigate('/', { replace: true });
   };
 
-  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
-
   return (
     <div className="campus-home">
-      <nav className="campus-rail" aria-label="Main">
-        <div className="campus-brand">
-          <span className="campus-brand-mark" aria-hidden="true">
-            <MapPin size={16} strokeWidth={2.4} />
-          </span>
-          <span className="campus-brand-name">Campus Companion</span>
-        </div>
-
-        <div className="campus-school">
-          <span className="campus-school-dot" aria-hidden="true" />
-          <span className="campus-school-name">{school}</span>
-        </div>
-
-        <button type="button" className="campus-new-chat" onClick={() => navigate('/chat', { state: { startNew: true } })}>
-          <Plus size={18} /> New chat
-        </button>
-
-        <div className="campus-recent">
-          <span className="campus-rail-label">Recent</span>
-          {sessions.length === 0 ? (
-            <p className="campus-rail-empty">Your chats will show up here.</p>
-          ) : (
-            sessions.slice(0, 6).map((session) => (
-              <button
-                type="button"
-                key={session.id}
-                className="campus-recent-item"
-                onClick={() => navigate('/chat', { state: { sessionId: session.id } })}
-              >
-                <MessageSquare size={15} aria-hidden="true" />
-                <span>{session.title || 'Untitled chat'}</span>
-              </button>
-            ))
-          )}
-          {sessions.length > 6 && (
-            <button type="button" className="campus-recent-all" onClick={() => navigate('/search')}>
-              All chats
-            </button>
-          )}
-        </div>
-
-        <div className="campus-user">
-          <span className="campus-avatar" aria-hidden="true">{initials}</span>
-          <span className="campus-user-name">{user?.firstName || 'You'}</span>
-          <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={() => setIsSettingsOpen(true)}>
-            <Settings2 size={18} />
-          </button>
-          <button type="button" className="campus-icon-btn" aria-label="Sign out" onClick={handleSignOutClick}>
-            <LogOut size={18} />
-          </button>
-        </div>
-      </nav>
+      <CampusRail
+        onNewChat={() => navigate('/chat', { state: { startNew: true } })}
+        onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
+        onShowAllChats={() => navigate('/search')}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onSignOut={handleSignOutClick}
+      />
 
       <main className="campus-main">
         <div className="campus-column">
