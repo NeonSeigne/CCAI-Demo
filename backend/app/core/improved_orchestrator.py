@@ -1323,12 +1323,15 @@ When analyzing the document context:
                 top_ids = re.findall(r'"(.*?)"', llm_response)
                 logger.warning(f"Fallback JSON extraction used: {top_ids}")
 
-            # Handle models that wrap the list in an object (e.g. {"advisor_ids": [...]})
+            # Handle models that wrap the list in an object, possibly beside
+            # other fields (e.g. {"count": 3, "advisor_ids": [...]})
             if isinstance(top_ids, dict):
-                top_ids = next(iter(top_ids.values()), [])
+                top_ids = next((v for v in top_ids.values() if isinstance(v, list)), [])
+            if not isinstance(top_ids, list):
+                top_ids = []
 
             # Step 3: Filter valid persona IDs against the allowed pool
-            valid_ids = [pid for pid in top_ids if pid in pool]
+            valid_ids = [pid for pid in top_ids if isinstance(pid, str) and pid in pool]
 
             if len(valid_ids) < k:
                 logger.warning(f"LLM returned insufficient or invalid IDs. Got: {valid_ids}")
