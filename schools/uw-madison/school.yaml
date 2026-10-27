@@ -1,0 +1,10 @@
+# UW-Madison school pack.
+base: ../../wisconsin_config.yaml
+
+school:
+  slug: uw-madison
+  timezone: America/Chicago
+  status: active
+
+# Data stores (mongodb.database_name, rag.chroma_collection) come from the base
+# config and keep their existing names, so current users' chats and documents stay.

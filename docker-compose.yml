@@ -20,9 +20,11 @@ services:
       BRAINFORGE_PASSWORD: ${BRAINFORGE_PASSWORD:-}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       GEMINI_MODEL: gemini-2.5-flash
-      # Available configs: /ccai/undergrad_config.yaml, /ccai/phd_config.yaml,
-      # /ccai/wisconsin_config.yaml. Override via CONFIG_PATH in your .env.
-      CONFIG_PATH: ${CONFIG_PATH:-/ccai/undergrad_config.yaml}
+      # School pack to run: a folder in schools/ (cu-boulder, uw-madison, uva).
+      # For a legacy single-file config (e.g. /ccai/phd_config.yaml), set
+      # CONFIG_PATH in your .env and SCHOOL= (empty); setting both is an error.
+      SCHOOL: ${SCHOOL-cu-boulder}
+      CONFIG_PATH: ${CONFIG_PATH:-}
       # Local-only auth bypass for the homepage "Developer mode" button.
       # Set ENABLE_DEV_LOGIN=false (and REACT_APP_ENABLE_DEV_LOGIN=false) in real deployments.
       ENABLE_DEV_LOGIN: ${ENABLE_DEV_LOGIN:-true}

@@ -447,19 +447,24 @@ phd-advisor-panel/
 
 ### Adding a New School
 
-The app is config-driven and uses a per-deployment model: each school is a single
-config file selected at startup via the `CONFIG_PATH` environment variable. Adding a
-school requires no code changes.
+The app is config-driven and uses a per-deployment model: each school is a
+**school pack**, a folder under `schools/` selected at startup with `SCHOOL=<slug>`.
+Shipped packs: `cu-boulder`, `uw-madison`, `uva`. Public data sources for each are
+listed in `schools/FEEDS.md`.
 
-1. **Create a config file** by copying an existing one (e.g. `undergrad_config.yaml`)
-   to `<school>_config.yaml` at the repo root.
-2. **Edit the branding** under `app:` -- `title`, `institution` (drives the footer
+1. **Create `schools/<slug>/school.yaml`.** Start with `base:` pointing at an
+   existing config (e.g. `base: ../../undergrad_config.yaml`); the pack is
+   deep-merged over it, so it only needs to state what differs.
+2. **Set the school identity** under `school:` -- `slug` (the folder name),
+   `timezone` (an IANA name such as `America/New_York`; required) and `status`
+   (`draft` or `active`; a draft only starts with `ALLOW_DRAFT=1`).
+3. **Edit the branding** under `app:` -- `title`, `institution` (drives the footer
    copyright line), `primary_color`, plus the `homepage`, `login`, and `chat_page`
-   text. Define advisors either inline under `personas.items` or in a directory
-   referenced by `personas.personas_dir`.
-3. **Use unique storage** so schools don't share data: set a distinct
-   `mongodb.database_name` and `rag.chroma_collection`.
-4. **Configure the tools for the school** under `tools:`:
+   text. Advisors come from the base config unless the pack overrides `personas`.
+4. **Use unique storage** so schools don't share data: set a distinct
+   `mongodb.database_name` and `rag.chroma_collection`. A pack that keeps the
+   shared defaults refuses to start.
+5. **Configure the tools for the school** under `tools:`:
    - `rate_my_professor` is locked to one school. A `school_id` is **required**
      whenever the tool is enabled — the app refuses to start without it. Find the
      value with `python3 scripts/rmp_school_lookup.py "<school name>"`. Results are
@@ -467,9 +472,11 @@ school requires no code changes.
    - `search_courses` is **CU Boulder / FOSE-specific** (it queries
      `classes.colorado.edu`). For any non-CU school, set
      `tools.search_courses.enabled: false`.
-5. **Point the app at it** by setting `CONFIG_PATH=/ccai/<school>_config.yaml`
-   (e.g. in `docker-compose.yml` or your environment) and restart. Run a separate
-   instance/stack per school.
+6. **Run it** with `SCHOOL=<slug>` (e.g. in your `.env`) and restart. Run a
+   separate instance/stack per school.
+
+Legacy single-file configs still work through `CONFIG_PATH` (with `SCHOOL` unset);
+setting both is a startup error.
 
 ### Extending Document Support
 

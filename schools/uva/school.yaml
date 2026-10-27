@@ -1,0 +1,33 @@
+# University of Virginia school pack. Reuses the undergrad advisor personas and
+# layout; branding and tools are UVA's own.
+base: ../../undergrad_config.yaml
+
+school:
+  slug: uva
+  timezone: America/New_York
+  status: active
+
+app:
+  title: "UVA Undergraduate Advisor"
+  primary_color: "#232D4B"
+  institution: "University of Virginia"
+  footer_text: "Unofficial student advising demo for the University of Virginia."
+
+homepage:
+  features_title: "Why Use UVA Undergraduate Advisor?"
+
+mongodb:
+  database_name: uva_advisor
+
+rag:
+  chroma_collection: uva_docs
+
+tools:
+  # CU's FOSE course search does not serve UVA. UVA academics comes from
+  # theCourseForum's public CSV snapshots (added with the academics providers).
+  search_courses:
+    enabled: false
+  rate_my_professor:
+    enabled: true
+    # From scripts/rmp_school_lookup.py "University of Virginia".
+    school_id: "U2Nob29sLTEyNzc="

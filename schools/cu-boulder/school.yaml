@@ -1,0 +1,11 @@
+# CU Boulder school pack. Inherits everything from the CU config and only
+# states the school identity.
+base: ../../undergrad_config.yaml
+
+school:
+  slug: cu-boulder
+  timezone: America/Denver
+  status: active
+
+# Data stores (mongodb.database_name, rag.chroma_collection) come from the base
+# config and keep their existing names, so current users' chats and documents stay.

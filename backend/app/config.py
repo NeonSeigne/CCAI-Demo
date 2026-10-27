@@ -11,7 +11,8 @@ import os
 import logging
 import colorsys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from colorhash import ColorHash
 
 import httpx
@@ -350,6 +351,28 @@ class VoiceConfig(BaseModel):
     tts_endpoint: str = "https://coqui.neonaiservices.com"
 
 
+class SchoolConfig(BaseModel):
+    """Identity of a school pack (``schools/<slug>/school.yaml``).
+
+    Empty for legacy single-file configs loaded through ``CONFIG_PATH``.
+    """
+    slug: str = ""
+    timezone: str = ""
+    status: Literal["draft", "active"] = "active"
+
+    @validator("timezone")
+    def _valid_timezone(cls, value):
+        if value:
+            try:
+                ZoneInfo(value)
+            except (ZoneInfoNotFoundError, ValueError) as exc:
+                raise ValueError(
+                    f"school.timezone '{value}' is not an IANA timezone "
+                    "(for example 'America/Denver')."
+                ) from exc
+        return value
+
+
 class AppSettings(BaseModel):
     """Top-level container that mirrors the YAML structure."""
     app: AppConfig = AppConfig()
@@ -366,6 +389,27 @@ class AppSettings(BaseModel):
     rag: RAGConfig = RAGConfig()
     tools: ToolsConfig = ToolsConfig()
     voice: VoiceConfig = VoiceConfig()
+    school: SchoolConfig = SchoolConfig()
+
+    @model_validator(mode="after")
+    def _require_school_isolation(self):
+        """A school pack must set a timezone and its own data stores, so one
+        school's documents and chats never answer for another."""
+        if not self.school.slug:
+            return self
+        if not self.school.timezone:
+            raise ValueError(f"School pack '{self.school.slug}' must set school.timezone.")
+        if self.mongodb.database_name == MongoDBConfig().database_name:
+            raise ValueError(
+                f"School pack '{self.school.slug}' must set mongodb.database_name "
+                "(it still uses the shared default)."
+            )
+        if self.rag.chroma_collection == RAGConfig().chroma_collection:
+            raise ValueError(
+                f"School pack '{self.school.slug}' must set rag.chroma_collection "
+                "(it still uses the shared default)."
+            )
+        return self
 
     # ------------------------------------------------------------------
     # Convenience helpers
@@ -401,6 +445,66 @@ class AppSettings(BaseModel):
 _settings: Optional[AppSettings] = None
 
 
+# Directory holding school packs (``<slug>/school.yaml``).
+SCHOOLS_DIR = Path(os.getenv("SCHOOLS_DIR") or Path(__file__).resolve().parents[2] / "schools")
+
+
+def _resolve_config_path() -> Optional[str]:
+    """Pick the config file from ``SCHOOL`` or the legacy ``CONFIG_PATH``."""
+    school = os.getenv("SCHOOL")
+    legacy = os.getenv("CONFIG_PATH")
+    if school and legacy:
+        raise ValueError(
+            "Set either SCHOOL or CONFIG_PATH, not both "
+            f"(SCHOOL={school}, CONFIG_PATH={legacy})."
+        )
+    if school:
+        path = SCHOOLS_DIR / school / "school.yaml"
+        if not path.exists():
+            raise FileNotFoundError(f"No school pack for SCHOOL={school} at {path}")
+        return str(path)
+    return legacy
+
+
+def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    merged = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _read_config(path: Path) -> tuple:
+    """Read a YAML config, applying its optional ``base:`` file first.
+
+    ``base`` is resolved relative to the file and deep-merged underneath it,
+    so a school pack only states what differs. Returns ``(raw, config_dir)``
+    where ``config_dir`` is the directory persona paths resolve against (the
+    base file's directory when a base is used).
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"Configuration file not found at {path}")
+    logger.info(f"Loading configuration from {path}")
+    with open(path, "r", encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    base = raw.pop("base", None)
+    if not base:
+        return raw, path.parent
+    base_raw, base_dir = _read_config((path.parent / base).resolve())
+    return _deep_merge(base_raw, raw), base_dir
+
+
+def _check_school_status(raw: Dict[str, Any]) -> None:
+    school = raw.get("school") or {}
+    if school.get("status") == "draft" and os.getenv("ALLOW_DRAFT") != "1":
+        raise ValueError(
+            f"School pack '{school.get('slug', '')}' is a draft; set ALLOW_DRAFT=1 "
+            "to run it, or set school.status: active after review."
+        )
+
+
 def load_settings(config_path: Optional[str] = None) -> AppSettings:
     """Load and validate ``config.yaml``, returning an ``AppSettings`` object.
 
@@ -412,22 +516,18 @@ def load_settings(config_path: Optional[str] = None) -> AppSettings:
     if _settings is not None:
         return _settings
 
-    config_path = config_path or os.getenv("CONFIG_PATH")
+    if config_path is None:
+        config_path = _resolve_config_path()
     if not config_path:
-        logger.warning("No CONFIG_PATH specified. Using default values")
+        logger.warning("No CONFIG_PATH or SCHOOL specified. Using default values")
         raw = {}
+        config_dir = None
     else:
-        path = Path(config_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Configuration file not found at {config_path}")
-        logger.info(f"Loading configuration from {path}")
-        with open(path, "r", encoding="utf-8") as fh:
-            raw = yaml.safe_load(fh) or {}
+        raw, config_dir = _read_config(Path(config_path))
 
-    personas_cfg = raw.setdefault("personas", {})
-
-    if config_path:
-        personas_cfg["config_dir"] = str(Path(config_path).parent)
+    if config_dir:
+        raw.setdefault("personas", {})["config_dir"] = str(config_dir)
+    _check_school_status(raw)
 
     _settings = AppSettings(**raw)
     logger.info(f"Configuration loaded: app.title={_settings.app.title}")
