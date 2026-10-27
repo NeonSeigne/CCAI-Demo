@@ -16,6 +16,7 @@ import '../styles/CoursesPage.css';
 import '../styles/CourseComparePage.css';
 
 const isAbort = (error) => error?.name === 'AbortError';
+const countOf = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
 const parseIds = (value) => {
   const seen = new Set();
@@ -96,13 +97,13 @@ function buildRows(school, labels) {
         if (!sections || !(sections.rows || []).length) return <span className="cmp-note">No sections listed</span>;
         const term = sections.term || 'Current term';
         if (!sections.seats_published) {
-          return <Value value="Seats not published" note={`${term} · ${sections.rows.length} sections`} />;
+          return <Value value="Seats not published" note={`${term} · ${countOf(sections.rows.length, 'section')}`} />;
         }
         const primary = primarySections(sections.rows);
-        const kind = primary.some((row) => /^LEC/i.test(row.type || '')) ? 'lectures' : 'sections';
+        const kind = primary.some((row) => /^LEC/i.test(row.type || '')) ? 'lecture' : 'section';
         const note = sections.historical
           ? `${term} · as of ${shortDate(sections.as_of) || 'snapshot'}`
-          : `${term} · ${primary.length} ${kind}`;
+          : `${term} · ${countOf(primary.length, kind)}`;
         return <Value value={sections.seats_open == null ? 'Not listed' : `${sections.seats_open} open`} note={note} />;
       },
     },
@@ -234,7 +235,12 @@ export default function CourseComparePage() {
 
   useEffect(() => {
     const map = controllers.current;
-    return () => map.forEach((controller) => controller.abort());
+    const seen = requested.current;
+    // Forget what was requested too, so a remount (StrictMode does one) loads again.
+    return () => {
+      map.forEach((controller) => controller.abort());
+      seen.clear();
+    };
   }, []);
 
   // Removing a column moves focus to the next column, else "Add a course".
