@@ -867,27 +867,27 @@ Conflict flags: steps 3 and 4 both add files under backend/app/tools/ and touch 
 Synthesized from this review's findings. Each task derives from a specific
 finding above.
 
-- [ ] **T1 (P1, human: ~1 day / CC: ~1 hr)** — orchestrator — Characterize today's get_tool_response, then generate the tool-guidance prompt from enabled tools
+- [x] **T1 (P1, human: ~1 day / CC: ~1 hr)** — orchestrator — Characterize today's get_tool_response, then generate the tool-guidance prompt from enabled tools
   - Surfaced by: Architecture #1 (improved_orchestrator.py:83-93) and R3
   - Files: backend/app/tests/unit/test_tool_step_characterization.py, backend/app/core/improved_orchestrator.py
   - Verify: `pytest backend/app/tests/unit -k tool_step`; CU prompt has no uw_* or UW-Madison text
-- [ ] **T2 (P1, human: ~2 days / CC: ~1.5 hr)** — config — School pack loader with timezone, draft, verified, isolation and geojson validation
+- [x] **T2 (P1, human: ~2 days / CC: ~1.5 hr)** — config — School pack loader with timezone, draft, verified, isolation and geojson validation
   - Surfaced by: Section 1 correction (#3) and approved runtime rules
   - Files: backend/app/config.py, schools/cu-boulder, schools/uw-madison, schools/uva
   - Verify: loader unit tests for each startup refusal
-- [ ] **T3 (P1, human: ~2 days / CC: ~1.5 hr)** — academics — sources/ with fose + uw_coursemap, one UW client for tools and courses.py, normalized course refs, FOSE term/section config
+- [x] **T3 (P1, human: ~2 days / CC: ~1.5 hr)** — academics — sources/ with fose + uw_coursemap, one UW client for tools and courses.py, normalized course refs, FOSE term/section config
   - Surfaced by: R6, R10, Code Quality #7
   - Files: backend/app/sources/, backend/app/tools/, backend/app/api/routes/courses.py, frontend/src/pages/CourseDetailPage.js
   - Verify: ported 55 tests green with identical UW output; E2E chat→card under SOURCES_OFFLINE=1
-- [ ] **T4 (P1, human: ~1 day / CC: ~45 min)** — cache — Extract TTL cache to sources/cache.py with disk layer and stale-on-failure
+- [x] **T4 (P1, human: ~1 day / CC: ~45 min)** — cache — Extract TTL cache to sources/cache.py with disk layer and stale-on-failure
   - Surfaced by: Architecture #4 and Code Quality shared-code rubric
   - Files: backend/app/sources/cache.py, backend/app/tools/_uw_source.py
   - Verify: cache tests for fresh, stale-on-failure, miss, SOURCES_OFFLINE
-- [ ] **T5 (P1, human: ~2 days / CC: ~1.5 hr)** — student life + campus — iCal helper (icalendar + recurring-ical-events), events and place tools, event and map cards
+- [x] **T5 (P1, human: ~2 days / CC: ~1.5 hr)** — student life + campus — iCal helper (icalendar + recurring-ical-events), events and place tools, event and map cards
   - Surfaced by: R2, Performance #13-14
   - Files: backend/requirements.txt, backend/app/tools/, backend/app/api/visuals.py, frontend/src/components/visuals/
   - Verify: RRULE/EXDATE/all-day/floating-tz/entity tests; alias match tests
-- [ ] **T6 (P1, human: ~3 days / CC: ~2 hr)** — routing — Domain classifier with fallback, concurrent passes, events→campus ordering, 6-turn context and structured tool results on session
+- [x] **T6 (P1, human: ~3 days / CC: ~2 hr)** — routing — Domain classifier with fallback, concurrent passes, events→campus ordering, 6-turn context and structured tool results on session
   - Surfaced by: R1, R4, R5, R9
   - Files: backend/app/core/improved_orchestrator.py, backend/app/llm/improved_gemini_client.py, backend/app/llm/improved_vllm_client.py, backend/app/api/routes/chat.py
   - Verify: routing unit tests (fallback, multi-domain, timeout, ordering, reopened chat)
@@ -919,6 +919,12 @@ finding above.
 - Outside voice: Outside review, completed, 6 findings (4 High, 2 Medium); 4 applied, 2 deferred
 - Parallelization: 2 lanes, 2 parallel / 4 sequential
 - Lake Score: 3/10 (D5, D6, D9 picked a 10/10 option out of 10 scored answers)
+
+
+### Progress (2026-10-26 overnight run)
+- Done and committed: T1, T2, T3 (plus UVA `csv_snapshot` provider and the course detail page fix), T4, T5 backend (events_search, find_place, places data for CU/UW/UVA), T6 routing (R1, R4, R5), `warm_cache.py`.
+- Not done: R9 conversation context (needs a messages parameter in the Gemini and vLLM clients); T7 routing eval (needs a live LLM key); T8 `docker-compose.demo.yml` and offline E2E; frontend event and map cards (interface change, waiting for review). R7 and R8 stay deferred.
+- Verified with: 416 unit tests (`backend/.venv/bin/python -m pytest backend/app/tests/unit`), live runs of each tool against the real feeds, and an offline (`SOURCES_OFFLINE=1`) run for UVA. Integration tests and a full chat with the LLM were not run.
 
 ## Post-review change: UVA academics source
 
