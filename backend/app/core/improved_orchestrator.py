@@ -13,6 +13,54 @@ import re
 
 logger = logging.getLogger(__name__)
 
+_BASE_TOOL_PROMPT = (
+    "You are a helpful assistant with access to external tools. "
+    "Use the available tools when the user's question can be answered "
+    "by one of them. If no tool is relevant, respond with a brief "
+    "text answer. "
+    "If a tool response includes 'truncated': true, let the user know "
+    "how many total results were found and suggest they narrow their "
+    "search for more specific results. "
+    "Format your responses using markdown. Use bullet points "
+    "to present structured data like course listings or professor ratings."
+)
+
+# Course tools whose results attach inline course cards. Their identifiers
+# resolve on the course detail page, so course mentions can be linked.
+_COURSE_CARD_TOOLS = (
+    "uw_course_grades",
+    "uw_course_sections",
+    "uw_prerequisites",
+    "uw_next_courses",
+)
+
+
+def _tool_guidance_prompt(tools_enabled: List[str], institution: str) -> str:
+    """Build the tool-step system prompt from the tools this school enables.
+
+    Guidance for a tool is only included when that tool is enabled, so a
+    deployment is never told about tools it does not have.
+    """
+    card_tools = [name for name in _COURSE_CARD_TOOLS if name in tools_enabled]
+    if not card_tools:
+        return _BASE_TOOL_PROMPT
+    school = f"{institution} " if institution else ""
+    return (
+        f"{_BASE_TOOL_PROMPT} "
+        f"Whenever you mention a specific {school}course, render its "
+        "identifier as a markdown link using the 'course:' scheme, e.g. "
+        "[COMP SCI 300](course:COMP SCI 300) or [MATH 240](course:MATH 240). "
+        "Use the real course identifier (subject and number) in both the link "
+        "text and the target. "
+        "When the user asks about course GPA, completion/A rates, class size, "
+        "grade distribution, historical grade trends, schedules/sections, "
+        "instructors, prerequisites, or what to take next / what a course "
+        "unlocks / post-requisites, call the matching course tool "
+        f"({', '.join(card_tools)}). "
+        "Those tool calls attach interactive course cards inline in chat."
+    )
+
+
 class ImprovedChatOrchestrator:
     """
     Enhanced orchestrator with document awareness and improved context handling
@@ -70,28 +118,8 @@ class ImprovedChatOrchestrator:
         if not tool_definitions:
             return ToolCallResult(text="", used_tool=False)
 
-        system_prompt = (
-            "You are a helpful assistant with access to external tools. "
-            "Use the available tools when the user's question can be answered "
-            "by one of them. If no tool is relevant, respond with a brief "
-            "text answer. "
-            "If a tool response includes 'truncated': true, let the user know "
-            "how many total results were found and suggest they narrow their "
-            "search for more specific results. "
-            "Format your responses using markdown. Use bullet points "
-            "to present structured data like course listings or professor ratings. "
-            "Whenever you mention a specific UW-Madison course, render its "
-            "identifier as a markdown link using the 'course:' scheme, e.g. "
-            "[COMP SCI 300](course:COMP SCI 300) or [MATH 240](course:MATH 240). "
-            "Use the real course identifier (subject and number) in both the link "
-            "text and the target. "
-            "When the user asks about course GPA, completion/A rates, class size, "
-            "grade distribution, historical grade trends, schedules/sections, "
-            "instructors, prerequisites, or what to take next / what a course "
-            "unlocks / post-requisites, call the matching UW course tool "
-            "(uw_course_grades, uw_course_sections, uw_prerequisites, or "
-            "uw_next_courses). "
-            "Those tool calls attach interactive course cards inline in chat."
+        system_prompt = _tool_guidance_prompt(
+            tools_enabled, settings.app.institution
         )
 
         return await effective_llm.generate_with_tools(
