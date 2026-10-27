@@ -1221,7 +1221,7 @@ const handleNewChat = async (sessionId = null) => {
                           <MessageCircle size={20} />
                         </div>
                         <div className="thinking-content">
-                          <span className="thinking-label">Orchestrator is thinking...</span>
+                          <span className="thinking-label">Thinking…</span>
                           <div className="thinking-animation">
                             <div className="dot"></div>
                             <div className="dot"></div>

@@ -14,6 +14,18 @@ const SYNTHETIC_PERSONAS = {
     darkBgColor: 'var(--paper-sunken)',
     icon: LucideIcons.User,
   },
+  // Tool-grounded answers (persona_id "orchestrator"): speak as the product,
+  // not as an internal component name.
+  orchestrator: {
+    name: 'Campus Companion',
+    role: 'Courses, events and places',
+    description: 'Answers checked against campus courses, events and maps.',
+    color: 'var(--ink)',
+    bgColor: 'var(--paper-sunken)',
+    darkColor: 'var(--ink)',
+    darkBgColor: 'var(--paper-sunken)',
+    icon: LucideIcons.MapPin,
+  },
 };
 
 const ADVISOR_PREFS_URL = `${process.env.REACT_APP_API_URL}/api/me/advisor-preferences`;
