@@ -101,6 +101,18 @@ class CourseDetailPayloadTests(unittest.IsolatedAsyncioTestCase):
                 await courses._build_course_payload("COMPSCI_300", None)
         self.assertEqual(context.exception.status_code, 502)
 
+    async def test_partial_outage_maps_to_502_not_404(self):
+        # R11: the direct page 5xxes and search finds nothing; that is an outage.
+        async def flaky(path, *, params=None, optional=False):
+            if path.startswith("/courses/"):
+                raise RuntimeError("Course Map error 503")
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=flaky):
+            with self.assertRaises(HTTPException) as context:
+                await courses._build_course_payload("COMPSCI_300", None)
+        self.assertEqual(context.exception.status_code, 502)
+
     async def test_route_maps_bad_identifier_to_400(self):
         with self.assertRaises(HTTPException) as context:
             await courses.get_course_detail("../../secret", None, object())
