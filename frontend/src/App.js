@@ -19,6 +19,10 @@ import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
+const CoursesPage = lazy(() => import('./pages/CoursesPage'));
+const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
+
+const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
@@ -55,6 +59,15 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route
+          path="/courses"
+          element={<Suspense fallback={pageFallback('Loading courses…')}><CoursesPage /></Suspense>}
+        />
+        {/* Before the detail route, so "compare" is never read as a course id. */}
+        <Route
+          path="/courses/compare"
+          element={<Suspense fallback={pageFallback('Loading compare…')}><CourseComparePage /></Suspense>}
+        />
         <Route
           path="/courses/:courseIdentifier"
           element={(
