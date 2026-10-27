@@ -541,6 +541,8 @@
 
 .advisor-message-text {
   line-height: 1.6;
+  /* Readable measure; cards below the text keep the full bubble width. */
+  max-width: 72ch;
 }
 
 .advisor-message-text > div:last-child p:last-child {
