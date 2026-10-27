@@ -2,9 +2,10 @@
 """Build schools/<slug>/places.geojson from OpenStreetMap.
 
 Reads the school pack's ``campus.osm_area`` ({type: way|relation, id}) and asks
-the Overpass API for named buildings, libraries, dining, health, recreation and
-bus stops inside it. Each place becomes a GeoJSON Point with ``name``,
-``aliases``, ``category`` and optional ``hours``. Aliases come from OSM
+the Overpass API for named buildings, libraries, dining, health, recreation,
+landmarks (lawns, quads, monuments, museums) and bus stops inside it. Each
+place becomes a GeoJSON Point with ``name``, ``aliases``, ``category`` and
+optional ``hours``. Aliases come from OSM
 (alt_name, short_name, official_name, old_name) plus the pack's optional
 ``aliases.yaml`` ({"<OSM name>": ["UMC", ...]}), which is where hand-curated
 student nicknames go.
@@ -17,6 +18,7 @@ Respects Overpass usage: one query, identified User-Agent, 60s timeout.
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -24,7 +26,8 @@ import httpx
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# Set OVERPASS_URL to use another public instance when the main one is busy.
+OVERPASS_URL = os.environ.get("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
 USER_AGENT = "CCAI-Demo-import-places/1.0 (+https://github.com/NeonSeigne/CCAI-Demo)"
 
 CATEGORY_BY_TAG = [
@@ -34,6 +37,10 @@ CATEGORY_BY_TAG = [
     ("amenity", {"student_accommodation"}, "housing"),
     ("amenity", {"theatre", "arts_centre", "cinema"}, "arts"),
     ("leisure", {"sports_centre", "stadium", "fitness_centre", "pitch", "track"}, "recreation"),
+    ("tourism", {"attraction", "museum", "artwork", "viewpoint"}, "landmark"),
+    ("historic", {"monument", "memorial"}, "landmark"),
+    ("leisure", {"park", "garden"}, "landmark"),
+    ("place", {"square"}, "landmark"),
     ("highway", {"bus_stop"}, "transit"),
     ("public_transport", {"platform", "stop_position"}, "transit"),
     ("building", {"dormitory", "residential", "apartments"}, "housing"),
@@ -45,6 +52,8 @@ def category(tags):
     for key, values, label in CATEGORY_BY_TAG:
         if tags.get(key) in values:
             return label
+    if "library" in tags.get("name", "").lower():
+        return "library"
     return "academic" if tags.get("building") else "other"
 
 
@@ -58,6 +67,10 @@ def overpass_query(area_type, area_id):
         + f"nwr{named}[\"building\"](area.campus);"
         + f"nwr{named}[\"amenity\"~\"^(library|cafe|restaurant|fast_food|food_court|clinic|doctors|hospital|pharmacy|theatre|arts_centre|cinema|student_accommodation)$\"](area.campus);"
         + f"nwr{named}[\"leisure\"~\"^(sports_centre|stadium|fitness_centre)$\"](area.campus);"
+        + f"nwr{named}[\"tourism\"~\"^(attraction|museum|artwork|viewpoint)$\"](area.campus);"
+        + f"nwr{named}[\"historic\"~\"^(monument|memorial)$\"](area.campus);"
+        + f"nwr{named}[\"leisure\"~\"^(park|garden)$\"](area.campus);"
+        + f"nwr{named}[\"place\"=\"square\"](area.campus);"
         + f"node{named}[\"highway\"=\"bus_stop\"](area.campus);"
         + ");out center tags;"
     )

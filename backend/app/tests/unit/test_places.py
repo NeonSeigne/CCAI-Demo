@@ -28,6 +28,10 @@ CAMPUS = {
         feature("C4C Dining", -105.2650, 40.0045, "dining"),
         feature("Farrand Grab and Go", -105.2658, 40.0059, "dining"),
         feature("Engineering Center", -105.2630, 40.0071),
+        feature("Computer Sceinces Building", -105.2640, 40.0080),
+        feature("Soils Building", -105.2660, 40.0090),
+        feature("Rotunda", -105.2700, 40.0100),
+        feature("The Rotunda", -105.2701, 40.0101),
     ],
 }
 
@@ -72,6 +76,18 @@ class TestLookup(PlacesTestCase):
     async def test_typo_still_matches(self):
         result = await find_place.execute(query="Engineering Centre")
         self.assertEqual(result["places"][0]["name"], "Engineering Center")
+
+    async def test_typo_in_map_data_still_matches(self):
+        result = await find_place.execute(query="Computer Sciences")
+        self.assertEqual(result["places"][0]["name"], "Computer Sceinces Building")
+
+    async def test_filler_words_do_not_match_on_their_own(self):
+        result = await find_place.execute(query="CS building")
+        self.assertEqual(result["places"], [])
+
+    async def test_same_landmark_mapped_twice_is_returned_once(self):
+        result = await find_place.execute(query="the rotunda")
+        self.assertEqual([p["name"] for p in result["places"]], ["Rotunda"])
 
     async def test_unknown_place(self):
         result = await find_place.execute(query="Hogwarts")

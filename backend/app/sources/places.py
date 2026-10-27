@@ -21,7 +21,7 @@ from app.config import SCHOOLS_DIR, get_settings
 logger = logging.getLogger(__name__)
 
 WALK_METERS_PER_MINUTE = 80  # about 4.8 km/h
-CATEGORIES = ("academic", "library", "dining", "health", "housing", "recreation", "arts", "transit", "other")
+CATEGORIES = ("academic", "library", "dining", "health", "housing", "recreation", "arts", "landmark", "transit", "other")
 
 _loaded: Dict[str, Tuple[List[Dict[str, Any]], Optional[str]]] = {}
 
@@ -81,19 +81,53 @@ def load_places() -> Tuple[List[Dict[str, Any]], Optional[str]]:
     return _loaded[key]
 
 
+# Words that say nothing about which place is meant: "the Rotunda", "CS building".
+FILLER_WORDS = {"the", "a", "of", "and", "at", "building", "bldg"}
+MIN_WORD_RATIO = 0.75
+DUPLICATE_WITHIN_M = 150
+
+
+def _significant(text: str) -> List[str]:
+    words = text.split()
+    kept = [w for w in words if w not in FILLER_WORDS]
+    return kept or words
+
+
+def _word_ratio(query_word: str, key_word: str) -> float:
+    if query_word == key_word:
+        return 1.0
+    if len(query_word) >= 3 and key_word.startswith(query_word):
+        return 0.95
+    if min(len(query_word), len(key_word)) < 4:
+        return 0.0
+    return difflib.SequenceMatcher(None, query_word, key_word).ratio()
+
+
 def _score(place: Dict[str, Any], query: str) -> float:
+    """Score 0..1. Every meaningful query word must match a word of the name
+    (typos allowed), so "CS building" no longer matches "Soils Building"."""
+    query_words = _significant(query)
     best = 0.0
-    words = set(query.split())
     for key in place["_keys"]:
-        if key == query:
+        if key == query or _significant(key) == query_words:
             return 1.0
-        if key.startswith(query) or query in key.split():
-            best = max(best, 0.9)
-        elif words and words <= set(key.split()):
-            best = max(best, 0.85)
+        if key.startswith(query):
+            best = max(best, 0.95)
+            continue
+        key_words = _significant(key)
+        ratios = [max((_word_ratio(q, k) for k in key_words), default=0.0) for q in query_words]
+        if ratios and min(ratios) >= MIN_WORD_RATIO:
+            extra = max(0, len(key_words) - len(query_words))
+            best = max(best, 0.9 * sum(ratios) / len(ratios) - 0.02 * min(extra, 5))
         else:
-            best = max(best, difflib.SequenceMatcher(None, query, key).ratio() * 0.8)
+            whole = difflib.SequenceMatcher(None, " ".join(query_words), " ".join(key_words)).ratio()
+            best = max(best, whole * 0.8)
     return best
+
+
+def _same_place(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
+    """OSM often maps one landmark twice ("Rotunda" and "The Rotunda")."""
+    return _significant(a["_keys"][0]) == _significant(b["_keys"][0]) and distance_m(a, b) <= DUPLICATE_WITHIN_M
 
 
 def search(query: str, *, category: str = "", limit: int = 5) -> List[Dict[str, Any]]:
@@ -103,7 +137,13 @@ def search(query: str, *, category: str = "", limit: int = 5) -> List[Dict[str, 
     if not q:
         return pool[:limit]
     scored = sorted(((_score(p, q), p) for p in pool), key=lambda item: -item[0])
-    return [p for score, p in scored if score >= 0.6][:limit]
+    results: List[Dict[str, Any]] = []
+    for score, place in scored:
+        if score < 0.6 or len(results) >= limit:
+            break
+        if not any(_same_place(place, kept) for kept in results):
+            results.append(place)
+    return results
 
 
 def distance_m(a: Dict[str, Any], b: Dict[str, Any]) -> float:
