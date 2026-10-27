@@ -126,6 +126,14 @@ class TestList(PlacesApiTestCase):
         body = await self.list_places(category="dining", from_="university-memorial-center")
         self.assertEqual(body["suggested"], {"id": "farrand-grab-and-go", "label": "Nearest dining"})
 
+    async def test_suggested_is_never_the_starting_place(self):
+        # Starting at Farrand, the nearest dining is Farrand itself: a 0 min walk.
+        self.now = datetime(2026, 10, 31, 12, 0, tzinfo=DENVER)  # nothing known open
+        body = await self.list_places(category="dining", from_="farrand-grab-and-go")
+        self.assertEqual(body["suggested"], {"id": "c4c-dining", "label": "Nearest dining"})
+        only = await self.list_places(category="library", from_="norlin-library")
+        self.assertIsNone(only["suggested"])
+
     async def test_failed_table_leaves_times_out(self):
         with patch.object(routing, "walking_table", return_value={}):
             body = await self.list_places(category="dining", from_="university-memorial-center")

@@ -61,8 +61,12 @@ def _origin(place_id: str) -> Optional[Dict[str, Any]]:
     return origin
 
 
-def _suggested(pool: List[Dict[str, Any]], category: str, now: datetime) -> Optional[Dict[str, str]]:
-    """Nearest known-open place in *pool* (already nearest first), else the nearest."""
+def _suggested(
+    pool: List[Dict[str, Any]], category: str, now: datetime, origin: Optional[Dict[str, Any]] = None
+) -> Optional[Dict[str, str]]:
+    """Nearest known-open place in *pool* (already nearest first), else the
+    nearest. Never the starting place itself: a 0 min walk suggests nothing."""
+    pool = [p for p in pool if not origin or p["id"] != origin["id"]]
     if not pool:
         return None
     label = CATEGORY_LABELS.get(category, category or "place")
@@ -98,7 +102,7 @@ async def list_places(
     if origin:
         pool = sorted(pool, key=lambda p: places.distance_m(origin, p))
     # Picked across the whole category before the list is cut to `limit` (DO4).
-    suggested = _suggested(pool, category, now) if category and not q.strip() else None
+    suggested = _suggested(pool, category, now, origin) if category and not q.strip() else None
     shown = pool[:limit]
     if suggested and all(p["id"] != suggested["id"] for p in shown):
         shown = [places.get(suggested["id"]), *shown[: limit - 1]]
