@@ -3,7 +3,11 @@
 The file is written by ``scripts/import_places.py`` (OpenStreetMap). It is
 loaded once and validated; a malformed file disables place lookups with a
 clear error instead of failing requests one by one. Distances are straight
-lines, so walking times are estimates.
+lines, so walking times are estimates (``sources/routing.py`` has real ones).
+
+Each place gets a stable ``id``: the slug of its name, with ``-2``, ``-3``
+added in file order when names collide. Opening hours are parsed once here
+(``sources/hours.py``).
 """
 
 from __future__ import annotations
@@ -13,10 +17,12 @@ import json
 import logging
 import math
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.config import SCHOOLS_DIR, get_settings
+from app.sources import hours as hours_parser
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +43,10 @@ def places_path() -> Optional[Path]:
     return SCHOOLS_DIR / settings.school.slug / settings.campus.places_file
 
 
+def slugify(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-") or "place"
+
+
 def _validate(data: Any) -> List[Dict[str, Any]]:
     if not isinstance(data, dict) or data.get("type") != "FeatureCollection":
         raise ValueError("not a GeoJSON FeatureCollection")
@@ -51,6 +61,7 @@ def _validate(data: Any) -> List[Dict[str, Any]]:
             raise ValueError(f"feature {index} has out-of-range coordinates")
         names = [props["name"], *(props.get("aliases") or [])]
         places.append({
+            "id": "",
             "name": props["name"],
             "aliases": list(props.get("aliases") or []),
             "category": props.get("category") if props.get("category") in CATEGORIES else "other",
@@ -58,10 +69,48 @@ def _validate(data: Any) -> List[Dict[str, Any]]:
             "lat": lat,
             "lon": lon,
             "_keys": [_normalize(n) for n in names],
+            "_hours": hours_parser.parse(props.get("hours")),
         })
     if not places:
         raise ValueError("no places")
+    seen = set()
+    for place in places:
+        base = place_id = slugify(place["name"])
+        suffix = 2
+        while place_id in seen:
+            place_id, suffix = f"{base}-{suffix}", suffix + 1
+        seen.add(place_id)
+        place["id"] = place_id
     return places
+
+
+def read_file(path: Path) -> List[Dict[str, Any]]:
+    """Read and validate a places file (raises on a missing or bad file)."""
+    return _validate(json.loads(Path(path).read_text()))
+
+
+def find_in(pool: List[Dict[str, Any]], name_or_id: str) -> Optional[Dict[str, Any]]:
+    """The place whose id or exact name (case-insensitive) is *name_or_id*."""
+    wanted = (name_or_id or "").strip()
+    for place in pool:
+        if place["id"] == wanted:
+            return place
+    for place in pool:
+        if place["name"].lower() == wanted.lower():
+            return place
+    return None
+
+
+def get(place_id: str) -> Optional[Dict[str, Any]]:
+    """The place with this id, or ``None``."""
+    pool, _ = load_places()
+    return next((p for p in pool if p["id"] == place_id), None)
+
+
+def default_origin() -> Optional[Dict[str, Any]]:
+    """The school pack's ``campus.default_origin`` place (validated at startup)."""
+    name = get_settings().campus.default_origin
+    return find_in(load_places()[0], name) if name else None
 
 
 def load_places() -> Tuple[List[Dict[str, Any]], Optional[str]]:
@@ -72,7 +121,7 @@ def load_places() -> Tuple[List[Dict[str, Any]], Optional[str]]:
     key = str(path)
     if key not in _loaded:
         try:
-            _loaded[key] = (_validate(json.loads(path.read_text())), None)
+            _loaded[key] = (read_file(path), None)
         except FileNotFoundError:
             _loaded[key] = ([], "Campus map data has not been imported for this school yet.")
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
@@ -152,7 +201,48 @@ def distance_m(a: Dict[str, Any], b: Dict[str, Any]) -> float:
     return 2 * 6371000 * math.asin(math.sqrt(h))
 
 
+# Venue text that is not a place on the map.
+_NOT_A_PLACE = re.compile(r"\b(online|virtual|zoom|webinar|teams|livestream|tba|tbd)\b", re.I)
+
+
+def match_venue(location: str) -> Optional[Dict[str, Any]]:
+    """The campus place an event's free-text venue names, if one matches.
+
+    Same name/alias match the chat uses for events -> campus: the whole text
+    first, then each comma part ("Norlin Library, E206" -> "Norlin Library"),
+    with parenthesised nicknames tried too ("University Memorial Center (UMC)").
+    Online or unnamed venues match nothing, so they get no walking time.
+    """
+    text = (location or "").strip()
+    # "Wisconsin Energy Institute (Also offered online)" is still a room on
+    # campus; only venues that are online once the asides are dropped are not.
+    if not text or _NOT_A_PLACE.search(re.sub(r"\([^)]*\)", "", text)):
+        return None
+    candidates: List[str] = []
+    for part in [text, *text.split(",")]:
+        part = part.strip()
+        bare = re.sub(r"\s*\([^)]*\)", "", part).strip()
+        for candidate in (part, bare):
+            if candidate and candidate not in candidates:
+                candidates.append(candidate)
+    for candidate in candidates:
+        found = search(candidate, limit=1)
+        if found:
+            return found[0]
+    return None
+
+
 def public(place: Dict[str, Any]) -> Dict[str, Any]:
     out = {k: v for k, v in place.items() if not k.startswith("_")}
     out["map_url"] = f"https://www.openstreetmap.org/?mlat={place['lat']:.6f}&mlon={place['lon']:.6f}#map=18/{place['lat']:.6f}/{place['lon']:.6f}"
+    return out
+
+
+def hours_status(place: Dict[str, Any], now: datetime) -> Dict[str, Any]:
+    """``open_now`` (True, False, or None when hours are unknown) and, while
+    open and not 24/7, ``open_until`` as an ISO time in *now*'s zone."""
+    is_open, until = hours_parser.status(place.get("_hours"), now)
+    out: Dict[str, Any] = {"open_now": is_open}
+    if until is not None:
+        out["open_until"] = until.isoformat()
     return out

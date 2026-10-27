@@ -1,5 +1,6 @@
 """Tests for school pack loading (SCHOOL=<slug>) and its startup checks."""
 
+import json
 import os
 import tempfile
 import unittest
@@ -148,6 +149,62 @@ class TestStartupChecks(SchoolPackTestCase):
         settings = load_settings(str(path))
         self.assertEqual(settings.app.title, "Legacy")
         self.assertEqual(settings.school.slug, "")
+
+
+class TestCampusDefaults(SchoolPackTestCase):
+    PLACES = {"type": "FeatureCollection", "features": [
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-105.27, 40.0]},
+         "properties": {"name": "University Memorial Center", "category": "dining"}},
+    ]}
+
+    def campus_pack(self, **campus):
+        (self.root / "demo").mkdir(parents=True, exist_ok=True)
+        (self.root / "demo" / "places.geojson").write_text(json.dumps(self.PLACES))
+        data = {"school": {"slug": "demo", "timezone": "America/Denver"},
+                "campus": {"places_file": "places.geojson", **campus}, **ISOLATED}
+        return write_yaml(self.root / "demo" / "school.yaml", data)
+
+    def load(self, path):
+        with patch.object(app.config, "SCHOOLS_DIR", self.root):
+            return load_settings(str(path))
+
+    def test_origin_by_name_or_id_and_category_load(self):
+        for origin in ("University Memorial Center", "university-memorial-center"):
+            with self.subTest(origin=origin):
+                app.config._settings = None
+                settings = self.load(self.campus_pack(default_origin=origin, default_category="dining"))
+                self.assertEqual(settings.campus.default_origin, origin)
+
+    def test_unknown_origin_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "default_origin 'Old Main' is not a place"):
+            self.load(self.campus_pack(default_origin="Old Main"))
+
+    def test_empty_category_is_refused(self):
+        with self.assertRaisesRegex(ValueError, "default_category 'library' has no places"):
+            self.load(self.campus_pack(default_category="library"))
+
+    def test_defaults_without_a_places_file_are_refused(self):
+        path = write_yaml(self.root / "demo" / "school.yaml", {
+            "school": {"slug": "demo", "timezone": "America/Denver"},
+            "campus": {"places_file": "missing.geojson", "default_origin": "X"}, **ISOLATED})
+        with self.assertRaisesRegex(ValueError, "places file can't be read"):
+            self.load(path)
+
+    def test_shipped_packs_have_real_defaults(self):
+        expected = {"uw-madison": ("College Library", "library"), "uva": ("Shannon Library", "library"),
+                    "cu-boulder": ("University Memorial Center", "dining")}
+        for slug, (origin, category) in expected.items():
+            with self.subTest(slug=slug):
+                app.config._settings = None
+                with patch.dict(os.environ, {"SCHOOL": slug}):
+                    settings = load_settings()
+                self.assertEqual((settings.campus.default_origin, settings.campus.default_category),
+                                 (origin, category))
+
+    def test_uw_feed_reads_two_pages(self):
+        with patch.dict(os.environ, {"SCHOOL": "uw-madison"}):
+            feed = load_settings().student_life.event_feeds[0]
+        self.assertEqual((feed.url, feed.pages), ("https://today.wisc.edu/events.ics?limit=200", 2))
 
 
 if __name__ == "__main__":

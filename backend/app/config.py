@@ -346,6 +346,9 @@ class AcademicsConfig(BaseModel):
 class EventFeedConfig(BaseModel):
     url: str
     name: str = ""
+    # Feeds that cut off after N events (today.wisc.edu) are read as several
+    # pages: ``limit=200&page=1..pages`` is added to the URL.
+    pages: int = Field(default=1, ge=1, le=10)
 
 
 class StudentLifeConfig(BaseModel):
@@ -358,6 +361,10 @@ class CampusConfig(BaseModel):
     """Campus places for the find_place tool."""
     osm_area: Dict[str, Any] = {}
     places_file: str = ""
+    # Campus map and Events start from this place (name or place id) until a
+    # student picks their own; the map opens on default_category.
+    default_origin: str = ""
+    default_category: str = ""
 
 
 class RAGConfig(BaseModel):
@@ -461,6 +468,36 @@ class AppSettings(BaseModel):
             raise ValueError(
                 f"School pack '{self.school.slug}' must set rag.chroma_collection "
                 "(it still uses the shared default)."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _require_real_campus_defaults(self):
+        """``campus.default_origin`` must name a place on the campus map and
+        ``campus.default_category`` must have at least one place, so the
+        Events and Campus map pages never open on nothing."""
+        campus = self.campus
+        if not (campus.default_origin or campus.default_category):
+            return self
+        from app.sources import places  # local: places imports this module
+
+        label = self.school.slug or "config"
+        path = SCHOOLS_DIR / self.school.slug / campus.places_file if campus.places_file else None
+        try:
+            loaded = places.read_file(path) if path else []
+        except (OSError, ValueError, TypeError) as exc:
+            raise ValueError(
+                f"School pack '{label}' sets campus defaults but its places file can't be read ({exc})."
+            ) from exc
+        if campus.default_origin and places.find_in(loaded, campus.default_origin) is None:
+            raise ValueError(
+                f"School pack '{label}': campus.default_origin '{campus.default_origin}' "
+                "is not a place in its places file (use a place name or id)."
+            )
+        if campus.default_category and not any(p["category"] == campus.default_category for p in loaded):
+            raise ValueError(
+                f"School pack '{label}': campus.default_category '{campus.default_category}' "
+                "has no places in its places file."
             )
         return self
 

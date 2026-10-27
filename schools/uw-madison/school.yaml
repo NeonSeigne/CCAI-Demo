@@ -15,13 +15,20 @@ campus:
     type: relation
     id: 7144092
   places_file: places.geojson
+  # Events and the Campus map start from here until a student picks their own
+  # start (a place name or id); the map opens on this category.
+  default_origin: "College Library"
+  default_category: library
 
 student_life:
   # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
   # for every event, whatever the feed's own header says.
   event_feeds:
-    - url: "https://today.wisc.edu/events.ics"
+    # The feed stops after `limit` events (about 4 days at 200), so it is read
+    # as two pages (page=1..2), about 9 days.
+    - url: "https://today.wisc.edu/events.ics?limit=200"
       name: "UW–Madison Today"
+      pages: 2
 
 tools:
   find_place:
