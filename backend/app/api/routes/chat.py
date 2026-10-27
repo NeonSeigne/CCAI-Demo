@@ -175,7 +175,9 @@ async def chat_stream(
                     type="progress", data={"phase": "received"},
                 ).to_ndjson()
 
-            if await chat_orchestrator.needs_clarification_improved(session, message.user_input):
+            if await chat_orchestrator.needs_clarification_improved(
+                session, message.user_input, llm_client=orchestrator_llm,
+            ):
                 clar = await chat_orchestrator.generate_contextual_clarification(
                     message.user_input, llm_client=orchestrator_llm,
                 )

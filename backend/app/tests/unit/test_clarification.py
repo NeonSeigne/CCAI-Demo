@@ -334,3 +334,20 @@ class TestNeedsClarificationImproved(unittest.TestCase):
         self.assertEqual(len(context), 1)
         self.assertEqual(context[0]["role"], "user")
         self.assertIn("How do I structure my lit review?", context[0]["content"])
+
+    def test_uses_the_users_llm_when_given(self, mock_settings):
+        mock_settings.return_value = _make_mock_settings()
+        default_llm = MagicMock()
+        default_llm.generate = AsyncMock()
+        user_llm = MagicMock()
+        user_llm.generate = AsyncMock(return_value=json.dumps({
+            "needs_clarification": False,
+            "reason": "Clear.",
+        }))
+        orch = _make_orchestrator(orchestrator_llm=default_llm)
+        session = _make_session(user_message_count=1)
+
+        self._run(orch.needs_clarification_improved(session, "help", llm_client=user_llm))
+
+        user_llm.generate.assert_called_once()
+        default_llm.generate.assert_not_called()

@@ -300,6 +300,16 @@ class VllmConfig(BaseModel):
     enabled: bool = True
     api_url: str = ""
     api_key: str = Field(default=os.getenv("VLLM_API_KEY", ""))
+    # Empty: use the first model the endpoint lists.
+    model: str = ""
+
+    @model_validator(mode="after")
+    def _apply_env_overrides(self):
+        # Local runs point any OpenAI-compatible server (e.g. Ollama) here
+        # without editing the school config.
+        self.api_url = os.getenv("VLLM_API_URL") or self.api_url
+        self.model = os.getenv("VLLM_MODEL") or self.model
+        return self
 
 
 class BrainForgeConfig(BaseModel):

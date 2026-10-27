@@ -11,6 +11,7 @@ from app.tools import get_tool_definitions, get_tool_executor
 import asyncio
 import json
 import logging
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -18,8 +19,9 @@ logger = logging.getLogger(__name__)
 _BASE_TOOL_PROMPT = (
     "You are a helpful assistant with access to external tools. "
     "Use the available tools when the user's question can be answered "
-    "by one of them. If no tool is relevant, respond with a brief "
-    "text answer. "
+    "by one of them. Call the tool before you answer; never state a "
+    "grade, GPA, time, place or distance from memory. If no tool is "
+    "relevant, respond with a brief text answer. "
     "If a tool response includes 'truncated': true, let the user know "
     "how many total results were found and suggest they narrow their "
     "search for more specific results. "
@@ -145,8 +147,9 @@ DOMAIN_DESCRIPTIONS = {
     "campus": "where buildings, libraries, dining or bus stops are; how to get somewhere",
     "general": "anything else the remaining tools cover",
 }
-CLASSIFIER_TIMEOUT_S = 5.0
-TOOL_PASS_TIMEOUT_S = 20.0
+# Local models (e.g. Ollama on a laptop) need longer; set these in the environment.
+CLASSIFIER_TIMEOUT_S = float(os.getenv("CLASSIFIER_TIMEOUT_S", "5"))
+TOOL_PASS_TIMEOUT_S = float(os.getenv("TOOL_PASS_TIMEOUT_S", "20"))
 
 
 def tools_by_domain(tools: List[str]) -> Dict[str, List[str]]:
@@ -502,7 +505,8 @@ class ImprovedChatOrchestrator:
         logger.info("CLARIFICATION TRIGGERED: short input (%d words) without specific keywords", word_count)
         return True
 
-    async def needs_clarification_improved(self, session: ConversationContext, user_input: str) -> bool:
+    async def needs_clarification_improved(self, session: ConversationContext, user_input: str,
+                                           llm_client: LLMClient = None) -> bool:
         """
         Use an LLM call to determine whether the user's input is too vague
         to route to the advisor panel.  Falls back to the legacy rule-based
@@ -560,9 +564,9 @@ class ImprovedChatOrchestrator:
         raw = None
 
         try:
-            # Use the orchestrator's own LLM rather than a persona's — BrainForge
+            # The user's orchestrator LLM, never a persona's — BrainForge
             # persona LLMs may not support the prompt format used here.
-            llm = self.llm_client
+            llm = llm_client or self.llm_client
             raw = await llm.generate(
                 system_prompt=system_prompt,
                 context=[{"role": "user", "content": user_prompt}],

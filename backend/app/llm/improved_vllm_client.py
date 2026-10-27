@@ -14,6 +14,8 @@ class ImprovedVllmClient(LLMClient):
     def __init__(self, api_url: str, api_key: str, model_name: str = None):
         self.api_url = api_url
         self.api_key = api_key
+        # A configured model is kept; without one the endpoint's first model is used.
+        self.configured_model = model_name
         self.model_name = model_name
         self.client = AsyncOpenAI(
             base_url=f"{api_url}/v1",
@@ -67,7 +69,7 @@ class ImprovedVllmClient(LLMClient):
             logger.error(f"vLLM API error: {e.status_code} - {e.message}")
             if e.status_code == 404:
                 logger.info("Model not found, will re-discover on next request")
-                self.model_name = None
+                self.model_name = self.configured_model
             return "The AI service encountered an error. Please try again."
         except Exception as e:
             logger.error(f"Unexpected error in vLLM client: {str(e)}")
@@ -179,7 +181,7 @@ class ImprovedVllmClient(LLMClient):
         except APIStatusError as e:
             logger.error("vLLM tool-call API error: %s - %s", e.status_code, e.message)
             if e.status_code == 404:
-                self.model_name = None
+                self.model_name = self.configured_model
             return ToolCallResult(
                 text="The AI service encountered an error. Please try again.",
                 used_tool=False,

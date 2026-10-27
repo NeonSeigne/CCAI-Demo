@@ -34,6 +34,7 @@ def create_llm_client(backend: str = None):
         return ImprovedVllmClient(
             api_url=settings.llm.vllm.api_url,
             api_key=settings.llm.vllm.api_key,
+            model_name=settings.llm.vllm.model or None,
         )
     else:
         return ImprovedOllamaClient(

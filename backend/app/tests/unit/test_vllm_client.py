@@ -227,10 +227,7 @@ class TestImprovedVllmClient(unittest.TestCase):
         ))
         self.assertIn("error", result.lower())
 
-    def test_generate_clears_model_on_404(self, MockAsyncOpenAI, mock_get_ctx):
-        client = ImprovedVllmClient(
-            api_url=FAKE_URL, api_key=FAKE_KEY, model_name="stale-model",
-        )
+    def _fail_with_404(self, client):
         mock_response = MagicMock()
         mock_response.status_code = 404
         client.client.chat.completions.create = AsyncMock(
@@ -238,14 +235,25 @@ class TestImprovedVllmClient(unittest.TestCase):
                 message="Model not found", response=mock_response, body=None,
             )
         )
-
         asyncio.run(client.generate(
             system_prompt="Test",
             context=[{"role": "user", "content": "Hi"}],
             temperature=0.5,
             max_tokens=50,
         ))
+
+    def test_generate_clears_discovered_model_on_404(self, MockAsyncOpenAI, mock_get_ctx):
+        client = ImprovedVllmClient(api_url=FAKE_URL, api_key=FAKE_KEY)
+        client.model_name = "stale-model"
+        self._fail_with_404(client)
         self.assertIsNone(client.model_name)
+
+    def test_generate_keeps_configured_model_on_404(self, MockAsyncOpenAI, mock_get_ctx):
+        client = ImprovedVllmClient(
+            api_url=FAKE_URL, api_key=FAKE_KEY, model_name="qwen2.5:7b",
+        )
+        self._fail_with_404(client)
+        self.assertEqual(client.model_name, "qwen2.5:7b")
 
     # ------------------------------------------------------------------
     # generate – response_format for JSON
@@ -626,3 +634,22 @@ class TestVllmGenerateWithTools(unittest.TestCase):
         error_content = json.loads(tool_msgs[1]["content"])
         self.assertIn("error", error_content)
 
+
+
+class TestVllmConfigEnvOverrides(unittest.TestCase):
+    def test_env_sets_address_and_model(self):
+        from app.config import VllmConfig
+        env = {"VLLM_API_URL": "http://localhost:11434", "VLLM_MODEL": "qwen2.5:7b"}
+        with patch.dict("os.environ", env):
+            config = VllmConfig(api_url="https://remote.example/vllm0")
+        self.assertEqual(config.api_url, "http://localhost:11434")
+        self.assertEqual(config.model, "qwen2.5:7b")
+
+    def test_config_values_stand_without_env(self):
+        from app.config import VllmConfig
+        with patch.dict("os.environ", {}, clear=False) as environ:
+            environ.pop("VLLM_API_URL", None)
+            environ.pop("VLLM_MODEL", None)
+            config = VllmConfig(api_url="https://remote.example/vllm0")
+        self.assertEqual(config.api_url, "https://remote.example/vllm0")
+        self.assertEqual(config.model, "")
