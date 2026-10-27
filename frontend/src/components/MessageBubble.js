@@ -9,6 +9,7 @@ import * as LucideIcons from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import VisualBlock from './visuals/VisualBlock';
 import CourseChip from './visuals/CourseChip';
+import ErrorBoundary from './ErrorBoundary';
 const stripMarkdown = (md) => {
   if (!md) return '';
   return md
@@ -259,7 +260,13 @@ const MessageBubble = ({
     // links open normally in a new tab.
     a: ({ href, children }) => {
       if (typeof href === 'string' && href.toLowerCase().startsWith('course:')) {
-        const identifier = decodeURIComponent(href.slice('course:'.length)).trim();
+        let identifier = href.slice('course:'.length);
+        try {
+          identifier = decodeURIComponent(identifier);
+        } catch {
+          // Malformed %-escape from the model: keep the raw text, don't crash.
+        }
+        identifier = identifier.trim();
         const text = Array.isArray(children) ? children.join('') : (children || '');
         return <CourseChip identifier={identifier || text} size="sm" onSelect={onCourseSelect} />;
       }
@@ -516,6 +523,7 @@ const MessageBubble = ({
             className="advisor-message-text"
             style={{ color: colors.textColor || ('var(--ink)') }}
           >
+            <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
             <ReactMarkdown 
               components={markdownComponents}
               remarkPlugins={[remarkGfm, remarkMath]}
@@ -528,6 +536,7 @@ const MessageBubble = ({
             >
               {preprocessMarkdown(message?.compact_markdown || message?.content || message?.text)}
             </ReactMarkdown>
+            </ErrorBoundary>
           </div>
 
           {Array.isArray(message?.visuals) && message.visuals.length > 0 && (

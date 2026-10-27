@@ -26,7 +26,7 @@ _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 /&-]{1,80}$")
 
 
 def sanitize_course_identifier(identifier: str) -> str:
-    """Convert a displayed course identifier (``COMP SCI 300``) to a CDN key."""
+    """Convert a displayed course identifier (``COMP SCI 300``) to a lookup key."""
     value = " ".join(identifier.strip().split())
     if not _IDENTIFIER_RE.fullmatch(value):
         raise ValueError("Invalid course identifier")
@@ -44,25 +44,6 @@ def sanitize_course_identifier(identifier: str) -> str:
     if not subject_parts:
         raise ValueError("Course identifier must include a subject")
     return "_".join([*subject_parts, number.upper()])
-
-
-def course_reference_key(reference: Dict[str, Any]) -> str:
-    subjects = reference.get("subjects") or []
-    number = reference.get("course_number")
-    if not subjects or number is None:
-        raise ValueError("Invalid course reference")
-    cleaned = [re.sub(r"[^A-Za-z0-9]", "", str(subject)).upper() for subject in subjects]
-    return "_".join([*filter(None, cleaned), str(number).upper()])
-
-
-def course_reference_label(reference: Dict[str, Any]) -> str:
-    subjects = reference.get("subjects") or []
-    number = reference.get("course_number", "")
-    return f"{'/'.join(str(subject) for subject in subjects)} {number}".strip()
-
-
-def sanitize_instructor_id(name: str) -> str:
-    return re.sub(r"[^A-Za-z0-9]+", "_", name.strip()).strip("_").upper()
 
 
 _GRADE_BUCKETS = ("a", "ab", "b", "bc", "c", "d", "f")
@@ -104,11 +85,12 @@ def _instructor(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _meeting(section: Dict[str, Any], instructors: List[str]) -> Dict[str, Any]:
+def _meeting(section: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "name": f"{section.get('section_type') or ''} {section.get('section_number') or ''}".strip(),
         "type": "CLASS",
-        "instructors": instructors,
+        # Course Map lists instructors per course, not per section.
+        "instructors": [],
         "current_enrollment": section.get("enrolled") or 0,
         "location": {"capacity": section.get("capacity")},
         "start_time": None,
@@ -191,7 +173,6 @@ async def _build_course_payload(course_key: str, requested_term: Optional[str]) 
                           (item.get("rmp_data") or {}).get("average_rating") or 0),
         reverse=True,
     )
-    names = [item["name"] for item in instructors]
     sections = raw.get("sections") or []
     section_terms = {str(section.get("term_id")) for section in sections if section.get("term_id")}
     # Grades lag a term behind schedules; show the newest schedule when the
@@ -200,7 +181,7 @@ async def _build_course_payload(course_key: str, requested_term: Optional[str]) 
         max(section_terms, key=int) if section_terms else None
     )
     meetings = [
-        _meeting(section, names)
+        _meeting(section)
         for section in sections
         if str(section.get("term_id")) == meeting_term
     ]

@@ -89,10 +89,14 @@ function CourseDetails({ course, enrollment, onCourse }) {
           <p>No downstream courses list this as a prerequisite.</p>
         )}
       </div>
-      <dl className="course-facts">
-        <div><dt>Credits</dt><dd>{creditText}</dd></div>
-        <div><dt>Offered</dt><dd>{enrollment?.typically_offered || 'Not listed'}</dd></div>
-      </dl>
+      {(credits || enrollment?.typically_offered) && (
+        <dl className="course-facts">
+          {credits && <div><dt>Credits</dt><dd>{creditText}</dd></div>}
+          {enrollment?.typically_offered && (
+            <div><dt>Offered</dt><dd>{enrollment.typically_offered}</dd></div>
+          )}
+        </dl>
+      )}
     </aside>
   );
 }
@@ -109,7 +113,9 @@ function OverviewTab({ payload, onCourse }) {
         limit={3}
         showKeywords={false}
       />
-      <CourseSimilarCourses courses={payload.similar_courses} onCourse={onCourse} />
+      {payload.similar_courses?.length > 0 && (
+        <CourseSimilarCourses courses={payload.similar_courses} onCourse={onCourse} />
+      )}
     </div>
   );
 }
@@ -184,21 +190,27 @@ function CourseDetailPage() {
     .filter(([, termData]) => termData?.grade_data)
     .sort(([left], [right]) => Number(right) - Number(left));
 
+  // The course API has no prerequisite graph yet; hide the tab rather than show it empty.
+  const visibleTabs = TABS.filter(
+    ({ id }) => id !== 'prerequisites' || data.prerequisite_graph?.length > 0,
+  );
+  // A ?tab= for a hidden tab falls back to the overview.
+  const shownTab = visibleTabs.some(({ id }) => id === activeTab) ? activeTab : 'overview';
   let tabContent;
-  if (activeTab === 'schedule') {
+  if (shownTab === 'schedule') {
     tabContent = <CourseSchedule meetings={data.meetings} courseName={label} />;
-  } else if (activeTab === 'prerequisites') {
+  } else if (shownTab === 'prerequisites') {
     tabContent = (
       <CoursePrereqMap elements={data.prerequisite_graph} onNavigate={openCourse} />
     );
-  } else if (activeTab === 'instructors') {
+  } else if (shownTab === 'instructors') {
     tabContent = (
       <CourseInstructors
         instructors={data.instructors || []}
         termLabel={data.selected_term_label}
       />
     );
-  } else if (activeTab === 'trends') {
+  } else if (shownTab === 'trends') {
     tabContent = <CourseTrends rows={rows} />;
   } else {
     tabContent = <OverviewTab payload={data} onCourse={openCourse} />;
@@ -241,12 +253,12 @@ function CourseDetailPage() {
         </header>
 
         <nav className="course-tabs" aria-label="Course sections">
-          {TABS.map(({ id, label: tabLabel, icon: Icon }) => (
+          {visibleTabs.map(({ id, label: tabLabel, icon: Icon }) => (
             <button
               key={id}
               type="button"
-              className={activeTab === id ? 'active' : ''}
-              aria-current={activeTab === id ? 'page' : undefined}
+              className={shownTab === id ? 'active' : ''}
+              aria-current={shownTab === id ? 'page' : undefined}
               onClick={() => setQuery({ tab: id === 'overview' ? null : id })}
             >
               <Icon size={16} />{tabLabel}

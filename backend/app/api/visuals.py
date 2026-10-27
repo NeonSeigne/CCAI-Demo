@@ -13,6 +13,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional, Union
 
+from app.sources import academics
+
 logger = logging.getLogger(__name__)
 
 # Ordered grade buckets as stored by the grades tool (UW-Madison 4.0 scale).
@@ -71,10 +73,9 @@ def _prereq_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     prereq_text = (result.get("prereq_text") or "").strip()
     if not course or (not prereqs and not prereq_text):
         return []
-    # Prefer the rich CDN map in chat; keep a flat tree as a lightweight fallback
-    # when the map is unavailable client-side.
+    # The course API has no prerequisite graph yet, so a course_prereq_map card
+    # would always be empty; the flat tree is built from the tool result itself.
     return [
-        _course_ref(course, "course_prereq_map"),
         {
             "type": "prereq_tree",
             "course": course,
@@ -127,14 +128,9 @@ def _sections_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 def _search_specs(result: Dict[str, Any]) -> List[VisualSpec]:
-    """Emit similar-courses card only for a single strong catalog match."""
-    courses = result.get("courses") or []
-    if len(courses) != 1:
-        return []
-    course = (courses[0].get("identifier") or "").strip()
-    if not course:
-        return []
-    return [_course_ref(course, "course_similar")]
+    """No search cards: the course API has no similar-courses data yet, so a
+    ``course_similar`` card would always be empty."""
+    return []
 
 
 _BUILDERS = {
@@ -155,6 +151,10 @@ def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     skipped.
     """
     visuals: List[Dict[str, Any]] = []
+    if not academics.links_to_course_pages():
+        # Providers without course detail pages (snapshots) have nothing to
+        # hydrate cards from; cards would call another school's course API.
+        return visuals
     for entry in tool_outputs or []:
         name = entry.get("name")
         result = entry.get("result")

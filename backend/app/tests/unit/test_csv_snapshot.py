@@ -49,11 +49,14 @@ GRADES = {
 }
 
 
+GRADES_AS_OF = {GRADES_URLS[0]: "2026-07-02", GRADES_URLS[1]: "2026-02-15"}
+
+
 def fake_download(url, with_commit_date=False):
     if url == SECTIONS_URL:
         return SECTIONS_CSV, "2026-09-03"
     if url in GRADES:
-        return GRADES[url], None
+        return GRADES[url], GRADES_AS_OF[url]
     raise RuntimeError(f"unexpected url {url}")
 
 
@@ -119,7 +122,30 @@ class TestGrades(SnapshotTestCase):
         self.assertEqual(result["cumulative"]["average_gpa"], 3.25)
         self.assertEqual(result["cumulative"]["dfw_rate"], 0.1)
         self.assertEqual([t["term_code"] for t in result["terms"]], ["2026 Spring", "2025 Fall"])
-        self.assertEqual(result["data_as_of"], "2026-09-03")
+        # Dated by the newest grades file read, not by the sections file.
+        self.assertEqual(result["data_as_of"], "2026-07-02")
+
+    async def test_one_missing_grades_file_keeps_the_others(self):
+        def flaky(url, with_commit_date=False):
+            if url == GRADES_URLS[0]:
+                raise RuntimeError("404")
+            return fake_download(url, with_commit_date)
+
+        self.download.side_effect = flaky
+        result = await course_grades.execute(course_identifier="CS 2100")
+        self.assertEqual([t["term_code"] for t in result["terms"]], ["2025 Fall"])
+        self.assertEqual(result["data_as_of"], "2026-02-15")
+        self.assertEqual(len(result["partial_failure"]), 1)
+
+    async def test_grades_do_not_need_the_sections_file(self):
+        def no_sections(url, with_commit_date=False):
+            if url == SECTIONS_URL:
+                raise RuntimeError("sections down")
+            return fake_download(url, with_commit_date)
+
+        self.download.side_effect = no_sections
+        result = await course_grades.execute(course_identifier="CS 2100")
+        self.assertEqual(result["cumulative"]["total"], 200)
 
     async def test_unknown_course(self):
         result = await course_grades.execute(course_identifier="CS 9999")

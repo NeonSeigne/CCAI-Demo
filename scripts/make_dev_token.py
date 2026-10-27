@@ -17,6 +17,7 @@ http://localhost:3000 and press Enter. The app reloads straight into chat.
 import argparse
 import asyncio
 import json
+import secrets
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -36,7 +37,6 @@ from app.config import get_settings  # noqa: E402
 from app.core.auth import create_access_token, get_password_hash  # noqa: E402
 
 DEFAULT_EMAIL = "dev@example.com"
-DEFAULT_PASSWORD = "devpassword"
 DEFAULT_FIRST_NAME = "Dev"
 DEFAULT_LAST_NAME = "User"
 
@@ -89,7 +89,11 @@ def build_user_response(doc) -> dict:
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--email", default=DEFAULT_EMAIL, help="Dev user email")
-    parser.add_argument("--password", default=DEFAULT_PASSWORD, help="Dev user password")
+    parser.add_argument(
+        "--password",
+        default=None,
+        help="Dev user password (default: a random one nobody knows, so only the token works)",
+    )
     parser.add_argument("--first-name", default=DEFAULT_FIRST_NAME)
     parser.add_argument("--last-name", default=DEFAULT_LAST_NAME)
     parser.add_argument(
@@ -115,7 +119,7 @@ async def main() -> int:
         doc, created = await upsert_dev_user(
             db,
             email=args.email,
-            password=args.password,
+            password=args.password or secrets.token_urlsafe(32),
             first_name=args.first_name,
             last_name=args.last_name,
         )

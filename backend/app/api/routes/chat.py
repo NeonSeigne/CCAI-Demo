@@ -262,11 +262,10 @@ async def chat_stream(
                     "Please check your advisor settings and try again."
                 )
                 if message.chat_session_id:
-                    await persist_message(message.chat_session_id, {
-                        "id": str(ObjectId()),
-                        "type": "error",
-                        "content": error_detail,
-                    })
+                    await persist_message(
+                        message.chat_session_id,
+                        PersistMessage(type="error", content=error_detail),
+                    )
                 yield ChatStreamLine(
                     type="error",
                     data={

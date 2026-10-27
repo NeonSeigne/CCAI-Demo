@@ -28,7 +28,7 @@ def main():
     os.environ.pop("SOURCES_OFFLINE", None)
 
     from app.config import get_settings
-    from app.sources import cache
+    from app.sources import cache, places
 
     settings = get_settings()
     targets = [(f.name or "event feed", f.url, False) for f in settings.student_life.event_feeds]
@@ -41,17 +41,17 @@ def main():
     failures = 0
     for label, url, with_date in targets:
         try:
-            # refresh_hours=0 forces a fresh download.
-            text, as_of = cache.load_text(url, 0, with_commit_date=with_date)
+            # refresh_hours=0 forces a download; strict fails instead of
+            # quietly keeping a stale copy.
+            text, as_of = cache.load_text(url, 0, with_commit_date=with_date, strict=True)
             when = f", data as of {as_of}" if as_of else ""
             print(f"ok    {label}: {len(text) // 1024} KB{when}  {url}")
         except Exception as exc:  # noqa: BLE001
             failures += 1
             print(f"FAIL  {label}: {exc}  {url}")
-    places = settings.campus.places_file
-    if places:
-        path = REPO / "schools" / args.slug / places
-        print(f"{'ok' if path.exists() else 'MISSING':5} places: {path.relative_to(REPO)}"
+    path = places.places_path()
+    if path:
+        print(f"{'ok' if path.exists() else 'MISSING':5} places: {path}"
               + ("" if path.exists() else f" (run scripts/import_places.py {args.slug})"))
     print(f"Cache: {cache.CACHE_DIR / args.slug}")
     sys.exit(1 if failures else 0)

@@ -7,15 +7,20 @@ export const GRADE_KEYS = ['other', 'f', 'd', 'c', 'bc', 'b', 'ab', 'a'];
 
 const count = (grades, key) => Number(grades?.[key] || 0);
 
+const LETTER_KEYS = ['a', 'ab', 'b', 'bc', 'c', 'd', 'f'];
+
 export function calculateGpa(grades) {
-  if (!grades?.total) return null;
+  // Only letter grades count toward GPA; pass/fail and other outcomes in
+  // ``total`` would otherwise count as zero points (matches the chat tool).
+  const graded = LETTER_KEYS.reduce((sum, key) => sum + count(grades, key), 0);
+  if (!graded) return null;
   const points = count(grades, 'a') * 4
     + count(grades, 'ab') * 3.5
     + count(grades, 'b') * 3
     + count(grades, 'bc') * 2.5
     + count(grades, 'c') * 2
     + count(grades, 'd');
-  return points / grades.total;
+  return points / graded;
 }
 
 export function calculateCompletionRate(grades) {
@@ -84,12 +89,15 @@ const icsDate = (timestamp) => new Date(timestamp)
 
 const escapeIcs = (value = '') => String(value)
   .replace(/\\/g, '\\\\')
-  .replace(/\n/g, '\\n')
+  .replace(/\r?\n|\r/g, '\\n')
   .replace(/,/g, '\\,')
   .replace(/;/g, '\\;');
 
+export const hasMeetingTimes = (meeting) => meeting?.start_time != null && meeting?.end_time != null;
+
 export function createScheduleIcs(courseName, meetings) {
-  const events = (meetings || []).map((meeting, index) => [
+  // Meetings without times are left out; new Date(null) would date them 1970.
+  const events = (meetings || []).filter(hasMeetingTimes).map((meeting, index) => [
     'BEGIN:VEVENT',
     `UID:${Date.now()}-${index}@co-panel`,
     `DTSTAMP:${icsDate(Date.now())}`,

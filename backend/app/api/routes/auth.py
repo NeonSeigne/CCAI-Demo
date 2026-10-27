@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 from datetime import datetime, timedelta
 from app.models.user import UserCreate, UserLogin, User, Token, UserResponse
 from pydantic import BaseModel, model_validator
@@ -14,13 +14,16 @@ from app.core.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from app.core.database import get_database
+import ipaddress
 import logging
 import os
+import secrets
 
 logger = logging.getLogger(__name__)
 
 DEV_LOGIN_EMAIL = "dev@example.com"
-DEV_LOGIN_PASSWORD = "devpassword"
+# Password the dev user had before it was made unusable; rotated on sight.
+LEGACY_DEV_LOGIN_PASSWORD = "devpassword"
 DEV_LOGIN_FIRST_NAME = "Dev"
 DEV_LOGIN_LAST_NAME = "User"
 
@@ -29,23 +32,48 @@ def _dev_login_enabled() -> bool:
     return os.getenv("ENABLE_DEV_LOGIN", "").lower() == "true"
 
 
+def _dev_login_client_allowed(request: Request) -> bool:
+    """Allow loopback and private-network peers only.
+
+    Under Docker the host's browser reaches the container from the bridge
+    gateway (a private address), so loopback alone would break local use.
+    docker-compose publishes the port on 127.0.0.1, which keeps other machines
+    out; this check refuses public addresses if the port is ever exposed.
+    """
+    host = getattr(request.client, "host", "") if request.client else ""
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return host == "localhost"
+    return address.is_loopback or address.is_private
+
+
+def _unusable_password_hash() -> str:
+    """A hash nobody knows the password for, so /auth/login can't open the account."""
+    return get_password_hash(secrets.token_urlsafe(32))
+
+
 async def _upsert_dev_user() -> User:
     """Return the seeded dev user, creating it if it does not exist."""
     db = get_database()
     existing = await get_user_by_email(DEV_LOGIN_EMAIL)
     if existing:
+        updates = {}
         if not existing.is_active:
-            await db.users.update_one(
-                {"_id": existing.id}, {"$set": {"is_active": True}}
-            )
-            existing.is_active = True
+            updates["is_active"] = True
+        if verify_password(LEGACY_DEV_LOGIN_PASSWORD, existing.hashed_password):
+            updates["hashed_password"] = _unusable_password_hash()
+        if updates:
+            await db.users.update_one({"_id": existing.id}, {"$set": updates})
+            for field, value in updates.items():
+                setattr(existing, field, value)
         return existing
 
     user = User(
         firstName=DEV_LOGIN_FIRST_NAME,
         lastName=DEV_LOGIN_LAST_NAME,
         email=DEV_LOGIN_EMAIL,
-        hashed_password=get_password_hash(DEV_LOGIN_PASSWORD),
+        hashed_password=_unusable_password_hash(),
         academicStage=None,
         researchArea=None,
         created_at=datetime.utcnow(),
@@ -197,14 +225,15 @@ async def login(user_credentials: UserLogin):
         )
 
 @router.post("/dev-login", response_model=Token)
-async def dev_login():
+async def dev_login(request: Request):
     """
     Upsert the seeded developer user and return an access token.
 
-    Only available when ENABLE_DEV_LOGIN=true. Returns 404 otherwise so the
-    endpoint is not advertised in production.
+    Only available when ENABLE_DEV_LOGIN=true and the caller is on a loopback
+    or private address. Returns 404 otherwise so the endpoint is not
+    advertised in production. The dev user has no usable password.
     """
-    if not _dev_login_enabled():
+    if not _dev_login_enabled() or not _dev_login_client_allowed(request):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not found",

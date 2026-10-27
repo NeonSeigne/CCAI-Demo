@@ -33,23 +33,27 @@ _GRADE_BUCKETS = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "DFW")
 _NOT_AVAILABLE = "This school's course data does not include {what}."
 
 _tables: Dict[str, Tuple[float, List[Dict[str, str]], Optional[str]]] = {}
-_lock = asyncio.Lock()
+# One lock per file, so loading one CSV never blocks lookups in another.
+_locks: Dict[str, asyncio.Lock] = {}
 
 
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
 
+def _load_table(url: str, refresh_hours: float) -> Tuple[List[Dict[str, str]], Optional[str]]:
+    text, as_of = cache.load_text(url, refresh_hours, with_commit_date=True)
+    return list(csv.DictReader(io.StringIO(text))), as_of
+
+
 async def _table(url: str) -> Tuple[List[Dict[str, str]], Optional[str]]:
     refresh_hours = get_settings().academics.snapshot.refresh_hours
-    async with _lock:
+    async with _locks.setdefault(url, asyncio.Lock()):
         hit = _tables.get(url)
         if hit and time.time() - hit[0] < refresh_hours * 3600:
             return hit[1], hit[2]
-        text, as_of = await asyncio.to_thread(
-            cache.load_text, url, refresh_hours, with_commit_date=True
-        )
-        rows = list(csv.DictReader(io.StringIO(text)))
+        # Download and parse off the event loop: the files are several MB.
+        rows, as_of = await asyncio.to_thread(_load_table, url, refresh_hours)
         _tables[url] = (time.time(), rows, as_of)
         return rows, as_of
 
@@ -61,12 +65,29 @@ async def _sections() -> Tuple[List[Dict[str, str]], Optional[str]]:
     return await _table(url)
 
 
-async def _grades() -> List[Dict[str, str]]:
+async def _grades() -> Tuple[List[Dict[str, str]], Optional[str], List[str]]:
+    """Rows from every grades file, the newest file date, and failed files.
+
+    A file that can't be loaded is skipped and reported; only when every file
+    fails does this raise.
+    """
+    urls = get_settings().academics.snapshot.grades_urls
+    results = await asyncio.gather(*(_table(url) for url in urls), return_exceptions=True)
     rows: List[Dict[str, str]] = []
-    for url in get_settings().academics.snapshot.grades_urls:
-        table, _ = await _table(url)
+    dates: List[str] = []
+    failures: List[str] = []
+    for url, result in zip(urls, results):
+        if isinstance(result, BaseException):
+            logger.warning("Grades file %s failed: %s", url, result)
+            failures.append(f"{url.rsplit('/', 1)[-1]}: {result}")
+            continue
+        table, as_of = result
         rows.extend(table)
-    return rows
+        if as_of:
+            dates.append(as_of)
+    if urls and len(failures) == len(urls):
+        raise RuntimeError("No grades files could be loaded: " + "; ".join(failures))
+    return rows, max(dates) if dates else None, failures
 
 
 # ---------------------------------------------------------------------------
@@ -190,8 +211,9 @@ async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[
     if not subject:
         return {"grades": None, "error": f"Could not read '{course_identifier}' as a course.", "query": query_meta}
     try:
+        all_rows, as_of, failures = await _grades()
         rows = [
-            r for r in await _grades()
+            r for r in all_rows
             if r.get("Subject", "").upper() == subject and r.get("Catalog Number", "").upper() == number
         ]
     except Exception as exc:  # noqa: BLE001
@@ -220,7 +242,6 @@ async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[
 
     terms = [summarize(group, label) for label, group in by_term.items()]
     terms.sort(key=lambda t: _term_order(t["term_code"]), reverse=True)
-    _, as_of = await _sections()
     return {
         "course_identifier": _identifier(subject, number),
         "grade_scale": "A+..C-, DFW (UVA)",
@@ -232,6 +253,7 @@ async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[
             "Grade distributions from UVA's public grade reports via theCourseForum. "
             "DFW counts D, F and withdrawals together."
         ),
+        **({"partial_failure": failures} if failures else {}),
     }
 
 

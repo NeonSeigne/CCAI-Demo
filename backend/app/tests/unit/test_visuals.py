@@ -1,7 +1,9 @@
 """Tests for course visual ref builders."""
 
 import unittest
+from unittest.mock import patch
 
+from app.api import visuals as visuals_module
 from app.api.visuals import build_visuals
 
 
@@ -39,7 +41,7 @@ class BuildVisualsTests(unittest.TestCase):
         self.assertTrue(all(v["course"] == "MUSIC 113" for v in visuals))
         self.assertTrue(all(v.get("term") == "1254" for v in visuals))
 
-    def test_prereq_tool_emits_map_and_legacy_tree(self):
+    def test_prereq_tool_emits_only_the_flat_tree(self):
         visuals = build_visuals([
             {
                 "name": "course_prerequisites",
@@ -51,9 +53,9 @@ class BuildVisualsTests(unittest.TestCase):
                 },
             }
         ])
-        self.assertEqual(visuals[0]["type"], "course_prereq_map")
-        self.assertEqual(visuals[1]["type"], "prereq_tree")
-        self.assertEqual(visuals[1]["prerequisites"][0]["identifier"], "COMPSCI 200")
+        # No course_prereq_map: /api/courses has no prerequisite graph yet.
+        self.assertEqual([v["type"] for v in visuals], ["prereq_tree"])
+        self.assertEqual(visuals[0]["prerequisites"][0]["identifier"], "COMPSCI 200")
 
     def test_next_courses_tool_emits_tree(self):
         visuals = build_visuals([
@@ -104,7 +106,7 @@ class BuildVisualsTests(unittest.TestCase):
             ["course_schedule", "course_instructors"],
         )
 
-    def test_search_emits_similar_only_for_single_match(self):
+    def test_search_emits_no_similar_card(self):
         multi = build_visuals([
             {
                 "name": "course_search",
@@ -124,7 +126,8 @@ class BuildVisualsTests(unittest.TestCase):
                 "result": {"courses": [{"identifier": "MUSIC 113"}]},
             }
         ])
-        self.assertEqual(single, [{"type": "course_similar", "course": "MUSIC 113"}])
+        # /api/courses has no similar-courses data yet, so the card would be empty.
+        self.assertEqual(single, [])
 
     def test_errors_and_unknown_tools_are_skipped(self):
         visuals = build_visuals([
@@ -132,6 +135,15 @@ class BuildVisualsTests(unittest.TestCase):
             {"name": "unknown_tool", "result": {"course_identifier": "X"}},
         ])
         self.assertEqual(visuals, [])
+
+
+
+class ProviderWithoutCoursePagesTests(unittest.TestCase):
+    def test_snapshot_search_emits_no_course_cards(self):
+        # UVA (csv_snapshot) has no course detail pages; its data_as_of sits on each row.
+        result = {"courses": [{"identifier": "CS 2100", "data_as_of": "2026-09-03"}]}
+        with patch.object(visuals_module.academics, "links_to_course_pages", return_value=False):
+            self.assertEqual(build_visuals([{"name": "course_search", "result": result}]), [])
 
 
 if __name__ == "__main__":

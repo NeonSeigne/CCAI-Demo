@@ -1,7 +1,8 @@
 """UW course tool data source backed by the UW Course Map public APIs.
 
-Fetches from ``static.uwcourses.com`` and ``search.uwcourses.com``. Result
-shapes match the previous tool contracts so ``build_visuals`` keeps working.
+Fetches from ``uwcourses.com`` (``/courses/*.json``, ``/search.json`` and
+``/api/courses/*/grades``). Result shapes match the previous tool contracts so
+``build_visuals`` keeps working.
 """
 
 from __future__ import annotations
@@ -114,6 +115,15 @@ async def _search_items(query: str) -> List[Dict[str, Any]]:
     return results.get("items") or []
 
 
+def _subject_matches(wanted: str, found: str) -> bool:
+    """Same subject, or ``wanted`` is a shorthand of it (``CS`` for ``COMPSCI``)."""
+    wanted, found = wanted.upper(), found.upper()
+    if not wanted or not found or wanted[0] != found[0]:
+        return False
+    letters = iter(found)
+    return all(ch in letters for ch in wanted)
+
+
 async def _get_course(identifier: str) -> Dict[str, Any]:
     """Resolve an identifier to the Course Map course payload (``data`` object)."""
     subjects, number = _split_identifier(identifier)
@@ -122,11 +132,27 @@ async def _get_course(identifier: str) -> Dict[str, Any]:
         if page and (page.get("data") or {}).get("course"):
             return page["data"]
     # Fall back to search when the code isn't canonical (e.g. "E C E 252").
+    if not number:
+        raise FileNotFoundError(f"No course found for '{identifier}'")
     items = await _search_items(normalize_identifier(identifier))
+    wanted = {s.upper() for s in subjects}
+    same_number = []
     for item in items:
         subs, num = _split_identifier(item.get("course_id") or "")
-        if number and num != number:
-            continue
+        if num == number:
+            same_number.append(subs)
+    # Never accept a course that only shares the number. Prefer the exact
+    # subject (or a cross-listing of it); fall back to shorthand ("CS" for
+    # COMPSCI) only when exactly one hit fits, since "CS" also fits CONS SCI.
+    candidates = [subs for subs in same_number if wanted & {s.upper() for s in subs}]
+    if not candidates:
+        shorthand = [
+            subs for subs in same_number
+            if any(_subject_matches(w, s) for w in subjects for s in subs)
+        ]
+        candidates = shorthand if len(shorthand) == 1 else []
+    for subs in candidates:
+        num = number
         for subject in subs:
             page = await _fetch_json(f"/courses/{quote(subject)}_{num}.json", optional=True)
             if page and (page.get("data") or {}).get("course"):
@@ -159,13 +185,16 @@ def _compute_gpa(row: Dict[str, Any]) -> Optional[float]:
     return round(weighted / graded, 2)
 
 
-def _summarize_grade_row(row: Dict[str, Any], term_code: Any) -> Dict[str, Any]:
+def _summarize_grade_row(row: Dict[str, Any], term_code: Any, term: Optional[str] = None) -> Dict[str, Any]:
+    """``term_code`` is the numeric UW term id (what the course API takes);
+    ``term`` is its display label, e.g. ``Spring 2026``."""
     distribution = {bucket: (row.get(bucket) or 0) for bucket in _GPA_WEIGHTS}
     instructors = row.get("instructors") or ""
     if isinstance(instructors, list):
         instructors = ", ".join(str(item) for item in instructors if item)
     return {
         "term_code": term_code,
+        **({"term": term} if term else {}),
         "total": row.get("total") or 0,
         "distribution": distribution,
         "average_gpa": _compute_gpa(row),
@@ -264,7 +293,7 @@ async def _grades_coursemap(identifier: str) -> Tuple[str, Optional[Dict], List[
     totals["total"] = 0
     for row in sorted(rows, key=lambda r: str(r.get("term_id") or ""), reverse=True):
         label = row.get("term_name") or term_label(row.get("term_id"))
-        terms.append(_summarize_grade_row(row, label))
+        terms.append(_summarize_grade_row(row, str(row.get("term_id") or ""), label))
         for bucket in _GPA_WEIGHTS:
             totals[bucket] += row.get(bucket) or 0
         totals["total"] += row.get("total") or 0
@@ -311,7 +340,7 @@ async def _next_courses_coursemap(identifier: str, limit: int) -> Dict[str, Any]
 
 async def _sections_coursemap(
     identifier: str, term: str, limit: int
-) -> Tuple[str, List[Dict[str, Any]]]:
+) -> Tuple[str, List[Dict[str, Any]], str]:
     data = await _get_course(identifier)
     course = data["course"]
     display = _course_display(course)
@@ -329,14 +358,15 @@ async def _sections_coursemap(
                 "term": label,
                 "section": section.get("section_number") or "",
                 "type": section.get("section_type") or "",
-                "instructors": instructors,
+                # Course Map does not say who teaches which section.
+                "instructors": "",
                 "current_enrolled": section.get("enrolled") or 0,
                 "capacity": section.get("capacity") or 0,
             }
         )
         if len(rows) >= limit:
             break
-    return display, rows
+    return display, rows, instructors
 
 
 def _to_section(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -475,7 +505,7 @@ async def course_sections(
     query_meta = {"course_identifier": identifier, "term": term or None}
 
     try:
-        display, rows = await _sections_coursemap(identifier, term, limit + 1)
+        display, rows, instructors = await _sections_coursemap(identifier, term, limit + 1)
     except FileNotFoundError:
         return {
             "sections": [],
@@ -498,6 +528,11 @@ async def course_sections(
     return {
         "course_identifier": display,
         "sections": [_to_section(r) for r in rows],
+        "course_instructors": instructors,
+        "instructors_note": (
+            "These instructors teach this course; the source does not say "
+            "which one teaches which section."
+        ),
         "total_results": len(rows),
         "truncated": truncated,
         "query": query_meta,

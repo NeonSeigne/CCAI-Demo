@@ -79,6 +79,11 @@ class CourseDetailPayloadTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(payload["instructors"][0]["name"], "Jim Williams")
         self.assertIsNotNone(payload["instructors"][0]["rmp_data"]["average_rating"])
 
+    async def test_meetings_do_not_invent_section_instructors(self):
+        # Course Map lists instructors per course, not per section.
+        payload = await self.payload(term="1272")
+        self.assertTrue(all(m["instructors"] == [] for m in payload["meetings"]))
+
     async def test_unknown_course_maps_to_404(self):
         async def missing(path, *, params=None, optional=False):
             if optional:

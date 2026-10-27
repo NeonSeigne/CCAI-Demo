@@ -195,15 +195,18 @@ class ImprovedChatOrchestrator:
             return await self._tool_pass(effective_llm, tools, user_message)
 
         selected = await self._classify_domains(effective_llm, user_message, list(by_domain))
+        if not selected:
+            return ToolCallResult(text="", used_tool=False)
         tasks = []
         if "student_life" in selected and "campus" in selected:
+            # Times each of its two passes itself, so events survive a slow campus pass.
             tasks.append(self._events_then_campus(effective_llm, by_domain, user_message))
             selected = [d for d in selected if d not in ("student_life", "campus")]
-        tasks += [self._tool_pass(effective_llm, by_domain[d], user_message) for d in selected]
-        results = await asyncio.gather(
-            *(asyncio.wait_for(task, TOOL_PASS_TIMEOUT_S) for task in tasks),
-            return_exceptions=True,
-        )
+        tasks += [
+            asyncio.wait_for(self._tool_pass(effective_llm, by_domain[d], user_message), TOOL_PASS_TIMEOUT_S)
+            for d in selected
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         passes: List[ToolCallResult] = []
         for result in results:
             if isinstance(result, BaseException):
@@ -228,8 +231,14 @@ class ImprovedChatOrchestrator:
     async def _events_then_campus(
         self, llm: LLMClient, by_domain: Dict[str, List[str]], user_message: str
     ) -> List[ToolCallResult]:
-        """Run events first, then campus with the event venues it found."""
-        events = await self._tool_pass(llm, by_domain["student_life"], user_message)
+        """Run events first, then campus with the event venues it found.
+
+        Each pass has its own timeout; a failed or slow campus pass keeps the
+        events answer.
+        """
+        events = await asyncio.wait_for(
+            self._tool_pass(llm, by_domain["student_life"], user_message), TOOL_PASS_TIMEOUT_S
+        )
         venues = event_venues(events)
         campus_message = user_message
         if venues:
@@ -237,11 +246,21 @@ class ImprovedChatOrchestrator:
                 f"{user_message}\n\nThe events found are at these locations; look "
                 f"them up on the campus map: {'; '.join(venues)}"
             )
-        campus = await self._tool_pass(llm, by_domain["campus"], campus_message)
+        try:
+            campus = await asyncio.wait_for(
+                self._tool_pass(llm, by_domain["campus"], campus_message), TOOL_PASS_TIMEOUT_S
+            )
+        except Exception as exc:  # noqa: BLE001 — keep the events answer
+            logger.warning("Campus pass dropped after events: %r", exc)
+            return [events]
         return [events, campus]
 
     async def _classify_domains(self, llm: LLMClient, user_message: str, domains: List[str]) -> List[str]:
-        """Pick the domains *user_message* needs; any failure means all of them."""
+        """Pick the domains *user_message* needs.
+
+        An explicit empty pick means no tools. A failure, timeout, unparseable
+        reply or a pick of only unknown domains means all of them.
+        """
         prompt = (
             "Classify which of these domains a student's message needs. "
             f"Domains: {json.dumps({d: DOMAIN_DESCRIPTIONS.get(d, d) for d in domains})}. "
@@ -264,11 +283,16 @@ class ImprovedChatOrchestrator:
         except Exception as exc:  # noqa: BLE001 — fall back to every domain
             logger.warning("Domain classifier failed (%r); using all domains", exc)
             return domains
-        picked = [d for d in picked or [] if d in domains] if isinstance(picked, list) else []
-        if not picked:
-            logger.info("Domain classifier picked nothing; using all domains")
+        if not isinstance(picked, list):
+            logger.info("Domain classifier reply had no domain list; using all domains")
             return domains
-        return picked
+        if not picked:
+            return []
+        known = [d for d in picked if d in domains]
+        if not known:
+            logger.info("Domain classifier picked only unknown domains; using all domains")
+            return domains
+        return known
 
     # TODO: Investigate if this method is still needed and remove if not.
     async def process_message(self, 

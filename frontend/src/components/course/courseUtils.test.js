@@ -4,6 +4,7 @@ import {
   calculateGpa,
   courseLabel,
   createScheduleIcs,
+  hasMeetingTimes,
 } from './courseUtils';
 
 const grades = {
@@ -42,4 +43,18 @@ it('creates an importable calendar payload', () => {
   expect(calendar).toContain('BEGIN:VCALENDAR');
   expect(calendar).toContain('SUMMARY:MUSIC 113 · LEC 001');
   expect(calendar).toContain('LOCATION:Humanities 2340');
+});
+
+it('computes GPA over letter grades only, matching the chat tool', () => {
+  // 8 students outside A-F (e.g. pass/fail) must not count as zero-point grades.
+  expect(calculateGpa({ ...grades, total: 108, other: 8 })).toBeCloseTo(3.28);
+});
+
+it('leaves meetings without times out of the calendar instead of dating them 1970', () => {
+  const calendar = createScheduleIcs('COMP SCI 300', [
+    { name: 'LEC 001', start_time: null, end_time: null, instructors: [] },
+  ]);
+  expect(calendar).not.toContain('BEGIN:VEVENT');
+  expect(calendar).not.toContain('1970');
+  expect(hasMeetingTimes({ start_time: null, end_time: null })).toBe(false);
 });

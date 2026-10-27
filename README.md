@@ -50,7 +50,7 @@ CORS_ORIGINS=http://localhost:3000
 ```
 > `REACT_APP_API_URL` and `CORS_ORIGINS` must match the real addresses used if accessing the demo from a remote host.
 >
-> Local Docker Compose enables **Developer mode** by default (`ENABLE_DEV_LOGIN` / `REACT_APP_ENABLE_DEV_LOGIN`). Use the homepage top-right control to skip sign-in. Set both to `false` in real deployments.
+> **Developer mode** (skip sign-in from the homepage) is off by default. To use it locally, set `ENABLE_DEV_LOGIN=true` and `REACT_APP_ENABLE_DEV_LOGIN=true` in your `.env`. The backend port is published on `127.0.0.1` only, and dev login refuses public client addresses. Never enable it in a real deployment.
 >
 > UW-Madison chat tools, course detail pages, and inline course cards all use the live [UW Course Map](https://uwcourses.com) public APIs (`static.uwcourses.com` / `search.uwcourses.com`).
 
@@ -284,8 +284,8 @@ The application will open at `http://localhost:3000`
 | `GEMINI_API_KEY` | Google Gemini API key | - | No |
 | `GEMINI_MODEL` | Gemini model to use | `gemini-2.0-flash` | No |
 | `OLLAMA_BASE_URL` | Ollama server URL | `http://localhost:11434` | No |
-| `ENABLE_DEV_LOGIN` | Backend gate for `POST /auth/dev-login` (homepage Developer mode). Keep **false** in real deployments. | `true` in local `docker-compose` | No |
-| `REACT_APP_ENABLE_DEV_LOGIN` | Show the homepage “Developer mode” button. Requires `ENABLE_DEV_LOGIN=true` on the backend. Keep **false** in real deployments. | `true` in local `docker-compose` | No |
+| `ENABLE_DEV_LOGIN` | Backend gate for `POST /auth/dev-login` (homepage Developer mode). Keep **false** in real deployments. | `false` | No |
+| `REACT_APP_ENABLE_DEV_LOGIN` | Show the homepage “Developer mode” button. Requires `ENABLE_DEV_LOGIN=true` on the backend. Keep **false** in real deployments. | `false` | No |
 
 ### Switching Between LLM Providers
 
@@ -313,7 +313,7 @@ curl -X POST "http://localhost:8000/switch-provider" \
 ### Authentication Endpoints
 - `POST /auth/signup` - Create new user account
 - `POST /auth/login` - Login with email/password
-- `POST /auth/dev-login` - Local-only bypass: upserts `dev@example.com` and returns a JWT (requires `ENABLE_DEV_LOGIN=true`; returns 404 otherwise)
+- `POST /auth/dev-login` - Local-only bypass: upserts `dev@example.com` (no usable password) and returns a JWT. Requires `ENABLE_DEV_LOGIN=true` and a loopback or private client address; returns 404 otherwise
 - `GET /auth/me` - Get current user profile
 
 ### Chat Endpoints

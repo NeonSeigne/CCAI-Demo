@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Clock, Download, MapPin, Users } from 'lucide-react';
-import { createScheduleIcs } from './courseUtils';
+import { createScheduleIcs, hasMeetingTimes } from './courseUtils';
 
 export default function CourseSchedule({
   meetings,
@@ -10,12 +10,13 @@ export default function CourseSchedule({
   const grouped = useMemo(() => {
     const map = new Map();
     (meetings || []).forEach((meeting) => {
-      const date = new Date(meeting.start_time);
-      const key = date.toLocaleDateString(undefined, {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-      });
+      const key = hasMeetingTimes(meeting)
+        ? new Date(meeting.start_time).toLocaleDateString(undefined, {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+        })
+        : 'Time not listed';
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(meeting);
     });
@@ -31,7 +32,8 @@ export default function CourseSchedule({
     anchor.href = url;
     anchor.download = `${String(courseName || 'course').replace(/\s+/g, '-')}-schedule.ics`;
     anchor.click();
-    URL.revokeObjectURL(url);
+    // Revoking right away can cancel the download in Safari and Firefox.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -44,7 +46,7 @@ export default function CourseSchedule({
           <p className="course-eyebrow">Class meetings</p>
           <h2 id="schedule-title">Schedule</h2>
         </div>
-        {meetings?.length > 0 && (
+        {(meetings || []).some(hasMeetingTimes) && (
           <button type="button" className="btn-secondary" onClick={exportSchedule}>
             <Download size={16} /> Export .ics
           </button>
@@ -67,28 +69,32 @@ export default function CourseSchedule({
                       <strong>{meeting.name}</strong>
                       <span>{meeting.type}</span>
                     </div>
-                    <p>
-                      <Clock size={14} />
-                      {new Date(meeting.start_time).toLocaleTimeString([], {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                      –
-                      {new Date(meeting.end_time).toLocaleTimeString([], {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </p>
+                    {hasMeetingTimes(meeting) && (
+                      <p>
+                        <Clock size={14} />
+                        {new Date(meeting.start_time).toLocaleTimeString([], {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                        –
+                        {new Date(meeting.end_time).toLocaleTimeString([], {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    )}
                     <p>
                       <MapPin size={14} />
                       {[meeting.location?.building, meeting.location?.room]
                         .filter(Boolean)
                         .join(' · ') || 'Location TBA'}
                     </p>
-                    <p>
-                      <Users size={14} />
-                      {(meeting.instructors || []).join(', ') || 'Instructor TBA'}
-                    </p>
+                    {(meeting.instructors || []).length > 0 && (
+                      <p>
+                        <Users size={14} />
+                        {meeting.instructors.join(', ')}
+                      </p>
+                    )}
                     {meeting.current_enrollment != null && (
                       <small>
                         {meeting.current_enrollment}

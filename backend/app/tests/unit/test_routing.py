@@ -97,8 +97,14 @@ class TestClassifier(RoutingTestCase):
         self.assertEqual(sorted(map(tuple, self.passes())),
                          [("course_search",), ("events_search",), ("find_place",)])
 
-    async def test_empty_or_unknown_pick_falls_back_to_all_domains(self):
-        for reply in ('{"domains": []}', '{"domains": ["dining"]}', "not json"):
+    async def test_explicit_empty_pick_runs_no_tool_pass(self):
+        # "pick none if no domain fits" is an answer, not a failure.
+        result = await self.respond(self.llm('{"domains": []}'))
+        self.assertEqual(self.passes(), [])
+        self.assertFalse(result.used_tool)
+
+    async def test_unknown_or_unparseable_pick_falls_back_to_all_domains(self):
+        for reply in ('{"domains": ["dining"]}', "not json", '{"other": 1}'):
             self.calls.clear()
             await self.respond(self.llm(reply))
             self.assertEqual(len(self.passes()), 3, reply)
@@ -125,6 +131,30 @@ class TestEventsThenCampus(RoutingTestCase):
         self.assertIn("Macky Auditorium", campus_message)
         self.assertEqual(result.text, "Jazz tonight at Macky.\n\nMacky is 3 min away.")
         self.assertEqual([o["name"] for o in result.tool_outputs], ["events_search", "find_place"])
+
+    async def test_events_kept_when_campus_pass_fails(self):
+        async def behavior(names, message):
+            if names == ["find_place"]:
+                raise RuntimeError("map down")
+            return tool_result("Jazz tonight at Macky.", "events_search",
+                               {"events": [{"title": "Jazz", "location": "Macky Auditorium"}]})
+
+        llm = self.llm('{"domains": ["student_life", "campus"]}', pass_behavior=behavior)
+        result = await self.respond(llm)
+        self.assertTrue(result.used_tool)
+        self.assertEqual(result.text, "Jazz tonight at Macky.")
+
+    async def test_events_kept_when_campus_pass_times_out(self):
+        async def behavior(names, message):
+            if names == ["find_place"]:
+                await asyncio.Event().wait()
+            return tool_result("Jazz tonight at Macky.", "events_search",
+                               {"events": [{"title": "Jazz", "location": "Macky Auditorium"}]})
+
+        llm = self.llm('{"domains": ["student_life", "campus"]}', pass_behavior=behavior)
+        with patch.object(orch, "TOOL_PASS_TIMEOUT_S", 0.2):
+            result = await self.respond(llm)
+        self.assertEqual(result.text, "Jazz tonight at Macky.")
 
     async def test_no_venues_passes_message_unchanged(self):
         async def behavior(names, message):

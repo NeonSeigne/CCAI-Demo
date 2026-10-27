@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 WINDOWS = ("today", "tonight", "tomorrow", "this_weekend", "this_week", "next_7_days")
 
 _parsed: Dict[str, Tuple[float, icalendar.Calendar]] = {}
-_lock = asyncio.Lock()
+# One lock per feed, so a slow feed never blocks the others.
+_locks: Dict[str, asyncio.Lock] = {}
 
 
 def school_zone() -> ZoneInfo:
@@ -88,16 +89,25 @@ def normalize_timezones(text: str, school_tz: str) -> str:
     )
 
 
+def _load_calendar(url: str, refresh_minutes: float, school_tz: str) -> icalendar.Calendar:
+    text, _ = cache.load_text(url, refresh_minutes / 60)
+    return icalendar.Calendar.from_ical(normalize_timezones(text, school_tz))
+
+
 async def _calendar(url: str) -> icalendar.Calendar:
     refresh_minutes = get_settings().student_life.refresh_minutes
-    async with _lock:
+    async with _locks.setdefault(url, asyncio.Lock()):
         hit = _parsed.get(url)
         if hit and time.time() - hit[0] < refresh_minutes * 60:
             return hit[1]
-        text, _ = await asyncio.to_thread(cache.load_text, url, refresh_minutes / 60)
-        calendar = icalendar.Calendar.from_ical(normalize_timezones(text, school_zone().key))
+        # Download and parse off the event loop: CU's feed is about 2.4 MB.
+        calendar = await asyncio.to_thread(_load_calendar, url, refresh_minutes, school_zone().key)
         _parsed[url] = (time.time(), calendar)
         return calendar
+
+
+def _expand(calendar: icalendar.Calendar, start: datetime, end: datetime) -> List[Any]:
+    return list(recurring_ical_events.of(calendar, skip_bad_series=True).between(start, end))
 
 
 def _text(component: Any, key: str) -> str:
@@ -150,8 +160,11 @@ async def events_between(start: datetime, end: datetime) -> Tuple[List[Dict[str,
             calendar = await _calendar(feed.url)
             # Floating windows are read in the school's zone; pass naive local
             # bounds so floating events compare correctly.
-            components = recurring_ical_events.of(calendar, skip_bad_series=True).between(
-                start.astimezone(tz).replace(tzinfo=None), end.astimezone(tz).replace(tzinfo=None)
+            components = await asyncio.to_thread(
+                _expand,
+                calendar,
+                start.astimezone(tz).replace(tzinfo=None),
+                end.astimezone(tz).replace(tzinfo=None),
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning("Event feed %s failed: %s", feed.url, exc)

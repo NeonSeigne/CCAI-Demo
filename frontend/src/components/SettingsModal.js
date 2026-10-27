@@ -13,11 +13,6 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
 import AppDialog from './AppDialog';
 
-const SCHOOLS = [
-  { id: 'cu-boulder', name: 'CU Boulder' },
-  { id: 'uw-madison', name: 'UW-Madison' },
-];
-
 const tabRow = {
   display: 'flex', gap: 4, padding: '12px 16px 0',
   borderBottom: '1px solid var(--border-primary)',
@@ -91,7 +86,6 @@ const SettingsModal = ({
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
-  const [school, setSchool] = useState(() => localStorage.getItem('selectedSchool') || 'cu-boulder');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -352,22 +346,6 @@ const SettingsModal = ({
                   <label style={label}>Last Name</label>
                   <input style={input} value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={label}>School</label>
-                <select
-                  style={input}
-                  value={school}
-                  onChange={(e) => {
-                    setSchool(e.target.value);
-                    localStorage.setItem('selectedSchool', e.target.value);
-                    setMessage({ type: 'success', text: 'School updated.' });
-                  }}
-                >
-                  {SCHOOLS.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
               </div>
               <button type="submit" style={primaryBtn} disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Save Changes'}

@@ -116,6 +116,85 @@ class TestUWCourseGrades(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(result["grades"])
         self.assertIn("error", result)
 
+    async def test_grade_card_terms_are_numeric_codes(self):
+        # The course detail API only accepts numeric term codes (?term=1254).
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
+            result = await course_grades.execute(course_identifier="COMP SCI 300")
+        specs = build_visuals([{"name": "course_grades", "result": result}])
+        terms = {v["term"] for v in specs if "term" in v}
+        self.assertTrue(terms)
+        self.assertTrue(all(t.isdigit() for t in terms), terms)
+        self.assertTrue(all(t.get("term") for t in result["terms"]))
+
+
+class TestCourseResolution(unittest.IsolatedAsyncioTestCase):
+    async def test_search_fallback_never_returns_another_subject(self):
+        math_page = {"data": {"course": {"course_id": "MATH 300", "subjects": ["MATH"], "course_number": 300}}}
+        search = {"data": {"results": {"items": [{"course_id": "MATH 300", "title": "MATH THING"}]}}}
+
+        async def fetch(path, *, params=None, optional=False):
+            if path == "/search.json":
+                return search
+            if path == "/courses/MATH_300.json":
+                return math_page
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            with self.assertRaises(FileNotFoundError):
+                await _uw_source._get_course("ZOOLOGY 300")
+
+    async def test_search_fallback_resolves_subject_shorthand(self):
+        # "CS 400" has no direct page (CS_400.json); search maps it to COMP SCI 400.
+        page = {"data": {"course": {"course_id": "COMPSCI 400", "subjects": ["COMPSCI"], "course_number": 400}}}
+        search = {"data": {"results": {"items": [
+            {"course_id": "MATH 400"},
+            {"course_id": "COMPSCI 400"},
+        ]}}}
+        fetched = []
+
+        async def fetch(path, *, params=None, optional=False):
+            fetched.append(path)
+            if path == "/search.json":
+                return search
+            if path == "/courses/COMPSCI_400.json":
+                return page
+            if path == "/courses/MATH_400.json":
+                return {"data": {"course": {"course_id": "MATH 400"}}}
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            data = await _uw_source._get_course("CS 400")
+        self.assertEqual(data["course"]["course_id"], "COMPSCI 400")
+        self.assertIn("/search.json", fetched)
+        self.assertNotIn("/courses/MATH_400.json", fetched)
+
+    async def test_ambiguous_shorthand_is_not_guessed(self):
+        # "CS" fits COMPSCI and CONS SCI; with both at 300, don't pick one.
+        search = {"data": {"results": {"items": [{"course_id": "CONS SCI 300"}, {"course_id": "COMP SCI 300"}]}}}
+
+        async def fetch(path, *, params=None, optional=False):
+            if path == "/search.json":
+                return search
+            if path in ("/courses/CONSSCI_300.json", "/courses/COMPSCI_300.json"):
+                return {"data": {"course": {"course_id": path}}}
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            with self.assertRaises(FileNotFoundError):
+                await _uw_source._get_course("CS 300")
+
+    async def test_identifier_without_number_is_not_resolved_by_search(self):
+        search = {"data": {"results": {"items": [{"course_id": "MATH 221"}]}}}
+
+        async def fetch(path, *, params=None, optional=False):
+            if path == "/search.json":
+                return search
+            return {"data": {"course": {"course_id": "MATH 221"}}}
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            with self.assertRaises(FileNotFoundError):
+                await _uw_source._get_course("MATH")
+
 
 class TestUWPrerequisites(unittest.IsolatedAsyncioTestCase):
     async def test_returns_prereq_text_and_edges(self):
@@ -133,6 +212,16 @@ class TestUWPrerequisites(unittest.IsolatedAsyncioTestCase):
             result = await course_prerequisites.execute(course_identifier="BOGUS 999")
         self.assertIsNone(result["course"])
         self.assertIn("error", result)
+
+
+class TestUWSectionInstructors(unittest.IsolatedAsyncioTestCase):
+    async def test_sections_list_course_instructors_once_not_per_section(self):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
+            result = await course_sections.execute(course_identifier="COMP SCI 300")
+        self.assertTrue(result["sections"])
+        self.assertTrue(all(s["instructors"] == "" for s in result["sections"]))
+        self.assertIn("Jim Williams", result["course_instructors"])
+        self.assertIn("section", result["instructors_note"])
 
 
 class TestUWNextCourses(unittest.IsolatedAsyncioTestCase):

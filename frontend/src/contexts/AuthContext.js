@@ -39,9 +39,16 @@ export function AuthProvider({ children }) {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) {
+        if (response.status >= 400 && response.status < 500) {
+          // Invalid, expired or deactivated (400 "Inactive user"): log out.
           clearAuth();
-          setAuthReady(true);
+          return;
+        }
+        if (!response.ok) {
+          // Backend restarting or erroring: keep the token and stored user.
+          setAuthToken(token);
+          setUser(JSON.parse(userData));
+          setIsAuthenticated(true);
           return;
         }
 
@@ -50,7 +57,10 @@ export function AuthProvider({ children }) {
         setUser(freshUser);
         setIsAuthenticated(true);
       } catch {
-        clearAuth();
+        // Network error: the token may still be valid, so keep the session.
+        setAuthToken(token);
+        setUser(JSON.parse(userData));
+        setIsAuthenticated(true);
       } finally {
         setAuthReady(true);
       }

@@ -357,16 +357,21 @@ const EnhancedChatInput = ({
                   <Paperclip size={15} />
                   <span>Upload documents</span>
                 </button>
-                <div className="composer-plus-section-label">Skills</div>
-                <button
-                  type="button"
-                  className="composer-plus-item"
-                  role="menuitem"
-                  onClick={() => handleInvokeSkill('plan_semester')}
-                >
-                  <CalendarDays size={15} />
-                  <span>Plan my Semester</span>
-                </button>
+                {/* Skills show only when the page can run them. */}
+                {onInvokeSkill && (
+                  <>
+                    <div className="composer-plus-section-label">Skills</div>
+                    <button
+                      type="button"
+                      className="composer-plus-item"
+                      role="menuitem"
+                      onClick={() => handleInvokeSkill('plan_semester')}
+                    >
+                      <CalendarDays size={15} />
+                      <span>Plan my Semester</span>
+                    </button>
+                  </>
+                )}
               </div>
             </Popover>
             
