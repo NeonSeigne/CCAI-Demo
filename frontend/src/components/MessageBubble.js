@@ -9,6 +9,8 @@ import * as LucideIcons from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import VisualBlock from './visuals/VisualBlock';
 import CourseChip from './visuals/CourseChip';
+import AnswerSources from './visuals/AnswerSources';
+import { groupCourseVisuals } from './visuals/CourseAnswerCard';
 import ErrorBoundary from './ErrorBoundary';
 const stripMarkdown = (md) => {
   if (!md) return '';
@@ -42,7 +44,7 @@ const MessageBubble = ({
   // The "Checked" line leads the answer; every other visual follows the text.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
-  const cardVisuals = visuals.filter((visual) => visual?.type !== 'sources_checked');
+  const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
   const [showTooltip, setShowTooltip] = useState(null);
   const [copiedStates, setCopiedStates] = useState({});
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -435,6 +437,9 @@ const MessageBubble = ({
     const Icon = advisor.icon;
     const colors = getAdvisorColors(personaId);
     const isCopied = copiedStates[message.id];
+    // Campus Companion and combined answers speak with one voice: plain text
+    // and cards, no advisor box. Named advisors in a panel keep their header.
+    const plain = personaId === 'orchestrator' || message.is_aggregated;
 
     const avatarElement = (size = 40) => (
       advisor.avatarUrl ? (
@@ -466,8 +471,8 @@ const MessageBubble = ({
     );
 
     return (
-      <div className={`advisor-message-container ${inlineAvatar ? 'inline-avatar-mode' : ''}`}>
-        {!inlineAvatar && (
+      <div className={`advisor-message-container ${inlineAvatar ? 'inline-avatar-mode' : ''} ${plain ? 'is-plain' : ''}`}>
+        {!inlineAvatar && !plain && (
           <div
             className="advisor-avatar"
             style={{ backgroundColor: 'var(--paper-sunken)', overflow: 'hidden' }}
@@ -489,13 +494,14 @@ const MessageBubble = ({
         )}
 
         <div 
-          className="advisor-message-bubble surface-card"
-          style={{ 
+          className={plain ? 'answer' : 'advisor-message-bubble surface-card'}
+          style={plain ? undefined : { 
             backgroundColor: 'var(--paper)',
             borderColor: 'var(--line)',
             position: 'relative'
           }}
         >
+          {!plain && (
           <div className="advisor-message-header">
             {inlineAvatar && avatarElement(32)}
             <h4 
@@ -522,13 +528,18 @@ const MessageBubble = ({
                 : ''}
             </span>
           </div>
+          )}
           
           {/* Enhanced markdown rendering with preprocessing */}
           <div 
             className="advisor-message-text"
             style={{ color: colors.textColor || ('var(--ink)') }}
           >
-            {checkedVisual && <VisualBlock visual={checkedVisual} />}
+            {checkedVisual && (
+              <div className={plain ? 'answer-checked' : undefined}>
+                <VisualBlock visual={checkedVisual} />
+              </div>
+            )}
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
             <ReactMarkdown 
               components={markdownComponents}
@@ -546,12 +557,14 @@ const MessageBubble = ({
           </div>
 
           {cardVisuals.length > 0 && (
-            <div className="advisor-message-visuals">
+            <div className={`advisor-message-visuals ${plain ? 'answer-cards' : ''}`}>
               {cardVisuals.map((visual, idx) => (
                 <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} onAsk={onAsk} />
               ))}
             </div>
           )}
+
+          {plain && <AnswerSources visuals={cardVisuals} />}
           
           {showReplyButton && (
             <div className="message-actions">

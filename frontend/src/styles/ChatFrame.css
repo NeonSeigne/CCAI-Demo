@@ -322,3 +322,16 @@
 }
 
 .chat-more-item svg { flex-shrink: 0; }
+
+/* ---- Messages ------------------------------------------------------------ */
+.chat-frame .user-message-container { margin-bottom: 28px; }
+
+.chat-frame .user-message {
+  max-width: 85%;
+  padding: 14px 18px;
+  border-radius: 20px 20px 6px 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.chat-frame .single-response-wide { margin-bottom: 32px; }

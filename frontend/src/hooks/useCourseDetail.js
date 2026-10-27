@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchCourseDetail } from '../services/courseApi';
 
+// One request per course and term for the page's lifetime: an answer's course
+// card and its sources line read the same payload. Failures are not kept.
+const responses = new Map();
+
+function loadCourse(identifier, token, term) {
+  const key = `${identifier.trim().toUpperCase()}|${term || ''}`;
+  if (!responses.has(key)) {
+    const request = fetchCourseDetail(identifier, { token, term });
+    request.catch(() => responses.delete(key));
+    responses.set(key, request);
+  }
+  return responses.get(key);
+}
+
 export default function useCourseDetail(identifier, token, term) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -15,23 +29,25 @@ export default function useCourseDetail(identifier, token, term) {
       return undefined;
     }
 
-    const controller = new AbortController();
+    let cancelled = false;
     setLoading(true);
     setError(null);
 
-    fetchCourseDetail(identifier, { token, term, signal: controller.signal })
-      .then((payload) => setData(payload))
+    loadCourse(identifier, token, term)
+      .then((payload) => {
+        if (!cancelled) setData(payload);
+      })
       .catch((requestError) => {
-        if (requestError.name !== 'AbortError') {
+        if (!cancelled) {
           setError(requestError);
           setData(null);
         }
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!cancelled) setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => { cancelled = true; };
   }, [identifier, token, term, requestVersion]);
 
   return { data, error, loading, retry };

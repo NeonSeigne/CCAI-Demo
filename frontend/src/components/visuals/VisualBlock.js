@@ -4,6 +4,7 @@ import { CourseGradeDistribution } from '../course/CourseVisuals';
 import PrereqTree from './PrereqTree';
 import EventListCard from './EventListCard';
 import PlaceCard from './PlaceCard';
+import CourseAnswerCard from './CourseAnswerCard';
 import SourcesChecked from './SourcesChecked';
 import '../../styles/CampusCards.css';
 
@@ -44,6 +45,7 @@ const REGISTRY = {
   event_list: EventListCard,
   place_card: PlaceCard,
   sources_checked: SourcesChecked,
+  course_answer: CourseAnswerCard,
 };
 
 const VisualBlock = ({ visual, onSelectCourse, onAsk }) => {
