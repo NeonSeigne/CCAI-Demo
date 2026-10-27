@@ -24,8 +24,8 @@ const EnhancedChatInput = ({
   selectedAdvisorIds = null,
   onSelectedAdvisorIdsChange,
   isLanding = false,
-  // One-row pill (+, text, mic, send). Advisor choice moves into the + menu
-  // and answer style into the chat header's menu.
+  // One-row pill (+, text, mic, send), without the advisor and answer-style
+  // controls: the chat page always gives one combined answer.
   compact = false,
   onInvokeSkill,
   activeSkills = [],
@@ -360,20 +360,6 @@ const EnhancedChatInput = ({
                   <Paperclip size={15} />
                   <span>Upload documents</span>
                 </button>
-                {compact && advisorEntries.length > 0 && (
-                  <button
-                    type="button"
-                    className="composer-plus-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setPlusAnchorEl(null);
-                      setAdvisorAnchorEl(plusBtnRef.current);
-                    }}
-                  >
-                    <Users size={15} />
-                    <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors chosen` : 'Choose advisors'}</span>
-                  </button>
-                )}
                 {/* Skills show only when the page can run them. */}
                 {onInvokeSkill && (
                   <>

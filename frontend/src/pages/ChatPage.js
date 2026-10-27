@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 
-import { Menu, MessageCircle, Reply, X, Sparkles, Users, FileText } from 'lucide-react';
+import { Menu, MessageCircle, Reply, X, Sparkles, FileText } from 'lucide-react';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
@@ -57,14 +57,8 @@ const ChatPage = () => {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
-  // 'panel' | 'aggregated' — persisted so the choice survives reloads.
-  const [responseMode, setResponseMode] = useState(() => {
-    try { return localStorage.getItem('responseMode') === 'aggregated' ? 'aggregated' : 'panel'; }
-    catch { return 'panel'; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem('responseMode', responseMode); } catch { /* non-fatal */ }
-  }, [responseMode]);
+  // Campus Companion answers as one voice: advisor replies are always combined.
+  const responseMode = 'aggregated';
 
   // Per-exchange view override: { [responseGroupId]: 'panel' | 'aggregated' }.
   // Lets the user flip an individual exchange between the advisor panel and
@@ -455,78 +449,6 @@ const handleNewChat = async (sessionId = null) => {
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response;
-  };
-
-  const handleToggleGroupView = async (responseGroupId, panelMessages, hasAggregated) => {
-    const current = groupViews[responseGroupId] || (hasAggregated ? 'aggregated' : 'panel');
-    const next = current === 'panel' ? 'aggregated' : 'panel';
-
-    if (next === 'aggregated' && !hasAggregated) {
-      const firstId = panelMessages[0]?.id;
-      const idx = messages.findIndex(m => m.id === firstId);
-      let userPrompt = '';
-      for (let i = idx - 1; i >= 0; i--) {
-        if (messages[i].type === 'user') { userPrompt = messages[i].content; break; }
-      }
-
-      setSynthesizingGroups(prev => ({ ...prev, [responseGroupId]: true }));
-      try {
-        const resp = await fetch(`${process.env.REACT_APP_API_URL}/request-aggregated-response`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({
-            user_input: userPrompt,
-            panel_results: panelMessages.map(m => ({
-              persona_id: m.persona_id,
-              persona_name: m.advisorName,
-              response: m.content,
-              used_documents: m.used_documents || false,
-              document_chunks_used: m.document_chunks_used || 0,
-            })),
-            chat_session_id: currentSessionId,
-            response_group_id: responseGroupId,
-          }),
-        });
-
-        if (resp.ok) {
-          const data = await resp.json();
-          const mergedMsg = {
-            id: generateMessageId(),
-            type: 'advisor',
-            persona_id: 'aggregated',
-            content: data.response,
-            timestamp: new Date(),
-            advisorName: data.persona_name,
-            is_aggregated: true,
-            responseGroupId,
-            source_personas: data.source_personas,
-          };
-          skipAutoScrollRef.current = true;
-          setMessages(prev => {
-            const lastPanelIdx = prev.findLastIndex(
-              m => m.responseGroupId === responseGroupId && !m.is_aggregated
-            );
-            if (lastPanelIdx === -1) return [...prev, mergedMsg];
-            const updated = [...prev];
-            updated.splice(lastPanelIdx + 1, 0, mergedMsg);
-            return updated;
-          });
-          setGroupViews(prev => ({ ...prev, [responseGroupId]: 'aggregated' }));
-        } else {
-          console.error('Synthesis request failed:', resp.status);
-        }
-      } catch (err) {
-        console.error('On-demand synthesis failed:', err);
-      } finally {
-        setSynthesizingGroups(prev => { const n = { ...prev }; delete n[responseGroupId]; return n; });
-      }
-      return;
-    }
-
-    setGroupViews(prev => ({ ...prev, [responseGroupId]: next }));
   };
 
   const handleCourseSelect = (identifier) => {
@@ -999,12 +921,6 @@ const handleNewChat = async (sessionId = null) => {
                 authToken={authToken}
               />
               <ChatMoreMenu
-                responseMode={responseMode}
-                onResponseModeChange={setResponseMode}
-                thinkingAdvisors={thinkingAdvisors}
-                dialogInset={dialogInset}
-                canvasLabel={config?.app?.title ? `${config.app.title} Canvas` : 'Canvas'}
-                onOpenCanvas={() => navigate('/canvas')}
                 onSearchChats={() => navigate('/search')}
                 onOpenGuide={() => window.dispatchEvent(new CustomEvent(
                   'open-user-guide',
@@ -1043,42 +959,8 @@ const handleNewChat = async (sessionId = null) => {
                         const isSynth = !!synthesizingGroups[group.responseGroupId];
                         const showAggregated = view === 'aggregated' && hasAggregated;
                         const shown = showAggregated ? group.aggregatedMessages : group.panelMessages;
-                        const isLegacy = group.responseGroupId.startsWith('legacy_');
-                        const showToggle = !isLegacy && (group.panelMessages.length > 1 || hasAggregated || isSynth);
-                        const switchTo = (target) => {
-                          if ((target === 'aggregated') !== showAggregated) {
-                            handleToggleGroupView(group.responseGroupId, group.panelMessages, hasAggregated);
-                          }
-                        };
-                        const segBtn = (active) => ({
-                          display: 'flex', alignItems: 'center', gap: 6,
-                          fontSize: 12.5, padding: '5px 10px', border: 'none',
-                          borderRadius: 9999, cursor: isSynth ? 'default' : 'pointer',
-                          fontFamily: 'inherit',
-                          background: active ? 'var(--ink)' : 'transparent',
-                          color: active ? '#fff' : 'var(--text-secondary)',
-                        });
                         return (
                           <div key={group.responseGroupId} className="response-group">
-                            {showToggle && (
-                              <div
-                                role="group"
-                                aria-label="Response view"
-                                style={{
-                                  display: 'inline-flex', gap: 2, marginBottom: 8,
-                                  background: 'var(--bg-secondary, rgba(0,0,0,0.04))',
-                                  border: '1px solid var(--border-primary)',
-                                  borderRadius: 8, padding: 2,
-                                }}
-                              >
-                                <button type="button" style={segBtn(!showAggregated)} disabled={isSynth} onClick={() => switchTo('panel')}>
-                                  <Users size={13} /> Panel
-                                </button>
-                                <button type="button" style={segBtn(showAggregated)} disabled={isSynth} onClick={() => switchTo('aggregated')}>
-                                  <Sparkles size={13} /> Aggregated
-                                </button>
-                              </div>
-                            )}
                             {isSynth && (
                               <div style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
@@ -1243,8 +1125,6 @@ const handleNewChat = async (sessionId = null) => {
               isLoading={isLoading}
               currentChatSessionId={currentSessionId}
               authToken={authToken}
-              responseMode={responseMode}
-              onResponseModeChange={setResponseMode}
               messageValue={composerMessage}
               onMessageChange={setComposerMessage}
               selectedAdvisorIds={selectedAdvisorIds}

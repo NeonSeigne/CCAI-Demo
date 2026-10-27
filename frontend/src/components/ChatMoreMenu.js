@@ -1,22 +1,9 @@
 import React, { useState } from 'react';
 import { Popover } from '@mui/material';
-import { CircleHelp, FileText, MoreHorizontal, Search, Sparkles, Users } from 'lucide-react';
-import AdvisorSidebarPicker from './AdvisorSidebarPicker';
+import { CircleHelp, MoreHorizontal, Search } from 'lucide-react';
 
-/**
- * The chat header's ⋯ menu. Holds the advisor-panel features (answer style,
- * which advisors are on, Canvas) so the frame itself reads as Campus Companion.
- */
-export default function ChatMoreMenu({
-  responseMode,
-  onResponseModeChange,
-  thinkingAdvisors = [],
-  dialogInset = 0,
-  canvasLabel = 'Canvas',
-  onOpenCanvas,
-  onSearchChats,
-  onOpenGuide,
-}) {
+/** The chat header's ⋯ menu: chat search and the user guide. */
+export default function ChatMoreMenu({ onSearchChats, onOpenGuide }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const close = () => setAnchorEl(null);
   const run = (action) => () => {
@@ -44,37 +31,10 @@ export default function ChatMoreMenu({
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { className: 'chat-more-popover' } }}
       >
-        <div className="chat-more-menu">
-          <div className="chat-more-section">
-            <span className="chat-more-label">Advisor answers</span>
-            <div className="chat-more-segment" role="group" aria-label="Advisor answer style">
-              {[
-                { mode: 'panel', icon: <Users size={14} />, label: 'Panel' },
-                { mode: 'aggregated', icon: <Sparkles size={14} />, label: 'Combined' },
-              ].map(({ mode, icon, label }) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={responseMode === mode}
-                  className={responseMode === mode ? 'is-active' : ''}
-                  onClick={() => onResponseModeChange?.(mode)}
-                >
-                  {icon} {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="chat-more-section chat-more-advisors">
-            <AdvisorSidebarPicker thinkingAdvisors={thinkingAdvisors} dialogInset={dialogInset} />
-          </div>
-
+        <div className="chat-more-menu" role="menu">
           <div className="chat-more-section">
             <button type="button" className="chat-more-item" role="menuitem" onClick={run(onSearchChats)}>
               <Search size={15} /> Search chats
-            </button>
-            <button type="button" className="chat-more-item" role="menuitem" onClick={run(onOpenCanvas)}>
-              <FileText size={15} /> {canvasLabel}
             </button>
             <button type="button" className="chat-more-item" role="menuitem" onClick={run(onOpenGuide)}>
               <CircleHelp size={15} /> User guide
