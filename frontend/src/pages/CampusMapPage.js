@@ -638,7 +638,11 @@ const CampusMapPage = () => {
                             <span className="map-row-name">{place.name}</span>
                             <span className="map-row-hours">{hoursLine(place, timezone)}</span>
                           </span>
-                          {typeof place.walk_minutes === 'number' && (
+                          {place.walk_minutes === 0 && place.distance_m === 0 ? (
+                            <span className="map-row-walk">
+                              <span className="map-row-distance">Your starting place</span>
+                            </span>
+                          ) : typeof place.walk_minutes === 'number' && (
                             <span className="map-row-walk">
                               <span className="map-row-minutes">{place.walk_minutes} min</span>
                               {typeof place.distance_m === 'number' && (

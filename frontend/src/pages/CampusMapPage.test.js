@@ -266,3 +266,16 @@ test('Open in OpenStreetMap opens walking directions in a new tab', async () => 
     'https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=43.076600,-89.401200;43.075100,-89.398400',
   );
 });
+
+test('the starting place\'s own row reads "Your starting place", not 0 min', async () => {
+  campus.listPlaces.mockImplementation((token, params) => {
+    const data = placesResponse(params);
+    const here = { ...ORIGIN, hours: null, open_now: null, open_until: null, walk_minutes: 0, distance_m: 0 };
+    return Promise.resolve({ ...data, places: [here, ...data.places] });
+  });
+  renderPage();
+  await screen.findByText('Nearest open library');
+  const row = rowButton('College Library');
+  expect(within(row).getByText('Your starting place')).toBeInTheDocument();
+  expect(within(row).queryByText('0 min')).not.toBeInTheDocument();
+});
