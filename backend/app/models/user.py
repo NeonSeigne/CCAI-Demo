@@ -76,6 +76,8 @@ class User(BaseModel):
     academicStage: Optional[str] = None
     researchArea: Optional[str] = None
     disabled_advisors: Optional[List[str]] = None
+    # Campus place id the Events and Campus map pages start from (per school database).
+    campus_origin: Optional[str] = None
     llm_config: Optional[UserLLMConfig] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
