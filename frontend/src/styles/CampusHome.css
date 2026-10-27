@@ -8,20 +8,27 @@
   font-family: var(--font-app);
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
+/* .sr-only lives in brand-tokens.css. */
 
 /* Keyboard focus in the app's ink, not the browser's default blue. The ask
    box shows focus on its border instead (.campus-ask:focus-within). */
 .campus-home :focus-visible:not(textarea) {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
+}
+
+/* Recent chats sit at the top of the page on phones, where the rail is hidden (26A). */
+.campus-phone-recent { display: none; }
+
+@media (max-width: 767px) {
+  .campus-home { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .campus-phone-recent {
+    display: flex;
+    padding: 12px 8px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--paper);
+  }
 }
 
 /* ---- Main column --------------------------------------------------------- */
@@ -248,8 +255,6 @@
 }
 
 @media (max-width: 640px) {
-  .campus-home .campus-rail { flex-basis: 100%; width: 100%; border-right: 0; border-bottom: 1px solid var(--line); }
-  .campus-home .campus-recent { display: none; }
   .campus-main { padding: 32px 16px 48px; }
   /* Time keeps its column; the title wraps to two lines and the button sits
      under it, so every row has the same shape whatever the title length. */

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUp } from 'lucide-react';
-import CampusRail from '../components/CampusRail';
+import CampusRail, { RecentChats, useRecentChats } from '../components/CampusRail';
 import { DOMAIN_COLORS } from '../components/domainColors';
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -30,6 +30,7 @@ const HomePage = () => {
   const [today, setToday] = useState({ loading: true, events: [], error: null });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const inputRef = useRef(null);
+  const recent = useRecentChats(authToken);
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
@@ -77,6 +78,7 @@ const HomePage = () => {
   return (
     <div className="campus-home">
       <CampusRail
+        recent={recent}
         onNewChat={() => navigate('/chat', { state: { startNew: true } })}
         onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
         onShowAllChats={() => navigate('/search')}
@@ -84,8 +86,16 @@ const HomePage = () => {
         onSignOut={handleSignOutClick}
       />
 
-      <main className="campus-main">
+      <main className="campus-main" id="main-content">
         <div className="campus-column">
+          {/* Phones only: the rail is hidden, so recent chats lead the page (26A). */}
+          <section className="campus-phone-recent" aria-label="Recent chats">
+            <RecentChats
+              recent={recent}
+              onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
+              onShowAllChats={() => navigate('/search')}
+            />
+          </section>
           <header className="campus-hero">
             <p className="campus-kicker">{school} · {todayLabel(timezone)}</p>
             <h1>What do you need on campus today?</h1>
