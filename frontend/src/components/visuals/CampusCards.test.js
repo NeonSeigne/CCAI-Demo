@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import EventListCard, { createEventIcs, formatEventRange, formatEventTime, hasPhysicalLocation } from './EventListCard';
+import EventListCard, { formatEventRange, formatEventTime, hasPhysicalLocation } from './EventListCard';
 import PlaceCard from './PlaceCard';
 import SourcesChecked from './SourcesChecked';
 
@@ -67,15 +67,6 @@ test('events that started earlier show their hours; multi-day runs show the end 
   const exhibit = { start: '2026-10-01T10:00:00-05:00', end: '2026-11-30T17:00:00-06:00', ongoing: true };
   expect(formatEventRange(exhibit, tz)).toBe('Until Nov 30');
   expect(formatEventRange({ ...today, all_day: true }, tz)).toBe('All day');
-});
-
-test('calendar file holds one event with escaped text', () => {
-  const ics = createEventIcs({ ...EVENT, title: 'Jazz, Blues; Night' });
-  expect(ics).toContain('BEGIN:VEVENT');
-  expect(ics).toContain('DTSTART:20261028T010000Z');
-  expect(ics).toContain('SUMMARY:Jazz\\, Blues\\; Night');
-  expect(ics).toContain('LOCATION:Macky Auditorium');
-  expect(createEventIcs({ ...EVENT, all_day: true })).toMatch(/DTSTART;VALUE=DATE:\d{8}/);
 });
 
 test('place without an origin shows its kind and no walk', () => {

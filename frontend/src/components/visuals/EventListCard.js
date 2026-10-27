@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarDays, ExternalLink } from 'lucide-react';
+import { downloadEventIcs } from '../../utils/ics';
 
 const timeOptions = (timezone) => ({
   hour: 'numeric',
@@ -60,46 +61,6 @@ function dateParts(event, timezone) {
   }
 }
 
-const icsStamp = (iso) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
-const icsText = (value = '') => String(value)
-  .replace(/\\/g, '\\\\')
-  .replace(/\r?\n|\r/g, '\\n')
-  .replace(/,/g, '\\,')
-  .replace(/;/g, '\\;');
-
-/** A one-event .ics file; all-day events use DATE values so no clock time shows. */
-export function createEventIcs(event) {
-  const timed = !event.all_day && event.start;
-  const day = (iso) => new Date(iso).toISOString().slice(0, 10).replace(/-/g, '');
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Campus Companion//Events//EN',
-    'BEGIN:VEVENT',
-    `UID:${icsStamp(event.start)}-${icsText(event.title).slice(0, 40)}@campus-companion`,
-    `DTSTAMP:${icsStamp(Date.now())}`,
-    timed ? `DTSTART:${icsStamp(event.start)}` : `DTSTART;VALUE=DATE:${day(event.start)}`,
-    ...(timed && event.end ? [`DTEND:${icsStamp(event.end)}`] : []),
-    `SUMMARY:${icsText(event.title)}`,
-    ...(event.location ? [`LOCATION:${icsText(event.location)}`] : []),
-    ...(event.url ? [`URL:${event.url}`] : []),
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ];
-  return lines.join('\r\n');
-}
-
-function downloadIcs(event) {
-  const blob = new Blob([createEventIcs(event)], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = `${String(event.title || 'event').replace(/[^\w]+/g, '-').slice(0, 60)}.ics`;
-  anchor.click();
-  // Revoking right away can cancel the download in Safari and Firefox.
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 /** Events found by events_search, one card each, rendered from the tool result itself. */
 export default function EventListCard({ visual, onAsk }) {
   const events = visual?.events || [];
@@ -131,7 +92,7 @@ export default function EventListCard({ visual, onAsk }) {
               </div>
               <div className="cc-event-actions">
                 {event.start && (
-                  <button type="button" className="cc-ink-btn" onClick={() => downloadIcs(event)}>
+                  <button type="button" className="cc-ink-btn" onClick={() => downloadEventIcs(event)}>
                     Add to calendar
                   </button>
                 )}
