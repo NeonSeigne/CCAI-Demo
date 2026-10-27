@@ -40,6 +40,13 @@ academics:
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_spring.csv"
     refresh_hours: 24
 
+campus:
+  # OpenStreetMap campus area for scripts/import_places.py (amenity=university).
+  osm_area:
+    type: relation
+    id: 4218705
+  places_file: places.geojson
+
 student_life:
   # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
   # for every event, whatever the feed's own header says.
@@ -48,6 +55,8 @@ student_life:
       name: "UVA Events Calendar"
 
 tools:
+  find_place:
+    enabled: true
   events_search:
     enabled: true
     max_results: 15

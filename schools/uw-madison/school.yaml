@@ -9,6 +9,13 @@ school:
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
 
+campus:
+  # OpenStreetMap campus area for scripts/import_places.py (amenity=university).
+  osm_area:
+    type: relation
+    id: 7144092
+  places_file: places.geojson
+
 student_life:
   # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
   # for every event, whatever the feed's own header says.
@@ -17,6 +24,8 @@ student_life:
       name: "UW–Madison Today"
 
 tools:
+  find_place:
+    enabled: true
   events_search:
     enabled: true
     max_results: 15

@@ -1,0 +1,5172 @@
+{
+ "type": "FeatureCollection",
+ "source": "OpenStreetMap contributors (ODbL), via Overpass API",
+ "osm_area": "relation/7144092",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4146772,
+     43.073705
+    ]
+   },
+   "properties": {
+    "name": "1610 University Ave.",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153660098"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4179169,
+     43.0757184
+    ]
+   },
+   "properties": {
+    "name": "1910 Linden Dr.",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37691885"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.418806,
+     43.0759006
+    ]
+   },
+   "properties": {
+    "name": "1932 Linden Drive",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/907777252"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4017865,
+     43.0713408
+    ]
+   },
+   "properties": {
+    "name": "206 Bernard Ct.",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/173996945"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4224291,
+     43.0753121
+    ]
+   },
+   "properties": {
+    "name": "502 Herrick Dr.",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38311318"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4131524,
+     43.0770482
+    ]
+   },
+   "properties": {
+    "name": "Agricultural Dean's Residence",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37965202"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4106932,
+     43.0747884
+    ]
+   },
+   "properties": {
+    "name": "Agricultural Engineering",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856046"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4166605,
+     43.0761129
+    ]
+   },
+   "properties": {
+    "name": "Agricultural Engineering Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37550804"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4102837,
+     43.0757297
+    ]
+   },
+   "properties": {
+    "name": "Agricultural Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953076"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.411607,
+     43.0763317
+    ]
+   },
+   "properties": {
+    "name": "Agricultural Heating Station",
+    "aliases": [
+     "Agricultural Bulletin Building"
+    ],
+    "category": "academic",
+    "osm": "way/38953058"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4152264,
+     43.0760305
+    ]
+   },
+   "properties": {
+    "name": "Animal Science Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37550805"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4394175,
+     43.0828664
+    ]
+   },
+   "properties": {
+    "name": "Apartment Services Office",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/36999138"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4389523,
+     43.0829956
+    ]
+   },
+   "properties": {
+    "name": "Apartment Services Warehouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/61758770"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3984731,
+     43.076321
+    ]
+   },
+   "properties": {
+    "name": "Armory and Gymnasium",
+    "aliases": [
+     "Red Gym"
+    ],
+    "category": "academic",
+    "osm": "way/37804098"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3952129,
+     43.0690522
+    ]
+   },
+   "properties": {
+    "name": "Art Lofts",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/102234779"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4029684,
+     43.0772459
+    ]
+   },
+   "properties": {
+    "name": "Arthur D. Hasler Laboratory of Limnology",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37749302"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4134778,
+     43.0688831
+    ]
+   },
+   "properties": {
+    "name": "Athletic Operations Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/175344876"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.406935,
+     43.0707362
+    ]
+   },
+   "properties": {
+    "name": "Atmospheric & Oceanic Sciences",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153660089"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4136728,
+     43.0747649
+    ]
+   },
+   "properties": {
+    "name": "Babcock Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856035"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.420074,
+     43.0770571
+    ]
+   },
+   "properties": {
+    "name": "Bakke Recreation & Wellbeing Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/916831421"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4070042,
+     43.0748414
+    ]
+   },
+   "properties": {
+    "name": "Bardeen Medical Laboratories",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855411"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4043804,
+     43.0753775
+    ]
+   },
+   "properties": {
+    "name": "Bascom Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/17672451"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4418902,
+     43.0828127
+    ]
+   },
+   "properties": {
+    "name": "Bernie's Place",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/300842389"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4224968,
+     43.0760046
+    ]
+   },
+   "properties": {
+    "name": "Biotron Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37691896"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4038503,
+     43.0744005
+    ]
+   },
+   "properties": {
+    "name": "Birge Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855394"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4037958,
+     43.0742224
+    ]
+   },
+   "properties": {
+    "name": "Botany Greenhouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39201160"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4075119,
+     43.0746393
+    ]
+   },
+   "properties": {
+    "name": "Bradley Memorial Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855410"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4062412,
+     43.0726315
+    ]
+   },
+   "properties": {
+    "name": "Brogden Psychology Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153063309"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4390055,
+     43.0868567
+    ]
+   },
+   "properties": {
+    "name": "Brown Shelter",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/36981717"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4102175,
+     43.0696493
+    ]
+   },
+   "properties": {
+    "name": "Camp Randall Stockade",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/720057188"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4050512,
+     43.0761165
+    ]
+   },
+   "properties": {
+    "name": "Carillon Tower",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/158973590"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4188864,
+     43.0784639
+    ]
+   },
+   "properties": {
+    "name": "Carl Schuman Shelter",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/174825275"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4054421,
+     43.0739483
+    ]
+   },
+   "properties": {
+    "name": "Chamberlin Hall",
+    "aliases": [
+     "Thomas C. Chamberlin Hall"
+    ],
+    "category": "academic",
+    "osm": "way/39201159"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3987712,
+     43.0739028
+    ]
+   },
+   "properties": {
+    "name": "Chazen Museum of Art",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/295708135",
+    "hours": "Mo-Fr 10:00-19:00; Sa,Su 11:00-17:00; PH off"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4048877,
+     43.072715
+    ]
+   },
+   "properties": {
+    "name": "Chemistry Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153060482"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4066496,
+     43.0715483
+    ]
+   },
+   "properties": {
+    "name": "Computer Sceinces Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153660099"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3994226,
+     43.0739047
+    ]
+   },
+   "properties": {
+    "name": "Conrad A. Elvehjem Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/18849422"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4125076,
+     43.0748172
+    ]
+   },
+   "properties": {
+    "name": "D.C. Smith Greenhouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856039"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4184279,
+     43.0746714
+    ]
+   },
+   "properties": {
+    "name": "Dairy Barn",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38263368"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4171271,
+     43.0748475
+    ]
+   },
+   "properties": {
+    "name": "Dairy Cattle Instruction & Research Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38263360"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4109896,
+     43.0743339
+    ]
+   },
+   "properties": {
+    "name": "DeLuca Biochemical Sciences Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/173506603"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4109129,
+     43.0738393
+    ]
+   },
+   "properties": {
+    "name": "DeLuca Biochemistry Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/412585896"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4120236,
+     43.0741385
+    ]
+   },
+   "properties": {
+    "name": "DeLuca Biochemistry Laboratories",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37516023"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4364655,
+     43.088337
+    ]
+   },
+   "properties": {
+    "name": "Eagle Heights Community Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/36969789",
+    "hours": "Mo,Tu,Th,Fr 08:00-18:00; We 08:00-20:00; Sa 09:30-12:30; Su off"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4022961,
+     43.0757744
+    ]
+   },
+   "properties": {
+    "name": "Education Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37751914"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4032411,
+     43.0718182
+    ]
+   },
+   "properties": {
+    "name": "Educational Sciences",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153640720"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4134224,
+     43.0727269
+    ]
+   },
+   "properties": {
+    "name": "Engineering Centers Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/56997836"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4102901,
+     43.0717866
+    ]
+   },
+   "properties": {
+    "name": "Engineering Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/56997838"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4116269,
+     43.0726022
+    ]
+   },
+   "properties": {
+    "name": "Engineering Research Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/56997837"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3996742,
+     43.0688818
+    ]
+   },
+   "properties": {
+    "name": "Environmental Health and Safety Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/102234778"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4153727,
+     43.0737553
+    ]
+   },
+   "properties": {
+    "name": "Enzyme Institute",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153660095"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.397895,
+     43.0742176
+    ]
+   },
+   "properties": {
+    "name": "Extension Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/101606150"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4052908,
+     43.0688696
+    ]
+   },
+   "properties": {
+    "name": "Fleet and Service Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/172980981"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3965273,
+     43.0728115
+    ]
+   },
+   "properties": {
+    "name": "Fluno Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/103242254"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.40936,
+     43.0738379
+    ]
+   },
+   "properties": {
+    "name": "Genetics-Biotechnology Center Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39015620"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4186986,
+     43.0789029
+    ]
+   },
+   "properties": {
+    "name": "Goodnight Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37862323"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3983128,
+     43.0712092
+    ]
+   },
+   "properties": {
+    "name": "Gordon Dining and Event Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/193492268"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4015625,
+     43.072683
+    ]
+   },
+   "properties": {
+    "name": "Grainger Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153060483"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4149699,
+     43.0757323
+    ]
+   },
+   "properties": {
+    "name": "Hanson Biomedical Sciences Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37550807"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4061827,
+     43.0685773
+    ]
+   },
+   "properties": {
+    "name": "Harlow Primate Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/172980982"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4304566,
+     43.0775464
+    ]
+   },
+   "properties": {
+    "name": "Health Sciences Learning Center",
+    "aliases": [
+     "HSLC"
+    ],
+    "category": "academic",
+    "osm": "way/107463323"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4013223,
+     43.0766533
+    ]
+   },
+   "properties": {
+    "name": "Helen C. White Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37749300"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4115736,
+     43.0760021
+    ]
+   },
+   "properties": {
+    "name": "Hiram Smith Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953056"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4112918,
+     43.0759871
+    ]
+   },
+   "properties": {
+    "name": "Hiram Smith Hall Annex",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953057"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4002104,
+     43.0769579
+    ]
+   },
+   "properties": {
+    "name": "Hoofers Sailing Club",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1292203496"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4161213,
+     43.0753946
+    ]
+   },
+   "properties": {
+    "name": "Horse Barn",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38019749"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4120038,
+     43.0747134
+    ]
+   },
+   "properties": {
+    "name": "Horticulture",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856040"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.405397,
+     43.0754966
+    ]
+   },
+   "properties": {
+    "name": "Ingraham Hall",
+    "aliases": [
+     "Mark H. Ingraham Hall"
+    ],
+    "category": "academic",
+    "osm": "way/38855397"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4050338,
+     43.0718368
+    ]
+   },
+   "properties": {
+    "name": "Integrative Biology Research Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/139958463"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4110874,
+     43.0697971
+    ]
+   },
+   "properties": {
+    "name": "Kellner Family Athletic Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1543013592"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4119647,
+     43.068968
+    ]
+   },
+   "properties": {
+    "name": "Kellner Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/175346221"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4108493,
+     43.0763111
+    ]
+   },
+   "properties": {
+    "name": "King Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953060"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3985429,
+     43.0697724
+    ]
+   },
+   "properties": {
+    "name": "LaBahn Arena",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/193494687"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4030159,
+     43.073699
+    ]
+   },
+   "properties": {
+    "name": "Lathrop Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39201161"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4023016,
+     43.0745223
+    ]
+   },
+   "properties": {
+    "name": "Law Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855393"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4015502,
+     43.0717776
+    ]
+   },
+   "properties": {
+    "name": "Levy Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1531310168"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4196168,
+     43.0759989
+    ]
+   },
+   "properties": {
+    "name": "Linden Drive Ramp",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/894733524"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4168545,
+     43.0757665
+    ]
+   },
+   "properties": {
+    "name": "Livestock Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37722267"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4033931,
+     43.0729439
+    ]
+   },
+   "properties": {
+    "name": "Luther Memorial Church",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/412588608"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3978569,
+     43.0767443
+    ]
+   },
+   "properties": {
+    "name": "Martin and Florence Below Alumni Center",
+    "aliases": [
+     "Below Alumni Center"
+    ],
+    "category": "academic",
+    "osm": "relation/18858953"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.411289,
+     43.0729946
+    ]
+   },
+   "properties": {
+    "name": "Materials Science and Engineering",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/60320800"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4089387,
+     43.074433
+    ]
+   },
+   "properties": {
+    "name": "McArdle Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39015616"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4270193,
+     43.077587
+    ]
+   },
+   "properties": {
+    "name": "McClimon Memorial Track Press Box",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/175121416"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4187497,
+     43.0759888
+    ]
+   },
+   "properties": {
+    "name": "Meat Science and Animal Biologics Discovery",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/490171328"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4124486,
+     43.0727666
+    ]
+   },
+   "properties": {
+    "name": "Mechanical Engineering Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/56997835"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4067418,
+     43.0747849
+    ]
+   },
+   "properties": {
+    "name": "Medical Sciences",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/172992066"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4073739,
+     43.0739947
+    ]
+   },
+   "properties": {
+    "name": "Medical Sciences Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/19566386"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4093769,
+     43.0710919
+    ]
+   },
+   "properties": {
+    "name": "Memorial Arch",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/382670809"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3998526,
+     43.076516
+    ]
+   },
+   "properties": {
+    "name": "Memorial Union",
+    "aliases": [
+     "Mem U",
+     "the Union"
+    ],
+    "category": "academic",
+    "osm": "relation/19355831"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4118711,
+     43.0757848
+    ]
+   },
+   "properties": {
+    "name": "Microbial Sciences Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855860"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4116201,
+     43.0747454
+    ]
+   },
+   "properties": {
+    "name": "Moore Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856041"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4066425,
+     43.0727725
+    ]
+   },
+   "properties": {
+    "name": "Morgridge Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1391651477"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4000516,
+     43.0741809
+    ]
+   },
+   "properties": {
+    "name": "Mosse Humanities Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/2075103"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4164393,
+     43.0745259
+    ]
+   },
+   "properties": {
+    "name": "Muscle & Meat Science Research Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38263351"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.401376,
+     43.0746195
+    ]
+   },
+   "properties": {
+    "name": "Music Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39201163"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4086931,
+     43.0757192
+    ]
+   },
+   "properties": {
+    "name": "Nancy Nicholas Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855398"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4045316,
+     43.0715311
+    ]
+   },
+   "properties": {
+    "name": "Noland Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/139958467"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4029424,
+     43.0756941
+    ]
+   },
+   "properties": {
+    "name": "North Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37751913"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4090154,
+     43.0747572
+    ]
+   },
+   "properties": {
+    "name": "Nutritional Sciences",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855842"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4245287,
+     43.0872107
+    ]
+   },
+   "properties": {
+    "name": "Picnic Point Beach House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/565639544"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4122427,
+     43.0745783
+    ]
+   },
+   "properties": {
+    "name": "Plant Sciences",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/173508078"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4124906,
+     43.0783038
+    ]
+   },
+   "properties": {
+    "name": "Porter Boathouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38019748"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4179168,
+     43.0761021
+    ]
+   },
+   "properties": {
+    "name": "Poultry Research Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37691887"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3987336,
+     43.0746337
+    ]
+   },
+   "properties": {
+    "name": "Pres House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/360719077"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3978386,
+     43.0762829
+    ]
+   },
+   "properties": {
+    "name": "Pyle Center",
+    "aliases": [
+     "University of Wisconsin Extension"
+    ],
+    "category": "academic",
+    "osm": "way/37965574"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4016635,
+     43.0759874
+    ]
+   },
+   "properties": {
+    "name": "Radio Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37723613"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.428005,
+     43.078434
+    ]
+   },
+   "properties": {
+    "name": "Rennebohm Hall",
+    "aliases": [
+     "UW Madison School of Pharmacy"
+    ],
+    "category": "academic",
+    "osm": "way/107463313"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4111304,
+     43.0748593
+    ]
+   },
+   "properties": {
+    "name": "Robert M. Bock Laboratories",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38856044"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4076332,
+     43.0762204
+    ]
+   },
+   "properties": {
+    "name": "Robert M. Lafollette School of Public Affairs",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953095"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4136424,
+     43.0755295
+    ]
+   },
+   "properties": {
+    "name": "Russell Laboratories",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37516020"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4069729,
+     43.0703389
+    ]
+   },
+   "properties": {
+    "name": "Rust-Schreiner Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/173499562"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3984006,
+     43.074654
+    ]
+   },
+   "properties": {
+    "name": "Saint Paul University Catholic Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/360719081"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4082044,
+     43.0742443
+    ]
+   },
+   "properties": {
+    "name": "School of Social Work Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39015624"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4011488,
+     43.0758712
+    ]
+   },
+   "properties": {
+    "name": "Science Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37723611"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4068812,
+     43.0744154
+    ]
+   },
+   "properties": {
+    "name": "Service Memorial Institute",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39015623"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4281324,
+     43.0776267
+    ]
+   },
+   "properties": {
+    "name": "Signe Skott Cooper Hall",
+    "aliases": [
+     "UW Madison School of Nursing"
+    ],
+    "category": "academic",
+    "osm": "way/174188355"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4112938,
+     43.0765172
+    ]
+   },
+   "properties": {
+    "name": "Soils Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38953059"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.403124,
+     43.0747956
+    ]
+   },
+   "properties": {
+    "name": "South Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39201168"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3966468,
+     43.072319
+    ]
+   },
+   "properties": {
+    "name": "Southeast Campus Ramp",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/103242253",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4054036,
+     43.0746201
+    ]
+   },
+   "properties": {
+    "name": "Sterling Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39201158"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4151499,
+     43.0748457
+    ]
+   },
+   "properties": {
+    "name": "Stock Pavilion",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37516017"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4098503,
+     43.0747857
+    ]
+   },
+   "properties": {
+    "name": "Stovall Building (Wisconsin State Laboratory of Hygiene)",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855843"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4093945,
+     43.0742635
+    ]
+   },
+   "properties": {
+    "name": "Taylor Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/39015618"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4036119,
+     43.0713149
+    ]
+   },
+   "properties": {
+    "name": "Teacher Education",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153640719"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3992352,
+     43.076888
+    ]
+   },
+   "properties": {
+    "name": "The BBQ Stand",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/565832280"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4054145,
+     43.0730119
+    ]
+   },
+   "properties": {
+    "name": "The Crossing",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/159531184"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4180229,
+     43.07527
+    ]
+   },
+   "properties": {
+    "name": "US Dairy Forage Research Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38019750"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4174692,
+     43.0736542
+    ]
+   },
+   "properties": {
+    "name": "UW Foundation",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/173503696"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4330849,
+     43.0754154
+    ]
+   },
+   "properties": {
+    "name": "UW Medical Foundation Centennial Building",
+    "aliases": [
+     "MFCB",
+     "UWMF"
+    ],
+    "category": "academic",
+    "osm": "way/108065778"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4081406,
+     43.0718282
+    ]
+   },
+   "properties": {
+    "name": "Union South",
+    "aliases": [
+     "South"
+    ],
+    "category": "academic",
+    "osm": "way/153660065",
+    "hours": "Su-Th 07:00-24:00; Fr-Sa 07:00-01:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4087827,
+     43.0741322
+    ]
+   },
+   "properties": {
+    "name": "University Avenue Ramp",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/175146005"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3992998,
+     43.0745838
+    ]
+   },
+   "properties": {
+    "name": "University Club",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/18793475"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4068903,
+     43.0755805
+    ]
+   },
+   "properties": {
+    "name": "Van Hise Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37727228"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.404865,
+     43.0748129
+    ]
+   },
+   "properties": {
+    "name": "Van Vleck Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/19576438"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4311096,
+     43.0745273
+    ]
+   },
+   "properties": {
+    "name": "Veterans Administration Hospital",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/870590630"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4207475,
+     43.0758639
+    ]
+   },
+   "properties": {
+    "name": "Veterinary Medicine North",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/17899257"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.420272,
+     43.0751298
+    ]
+   },
+   "properties": {
+    "name": "Veterinary Medicine South",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38019751"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3997957,
+     43.0726588
+    ]
+   },
+   "properties": {
+    "name": "Vilas Communication Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153060489"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4240759,
+     43.0760167
+    ]
+   },
+   "properties": {
+    "name": "Walnut Street Greenhouses",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37748615"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4242948,
+     43.074329
+    ]
+   },
+   "properties": {
+    "name": "Walnut Street Heating & Cooling Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38311386"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4089491,
+     43.0761909
+    ]
+   },
+   "properties": {
+    "name": "Washburn Observatory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37751417"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4019057,
+     43.0771101
+    ]
+   },
+   "properties": {
+    "name": "Water Science & Engineering Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37749299"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4062475,
+     43.0705451
+    ]
+   },
+   "properties": {
+    "name": "Weeks Hall for Geological Sciences",
+    "aliases": [
+     "Weeks Hall"
+    ],
+    "category": "academic",
+    "osm": "relation/2071317"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.43317,
+     43.0892786
+    ]
+   },
+   "properties": {
+    "name": "Well #19",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/41783803"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4086344,
+     43.0714706
+    ]
+   },
+   "properties": {
+    "name": "Wendt Commons",
+    "aliases": [
+     "Kurt Frank Wendt Commons"
+    ],
+    "category": "academic",
+    "osm": "way/37257115"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4240246,
+     43.0750591
+    ]
+   },
+   "properties": {
+    "name": "West Campus Cogeneration Facility",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38311387"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4051982,
+     43.0765841
+    ]
+   },
+   "properties": {
+    "name": "William H. Sewell Social Sciences Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/37749296"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.408199,
+     43.0747861
+    ]
+   },
+   "properties": {
+    "name": "William S. Middleton Office Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38855412"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4260047,
+     43.0762755
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Alumni Research Foundation Office Building",
+    "aliases": [
+     "WARF Office Building"
+    ],
+    "category": "academic",
+    "osm": "way/37256547"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4139404,
+     43.0737599
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Energy Institute",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/193490363"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.408149,
+     43.0728192
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Institute for Discovery",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/21721799"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4319088,
+     43.0779822
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Institutes for Medical Research",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/175079855"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.406559,
+     43.069002
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin National Primate Research Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/172980984"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4069424,
+     43.0685932
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Primate Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/172980983"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4214047,
+     43.074427
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Veterinary Diagnostics Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/38311314"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3986082,
+     43.0740558
+    ]
+   },
+   "properties": {
+    "name": "Auditorium",
+    "aliases": [],
+    "category": "arts",
+    "osm": "way/783129314",
+    "hours": "Fr-Su unknown \"Only For Showings\""
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4002947,
+     43.0762294
+    ]
+   },
+   "properties": {
+    "name": "Fredric March Play Circle",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/5448561145"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3979805,
+     43.0736696
+    ]
+   },
+   "properties": {
+    "name": "Hamel Music Center",
+    "aliases": [],
+    "category": "arts",
+    "osm": "way/484383229"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3993651,
+     43.0729664
+    ]
+   },
+   "properties": {
+    "name": "Mitchell Theater",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/5584566094"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.400369,
+     43.0767983
+    ]
+   },
+   "properties": {
+    "name": "Shannon Hall",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/5448561144"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4078259,
+     43.0717715
+    ]
+   },
+   "properties": {
+    "name": "The Marquee",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/2969024345"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4076565,
+     43.0731663
+    ]
+   },
+   "properties": {
+    "name": "Aldo's Cafe",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522840410",
+    "hours": "Mo-Fr 07:00-17:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3999383,
+     43.0768073
+    ]
+   },
+   "properties": {
+    "name": "Brat Stand",
+    "aliases": [],
+    "category": "dining",
+    "osm": "way/565832283"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4010003,
+     43.0723125
+    ]
+   },
+   "properties": {
+    "name": "Capital Cafe",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/5584566095"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988161,
+     43.0740488
+    ]
+   },
+   "properties": {
+    "name": "Chazen Cafe",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/12757595298",
+    "hours": "Mo-Fr 08:30-14:30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3998306,
+     43.0763301
+    ]
+   },
+   "properties": {
+    "name": "Der Rathskeller",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522802450"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4097802,
+     43.0719447
+    ]
+   },
+   "properties": {
+    "name": "E2 - Engineering Eatery",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2178448357"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3977239,
+     43.0747963
+    ]
+   },
+   "properties": {
+    "name": "Eat the Best Pizza",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/3451966921",
+    "hours": "Mo-Su 12:00-00:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4178509,
+     43.0779167
+    ]
+   },
+   "properties": {
+    "name": "Four Lakes Market",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/3702223839"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4082041,
+     43.0719204
+    ]
+   },
+   "properties": {
+    "name": "Ginger Root",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2969013747"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4081263,
+     43.0718851
+    ]
+   },
+   "properties": {
+    "name": "Harvest Grains",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2969012433"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4038985,
+     43.0723321
+    ]
+   },
+   "properties": {
+    "name": "Java Den",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522840408"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3980206,
+     43.0747968
+    ]
+   },
+   "properties": {
+    "name": "MOKA",
+    "aliases": [],
+    "category": "dining",
+    "osm": "way/1430461217"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988919,
+     43.0728421
+    ]
+   },
+   "properties": {
+    "name": "Milio's",
+    "aliases": [
+     "Milio's Sandwiches"
+    ],
+    "category": "dining",
+    "osm": "node/5584566088",
+    "hours": "Su-We 10:00-24:00; Th-Sa 10:00-03:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3992281,
+     43.0761945
+    ]
+   },
+   "properties": {
+    "name": "Peet's Coffee",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/5448561146"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4079064,
+     43.0719557
+    ]
+   },
+   "properties": {
+    "name": "Prairie Fire",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2969000796"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4093442,
+     43.0731951
+    ]
+   },
+   "properties": {
+    "name": "QQ Express",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522840411",
+    "hours": "Mo-Fr 10:30-21:30; Sa-Su 11:00-21:30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4016612,
+     43.0739968
+    ]
+   },
+   "properties": {
+    "name": "Rheta's Market",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/13929143204",
+    "hours": "Mo-Fr 07:00-20:00; Sa off; Su 11:00-14:00,16:00-20:00; May 15-Sep 01 07:00-09:00,11:00-13:30,16:30-18:30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4056532,
+     43.0720139
+    ]
+   },
+   "properties": {
+    "name": "Saigon Sandwich",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/14313871765"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.398256,
+     43.0730215
+    ]
+   },
+   "properties": {
+    "name": "Senjoy",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/5584566086",
+    "hours": "Mo-Su 11:00-21:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4033849,
+     43.0729329
+    ]
+   },
+   "properties": {
+    "name": "Slow Food UW Student Cafe",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2768622488",
+    "hours": "Mo 18:15-20:00; We 11:30-13:30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4080244,
+     43.0718283
+    ]
+   },
+   "properties": {
+    "name": "South Cantina",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2969004826"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4077414,
+     43.072596
+    ]
+   },
+   "properties": {
+    "name": "Steenbock's",
+    "aliases": [
+     "Steenbock's on Orchard"
+    ],
+    "category": "dining",
+    "osm": "node/2522840409",
+    "hours": "Mo-Fr 11:00-19:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.399408,
+     43.0764595
+    ]
+   },
+   "properties": {
+    "name": "Strada",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522802448",
+    "hours": "Su-Th 11:00-21:00; Fr,Sa 11:00-22:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4092323,
+     43.07319
+    ]
+   },
+   "properties": {
+    "name": "Subway",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522840412",
+    "hours": "Mo-Th 07:00-20:30; Fr 07:00-20:00; Sa-Su 10:00-19:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4177062,
+     43.0775978
+    ]
+   },
+   "properties": {
+    "name": "The Bean and Creamery at Four Lakes Market",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/3702223841"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988893,
+     43.0730379
+    ]
+   },
+   "properties": {
+    "name": "Valentia Coffee",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2522840402",
+    "hours": "Mo-Fr 07:00-15:00; Sa,Su 07:00-14:00; May 15 - Sep 1 Mo-Fr 07:00-14:00; May 15 - Sep 1 Sa-Su 08:00-13:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4333691,
+     43.0767853
+    ]
+   },
+   "properties": {
+    "name": "American Family Children's Hospital",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/107463303",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4321249,
+     43.076383
+    ]
+   },
+   "properties": {
+    "name": "UW Health University Hospital",
+    "aliases": [
+     "UW Hospitals and Clinics"
+    ],
+    "category": "health",
+    "osm": "way/870590639",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4315328,
+     43.0761367
+    ]
+   },
+   "properties": {
+    "name": "University Hospital Outpatient Pharmacy",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/6886520174",
+    "hours": "09:00-17:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4339729,
+     43.0784528
+    ]
+   },
+   "properties": {
+    "name": "Waisman Center",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/107463295",
+    "hours": "Mo-Fr 09:00-17:00; Sa,Su off"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988828,
+     43.0723166
+    ]
+   },
+   "properties": {
+    "name": "Walgreens",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/2522840407",
+    "hours": "07:00-23:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4120216,
+     43.0778725
+    ]
+   },
+   "properties": {
+    "name": "Adams Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/173710620"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4146778,
+     43.0781182
+    ]
+   },
+   "properties": {
+    "name": "Allen D. Conover Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37902549"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4022091,
+     43.0736794
+    ]
+   },
+   "properties": {
+    "name": "Barnard Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/39201162"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4164469,
+     43.077971
+    ]
+   },
+   "properties": {
+    "name": "Bradley Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37862321"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.411322,
+     43.0771467
+    ]
+   },
+   "properties": {
+    "name": "Carson Gulley Center",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/38953112"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4012799,
+     43.0738145
+    ]
+   },
+   "properties": {
+    "name": "Chadbourne Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/39201164"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4153678,
+     43.078259
+    ]
+   },
+   "properties": {
+    "name": "Chamberlin House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37862319"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4149747,
+     43.0773697
+    ]
+   },
+   "properties": {
+    "name": "Cole Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37970663"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4177019,
+     43.0778463
+    ]
+   },
+   "properties": {
+    "name": "Dejope Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/173709889"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4129625,
+     43.0780638
+    ]
+   },
+   "properties": {
+    "name": "Gilman House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37970666"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.403675,
+     43.0724649
+    ]
+   },
+   "properties": {
+    "name": "Grand Central",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/153640727"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4141347,
+     43.0781173
+    ]
+   },
+   "properties": {
+    "name": "Grant Showerman Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/38060695"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4144381,
+     43.0778414
+    ]
+   },
+   "properties": {
+    "name": "Holt Center",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/38226215"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4129639,
+     43.0775038
+    ]
+   },
+   "properties": {
+    "name": "Humphrey Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/38060693"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4157003,
+     43.0780155
+    ]
+   },
+   "properties": {
+    "name": "Jones House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37550631"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4133256,
+     43.077726
+    ]
+   },
+   "properties": {
+    "name": "Jorns Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/38060694"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4141271,
+     43.0775895
+    ]
+   },
+   "properties": {
+    "name": "Leopold Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/193571969"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4134542,
+     43.077992
+    ]
+   },
+   "properties": {
+    "name": "Mack House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37970664"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4059584,
+     43.0720048
+    ]
+   },
+   "properties": {
+    "name": "Meiklejohn House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/173500044"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4014395,
+     43.0707615
+    ]
+   },
+   "properties": {
+    "name": "Merit Residence Hall",
+    "aliases": [
+     "Merit House"
+    ],
+    "category": "housing",
+    "osm": "way/102201656"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3999608,
+     43.0705647
+    ]
+   },
+   "properties": {
+    "name": "Ogg Residence Hall",
+    "aliases": [
+     "Frederic Ogg Residence Hall"
+    ],
+    "category": "housing",
+    "osm": "way/107584430"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4180075,
+     43.0786165
+    ]
+   },
+   "properties": {
+    "name": "Phillips Residence Hall",
+    "aliases": [
+     "Friedrick Hall"
+    ],
+    "category": "housing",
+    "osm": "way/37862322"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3985746,
+     43.0743435
+    ]
+   },
+   "properties": {
+    "name": "Pres House Apartments",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/338130757"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3998605,
+     43.0716008
+    ]
+   },
+   "properties": {
+    "name": "Sellery Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/153640713"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4121895,
+     43.0771294
+    ]
+   },
+   "properties": {
+    "name": "Slichter Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37965212"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4003929,
+     43.0690574
+    ]
+   },
+   "properties": {
+    "name": "Smith Residence Hall",
+    "aliases": [
+     "Newell Smith Residence Hall"
+    ],
+    "category": "housing",
+    "osm": "way/102239119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4154352,
+     43.0775427
+    ]
+   },
+   "properties": {
+    "name": "Sullivan Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37550632"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4152548,
+     43.0779354
+    ]
+   },
+   "properties": {
+    "name": "Swenson House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37862320"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4109305,
+     43.077976
+    ]
+   },
+   "properties": {
+    "name": "Tripp Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/173710621"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4131516,
+     43.0784316
+    ]
+   },
+   "properties": {
+    "name": "Turner House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/37970665"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3983132,
+     43.072628
+    ]
+   },
+   "properties": {
+    "name": "University Square",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/153063316"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4069248,
+     43.0769676
+    ]
+   },
+   "properties": {
+    "name": "Waters Residence Hall",
+    "aliases": [
+     "Elizabeth Waters Residence Hall",
+     "Liz Waters"
+    ],
+    "category": "housing",
+    "osm": "way/37751511"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3967914,
+     43.0714649
+    ]
+   },
+   "properties": {
+    "name": "Witte Residence Hall",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/153630414"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4028248,
+     43.072923
+    ]
+   },
+   "properties": {
+    "name": "X01",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/360724943"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4009983,
+     43.0766467
+    ]
+   },
+   "properties": {
+    "name": "College Library",
+    "aliases": [
+     "Helen C.",
+     "Helen C. White"
+    ],
+    "category": "library",
+    "osm": "node/1173065967"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4297886,
+     43.0777498
+    ]
+   },
+   "properties": {
+    "name": "Ebling Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/3680614959"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4011389,
+     43.0756308
+    ]
+   },
+   "properties": {
+    "name": "Geography Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/2983015083"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3979775,
+     43.0753549
+    ]
+   },
+   "properties": {
+    "name": "Memorial Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "way/101606146",
+    "hours": "Mo-Fr 08:00-21:45; Sa,Su 10:00-21:45"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4010612,
+     43.0760579
+    ]
+   },
+   "properties": {
+    "name": "Robinson Map Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/2983015084"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4133308,
+     43.0761094
+    ]
+   },
+   "properties": {
+    "name": "Steenbock Memorial Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "way/37550815"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4000767,
+     43.0754043
+    ]
+   },
+   "properties": {
+    "name": "Wisconsin Historical Society",
+    "aliases": [],
+    "category": "library",
+    "osm": "way/37804099",
+    "hours": "May-Sep: Mo-Th 08:00-19:00; May-Sep: Fr,Sa 08:00-17:00; Sep-May: Mo-Th 08:00-21:00; Sep-May: Fr,Sa 08:00-17:00; PH closed"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988825,
+     43.072243
+    ]
+   },
+   "properties": {
+    "name": "Anytime Fitness",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "node/5584566092",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4126118,
+     43.0700456
+    ]
+   },
+   "properties": {
+    "name": "Camp Randall Stadium",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/1542809955"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4262843,
+     43.0778428
+    ]
+   },
+   "properties": {
+    "name": "Dan McClimon Memorial Track & Soccer Complex",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/119881009"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4126868,
+     43.0686352
+    ]
+   },
+   "properties": {
+    "name": "Field House",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/175346220"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3968712,
+     43.0694084
+    ]
+   },
+   "properties": {
+    "name": "Kohl Center",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/49982700"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4119745,
+     43.070988
+    ]
+   },
+   "properties": {
+    "name": "McClain Athletic Facility",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/58675200"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3982831,
+     43.070537
+    ]
+   },
+   "properties": {
+    "name": "Nicholas Recreation Center",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/1000383053"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3979821,
+     43.0693408
+    ]
+   },
+   "properties": {
+    "name": "Nicholas-Johnson Pavilion and Plaza",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/175151219"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4302761,
+     43.0795756
+    ]
+   },
+   "properties": {
+    "name": "Nielsen Tennis Stadium",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/38064535"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4128772,
+     43.0753013
+    ]
+   },
+   "properties": {
+    "name": "Babcock & Linden (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/439726515"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4111529,
+     43.0732042
+    ]
+   },
+   "properties": {
+    "name": "Campus & Babcock (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/434091082"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4349325,
+     43.0862538
+    ]
+   },
+   "properties": {
+    "name": "Eagle Heights & Lot E (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/431368596"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4365082,
+     43.0862069
+    ]
+   },
+   "properties": {
+    "name": "Eagle Heights & Lot F (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/432770749"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4417053,
+     43.0866726
+    ]
+   },
+   "properties": {
+    "name": "Eagle Heights & Lot M (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/435821603"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.438669,
+     43.0863108
+    ]
+   },
+   "properties": {
+    "name": "Eagle Heights & Shelter (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/429881317"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3987163,
+     43.0719895
+    ]
+   },
+   "properties": {
+    "name": "East Campus",
+    "aliases": [],
+    "category": "transit",
+    "osm": "way/1310762534"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4301269,
+     43.0783185
+    ]
+   },
+   "properties": {
+    "name": "Highland & Marsh (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/445916576"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4310379,
+     43.0788595
+    ]
+   },
+   "properties": {
+    "name": "Highland & Marsh (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/3801168133"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4289345,
+     43.0775145
+    ]
+   },
+   "properties": {
+    "name": "Highland & Observatory (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/1848954669"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4291532,
+     43.0766192
+    ]
+   },
+   "properties": {
+    "name": "Highland & Observatory (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/3026533251"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.434233,
+     43.0760726
+    ]
+   },
+   "properties": {
+    "name": "Highland & University Bay (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/10981191110"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4329957,
+     43.0782383
+    ]
+   },
+   "properties": {
+    "name": "Highland & Waisman (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/1850579229"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4335868,
+     43.0782045
+    ]
+   },
+   "properties": {
+    "name": "Highland & Waisman (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/1850579197"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4337116,
+     43.0863423
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & Eagle Heights (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/430034732"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.438253,
+     43.0891031
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & Lot N (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/435821604"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4370888,
+     43.0898139
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & Lot P (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693259681"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4356382,
+     43.0905033
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & Lot Q (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/434946054"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4337293,
+     43.0892748
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & Lot R (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/434946053"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4334902,
+     43.0843073
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & University Bay (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/431371497"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4337351,
+     43.0843032
+    ]
+   },
+   "properties": {
+    "name": "Lake Mendota & University Bay (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/430034733"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4000955,
+     43.0758003
+    ]
+   },
+   "properties": {
+    "name": "Langdon & N Park (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693553770"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4002826,
+     43.075932
+    ]
+   },
+   "properties": {
+    "name": "Langdon & N Park (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297032"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.41249,
+     43.0752462
+    ]
+   },
+   "properties": {
+    "name": "Linden & Babcock (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5692115107"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4099498,
+     43.0750795
+    ]
+   },
+   "properties": {
+    "name": "Linden & Henry (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449913"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4100218,
+     43.0751862
+    ]
+   },
+   "properties": {
+    "name": "Linden & Henry (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449911"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4063622,
+     43.0749391
+    ]
+   },
+   "properties": {
+    "name": "Linden & N Charter (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5691828125"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4075281,
+     43.075199
+    ]
+   },
+   "properties": {
+    "name": "Linden & N Charter (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5691828126"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4299244,
+     43.0788115
+    ]
+   },
+   "properties": {
+    "name": "Marsh & Highland (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461488633"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4267701,
+     43.0789683
+    ]
+   },
+   "properties": {
+    "name": "Marsh & Lot 60 (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/441517412"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4293017,
+     43.0790258
+    ]
+   },
+   "properties": {
+    "name": "Marsh & Lot 76 (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693232170"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4060983,
+     43.0740525
+    ]
+   },
+   "properties": {
+    "name": "N Charter & University (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693407740"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4063501,
+     43.073997
+    ]
+   },
+   "properties": {
+    "name": "N Charter & University (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449919"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4058293,
+     43.0723386
+    ]
+   },
+   "properties": {
+    "name": "N Charter at W Johnson",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297002"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3973248,
+     43.0730546
+    ]
+   },
+   "properties": {
+    "name": "N Lake & University (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693553773"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3973878,
+     43.0718513
+    ]
+   },
+   "properties": {
+    "name": "N Lake & W Johnson (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297080"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3975794,
+     43.0722611
+    ]
+   },
+   "properties": {
+    "name": "N Lake & W Johnson (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693553772"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4093757,
+     43.0699836
+    ]
+   },
+   "properties": {
+    "name": "N Monroe & Randall (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/10981541927"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4005276,
+     43.0746841
+    ]
+   },
+   "properties": {
+    "name": "N Park & State (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449928"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4006833,
+     43.0708137
+    ]
+   },
+   "properties": {
+    "name": "N Park at W Dayton",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693553776"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4089293,
+     43.0717767
+    ]
+   },
+   "properties": {
+    "name": "N Randall & Engineering (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/1859366363"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.409253,
+     43.0717927
+    ]
+   },
+   "properties": {
+    "name": "N Randall & Engineering (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297103"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4023584,
+     43.0723694
+    ]
+   },
+   "properties": {
+    "name": "North Brooks & West Johnson (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/10998035929"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4129554,
+     43.07638
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Babcock (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/439726516"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4132571,
+     43.0765308
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Babcock (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/439726517"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4037064,
+     43.0759603
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Bascom (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5691828128"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4162239,
+     43.0764104
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Elm (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/433483073"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4164225,
+     43.0765629
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Elm (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/433483074"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4283493,
+     43.0769914
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Highland (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/445916581"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4071531,
+     43.0766157
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Liz Waters (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693407739"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4056566,
+     43.0761222
+    ]
+   },
+   "properties": {
+    "name": "Observatory & N Charter (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5691828127"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4203231,
+     43.076451
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Natatorium (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/441517221"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4206394,
+     43.0766046
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Natatorium (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/2988956357"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4240917,
+     43.07645
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Walnut (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/433483072"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4262429,
+     43.0768566
+    ]
+   },
+   "properties": {
+    "name": "Observatory & Walnut (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/1848954661"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4070554,
+     43.0734486
+    ]
+   },
+   "properties": {
+    "name": "Orchard",
+    "aliases": [],
+    "category": "transit",
+    "osm": "way/1311341980"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3976363,
+     43.0715537
+    ]
+   },
+   "properties": {
+    "name": "UW-Madison Intercity Bus",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/7175265285"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.413335,
+     43.0733245
+    ]
+   },
+   "properties": {
+    "name": "University & N Breese (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5692115103"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.414277,
+     43.073517
+    ]
+   },
+   "properties": {
+    "name": "University & N Breese (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5692115104"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4043938,
+     43.0734306
+    ]
+   },
+   "properties": {
+    "name": "University & N Mills (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711296998"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4074955,
+     43.0735001
+    ]
+   },
+   "properties": {
+    "name": "University & N Orchard (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5691828124"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4340166,
+     43.0758107
+    ]
+   },
+   "properties": {
+    "name": "University Bay & Highland (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/10981191111"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4280824,
+     43.0802918
+    ]
+   },
+   "properties": {
+    "name": "University Bay & Lot 60 (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449904"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4283745,
+     43.0809452
+    ]
+   },
+   "properties": {
+    "name": "University Bay & Lot 76 (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449907"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4290581,
+     43.0843234
+    ]
+   },
+   "properties": {
+    "name": "University Bay & Picnic Point (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/431371498"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.428891,
+     43.0842959
+    ]
+   },
+   "properties": {
+    "name": "University Bay & Picnic Point (WB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461488634"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3999786,
+     43.0733712
+    ]
+   },
+   "properties": {
+    "name": "University at East Campus",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297042"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4070827,
+     43.070961
+    ]
+   },
+   "properties": {
+    "name": "W Dayton & N Orchard (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/711297072"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4000294,
+     43.0708755
+    ]
+   },
+   "properties": {
+    "name": "W Dayton & N Park (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/11016379017"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4037786,
+     43.070948
+    ]
+   },
+   "properties": {
+    "name": "W Dayton at N Mills",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/4207940120"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4037304,
+     43.0720604
+    ]
+   },
+   "properties": {
+    "name": "W Johnson & N Mills (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/461449923"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.407638,
+     43.0722612
+    ]
+   },
+   "properties": {
+    "name": "W Johnson & N Orchard (EB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/2968129986"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3981984,
+     43.0719698
+    ]
+   },
+   "properties": {
+    "name": "W Johnson at E Campus",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5693553777"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4252286,
+     43.0743394
+    ]
+   },
+   "properties": {
+    "name": "Walnut & G Pinchot (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/11016379020"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4249476,
+     43.0772586
+    ]
+   },
+   "properties": {
+    "name": "Walnut & Observatory (NB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/5692115108"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4252433,
+     43.076175
+    ]
+   },
+   "properties": {
+    "name": "Walnut & Observatory (SB)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/11016379019"
+   }
+  }
+ ]
+}

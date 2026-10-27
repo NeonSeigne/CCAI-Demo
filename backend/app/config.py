@@ -336,6 +336,12 @@ class StudentLifeConfig(BaseModel):
     refresh_minutes: int = 15
 
 
+class CampusConfig(BaseModel):
+    """Campus places for the find_place tool."""
+    osm_area: Dict[str, Any] = {}
+    places_file: str = ""
+
+
 class RAGConfig(BaseModel):
     embedding_model: str = "all-MiniLM-L6-v2"
     chroma_collection: str = "phd_advisor_documents"
@@ -418,6 +424,7 @@ class AppSettings(BaseModel):
     school: SchoolConfig = SchoolConfig()
     academics: AcademicsConfig = AcademicsConfig()
     student_life: StudentLifeConfig = StudentLifeConfig()
+    campus: CampusConfig = CampusConfig()
 
     @model_validator(mode="after")
     def _require_school_isolation(self):

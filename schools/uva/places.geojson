@@ -1,0 +1,7165 @@
+{
+ "type": "FeatureCollection",
+ "source": "OpenStreetMap contributors (ODbL), via Overpass API",
+ "osm_area": "relation/4218705",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5059974,
+     38.032393
+    ]
+   },
+   "properties": {
+    "name": "1 Dawson's Row",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528420"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5138707,
+     38.031832
+    ]
+   },
+   "properties": {
+    "name": "101",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403869"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5137703,
+     38.0317933
+    ]
+   },
+   "properties": {
+    "name": "102",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403876"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136442,
+     38.0317343
+    ]
+   },
+   "properties": {
+    "name": "103",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403874"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5135296,
+     38.0316772
+    ]
+   },
+   "properties": {
+    "name": "104",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403888"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5134203,
+     38.0315964
+    ]
+   },
+   "properties": {
+    "name": "105",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403873"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133071,
+     38.0315271
+    ]
+   },
+   "properties": {
+    "name": "106",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403871"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.51321,
+     38.0314436
+    ]
+   },
+   "properties": {
+    "name": "107",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403867"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5131206,
+     38.0313573
+    ]
+   },
+   "properties": {
+    "name": "108",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403866"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5130423,
+     38.0312636
+    ]
+   },
+   "properties": {
+    "name": "109",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403878"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129666,
+     38.031167
+    ]
+   },
+   "properties": {
+    "name": "110",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403877"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129003,
+     38.0310666
+    ]
+   },
+   "properties": {
+    "name": "111",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403875"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128586,
+     38.0309917
+    ]
+   },
+   "properties": {
+    "name": "112",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403890"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128211,
+     38.0308831
+    ]
+   },
+   "properties": {
+    "name": "113",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403879"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128549,
+     38.0307521
+    ]
+   },
+   "properties": {
+    "name": "114",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811100"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129823,
+     38.0306683
+    ]
+   },
+   "properties": {
+    "name": "115",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406579"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5131188,
+     38.0305767
+    ]
+   },
+   "properties": {
+    "name": "116",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406573"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5132494,
+     38.0304835
+    ]
+   },
+   "properties": {
+    "name": "117",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406571"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133638,
+     38.0304012
+    ]
+   },
+   "properties": {
+    "name": "118",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811101"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5135547,
+     38.0303839
+    ]
+   },
+   "properties": {
+    "name": "119",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406593"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4970665,
+     38.0323075
+    ]
+   },
+   "properties": {
+    "name": "11th Street Parking Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/221228138"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136645,
+     38.0304267
+    ]
+   },
+   "properties": {
+    "name": "120",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406591"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5137577,
+     38.0304684
+    ]
+   },
+   "properties": {
+    "name": "121",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406578"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5138758,
+     38.0305325
+    ]
+   },
+   "properties": {
+    "name": "122",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406576"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5139899,
+     38.0306019
+    ]
+   },
+   "properties": {
+    "name": "123",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406565"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5140946,
+     38.0306773
+    ]
+   },
+   "properties": {
+    "name": "124",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406562"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5141881,
+     38.0307638
+    ]
+   },
+   "properties": {
+    "name": "125",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406570"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5142785,
+     38.0308518
+    ]
+   },
+   "properties": {
+    "name": "126",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406559"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5143678,
+     38.0309419
+    ]
+   },
+   "properties": {
+    "name": "127",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406557"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144343,
+     38.0310383
+    ]
+   },
+   "properties": {
+    "name": "128",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406574"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5145012,
+     38.0311395
+    ]
+   },
+   "properties": {
+    "name": "129",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406563"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5145552,
+     38.0312431
+    ]
+   },
+   "properties": {
+    "name": "130",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406560"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5145861,
+     38.031328
+    ]
+   },
+   "properties": {
+    "name": "131",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406584"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5235247,
+     38.0480806
+    ]
+   },
+   "properties": {
+    "name": "2476 Old Ivy Road",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/129883758"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5135739,
+     38.0318859
+    ]
+   },
+   "properties": {
+    "name": "301",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411141"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5134657,
+     38.0318307
+    ]
+   },
+   "properties": {
+    "name": "302",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411142"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5127157,
+     38.0311033
+    ]
+   },
+   "properties": {
+    "name": "311",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411143"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5127191,
+     38.0307488
+    ]
+   },
+   "properties": {
+    "name": "313",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411144"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129042,
+     38.0305394
+    ]
+   },
+   "properties": {
+    "name": "315",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411145"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5131038,
+     38.0304012
+    ]
+   },
+   "properties": {
+    "name": "317",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411146"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133832,
+     38.0302789
+    ]
+   },
+   "properties": {
+    "name": "319",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411147"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5138219,
+     38.0303208
+    ]
+   },
+   "properties": {
+    "name": "321",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411148"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.514572,
+     38.0309077
+    ]
+   },
+   "properties": {
+    "name": "329",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411149"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.514699,
+     38.0310909
+    ]
+   },
+   "properties": {
+    "name": "330",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411150"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136174,
+     38.0320188
+    ]
+   },
+   "properties": {
+    "name": "501",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403891"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5135059,
+     38.0319621
+    ]
+   },
+   "properties": {
+    "name": "502",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403850"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.51339,
+     38.031903
+    ]
+   },
+   "properties": {
+    "name": "503",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403851"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133019,
+     38.0318466
+    ]
+   },
+   "properties": {
+    "name": "504",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403885"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5132113,
+     38.0317891
+    ]
+   },
+   "properties": {
+    "name": "505",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403868"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5130903,
+     38.0317054
+    ]
+   },
+   "properties": {
+    "name": "506",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811102"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129782,
+     38.0316035
+    ]
+   },
+   "properties": {
+    "name": "507",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406598"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512867,
+     38.0315136
+    ]
+   },
+   "properties": {
+    "name": "508",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811103"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5127734,
+     38.031397
+    ]
+   },
+   "properties": {
+    "name": "509",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406586"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.51271,
+     38.0313282
+    ]
+   },
+   "properties": {
+    "name": "510",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406589"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5126643,
+     38.0312488
+    ]
+   },
+   "properties": {
+    "name": "511",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406587"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512595,
+     38.0311506
+    ]
+   },
+   "properties": {
+    "name": "512",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406553"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5125192,
+     38.0310413
+    ]
+   },
+   "properties": {
+    "name": "513",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407642"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5124983,
+     38.0309343
+    ]
+   },
+   "properties": {
+    "name": "514",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407675"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5125036,
+     38.0308345
+    ]
+   },
+   "properties": {
+    "name": "515",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407639"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512525,
+     38.0307409
+    ]
+   },
+   "properties": {
+    "name": "516",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407678"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5125681,
+     38.0306513
+    ]
+   },
+   "properties": {
+    "name": "517",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407674"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5126382,
+     38.0305705
+    ]
+   },
+   "properties": {
+    "name": "518",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407643"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512759,
+     38.0304831
+    ]
+   },
+   "properties": {
+    "name": "519",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407644"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128991,
+     38.0303843
+    ]
+   },
+   "properties": {
+    "name": "520",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407667"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5130322,
+     38.0302877
+    ]
+   },
+   "properties": {
+    "name": "521",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407645"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5131533,
+     38.0302078
+    ]
+   },
+   "properties": {
+    "name": "522",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407640"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5132742,
+     38.030158
+    ]
+   },
+   "properties": {
+    "name": "523",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407679"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133887,
+     38.0301326
+    ]
+   },
+   "properties": {
+    "name": "524",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407666"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.513514,
+     38.0301302
+    ]
+   },
+   "properties": {
+    "name": "525",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407672"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136419,
+     38.0301357
+    ]
+   },
+   "properties": {
+    "name": "526",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407677"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5137743,
+     38.0301622
+    ]
+   },
+   "properties": {
+    "name": "527",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407641"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5139084,
+     38.0302351
+    ]
+   },
+   "properties": {
+    "name": "528",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407646"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5140227,
+     38.0302956
+    ]
+   },
+   "properties": {
+    "name": "529",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407676"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.514109,
+     38.0303447
+    ]
+   },
+   "properties": {
+    "name": "530",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407663"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5141986,
+     38.0304046
+    ]
+   },
+   "properties": {
+    "name": "531",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407662"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5143172,
+     38.0304935
+    ]
+   },
+   "properties": {
+    "name": "532",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811104"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144409,
+     38.0305923
+    ]
+   },
+   "properties": {
+    "name": "533",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339407661"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.514549,
+     38.0306965
+    ]
+   },
+   "properties": {
+    "name": "534",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4811105"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5146387,
+     38.0307983
+    ]
+   },
+   "properties": {
+    "name": "535",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406600"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5146989,
+     38.0308763
+    ]
+   },
+   "properties": {
+    "name": "536",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406602"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5147657,
+     38.0309455
+    ]
+   },
+   "properties": {
+    "name": "537",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339406599"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5148083,
+     38.0310535
+    ]
+   },
+   "properties": {
+    "name": "538",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403881"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5148645,
+     38.0311473
+    ]
+   },
+   "properties": {
+    "name": "539",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339403880"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.522501,
+     38.0366313
+    ]
+   },
+   "properties": {
+    "name": "Aerospace Research Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528477"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5226238,
+     38.0367644
+    ]
+   },
+   "properties": {
+    "name": "Aerospace Research Quonset #1",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528201"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5225263,
+     38.0367432
+    ]
+   },
+   "properties": {
+    "name": "Aerospace Research Storage Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528587"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5212714,
+     38.0368369
+    ]
+   },
+   "properties": {
+    "name": "Aersopace Research Quonset #2",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528572"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.521341,
+     38.0368064
+    ]
+   },
+   "properties": {
+    "name": "Aersopace Research Quonset #3",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528150"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5113365,
+     38.0321174
+    ]
+   },
+   "properties": {
+    "name": "Albert H. Small Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/341569773"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5213095,
+     38.0332408
+    ]
+   },
+   "properties": {
+    "name": "Alden House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528543"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5081309,
+     38.038213
+    ]
+   },
+   "properties": {
+    "name": "Alumni Hall - University of Virginia",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/9390079"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5075109,
+     38.0471462
+    ]
+   },
+   "properties": {
+    "name": "Arena Parking Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528465"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5077199,
+     38.0540695
+    ]
+   },
+   "properties": {
+    "name": "Army Judge Advocate General School",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4218680"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5151909,
+     38.035608
+    ]
+   },
+   "properties": {
+    "name": "Astronomy Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528604"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5093569,
+     38.0434499
+    ]
+   },
+   "properties": {
+    "name": "Athletic Village",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1049684295"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5018013,
+     38.033356
+    ]
+   },
+   "properties": {
+    "name": "Barringer Wing",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/5135386"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4973727,
+     38.0327792
+    ]
+   },
+   "properties": {
+    "name": "Battle Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/254297278"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5089073,
+     38.0346421
+    ]
+   },
+   "properties": {
+    "name": "Bavaro Hall / School of Education",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/240441117"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5089522,
+     38.0386574
+    ]
+   },
+   "properties": {
+    "name": "Bemiss House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528185"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5188567,
+     38.0289018
+    ]
+   },
+   "properties": {
+    "name": "Benjamin Franklin Dewees Runk Dining Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528590"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128,
+     38.033812
+    ]
+   },
+   "properties": {
+    "name": "Biology Greenhouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528246"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5010253,
+     38.030904
+    ]
+   },
+   "properties": {
+    "name": "Biomedical Engineering and Medical Science Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/344842951"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5021067,
+     38.0357878
+    ]
+   },
+   "properties": {
+    "name": "Brooks Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528321"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.50926,
+     38.0529052
+    ]
+   },
+   "properties": {
+    "name": "Brown Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528505"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5059206,
+     38.0332705
+    ]
+   },
+   "properties": {
+    "name": "Bryan Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339366926"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5041667,
+     38.0380556
+    ]
+   },
+   "properties": {
+    "name": "Buckingham House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "node/367992705"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5131104,
+     38.0526144
+    ]
+   },
+   "properties": {
+    "name": "C Ray Smith Alumni Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676195970"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503888,
+     38.0388514
+    ]
+   },
+   "properties": {
+    "name": "Campbell Hall - School of Architecture",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528176"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144301,
+     38.0326015
+    ]
+   },
+   "properties": {
+    "name": "Carl Smith Clock Tower",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1382902949"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5013886,
+     38.0497683
+    ]
+   },
+   "properties": {
+    "name": "Carruthers Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528400"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5009949,
+     38.0303821
+    ]
+   },
+   "properties": {
+    "name": "Carter-Harrison Research Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/19068641"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5074504,
+     38.036397
+    ]
+   },
+   "properties": {
+    "name": "Central Grounds Parking",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/342870532"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5107347,
+     38.0334431
+    ]
+   },
+   "properties": {
+    "name": "Chemical Engineering Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528542"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5117658,
+     38.0332393
+    ]
+   },
+   "properties": {
+    "name": "Chemistry Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528749"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5028516,
+     38.0385099
+    ]
+   },
+   "properties": {
+    "name": "Chi Phi",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528146"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5078698,
+     38.0330154
+    ]
+   },
+   "properties": {
+    "name": "Clark Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528589"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5014432,
+     38.0313247
+    ]
+   },
+   "properties": {
+    "name": "Claude Moore Medical Education Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/223462136"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.50218,
+     38.0312754
+    ]
+   },
+   "properties": {
+    "name": "Claude Moore Nursing Education Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/240403215"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5099969,
+     38.0529456
+    ]
+   },
+   "properties": {
+    "name": "Clay Hall and Caplin Pavilion",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676196030"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5061242,
+     38.0364732
+    ]
+   },
+   "properties": {
+    "name": "Clemons Library",
+    "aliases": [
+     "Clem",
+     "Clemons"
+    ],
+    "category": "academic",
+    "osm": "way/44528141"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5263889,
+     38.0252778
+    ]
+   },
+   "properties": {
+    "name": "Clinical Office Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "node/367992639"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4992987,
+     38.0330891
+    ]
+   },
+   "properties": {
+    "name": "Coal Unloading Facility",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528120"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029161,
+     38.0325988
+    ]
+   },
+   "properties": {
+    "name": "Cobb Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1290085119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5052043,
+     38.0334362
+    ]
+   },
+   "properties": {
+    "name": "Cocke Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339366927"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.514691,
+     38.0290941
+    ]
+   },
+   "properties": {
+    "name": "Commuter Permit",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339412745"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5087884,
+     38.0357015
+    ]
+   },
+   "properties": {
+    "name": "Contemplative Commons",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/17833317"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4999569,
+     38.03394
+    ]
+   },
+   "properties": {
+    "name": "Corner Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528258"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5041437,
+     38.0401711
+    ]
+   },
+   "properties": {
+    "name": "Culbreth Road Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/202761346"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5146568,
+     38.0531209
+    ]
+   },
+   "properties": {
+    "name": "Darden Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676195986"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5151567,
+     38.0533268
+    ]
+   },
+   "properties": {
+    "name": "Darden Graduate Housing A",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1527243337"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5139832,
+     38.0534836
+    ]
+   },
+   "properties": {
+    "name": "Darden Graduate Housing B",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1527243344"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5138088,
+     38.0537424
+    ]
+   },
+   "properties": {
+    "name": "Darden Parking Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528546"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5081952,
+     38.0340938
+    ]
+   },
+   "properties": {
+    "name": "Davis Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430118"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505444,
+     38.0316749
+    ]
+   },
+   "properties": {
+    "name": "Dean Commons",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153041027"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5099897,
+     38.0348305
+    ]
+   },
+   "properties": {
+    "name": "Dell Building 1",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528331"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5098917,
+     38.035011
+    ]
+   },
+   "properties": {
+    "name": "Dell Building 2",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528219"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5043976,
+     38.0396546
+    ]
+   },
+   "properties": {
+    "name": "Drama Building and Theatre",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528168"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503997,
+     38.0394588
+    ]
+   },
+   "properties": {
+    "name": "Drama Building and Theatre Addition",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1382907199"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512643,
+     38.0301373
+    ]
+   },
+   "properties": {
+    "name": "E3 Permit",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339412259"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4962497,
+     38.0309129
+    ]
+   },
+   "properties": {
+    "name": "East Chiller Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/588650580"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5038897,
+     38.0337939
+    ]
+   },
+   "properties": {
+    "name": "East Lawn Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528191"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5033737,
+     38.0315708
+    ]
+   },
+   "properties": {
+    "name": "Elson Builiding",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528527"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5227359,
+     38.0464578
+    ]
+   },
+   "properties": {
+    "name": "Emergency Communications Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528678"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.499019,
+     38.0324089
+    ]
+   },
+   "properties": {
+    "name": "Emily Couric Clinical Cancer Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528227"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5077957,
+     38.0418296
+    ]
+   },
+   "properties": {
+    "name": "Emmet / Ivy Parking Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528199"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5215749,
+     38.0366787
+    ]
+   },
+   "properties": {
+    "name": "Environmental Sciences Shop",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528586"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5169992,
+     38.0343266
+    ]
+   },
+   "properties": {
+    "name": "Ern Commons",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/273581511"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5040074,
+     38.0317955
+    ]
+   },
+   "properties": {
+    "name": "Eunoia Creative Community",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/735380879"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5161353,
+     38.0356913
+    ]
+   },
+   "properties": {
+    "name": "Facilities Management Garages",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528705"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5166953,
+     38.0362375
+    ]
+   },
+   "properties": {
+    "name": "Facilities Management Shop #1",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528402"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129504,
+     38.0481202
+    ]
+   },
+   "properties": {
+    "name": "Faulkner Carriage House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528137"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133962,
+     38.0483943
+    ]
+   },
+   "properties": {
+    "name": "Faulkner Hedge House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528521"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136073,
+     38.0477739
+    ]
+   },
+   "properties": {
+    "name": "Faulkner House - Miller Center of Public Affairs",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528212"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030805,
+     38.0378611
+    ]
+   },
+   "properties": {
+    "name": "Fayerweather Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528244"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4991923,
+     38.0303324
+    ]
+   },
+   "properties": {
+    "name": "Focused Ultrasound Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528138"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5265074,
+     38.0227008
+    ]
+   },
+   "properties": {
+    "name": "Fontaine Central Energy Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1524720704"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5264667,
+     38.0260264
+    ]
+   },
+   "properties": {
+    "name": "Fontaine Research Park Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1431722083"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5224556,
+     38.0477689
+    ]
+   },
+   "properties": {
+    "name": "Fontana Food Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528452"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5160488,
+     38.0354995
+    ]
+   },
+   "properties": {
+    "name": "Forestry Building Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528085"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030756,
+     38.0382772
+    ]
+   },
+   "properties": {
+    "name": "Fralin Museum of Art",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528133"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5076954,
+     38.044932
+    ]
+   },
+   "properties": {
+    "name": "Frank C McCue III Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528175"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5054991,
+     38.0341066
+    ]
+   },
+   "properties": {
+    "name": "Garrett Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528592"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5051562,
+     38.0313077
+    ]
+   },
+   "properties": {
+    "name": "Gibson Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153041024"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5078897,
+     38.0345674
+    ]
+   },
+   "properties": {
+    "name": "Gildersleeve Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430133"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128607,
+     38.0342196
+    ]
+   },
+   "properties": {
+    "name": "Gilmer Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528558"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5070184,
+     38.0329972
+    ]
+   },
+   "properties": {
+    "name": "Halsey Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528482"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5058225,
+     38.0360763
+    ]
+   },
+   "properties": {
+    "name": "Harrison Institute and Small Special Collections Library",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528691"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5077148,
+     38.0348939
+    ]
+   },
+   "properties": {
+    "name": "Harrison Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430134"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5201703,
+     38.034443
+    ]
+   },
+   "properties": {
+    "name": "High Energy Physics Annex",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528171"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5200027,
+     38.0345449
+    ]
+   },
+   "properties": {
+    "name": "High Energy Physics Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528511"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5074719,
+     38.0352036
+    ]
+   },
+   "properties": {
+    "name": "Holmes Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430193"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144675,
+     38.0317902
+    ]
+   },
+   "properties": {
+    "name": "Hoo Vision",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339411151"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.504713,
+     38.0358086
+    ]
+   },
+   "properties": {
+    "name": "Hotel A",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528211"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5022466,
+     38.0349947
+    ]
+   },
+   "properties": {
+    "name": "Hotel B - Washington Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528561"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5050473,
+     38.035259
+    ]
+   },
+   "properties": {
+    "name": "Hotel C - Jefferson Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528636"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5025395,
+     38.0344052
+    ]
+   },
+   "properties": {
+    "name": "Hotel D",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528358"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5054402,
+     38.0344772
+    ]
+   },
+   "properties": {
+    "name": "Hotel E - Colonnade Hotel",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528089"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029695,
+     38.0336437
+    ]
+   },
+   "properties": {
+    "name": "Hotel F - Levering Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528648"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5084643,
+     38.0391032
+    ]
+   },
+   "properties": {
+    "name": "Hoxton House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528270"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029033,
+     38.0398762
+    ]
+   },
+   "properties": {
+    "name": "Hunter Smith Band Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1049684277"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5094576,
+     38.0534702
+    ]
+   },
+   "properties": {
+    "name": "Hunton & Williams Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676194818"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5228695,
+     38.0443136
+    ]
+   },
+   "properties": {
+    "name": "Ivy Mountain Central Utility Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1314260083"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5222409,
+     38.0486772
+    ]
+   },
+   "properties": {
+    "name": "Ivy Stacks",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528488"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5178442,
+     38.0348542
+    ]
+   },
+   "properties": {
+    "name": "James C Slaughter Recreation Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528718"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5061731,
+     38.034876
+    ]
+   },
+   "properties": {
+    "name": "James Monroe Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4167951"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4981787,
+     38.03263
+    ]
+   },
+   "properties": {
+    "name": "Jefferson Park Medical Office Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528560"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5109138,
+     38.0331742
+    ]
+   },
+   "properties": {
+    "name": "Jesser Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528393"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5109138,
+     38.0331742
+    ]
+   },
+   "properties": {
+    "name": "Jesser Hall (formerly Materials Science)",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/341688937"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5068111,
+     38.0334036
+    ]
+   },
+   "properties": {
+    "name": "John W. Warner Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528685"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5016895,
+     38.0308505
+    ]
+   },
+   "properties": {
+    "name": "Josephine McLeod Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/344842958"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5026274,
+     38.0388382
+    ]
+   },
+   "properties": {
+    "name": "Kappa Sigma",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528661"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5082247,
+     38.0323457
+    ]
+   },
+   "properties": {
+    "name": "Kerchof Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5177642,
+     38.0356963
+    ]
+   },
+   "properties": {
+    "name": "Lacy Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/380604628"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5013033,
+     38.0316709
+    ]
+   },
+   "properties": {
+    "name": "Lane Road Modular Unit",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1382896242"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5158987,
+     38.036027
+    ]
+   },
+   "properties": {
+    "name": "Leake Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528308"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5224278,
+     38.0328948
+    ]
+   },
+   "properties": {
+    "name": "Leander McCormick Observatory",
+    "aliases": [
+     "McCormick Observatory"
+    ],
+    "category": "academic",
+    "osm": "way/673015937"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4963105,
+     38.0301427
+    ]
+   },
+   "properties": {
+    "name": "Lee Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/382400466"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5080839,
+     38.0390108
+    ]
+   },
+   "properties": {
+    "name": "Lewis House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676197655"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5077978,
+     38.0341461
+    ]
+   },
+   "properties": {
+    "name": "Long Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430120"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5032663,
+     38.0440212
+    ]
+   },
+   "properties": {
+    "name": "Lorna Sundberg International Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528470"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.502704,
+     38.0370042
+    ]
+   },
+   "properties": {
+    "name": "Madison Hall - President's Office",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528323"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4998798,
+     38.0333088
+    ]
+   },
+   "properties": {
+    "name": "Main Heat Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528278"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5080079,
+     38.0342166
+    ]
+   },
+   "properties": {
+    "name": "Mallet Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5074968,
+     38.0393512
+    ]
+   },
+   "properties": {
+    "name": "Mary Munford House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676197629"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5129608,
+     38.0332592
+    ]
+   },
+   "properties": {
+    "name": "McCormick Road Chiller Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/673015920"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5078,
+     38.0347338
+    ]
+   },
+   "properties": {
+    "name": "McGuffey Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430135"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5019022,
+     38.0327212
+    ]
+   },
+   "properties": {
+    "name": "McKim Hall (School of Medicine Administration)",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/344842954"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5110584,
+     38.0326364
+    ]
+   },
+   "properties": {
+    "name": "Mechanical and Aerospace Engineering Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528421"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4998877,
+     38.0304874
+    ]
+   },
+   "properties": {
+    "name": "Medical Research Building 4",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528354"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5071932,
+     38.037394
+    ]
+   },
+   "properties": {
+    "name": "Memorial Gymnasium",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528512"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5022926,
+     38.049056
+    ]
+   },
+   "properties": {
+    "name": "Michie North",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528367"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5025265,
+     38.0488201
+    ]
+   },
+   "properties": {
+    "name": "Michie South",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528707"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5065116,
+     38.0338642
+    ]
+   },
+   "properties": {
+    "name": "Minor Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528476"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5068865,
+     38.0347479
+    ]
+   },
+   "properties": {
+    "name": "Monroe Hill Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528609"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5071556,
+     38.034579
+    ]
+   },
+   "properties": {
+    "name": "Monroe Hill Houses",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528735"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5154414,
+     38.0489506
+    ]
+   },
+   "properties": {
+    "name": "Montesano Center For Politics",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676194654"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5093737,
+     38.0392387
+    ]
+   },
+   "properties": {
+    "name": "Morea Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528350"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5089253,
+     38.0395268
+    ]
+   },
+   "properties": {
+    "name": "Morea House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528638"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5178638,
+     38.0369479
+    ]
+   },
+   "properties": {
+    "name": "National Radio Astronomy Observatory/Stone Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528490"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5049692,
+     38.0317398
+    ]
+   },
+   "properties": {
+    "name": "Nau Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153041025"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505002,
+     38.0326292
+    ]
+   },
+   "properties": {
+    "name": "New Cabell Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339366929"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5066271,
+     38.0358048
+    ]
+   },
+   "properties": {
+    "name": "Newcomb Hall",
+    "aliases": [
+     "Newcomb"
+    ],
+    "category": "academic",
+    "osm": "way/44528295"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5068788,
+     38.0369447
+    ]
+   },
+   "properties": {
+    "name": "Newcomb Road Chiller Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/553840969"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4996949,
+     38.0329796
+    ]
+   },
+   "properties": {
+    "name": "North Chiller Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1382902947"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5018778,
+     38.040324
+    ]
+   },
+   "properties": {
+    "name": "O'Neil Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528116"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5151135,
+     38.0348032
+    ]
+   },
+   "properties": {
+    "name": "Observatory Hill Dining",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528179"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5210776,
+     38.0354981
+    ]
+   },
+   "properties": {
+    "name": "Observatory Mountain Engineering Research Facility",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528715"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5060886,
+     38.0327937
+    ]
+   },
+   "properties": {
+    "name": "Office of African American",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528656"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5048597,
+     38.0329012
+    ]
+   },
+   "properties": {
+    "name": "Old Cabell Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339366928"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5205854,
+     38.0473261
+    ]
+   },
+   "properties": {
+    "name": "Old Ivy Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1049684300"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.500765,
+     38.033919
+    ]
+   },
+   "properties": {
+    "name": "Old Medical School Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/5135387"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.510507,
+     38.032009
+    ]
+   },
+   "properties": {
+    "name": "Olsson Hall",
+    "aliases": [
+     "Sture G Olsson Hall"
+    ],
+    "category": "academic",
+    "osm": "way/44528325"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5035218,
+     38.0293965
+    ]
+   },
+   "properties": {
+    "name": "Outpatient Surgery Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528425"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5041634,
+     38.051698
+    ]
+   },
+   "properties": {
+    "name": "Parking & Transportation",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528471"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4973927,
+     38.0316981
+    ]
+   },
+   "properties": {
+    "name": "Patient and Patient Visitor Parking",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/223457676"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5039373,
+     38.035551
+    ]
+   },
+   "properties": {
+    "name": "Pavillion I",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339379985"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030857,
+     38.0352805
+    ]
+   },
+   "properties": {
+    "name": "Pavillion II",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339377823"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5040417,
+     38.0353089
+    ]
+   },
+   "properties": {
+    "name": "Pavillion III",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339379983"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5032532,
+     38.0350407
+    ]
+   },
+   "properties": {
+    "name": "Pavillion IV",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339377824"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5046388,
+     38.0342007
+    ]
+   },
+   "properties": {
+    "name": "Pavillion IX",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339379984"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5042894,
+     38.03499
+    ]
+   },
+   "properties": {
+    "name": "Pavillion V",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339377819"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5034091,
+     38.0347034
+    ]
+   },
+   "properties": {
+    "name": "Pavillion VI",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339377826"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5045247,
+     38.0346685
+    ]
+   },
+   "properties": {
+    "name": "Pavillion VII",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339379986"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5035437,
+     38.034322
+    ]
+   },
+   "properties": {
+    "name": "Pavillion VIII",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/341692884"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503822,
+     38.0339623
+    ]
+   },
+   "properties": {
+    "name": "Pavillion X",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339377827"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5061167,
+     38.0356107
+    ]
+   },
+   "properties": {
+    "name": "Peabody Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528653"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5070827,
+     38.0352568
+    ]
+   },
+   "properties": {
+    "name": "Peters Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430197"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5019576,
+     38.0387318
+    ]
+   },
+   "properties": {
+    "name": "Peyton House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528440"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5017211,
+     38.0387648
+    ]
+   },
+   "properties": {
+    "name": "Peyton House Annex",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528697"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5017285,
+     38.0386296
+    ]
+   },
+   "properties": {
+    "name": "Peyton House Modular Unit",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676432354"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5015699,
+     38.038329
+    ]
+   },
+   "properties": {
+    "name": "Phi Kappa Psi",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/483759573"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5122562,
+     38.0328935
+    ]
+   },
+   "properties": {
+    "name": "Physical and Life Sciences Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/273581534"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5102174,
+     38.0343885
+    ]
+   },
+   "properties": {
+    "name": "Physics Building / Jesse Beams Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528404"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5005142,
+     38.0318609
+    ]
+   },
+   "properties": {
+    "name": "Pinn Hall",
+    "aliases": [
+     "Jordan Hall"
+    ],
+    "category": "academic",
+    "osm": "way/344842947"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.50389,
+     38.0379712
+    ]
+   },
+   "properties": {
+    "name": "President's House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528143"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5033201,
+     38.033302
+    ]
+   },
+   "properties": {
+    "name": "Randall Hall",
+    "aliases": [
+     "J W and Belinda Randall Hall"
+    ],
+    "category": "academic",
+    "osm": "way/44528483"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5227612,
+     38.0363506
+    ]
+   },
+   "properties": {
+    "name": "Reacting Flow Laboratory",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528304"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.510788,
+     38.0316158
+    ]
+   },
+   "properties": {
+    "name": "Rice Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528406"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5092901,
+     38.0348633
+    ]
+   },
+   "properties": {
+    "name": "Ridley Hall/School of Education and Human Development",
+    "aliases": [
+     "Ruffner Hall",
+     "William H Ruffner Hall"
+    ],
+    "category": "academic",
+    "osm": "way/44528335"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5076555,
+     38.0398398
+    ]
+   },
+   "properties": {
+    "name": "Roberta Gwathmey House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676197451"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5037184,
+     38.0329306
+    ]
+   },
+   "properties": {
+    "name": "Robertson Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/341343965"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5072616,
+     38.035132
+    ]
+   },
+   "properties": {
+    "name": "Rogers Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430195"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5033927,
+     38.0356391
+    ]
+   },
+   "properties": {
+    "name": "Rotunda",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4809573"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5040879,
+     38.0330733
+    ]
+   },
+   "properties": {
+    "name": "Rouss Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528563"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503191,
+     38.0393414
+    ]
+   },
+   "properties": {
+    "name": "Ruffin Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/889297488"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5149222,
+     38.0521887
+    ]
+   },
+   "properties": {
+    "name": "Saunders Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4218706"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5076448,
+     38.0407561
+    ]
+   },
+   "properties": {
+    "name": "School of Data Science",
+    "aliases": [
+     "University of Virginia School of Data Science"
+    ],
+    "category": "academic",
+    "osm": "way/1291005629"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5192561,
+     38.0380603
+    ]
+   },
+   "properties": {
+    "name": "Shelburne Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528253"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5270442,
+     38.0242887
+    ]
+   },
+   "properties": {
+    "name": "Sheridan G. Snyder Translational Research",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/157034594"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030594,
+     38.0323597
+    ]
+   },
+   "properties": {
+    "name": "Shumway Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1290085120"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030221,
+     38.0387728
+    ]
+   },
+   "properties": {
+    "name": "Sigma Phi",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528435"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5167738,
+     38.0359297
+    ]
+   },
+   "properties": {
+    "name": "Skipwith Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/553840963"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5105715,
+     38.0532604
+    ]
+   },
+   "properties": {
+    "name": "Slaughter Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/9390046"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5226592,
+     38.0327645
+    ]
+   },
+   "properties": {
+    "name": "Small Observatory (Student Observatory, Doghouse)",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528184"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5077805,
+     38.0339546
+    ]
+   },
+   "properties": {
+    "name": "Smith Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430124"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5001913,
+     38.0301247
+    ]
+   },
+   "properties": {
+    "name": "South Chiller Plant",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/19068640"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5021149,
+     38.0301875
+    ]
+   },
+   "properties": {
+    "name": "South Garage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528187"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5053,
+     38.032082
+    ]
+   },
+   "properties": {
+    "name": "South Lawn Commons Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/153041032"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5194012,
+     38.035746
+    ]
+   },
+   "properties": {
+    "name": "Special Materials Handling Facility",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/4812055"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5097699,
+     38.0391896
+    ]
+   },
+   "properties": {
+    "name": "Sprigg Lane House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676197665"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5165532,
+     38.0354841
+    ]
+   },
+   "properties": {
+    "name": "Stores Warehouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528743"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5154754,
+     38.0296173
+    ]
+   },
+   "properties": {
+    "name": "Student Activities Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528376"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5098306,
+     38.0538203
+    ]
+   },
+   "properties": {
+    "name": "Student-Faculty Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/676196035"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.502321,
+     38.0324985
+    ]
+   },
+   "properties": {
+    "name": "Telephone Exchange",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528082"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5247222,
+     38.0255556
+    ]
+   },
+   "properties": {
+    "name": "The Association for Investment Management and Research Building",
+    "aliases": [],
+    "category": "academic",
+    "osm": "node/367992509"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030329,
+     38.0337596
+    ]
+   },
+   "properties": {
+    "name": "The Crackerbox",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528252"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5120276,
+     38.052424
+    ]
+   },
+   "properties": {
+    "name": "The Forum Hotel",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/17859973"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5033873,
+     38.0356479
+    ]
+   },
+   "properties": {
+    "name": "The Rotunda",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1042675571"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.502616,
+     38.0313715
+    ]
+   },
+   "properties": {
+    "name": "The Wedge",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/138989826"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5100131,
+     38.0328458
+    ]
+   },
+   "properties": {
+    "name": "Thornton Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/330904"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.512862,
+     38.0316844
+    ]
+   },
+   "properties": {
+    "name": "Tickets",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/341577693"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5076956,
+     38.035061
+    ]
+   },
+   "properties": {
+    "name": "Tucker Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430130"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5235175,
+     38.0487986
+    ]
+   },
+   "properties": {
+    "name": "UVA Print and Mail Services",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/17945769"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5218392,
+     38.0481584
+    ]
+   },
+   "properties": {
+    "name": "UVA Recycling Sorting Facility",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1309926723"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5247222,
+     38.025
+    ]
+   },
+   "properties": {
+    "name": "Uinversity of Virginia Musculoskeletal Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "node/367980091"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5072535,
+     38.036265
+    ]
+   },
+   "properties": {
+    "name": "University Bookstore",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528552"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5043469,
+     38.0363671
+    ]
+   },
+   "properties": {
+    "name": "University Chapel",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528532"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5172653,
+     38.0355167
+    ]
+   },
+   "properties": {
+    "name": "University Press Warehouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528076"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4982635,
+     38.031194
+    ]
+   },
+   "properties": {
+    "name": "University of Virginia Hospital",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/344842960"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029353,
+     38.0330206
+    ]
+   },
+   "properties": {
+    "name": "Varsity Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528713"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5186697,
+     38.0305237
+    ]
+   },
+   "properties": {
+    "name": "Vaughan House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528594"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5080346,
+     38.0344416
+    ]
+   },
+   "properties": {
+    "name": "Venable Portal",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/338430128"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5088122,
+     38.0421094
+    ]
+   },
+   "properties": {
+    "name": "Virginia Guesthouse",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/1049684282"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5229155,
+     38.0321245
+    ]
+   },
+   "properties": {
+    "name": "Vyssotsky Cottage",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528411"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5064216,
+     38.032571
+    ]
+   },
+   "properties": {
+    "name": "W E B Dubois Tutorial Center",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528334"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5012241,
+     38.0332828
+    ]
+   },
+   "properties": {
+    "name": "West Complex",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/344842965"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5015456,
+     38.0338399
+    ]
+   },
+   "properties": {
+    "name": "West Complex: Outpatient Clinics",
+    "aliases": [],
+    "category": "academic",
+    "osm": "relation/5135388"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5089501,
+     38.036535
+    ]
+   },
+   "properties": {
+    "name": "William A Lambeth House",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528694"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5112519,
+     38.0333554
+    ]
+   },
+   "properties": {
+    "name": "Wilsdorf Hall",
+    "aliases": [
+     "Heinz and Doris Kuhlmann-Wilsdorf Hall"
+    ],
+    "category": "academic",
+    "osm": "way/44528451"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5040566,
+     38.0324958
+    ]
+   },
+   "properties": {
+    "name": "Wilson Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/339366931"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.517208,
+     38.039204
+    ]
+   },
+   "properties": {
+    "name": "Zehmer Hall",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/44528394"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5024801,
+     38.0391181
+    ]
+   },
+   "properties": {
+    "name": "Zeta Psi",
+    "aliases": [],
+    "category": "academic",
+    "osm": "way/889297489"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5044745,
+     38.0399346
+    ]
+   },
+   "properties": {
+    "name": "Culbreth and Helms Theatre",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/367990337"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5063173,
+     38.0328229
+    ]
+   },
+   "properties": {
+    "name": "Luther P. Jackson Cultural Center",
+    "aliases": [],
+    "category": "arts",
+    "osm": "way/44528716"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5058314,
+     38.0334788
+    ]
+   },
+   "properties": {
+    "name": "McIntire Amphitheatre",
+    "aliases": [],
+    "category": "arts",
+    "osm": "way/44528583"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5041926,
+     38.0393728
+    ]
+   },
+   "properties": {
+    "name": "Performing Arts Center",
+    "aliases": [],
+    "category": "arts",
+    "osm": "node/367980956"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5123461,
+     38.0526815
+    ]
+   },
+   "properties": {
+    "name": "The Class Of 1987 Amphitheater",
+    "aliases": [],
+    "category": "arts",
+    "osm": "way/1305419428"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5067041,
+     38.0356866
+    ]
+   },
+   "properties": {
+    "name": "Bento Sushi",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/6879654785"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5066333,
+     38.0358406
+    ]
+   },
+   "properties": {
+    "name": "Chick-fil-A",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/6879655085"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5108897,
+     38.0317528
+    ]
+   },
+   "properties": {
+    "name": "Einstein Bros. Bagels",
+    "aliases": [
+     "Einstein Brothers Bagels"
+    ],
+    "category": "dining",
+    "osm": "node/6977920272",
+    "hours": "Mo-Fr 08:00-14:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5059676,
+     38.0339962
+    ]
+   },
+   "properties": {
+    "name": "Food Carts",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/2732040172"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5050707,
+     38.0317551
+    ]
+   },
+   "properties": {
+    "name": "Grit Coffee",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/12182836164"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5068048,
+     38.0354987
+    ]
+   },
+   "properties": {
+    "name": "Starbucks",
+    "aliases": [
+     "Starbucks Coffee"
+    ],
+    "category": "dining",
+    "osm": "node/11649758429"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5067754,
+     38.0357076
+    ]
+   },
+   "properties": {
+    "name": "Subway",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/6879654685",
+    "hours": "Mo-Fr 11:00-20:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.510543,
+     38.0356976
+    ]
+   },
+   "properties": {
+    "name": "The Castle",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/3455072148",
+    "hours": "Mo-Th 11:00-18:30; Fr 11:00-17:00"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5054782,
+     38.0343256
+    ]
+   },
+   "properties": {
+    "name": "West Range Cafe",
+    "aliases": [],
+    "category": "dining",
+    "osm": "node/3499497265"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5286111,
+     38.0238889
+    ]
+   },
+   "properties": {
+    "name": "Aurbach Medical Research Building",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/367981231"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4996904,
+     38.0317265
+    ]
+   },
+   "properties": {
+    "name": "Primary Care Center",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/44528240"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.50376,
+     38.030369
+    ]
+   },
+   "properties": {
+    "name": "Student Health and Wellness Center",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/1036312330",
+    "hours": "Mo-Fr 08:00-16:30"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4973291,
+     38.0328565
+    ]
+   },
+   "properties": {
+    "name": "UVA Children's Hospital Clinics",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/3058211402"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5207243,
+     38.0452388
+    ]
+   },
+   "properties": {
+    "name": "UVA Health Orthopedic Center",
+    "aliases": [
+     "Ivy Mountain Musculoskeletal Center"
+    ],
+    "category": "health",
+    "osm": "way/1049684298"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5255589,
+     38.0244704
+    ]
+   },
+   "properties": {
+    "name": "UVA HealthSouth Rehabilitation Hospital",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/157034592"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4974082,
+     38.0326566
+    ]
+   },
+   "properties": {
+    "name": "UVA Outpatient Surgery Center",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/3058211403"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4983326,
+     38.0321583
+    ]
+   },
+   "properties": {
+    "name": "UVA Pharmacy",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/11401514757"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4993457,
+     38.0323944
+    ]
+   },
+   "properties": {
+    "name": "University of Virginia Medical Center",
+    "aliases": [],
+    "category": "health",
+    "osm": "way/517817443",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5483894,
+     38.0512887
+    ]
+   },
+   "properties": {
+    "name": "University of Virginia Northridge Medical Office Building",
+    "aliases": [],
+    "category": "health",
+    "osm": "node/10949903753"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5094012,
+     38.0511939
+    ]
+   },
+   "properties": {
+    "name": "Abbott House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528401"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5172367,
+     38.0339981
+    ]
+   },
+   "properties": {
+    "name": "Balz - Dobie House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/210899373"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5049666,
+     38.0295191
+    ]
+   },
+   "properties": {
+    "name": "Bice House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528357"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5044989,
+     38.0292184
+    ]
+   },
+   "properties": {
+    "name": "Bond House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/856078339"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5107923,
+     38.035743
+    ]
+   },
+   "properties": {
+    "name": "Bonnycastle House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528229"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5095802,
+     38.0504742
+    ]
+   },
+   "properties": {
+    "name": "Boyd House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528630"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5024129,
+     38.0316972
+    ]
+   },
+   "properties": {
+    "name": "Casa Bolivar - Spanish House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528746"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5163618,
+     38.0333293
+    ]
+   },
+   "properties": {
+    "name": "Cauthen House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528664"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5162399,
+     38.0307228
+    ]
+   },
+   "properties": {
+    "name": "Courtenay House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528266"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5108737,
+     38.0353848
+    ]
+   },
+   "properties": {
+    "name": "Dabney House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528132"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5179847,
+     38.0294543
+    ]
+   },
+   "properties": {
+    "name": "Dillard Houses",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528238"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5156569,
+     38.0312911
+    ]
+   },
+   "properties": {
+    "name": "Dunglison House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528756"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5123031,
+     38.0347937
+    ]
+   },
+   "properties": {
+    "name": "Echols House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528738"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5114161,
+     38.0348619
+    ]
+   },
+   "properties": {
+    "name": "Emmet House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528235"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5136913,
+     38.0482336
+    ]
+   },
+   "properties": {
+    "name": "Faulkner Orchard House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528111"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5153089,
+     38.0321024
+    ]
+   },
+   "properties": {
+    "name": "Fitzhugh House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528095"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5046684,
+     38.0303517
+    ]
+   },
+   "properties": {
+    "name": "Gaston House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/1316238491"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5147239,
+     38.0330937
+    ]
+   },
+   "properties": {
+    "name": "Gibbons House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/497020255"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5092256,
+     38.0502312
+    ]
+   },
+   "properties": {
+    "name": "Glenn House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528646"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5171447,
+     38.0298033
+    ]
+   },
+   "properties": {
+    "name": "Gooch Houses",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528276"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5115494,
+     38.0359997
+    ]
+   },
+   "properties": {
+    "name": "Hancock House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528094"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5132849,
+     38.0489164
+    ]
+   },
+   "properties": {
+    "name": "Hench Student Residence",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528125"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5119035,
+     38.0350215
+    ]
+   },
+   "properties": {
+    "name": "Humphreys House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/338429291"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5192299,
+     38.0303526
+    ]
+   },
+   "properties": {
+    "name": "Johnson House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528599"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5175833,
+     38.0333809
+    ]
+   },
+   "properties": {
+    "name": "Kellogg House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/121836436"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5108184,
+     38.0350036
+    ]
+   },
+   "properties": {
+    "name": "Kent House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/338429403"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5021335,
+     38.0317192
+    ]
+   },
+   "properties": {
+    "name": "La Maison Francaise - French House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528287"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5034737,
+     38.0419612
+    ]
+   },
+   "properties": {
+    "name": "Lambeth Commons",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528317"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5122165,
+     38.0354699
+    ]
+   },
+   "properties": {
+    "name": "Lefevre House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528657"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5160012,
+     38.0346669
+    ]
+   },
+   "properties": {
+    "name": "Lile - Maupin House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/339417458"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5199282,
+     38.0300252
+    ]
+   },
+   "properties": {
+    "name": "Malone House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528260"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5118178,
+     38.0357003
+    ]
+   },
+   "properties": {
+    "name": "Metcalf House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/338429400"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5127734,
+     38.0490683
+    ]
+   },
+   "properties": {
+    "name": "Mitchell Student Residence",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528633"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5027257,
+     38.031216
+    ]
+   },
+   "properties": {
+    "name": "Monroe Hill",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/684834656"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5096424,
+     38.0306865
+    ]
+   },
+   "properties": {
+    "name": "Montebello",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/378065644"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5192344,
+     38.0300208
+    ]
+   },
+   "properties": {
+    "name": "Norris House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528550"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5113602,
+     38.0344827
+    ]
+   },
+   "properties": {
+    "name": "Page House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/338429292"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5044181,
+     38.0310514
+    ]
+   },
+   "properties": {
+    "name": "Ramazani House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/1316238492"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5098827,
+     38.0513923
+    ]
+   },
+   "properties": {
+    "name": "Ribble House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528126"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5081356,
+     38.0402479
+    ]
+   },
+   "properties": {
+    "name": "Russian House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/676197574"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5151302,
+     38.033602
+    ]
+   },
+   "properties": {
+    "name": "Shannon House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/339417460"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5026821,
+     38.031705
+    ]
+   },
+   "properties": {
+    "name": "Shea House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528165"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5095294,
+     38.0508507
+    ]
+   },
+   "properties": {
+    "name": "Snavely House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528352"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5027199,
+     38.0309825
+    ]
+   },
+   "properties": {
+    "name": "The Barringer",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/683378586"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5035119,
+     38.030992
+    ]
+   },
+   "properties": {
+    "name": "The Monroe",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/683378589"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5160053,
+     38.0339441
+    ]
+   },
+   "properties": {
+    "name": "Tuttle-Dunnington House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/339417462"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5166775,
+     38.0346488
+    ]
+   },
+   "properties": {
+    "name": "Watson - Webb House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/210899372"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.519831,
+     38.0296714
+    ]
+   },
+   "properties": {
+    "name": "Weedon House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528647"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.519195,
+     38.0294942
+    ]
+   },
+   "properties": {
+    "name": "Whyburn House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528700"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5155782,
+     38.0328785
+    ]
+   },
+   "properties": {
+    "name": "Woody House",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528364"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5125559,
+     38.0486567
+    ]
+   },
+   "properties": {
+    "name": "Younger Student Residence",
+    "aliases": [],
+    "category": "housing",
+    "osm": "way/44528160"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505741,
+     38.0361361
+    ]
+   },
+   "properties": {
+    "name": "Albert and Shirley Small Special Collections Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/367988049"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5091802,
+     38.0531671
+    ]
+   },
+   "properties": {
+    "name": "Arthur J. Morris Law Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/8942441849"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5011386,
+     38.0321516
+    ]
+   },
+   "properties": {
+    "name": "Claude Moore Health Sciences Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "way/344842944"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.513922,
+     38.0528471
+    ]
+   },
+   "properties": {
+    "name": "Darden Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "way/676195987"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5034543,
+     38.0388804
+    ]
+   },
+   "properties": {
+    "name": "Fiske Kimball Fine Arts Library",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/367988317"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5218698,
+     38.0485409
+    ]
+   },
+   "properties": {
+    "name": "Ivy Stacks Reading Room",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/12128346527"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5056132,
+     38.0364934
+    ]
+   },
+   "properties": {
+    "name": "Scholars' Lab",
+    "aliases": [],
+    "category": "library",
+    "osm": "node/570088901"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5052681,
+     38.036616
+    ]
+   },
+   "properties": {
+    "name": "Shannon Library",
+    "aliases": [
+     "Alderman Library"
+    ],
+    "category": "library",
+    "osm": "relation/4866579"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5135101,
+     38.0329194
+    ]
+   },
+   "properties": {
+    "name": "Aquatic and Fitness Center",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/44528462"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5137774,
+     38.0455448
+    ]
+   },
+   "properties": {
+    "name": "Davenport Field at Disharoon Park",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/44528309"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5066468,
+     38.0459871
+    ]
+   },
+   "properties": {
+    "name": "John Paul Jones Arena",
+    "aliases": [
+     "JPJ"
+    ],
+    "category": "recreation",
+    "osm": "way/44528080"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5128173,
+     38.0467143
+    ]
+   },
+   "properties": {
+    "name": "Klockner Stadium",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/44528286"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5027812,
+     38.0411541
+    ]
+   },
+   "properties": {
+    "name": "Lambeth Field Stands",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/975849541"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5119289,
+     38.0451839
+    ]
+   },
+   "properties": {
+    "name": "Lannigan Field",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/539335393"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5133354,
+     38.0510209
+    ]
+   },
+   "properties": {
+    "name": "North Grounds Recreation Center",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "way/44528577"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5108536,
+     38.0463834
+    ]
+   },
+   "properties": {
+    "name": "Palmer Park",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "relation/14011230"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5134862,
+     38.0309206
+    ]
+   },
+   "properties": {
+    "name": "Scott Stadium",
+    "aliases": [
+     "Carl Smith Center",
+     "Carl Smith Center, Home of David A. Harrison III Field at Scott Stadium"
+    ],
+    "category": "recreation",
+    "osm": "way/242316963"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5075791,
+     38.0451299
+    ]
+   },
+   "properties": {
+    "name": "Wilson Collegiate Tennis Camps University of Virginia",
+    "aliases": [],
+    "category": "recreation",
+    "osm": "node/1645809134"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029659,
+     38.0364841
+    ]
+   },
+   "properties": {
+    "name": "138",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/879247070"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5140626,
+     38.0338366
+    ]
+   },
+   "properties": {
+    "name": "Alderman Rd @ AFC",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/4467148072"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5140726,
+     38.0362342
+    ]
+   },
+   "properties": {
+    "name": "Alderman Rd @ Facilities Management",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217999123"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.516388,
+     38.029033
+    ]
+   },
+   "properties": {
+    "name": "Alderman Rd @ Gooch/Dillard (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217887251"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.516479,
+     38.0292839
+    ]
+   },
+   "properties": {
+    "name": "Alderman Rd @ Gooch/Dillard (Southbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854018"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.51424,
+     38.033937
+    ]
+   },
+   "properties": {
+    "name": "Alderman Rd @ O-Hill Dining Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854027"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.507302,
+     38.038348
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Alumni Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466612"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.50786,
+     38.03628
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Central Grounds Garage",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854020"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505373,
+     38.043246
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Goodwin Bridge (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854031"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505573,
+     38.043279
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Goodwin Bridge (Southbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854022"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.508313,
+     38.035534
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Ridley Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854029"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5061282,
+     38.041112
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Rothery Rd (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854024"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.506361,
+     38.041139
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Rothery Rd (Southbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466614"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5070656,
+     38.0383267
+    ]
+   },
+   "properties": {
+    "name": "Emmet St @ Snyder Tennis Courts",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854019"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5088291,
+     38.0411802
+    ]
+   },
+   "properties": {
+    "name": "Emmet/Ivy Garage",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217999125"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.519758,
+     38.0304886
+    ]
+   },
+   "properties": {
+    "name": "Hereford Dr @ Johnson House (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854025"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5196693,
+     38.0305622
+    ]
+   },
+   "properties": {
+    "name": "Hereford Dr @ Johnson House (Southbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/13143774040"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5195321,
+     38.0294742
+    ]
+   },
+   "properties": {
+    "name": "Hereford Dr @ Runk Dining Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854028"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5007209,
+     38.032283
+    ]
+   },
+   "properties": {
+    "name": "JPA at Pinn Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8208095988"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5004716,
+     38.0325931
+    ]
+   },
+   "properties": {
+    "name": "JPA at the UVA Hospital",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8208095987"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503314,
+     38.032023
+    ]
+   },
+   "properties": {
+    "name": "Jefferson Park Ave @ Brandon Ave",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217887252"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.504069,
+     38.032126
+    ]
+   },
+   "properties": {
+    "name": "Jefferson Park Ave @ Cabell Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217887264"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.509797,
+     38.051897
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ Copeley Apts",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854017"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.51205,
+     38.048134
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ Faulkner Apts (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466610"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5061906,
+     38.0447249
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ JPJ East Lot",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217999121"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5086629,
+     38.0458151
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ JPJ South Lot",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217999122"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5093282,
+     38.0462614
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ JPJ West Lot",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854023"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5066476,
+     38.0450453
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ John Paul Jones Arena",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854021"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5124984,
+     38.0506433
+    ]
+   },
+   "properties": {
+    "name": "Massie Rd @ North Grounds Rec (Northbound)",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466613"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.517766,
+     38.033832
+    ]
+   },
+   "properties": {
+    "name": "McCormick Rd @ Kellogg House",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466611"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.516131,
+     38.035015
+    ]
+   },
+   "properties": {
+    "name": "McCormick Rd @ Lile-Maupin House",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466615"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.4956742,
+     38.0296969
+    ]
+   },
+   "properties": {
+    "name": "Roosevelt Brown Blvd at King St",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8208095989"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5163863,
+     38.0287197
+    ]
+   },
+   "properties": {
+    "name": "Stadium Rd @ Alderman Rd",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217887262"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5183417,
+     38.0286119
+    ]
+   },
+   "properties": {
+    "name": "Stadium Rd @ Runk Dining Hall",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217854026"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5122195,
+     38.0300414
+    ]
+   },
+   "properties": {
+    "name": "Stadium Rd @ Stadium Garage",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8217887246"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5116557,
+     38.0341643
+    ]
+   },
+   "properties": {
+    "name": "UTS 11782 Bus Stop",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/2783934521"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5119128,
+     38.0344863
+    ]
+   },
+   "properties": {
+    "name": "UTS Bus Stop",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/2783934533"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5071187,
+     38.0338085
+    ]
+   },
+   "properties": {
+    "name": "UTS Stop",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/2783934572"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5120298,
+     38.0321089
+    ]
+   },
+   "properties": {
+    "name": "Whitehead Rd @ Chemistry Drive",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466616"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5127703,
+     38.0321405
+    ]
+   },
+   "properties": {
+    "name": "Whitehead Rd @ Scott Stadium",
+    "aliases": [],
+    "category": "transit",
+    "osm": "node/8216466609"
+   }
+  }
+ ]
+}
