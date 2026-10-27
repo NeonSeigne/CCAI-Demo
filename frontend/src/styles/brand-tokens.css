@@ -50,6 +50,12 @@ html[data-theme="light"],
   outline-offset: var(--focus-ring-offset);
 }
 
+/* Route changes focus the page title (or main) for screen readers. They
+   aren't controls, so no ring; this outranks the per-page rings. */
+:is(h1, main)[tabindex="-1"]:focus:focus-visible {
+  outline: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
