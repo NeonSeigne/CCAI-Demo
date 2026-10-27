@@ -16,9 +16,10 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import { useAuth } from '../contexts/AuthContext';
+import { parseServerTime } from '../utils/serverTime';
 
 const formatRelativeTime = (dateString) => {
-  const date = new Date(dateString);
+  const date = parseServerTime(dateString);
   const now = new Date();
   const diffMs = Math.abs(now - date);
   const diffMins = Math.floor(diffMs / (1000 * 60));

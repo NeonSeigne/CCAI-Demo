@@ -21,6 +21,7 @@ import '../styles/ChatFrame.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
 import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
+import { parseServerTime } from '../utils/serverTime';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -242,7 +243,7 @@ const loadChatSession = async (sessionId) => {
         // Load the messages from the synced context
         const formattedMessages = result.context.messages.map(msg => ({
           ...msg,
-          timestamp: new Date(msg.timestamp),
+          timestamp: parseServerTime(msg.timestamp),
           persona_id: msg.persona_id || msg.advisor || msg.advisorId,
           responseGroupId: msg.response_group_id || null,
         }));
