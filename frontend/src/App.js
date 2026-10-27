@@ -20,6 +20,8 @@ import './styles/components.css';
 
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 const SavedPage = lazy(() => import('./pages/SavedPage'));
+// Lazy: Leaflet stays out of the main bundle (and out of tests that never open the map).
+const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
@@ -61,6 +63,14 @@ function AppRoutes() {
           element={(
             <Suspense fallback={<div className="auth-boot-screen" role="status">Loading saved items…</div>}>
               <SavedPage />
+            </Suspense>
+          )}
+        />
+        <Route
+          path="/map"
+          element={(
+            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading map…</div>}>
+              <CampusMapPage />
             </Suspense>
           )}
         />
