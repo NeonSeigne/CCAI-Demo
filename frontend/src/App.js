@@ -19,6 +19,7 @@ import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
+const SavedPage = lazy(() => import('./pages/SavedPage'));
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
@@ -55,6 +56,14 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route
+          path="/saved"
+          element={(
+            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading saved items…</div>}>
+              <SavedPage />
+            </Suspense>
+          )}
+        />
         <Route
           path="/courses/:courseIdentifier"
           element={(
