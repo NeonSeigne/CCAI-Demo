@@ -9,6 +9,7 @@ from .phd_canvas import router as canvas_router
 from .voice import router as voice_router
 from .courses import router as courses_router
 from .campus import router as campus_router
+from .saved import router as saved_router
 
 router = APIRouter()
 router.include_router(chat_router)
@@ -21,3 +22,4 @@ router.include_router(canvas_router)
 router.include_router(voice_router)
 router.include_router(courses_router, prefix="/api")
 router.include_router(campus_router, prefix="/api")
+router.include_router(saved_router, prefix="/api")

@@ -73,6 +73,11 @@ async def create_indexes():
         await db.database.chat_sessions.create_index("user_id")
         await db.database.chat_sessions.create_index("created_at")
         await db.database.chat_sessions.create_index([("user_id", 1), ("created_at", -1)])
+
+        # Saved items: one per user and target, so a double-tapped Save stores one item
+        await db.database.saved_items.create_index([("user_id", 1), ("kind", 1), ("key", 1)], unique=True)
+        await db.database.saved_items.create_index([("user_id", 1), ("collection_id", 1)])
+        await db.database.saved_collections.create_index("user_id")
         
         logger.info("Database indexes created successfully")
     except Exception as e:
