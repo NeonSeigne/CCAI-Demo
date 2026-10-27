@@ -266,6 +266,9 @@
 }
 
 .cc-filters {
+  /* relative: the chips' screen-reader labels are absolutely positioned, and
+     must be clipped by this scroller, not widen the page on phones. */
+  position: relative;
   display: flex;
   gap: 8px;
   overflow-x: auto;
