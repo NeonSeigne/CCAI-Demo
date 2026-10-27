@@ -1,6 +1,8 @@
 import React from 'react';
-import { CalendarDays, ExternalLink } from 'lucide-react';
+import { ArrowRight, CalendarDays, ExternalLink } from 'lucide-react';
 import { downloadEventIcs } from '../../utils/ics';
+import ContextLink from '../ContextLink';
+import SaveButton from '../SaveButton';
 
 const timeOptions = (timezone) => ({
   hour: 'numeric',
@@ -61,6 +63,26 @@ function dateParts(event, timezone) {
   }
 }
 
+/** "Tuesday, October 27": the date badge's words for screen readers. */
+export function spokenDate(event, timezone) {
+  if (!event?.start) return '';
+  const options = { weekday: 'long', month: 'long', day: 'numeric' };
+  try {
+    return new Date(event.start).toLocaleDateString([], { ...options, ...(timezone ? { timeZone: timezone } : {}) });
+  } catch {
+    return new Date(event.start).toLocaleDateString([], options);
+  }
+}
+
+/** /events?window=tonight&q=jazz, the page this card's search came from (14A). */
+export function eventsPageLink(query) {
+  const params = new URLSearchParams();
+  if (query?.when) params.set('window', query.when);
+  if (query?.keyword) params.set('q', query.keyword);
+  const search = params.toString();
+  return search ? `/events?${search}` : '/events';
+}
+
 /** Events found by events_search, one card each, rendered from the tool result itself. */
 export default function EventListCard({ visual, onAsk }) {
   const events = visual?.events || [];
@@ -73,7 +95,7 @@ export default function EventListCard({ visual, onAsk }) {
         {events.map((event) => {
           const parts = event.start ? dateParts(event, timezone) : null;
           return (
-            <li key={`${event.title}-${event.start}`} className="cc-card cc-event">
+            <li key={event.id || `${event.title}-${event.start}`} className="cc-card cc-event">
               <div className="cc-event-top">
                 <span className="cc-event-date" aria-hidden="true">
                   {parts ? (
@@ -84,6 +106,7 @@ export default function EventListCard({ visual, onAsk }) {
                   ) : <CalendarDays size={18} />}
                 </span>
                 <div className="cc-event-body">
+                  {parts && <span className="sr-only">{spokenDate(event, timezone)}: </span>}
                   <strong>{event.title}</strong>
                   <span className="cc-event-meta">
                     {[formatEventRange(event, timezone), event.location].filter(Boolean).join(' · ')}
@@ -110,12 +133,29 @@ export default function EventListCard({ visual, onAsk }) {
                     Directions
                   </button>
                 )}
+                <SaveButton
+                  className="cc-save-end"
+                  item={event.id ? {
+                    kind: 'event',
+                    key: event.id,
+                    display_name: event.title,
+                    event_start: event.start,
+                    event_end: event.end,
+                  } : null}
+                />
               </div>
             </li>
           );
         })}
       </ul>
-      {visual.more > 0 && <p className="cc-more">{visual.more} more on the calendar</p>}
+      <div className="cc-card-foot">
+        {visual.more > 0 && <p className="cc-more">{visual.more} more on the calendar</p>}
+        {visual.query && (
+          <ContextLink className="cc-context-link" to={eventsPageLink(visual.query)}>
+            See all on Events <ArrowRight size={13} aria-hidden="true" />
+          </ContextLink>
+        )}
+      </div>
     </section>
   );
 }

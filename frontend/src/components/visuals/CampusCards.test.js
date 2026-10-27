@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import EventListCard, { formatEventRange, formatEventTime, hasPhysicalLocation } from './EventListCard';
 import PlaceCard from './PlaceCard';
 import SourcesChecked from './SourcesChecked';
+import { SavedContext } from '../../contexts/SavedContext';
 
 const EVENT = {
   title: 'Jazz Night',
@@ -91,4 +92,63 @@ test('empty cards render nothing', () => {
     </>,
   );
   expect(container).toBeEmptyDOMElement();
+});
+
+const savedValue = (overrides = {}) => ({
+  count: 0, isSaved: () => false, save: jest.fn(() => Promise.resolve({})), unsave: jest.fn(), ...overrides,
+});
+
+test('event card links to the Events page with its window and keyword', () => {
+  render(<EventListCard visual={{ type: 'event_list', events: [EVENT], query: { when: 'tonight', keyword: 'jazz' } }} />);
+  expect(screen.getByRole('link', { name: /See all on Events/ })).toHaveAttribute('href', '/events?window=tonight&q=jazz');
+});
+
+test('event card without a query has no Events link', () => {
+  render(<EventListCard visual={{ type: 'event_list', events: [EVENT] }} />);
+  expect(screen.queryByRole('link', { name: /See all on Events/ })).not.toBeInTheDocument();
+});
+
+test('event card reads its date to screen readers', () => {
+  render(<EventListCard visual={{ type: 'event_list', timezone: 'America/Denver', events: [EVENT] }} />);
+  expect(screen.getByText(/Tuesday, October 27/)).toHaveClass('sr-only');
+});
+
+test('events with an id get a Save button that saves the event', () => {
+  const saved = savedValue();
+  render(
+    <SavedContext.Provider value={saved}>
+      <EventListCard visual={{ type: 'event_list', events: [{ ...EVENT, id: '2026-10-27:226193@x' }, { ...EVENT, title: 'No id' }] }} />
+    </SavedContext.Provider>,
+  );
+  expect(screen.getAllByRole('button', { name: /^Save / })).toHaveLength(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Save Jazz Night' }));
+  expect(saved.save).toHaveBeenCalledWith({
+    kind: 'event', key: '2026-10-27:226193@x', display_name: 'Jazz Night', event_start: EVENT.start, event_end: EVENT.end,
+  });
+});
+
+test('a saved place shows pressed and links to the map from the origin', () => {
+  render(
+    <SavedContext.Provider value={savedValue({ isSaved: (kind, key) => kind === 'place' && key === 'way/1' })}>
+      <PlaceCard
+        visual={{
+          type: 'place_card',
+          from: { id: 'way/9', name: 'Norlin Library' },
+          places: [{ id: 'way/1', name: 'University Memorial Center', category: 'academic', distance_m: 233, walk_minutes_estimate: 3 }],
+        }}
+      />
+    </SavedContext.Provider>,
+  );
+  expect(screen.getByRole('button', { name: 'Save University Memorial Center' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('link', { name: /Open on map/ })).toHaveAttribute('href', '/map?from=way%2F9&to=way%2F1');
+});
+
+test('places without an id get no Save button or map link', () => {
+  render(
+    <SavedContext.Provider value={savedValue()}>
+      <PlaceCard visual={{ type: 'place_card', from: null, places: [{ name: 'Grainger Hall', category: 'academic' }] }} />
+    </SavedContext.Provider>,
+  );
+  expect(screen.queryByRole('button', { name: /^Save/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /Open on map/ })).not.toBeInTheDocument();
 });
