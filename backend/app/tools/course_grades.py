@@ -1,15 +1,15 @@
 """
-uw_course_grades tool — historical grade distributions and GPA via UW Course Map.
+course_grades tool — historical grade distributions and GPA.
 """
 
 import logging
 from typing import Any, Dict
 
-from app.tools import _uw_source
+from app.sources import academics
 
 logger = logging.getLogger(__name__)
 
-TOOL_NAME = "uw_course_grades"
+TOOL_NAME = "course_grades"
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
@@ -17,10 +17,10 @@ TOOL_DEFINITION: Dict[str, Any] = {
         "name": TOOL_NAME,
         "description": (
             "Look up historical grade distributions and the average GPA for a "
-            "University of Wisconsin-Madison course (from Madgrades data via "
-            "UW Course Map). Returns the cumulative distribution across all "
-            "terms plus the computed average GPA. Useful for gauging course "
-            "difficulty."
+            "course at this school. Returns the cumulative distribution across "
+            "all terms plus the computed average GPA. Useful for gauging course "
+            "difficulty. Snapshot results include data_as_of: say how old the "
+            "data is."
         ),
         "parameters": {
             "type": "object",
@@ -45,7 +45,7 @@ async def execute(
     course_identifier: str,
 ) -> Dict[str, Any]:
     """Return cumulative + per-term grade distributions for a course."""
-    return await _uw_source.course_grades(
+    return await academics.get_provider().course_grades(
         tool_name=TOOL_NAME,
         course_identifier=course_identifier,
     )

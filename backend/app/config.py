@@ -310,6 +310,21 @@ class LLMConfig(BaseModel):
     health_check_interval_seconds: int = 300
 
 
+class SnapshotConfig(BaseModel):
+    """Public CSV exports for the ``csv_snapshot`` academics provider."""
+    sections_url: str = ""
+    grades_urls: List[str] = []
+    source_name: str = ""
+    source_url: str = ""
+    refresh_hours: int = 24
+
+
+class AcademicsConfig(BaseModel):
+    """Which provider answers the course tools for this school."""
+    provider: Literal["uw_coursemap", "csv_snapshot"] = "uw_coursemap"
+    snapshot: SnapshotConfig = SnapshotConfig()
+
+
 class RAGConfig(BaseModel):
     embedding_model: str = "all-MiniLM-L6-v2"
     chroma_collection: str = "phd_advisor_documents"
@@ -390,6 +405,7 @@ class AppSettings(BaseModel):
     tools: ToolsConfig = ToolsConfig()
     voice: VoiceConfig = VoiceConfig()
     school: SchoolConfig = SchoolConfig()
+    academics: AcademicsConfig = AcademicsConfig()
 
     @model_validator(mode="after")
     def _require_school_isolation(self):

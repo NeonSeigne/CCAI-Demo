@@ -9,7 +9,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_grades_tool_emits_metric_and_chart_refs(self):
         visuals = build_visuals([
             {
-                "name": "uw_course_grades",
+                "name": "course_grades",
                 "result": {
                     "course_identifier": "MUSIC 113",
                     "cumulative": {
@@ -42,7 +42,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_prereq_tool_emits_map_and_legacy_tree(self):
         visuals = build_visuals([
             {
-                "name": "uw_prerequisites",
+                "name": "course_prerequisites",
                 "result": {
                     "course_identifier": "COMPSCI 300",
                     "title": "Programming II",
@@ -58,7 +58,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_next_courses_tool_emits_tree(self):
         visuals = build_visuals([
             {
-                "name": "uw_next_courses",
+                "name": "course_next",
                 "result": {
                     "course_identifier": "ART 100",
                     "title": "INTRODUCTION TO ART",
@@ -79,7 +79,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_next_courses_empty_skipped(self):
         visuals = build_visuals([
             {
-                "name": "uw_next_courses",
+                "name": "course_next",
                 "result": {
                     "course_identifier": "ART 100",
                     "next_courses": [],
@@ -92,7 +92,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_sections_tool_emits_schedule_and_instructors(self):
         visuals = build_visuals([
             {
-                "name": "uw_course_sections",
+                "name": "course_sections",
                 "result": {
                     "course_identifier": "MUSIC 113",
                     "sections": [{"section": "LEC 001", "term": "1254"}],
@@ -107,7 +107,7 @@ class BuildVisualsTests(unittest.TestCase):
     def test_search_emits_similar_only_for_single_match(self):
         multi = build_visuals([
             {
-                "name": "uw_search_courses",
+                "name": "course_search",
                 "result": {
                     "courses": [
                         {"identifier": "MUSIC 113"},
@@ -120,7 +120,7 @@ class BuildVisualsTests(unittest.TestCase):
 
         single = build_visuals([
             {
-                "name": "uw_search_courses",
+                "name": "course_search",
                 "result": {"courses": [{"identifier": "MUSIC 113"}]},
             }
         ])
@@ -128,7 +128,7 @@ class BuildVisualsTests(unittest.TestCase):
 
     def test_errors_and_unknown_tools_are_skipped(self):
         visuals = build_visuals([
-            {"name": "uw_course_grades", "result": {"error": "missing db"}},
+            {"name": "course_grades", "result": {"error": "missing db"}},
             {"name": "unknown_tool", "result": {"course_identifier": "X"}},
         ])
         self.assertEqual(visuals, [])

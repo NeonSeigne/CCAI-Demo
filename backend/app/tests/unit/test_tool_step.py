@@ -19,11 +19,11 @@ CU_CONFIG = REPO_ROOT / "undergrad_config.yaml"
 UW_CONFIG = REPO_ROOT / "wisconsin_config.yaml"
 
 UW_TOOLS = {
-    "uw_search_courses",
-    "uw_course_grades",
-    "uw_prerequisites",
-    "uw_next_courses",
-    "uw_course_sections",
+    "course_search",
+    "course_grades",
+    "course_prerequisites",
+    "course_next",
+    "course_sections",
 }
 
 
@@ -91,11 +91,11 @@ class TestUWToolStep(ToolStepTestCase):
         prompt = system_prompt(llm)
         self.assertIn("(course:", prompt)
         self.assertIn("University of Wisconsin–Madison course", prompt)
-        for name in UW_TOOLS - {"uw_search_courses"}:
+        for name in UW_TOOLS - {"course_search"}:
             self.assertIn(name, prompt)
 
     async def test_returns_llm_result_unchanged(self):
-        expected = ToolCallResult(text="COMP SCI 300 is Programming II.", used_tool=True, tool_name="uw_search_courses")
+        expected = ToolCallResult(text="COMP SCI 300 is Programming II.", used_tool=True, tool_name="course_search")
         llm = mock_llm(expected)
         result = await ImprovedChatOrchestrator().get_tool_response("COMP SCI 300?", llm_client=llm)
         self.assertIs(result, expected)

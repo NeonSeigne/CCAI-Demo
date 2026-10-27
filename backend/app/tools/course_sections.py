@@ -1,26 +1,27 @@
 """
-uw_course_sections tool — sections / meetings / instructors via UW Course Map.
+course_sections tool — sections / meetings / instructors.
 """
 
 import logging
 from typing import Any, Dict
 
 from app.config import get_settings
-from app.tools import _uw_source
+from app.sources import academics
 
 logger = logging.getLogger(__name__)
 
-TOOL_NAME = "uw_course_sections"
+TOOL_NAME = "course_sections"
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
     "function": {
         "name": TOOL_NAME,
         "description": (
-            "List offered sections for a University of Wisconsin-Madison "
-            "course, including section type, instructors, current enrollment, "
-            "capacity, and remaining seats. Optionally filter by term "
-            "(e.g. 'Fall 2025'). Useful for checking availability."
+            "List offered sections for a course at this school, including "
+            "section type, instructors, enrollment, capacity, and remaining "
+            "seats. Optionally filter by term (e.g. 'Fall 2025'). If the result "
+            "includes data_as_of, the counts are from that snapshot date: say so, "
+            "and never present them as current availability."
         ),
         "parameters": {
             "type": "object",
@@ -54,7 +55,7 @@ async def execute(
     """Return offered sections + seat availability for a course."""
     tool_cfg = get_settings().tools.get_tool_config(TOOL_NAME)
     max_results = tool_cfg.get("max_results", 25)
-    return await _uw_source.course_sections(
+    return await academics.get_provider().course_sections(
         tool_name=TOOL_NAME,
         course_identifier=course_identifier,
         term=term,

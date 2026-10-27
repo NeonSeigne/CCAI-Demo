@@ -5,6 +5,7 @@ from app.core.context_manager import get_context_manager
 from app.core.rag_manager import get_rag_manager
 from app.config import get_settings
 from app.llm.llm_client import LLMClient, ToolCallResult
+from app.sources import academics
 from app.tools import get_tool_definitions, get_tool_executor
 
 import json
@@ -25,25 +26,38 @@ _BASE_TOOL_PROMPT = (
     "to present structured data like course listings or professor ratings."
 )
 
-# Course tools whose results attach inline course cards. Their identifiers
-# resolve on the course detail page, so course mentions can be linked.
+# Course tools that can attach inline course cards when the school's academics
+# provider has course detail pages.
 _COURSE_CARD_TOOLS = (
-    "uw_course_grades",
-    "uw_course_sections",
-    "uw_prerequisites",
-    "uw_next_courses",
+    "course_grades",
+    "course_sections",
+    "course_prerequisites",
+    "course_next",
 )
 
 
-def _tool_guidance_prompt(tools_enabled: List[str], institution: str) -> str:
+def _tool_guidance_prompt(
+    tools_enabled: List[str], institution: str, *, link_courses: bool = True
+) -> str:
     """Build the tool-step system prompt from the tools this school enables.
 
     Guidance for a tool is only included when that tool is enabled, so a
-    deployment is never told about tools it does not have.
+    deployment is never told about tools it does not have. Course links and
+    cards are only described when the provider has course detail pages.
     """
     card_tools = [name for name in _COURSE_CARD_TOOLS if name in tools_enabled]
     if not card_tools:
         return _BASE_TOOL_PROMPT
+    tool_list = ", ".join(card_tools)
+    if not link_courses:
+        return (
+            f"{_BASE_TOOL_PROMPT} "
+            "When the user asks about course GPA, grade distribution, sections, "
+            f"or instructors, call the matching course tool ({tool_list}). "
+            "If a tool result includes data_as_of or data_note, tell the user "
+            "how old the data is, and describe enrollment and seats as "
+            "historical, not current availability."
+        )
     school = f"{institution} " if institution else ""
     return (
         f"{_BASE_TOOL_PROMPT} "
@@ -56,7 +70,7 @@ def _tool_guidance_prompt(tools_enabled: List[str], institution: str) -> str:
         "grade distribution, historical grade trends, schedules/sections, "
         "instructors, prerequisites, or what to take next / what a course "
         "unlocks / post-requisites, call the matching course tool "
-        f"({', '.join(card_tools)}). "
+        f"({tool_list}). "
         "Those tool calls attach interactive course cards inline in chat."
     )
 
@@ -119,7 +133,9 @@ class ImprovedChatOrchestrator:
             return ToolCallResult(text="", used_tool=False)
 
         system_prompt = _tool_guidance_prompt(
-            tools_enabled, settings.app.institution
+            tools_enabled,
+            settings.app.institution,
+            link_courses=academics.links_to_course_pages(),
         )
 
         return await effective_llm.generate_with_tools(

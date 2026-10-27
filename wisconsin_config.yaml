@@ -461,16 +461,16 @@ tools:
     school_id: "U2Nob29sLTE4NDE4"   # UW–Madison school ID
 
   # ---- UW-Madison Course Map–backed course tools ---------------------------
-  uw_search_courses:
+  course_search:
     enabled: true
     max_results: 20
-  uw_course_grades:
+  course_grades:
     enabled: true
-  uw_prerequisites:
+  course_prerequisites:
     enabled: true
-  uw_next_courses:
+  course_next:
     enabled: true
     max_results: 40
-  uw_course_sections:
+  course_sections:
     enabled: true
     max_results: 25

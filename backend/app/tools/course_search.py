@@ -1,23 +1,23 @@
 """
-uw_search_courses tool — search the UW-Madison course catalog via UW Course Map.
+course_search tool — search the school's course catalog.
 """
 
 import logging
 from typing import Any, Dict
 
 from app.config import get_settings
-from app.tools import _uw_source
+from app.sources import academics
 
 logger = logging.getLogger(__name__)
 
-TOOL_NAME = "uw_search_courses"
+TOOL_NAME = "course_search"
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
     "function": {
         "name": TOOL_NAME,
         "description": (
-            "Search the University of Wisconsin-Madison course catalog. "
+            "Search this school's course catalog. "
             "Filter by subject (e.g. 'COMP SCI', 'MATH'), catalog number, "
             "and/or a free-text keyword matched against course titles and "
             "descriptions. Returns matching courses with identifier, title, "
@@ -58,7 +58,7 @@ async def execute(
     course_number: str = "",
     keyword: str = "",
 ) -> Dict[str, Any]:
-    """Query the UW course catalog. Returns {"courses": [...]}."""
+    """Query the school's course catalog. Returns {"courses": [...]}."""
     tool_cfg = get_settings().tools.get_tool_config(TOOL_NAME)
     max_results = tool_cfg.get("max_results", 20)
 
@@ -76,7 +76,7 @@ async def execute(
         }
 
     try:
-        rows = await _uw_source.search_courses(
+        rows = await academics.get_provider().search_courses(
             tool_name=TOOL_NAME,
             subject=subject,
             course_number=course_number,
@@ -84,7 +84,7 @@ async def execute(
             limit=max_results + 1,
         )
     except Exception as exc:
-        logger.error("uw_search_courses query failed: %s", exc)
+        logger.error("course_search query failed: %s", exc)
         return {"courses": [], "error": str(exc), "query": query_meta}
 
     truncated = len(rows) > max_results

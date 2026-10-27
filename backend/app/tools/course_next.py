@@ -1,23 +1,23 @@
 """
-uw_next_courses tool — courses unlocked / post-requisites via UW Course Map.
+course_next tool — courses unlocked / post-requisites.
 """
 
 import logging
 from typing import Any, Dict
 
 from app.config import get_settings
-from app.tools import _uw_source
+from app.sources import academics
 
 logger = logging.getLogger(__name__)
 
-TOOL_NAME = "uw_next_courses"
+TOOL_NAME = "course_next"
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
     "function": {
         "name": TOOL_NAME,
         "description": (
-            "List University of Wisconsin-Madison courses you can take next "
+            "List this school's courses you can take next "
             "after completing a given course (post-requisites / what this "
             "course unlocks). Returns courses that list the given course in "
             "their prerequisite expression. Note: listed courses may still "
@@ -49,7 +49,7 @@ async def execute(
     """Return courses that list this course as a prerequisite."""
     tool_cfg = get_settings().tools.get_tool_config(TOOL_NAME)
     max_results = tool_cfg.get("max_results", 40)
-    return await _uw_source.next_courses(
+    return await academics.get_provider().next_courses(
         tool_name=TOOL_NAME,
         course_identifier=course_identifier,
         limit=max_results,

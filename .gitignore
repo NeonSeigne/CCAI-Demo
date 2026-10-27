@@ -34,3 +34,6 @@ frontend/firebase.json
 
 # Dependencies
 node_modules/
+
+# Downloaded source snapshots (academics CSVs, feeds)
+backend/.cache/

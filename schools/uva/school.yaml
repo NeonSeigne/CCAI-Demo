@@ -22,11 +22,36 @@ mongodb:
 rag:
   chroma_collection: uva_docs
 
+academics:
+  # Public CSV exports from theCourseForum (github.com/thecourseforum/theCourseForum2).
+  # This is snapshot data, not live: answers say how old it is, and seat counts
+  # are described as historical. HoosList and SIS are not usable (bot challenge /
+  # login required).
+  provider: csv_snapshot
+  snapshot:
+    source_name: "theCourseForum"
+    source_url: "https://thecourseforum.com"
+    sections_url: "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/semester_data/csv/2026_fall.csv"
+    grades_urls:
+      - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2026_spring.csv"
+      - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2025_fall.csv"
+      - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2025_spring.csv"
+      - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_fall.csv"
+      - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_spring.csv"
+    refresh_hours: 24
+
 tools:
-  # CU's FOSE course search does not serve UVA. UVA academics comes from
-  # theCourseForum's public CSV snapshots (added with the academics providers).
+  # CU's FOSE course search does not serve UVA.
   search_courses:
     enabled: false
+  course_search:
+    enabled: true
+    max_results: 20
+  course_grades:
+    enabled: true
+  course_sections:
+    enabled: true
+    max_results: 25
   rate_my_professor:
     enabled: true
     # From scripts/rmp_school_lookup.py "University of Virginia".

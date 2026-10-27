@@ -42,7 +42,7 @@ def _latest_graded_term(result: Dict[str, Any]) -> Optional[str]:
 
 
 def _grades_specs(result: Dict[str, Any]) -> List[VisualSpec]:
-    """Emit lightweight course card refs from ``uw_course_grades``."""
+    """Emit lightweight course card refs from ``course_grades``."""
     course = (result.get("course_identifier") or "").strip()
     if not course:
         return []
@@ -138,11 +138,11 @@ def _search_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 _BUILDERS = {
-    "uw_course_grades": _grades_specs,
-    "uw_prerequisites": _prereq_specs,
-    "uw_next_courses": _next_specs,
-    "uw_course_sections": _sections_specs,
-    "uw_search_courses": _search_specs,
+    "course_grades": _grades_specs,
+    "course_prerequisites": _prereq_specs,
+    "course_next": _next_specs,
+    "course_sections": _sections_specs,
+    "course_search": _search_specs,
 }
 
 
@@ -160,6 +160,9 @@ def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         result = entry.get("result")
         builder = _BUILDERS.get(name)
         if not builder or not isinstance(result, dict) or result.get("error"):
+            continue
+        if "data_as_of" in result:
+            # Snapshot providers have no course detail pages to hydrate cards from.
             continue
         try:
             spec = builder(result)
