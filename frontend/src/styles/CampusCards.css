@@ -136,6 +136,11 @@
   color: var(--ink-soft);
 }
 
+.cc-card :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 @media (max-width: 560px) {
   .cc-event,
   .cc-place { flex-wrap: wrap; }

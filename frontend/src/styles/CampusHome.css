@@ -17,6 +17,13 @@
   white-space: nowrap;
 }
 
+/* Keyboard focus in the app's ink, not the browser's default blue. The ask
+   box shows focus on its border instead (.campus-ask:focus-within). */
+.campus-home :focus-visible:not(textarea) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 /* ---- Rail ---------------------------------------------------------------- */
 .campus-rail {
   flex: 1 1 240px;
