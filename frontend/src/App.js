@@ -19,6 +19,8 @@ import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
+// Lazy: Leaflet stays out of the main bundle (and out of tests that never open the map).
+const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
 
 // Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
 // tour to run on every page load. Leave unset in production — tour will only
@@ -55,6 +57,14 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route
+          path="/map"
+          element={(
+            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading map…</div>}>
+              <CampusMapPage />
+            </Suspense>
+          )}
+        />
         <Route
           path="/courses/:courseIdentifier"
           element={(
