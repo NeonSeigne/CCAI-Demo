@@ -15,6 +15,11 @@ const safeTime = (iso, timezone) => {
   }
 };
 
+/** False for "(Online)", "Zoom" and the like: nowhere to walk to. */
+export function hasPhysicalLocation(location) {
+  return Boolean(location) && !/\b(online|virtual|zoom|webinar|teams|livestream)\b/i.test(location);
+}
+
 /** "7:00 PM", or "All day" for all-day and multi-day (ongoing) events. */
 export function formatEventTime(event, timezone) {
   if (!event?.start || event.all_day || event.ongoing) return 'All day';
@@ -63,7 +68,7 @@ export default function EventListCard({ visual, onAsk }) {
               )}
             </div>
             <div className="cc-event-actions">
-              {event.location && onAsk && (
+              {hasPhysicalLocation(event.location) && onAsk && (
                 <button
                   type="button"
                   className="cc-chip-btn"

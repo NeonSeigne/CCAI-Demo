@@ -11,7 +11,7 @@ import {
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
-import { formatEventTime } from '../components/visuals/EventListCard';
+import { formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
 import '../styles/CampusHome.css';
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -212,7 +212,7 @@ const HomePage = () => {
                     <strong>{event.title}</strong>
                     {event.location && <span>{event.location}</span>}
                   </span>
-                  {event.location && (
+                  {hasPhysicalLocation(event.location) && (
                     <button
                       type="button"
                       className="campus-chip-btn"
