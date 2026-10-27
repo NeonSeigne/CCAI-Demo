@@ -1,0 +1,495 @@
+/* Campus map page (design 5A, 6A, 7A, 22A, 23A, 27A, 28A, 31A).
+   Layout shell (.campus-home, .campus-main, .campus-kicker) comes from CampusHome.css.
+   New CSS uses var() only (24A). */
+
+.map-page ::selection { background: var(--selection); color: var(--ink); }
+.map-page :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+
+.map-main { padding-top: 40px; }
+
+.map-column {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Title bar ------------------------------------------------------------ */
+.map-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.map-header h1 {
+  margin: 4px 0 0;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+/* Outlined Ask (7A): white, --line border. */
+.map-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.map-ask:hover { background: var(--paper-sunken); }
+
+/* ---- Start panel + map ---------------------------------------------------- */
+.map-top {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  overflow: hidden;
+  min-height: 320px;
+}
+
+.map-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 24px;
+}
+
+.map-panel-kicker {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.map-start-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-start-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink-soft);
+}
+
+.map-start-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.map-link-btn {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--domain-academics-ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.map-choose-start {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map-dest {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.map-dest-name { font-size: 14px; color: var(--ink-soft); }
+
+.map-dest-minutes {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--domain-campus-ink);
+}
+
+.map-dest-metres { font-size: 14px; color: var(--ink-soft); }
+
+.map-dest-unavailable {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.map-dest-placeholder {
+  display: block;
+  width: 120px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--paper-sunken);
+}
+
+.map-osm-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.map-placeholder-line {
+  display: block;
+  width: 50%;
+  height: 16px;
+  border-radius: 6px;
+  background: var(--paper-sunken);
+}
+
+.map-placeholder-line.is-wide { width: 80%; height: 24px; }
+
+/* ---- Start picker popover (16A) ------------------------------------------- */
+.map-picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1100;
+  width: min(340px, calc(100vw - 48px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-soft-md);
+}
+
+.map-picker-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+
+.map-picker input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+.map-picker-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.map-picker-option {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-picker-option:hover,
+.map-picker-option[aria-current="true"] { background: var(--paper-sunken); }
+
+.map-picker-cat { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+
+.map-picker-note { margin: 4px 2px; font-size: 14px; color: var(--ink-soft); }
+
+.map-picker-note.is-error { color: var(--error-ink); }
+
+.map-picker-close { align-self: flex-end; }
+
+/* ---- Map ------------------------------------------------------------------ */
+.map-frame {
+  position: relative;
+  min-height: 320px;
+  background: var(--paper-sunken);
+}
+
+.map-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--paper-sunken);
+  font-family: var(--font-app);
+}
+
+/* Bright tokens only for pins and the route line (23A). */
+.map-canvas .map-pin {
+  stroke: var(--paper);
+  stroke-width: 2;
+  fill: var(--domain-academics);
+  fill-opacity: 1;
+}
+
+.map-canvas .map-pin.is-selected { stroke-width: 3; }
+
+.map-canvas .map-start {
+  stroke: var(--paper);
+  stroke-width: 3;
+  fill: var(--ink);
+  fill-opacity: 1;
+}
+
+/* The route draws from start to place in 240 ms ease-out (22A). The path
+   carries pathLength="1", so a dash of 1 is the whole line. */
+.map-canvas .map-route-line {
+  stroke: var(--domain-campus);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: map-route-draw 240ms ease-out forwards;
+}
+
+@keyframes map-route-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-canvas .map-route-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.map-canvas .leaflet-control-attribution {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+/* ---- Category filters ----------------------------------------------------- */
+.map-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.map-chip.is-on {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.map-chip-count { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+
+/* ---- List ----------------------------------------------------------------- */
+.map-list {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.map-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.map-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 14px;
+}
+
+.map-row + .map-row { border-top: 1px solid var(--line); }
+
+.map-row.is-selected { background: var(--domain-campus-tint); }
+
+.map-row-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 8px 10px 18px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-row-dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--domain-academics);
+}
+
+.map-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-row-name { font-size: 15px; font-weight: 600; }
+
+.map-row-hours { font-size: 13px; color: var(--ink-soft); }
+
+.map-row-walk {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.map-row-minutes { font-size: 15px; font-weight: 700; color: var(--domain-campus-ink); }
+
+.map-row-distance { font-size: 12px; color: var(--ink-soft); }
+
+.map-row.is-placeholder .map-row-name { color: var(--ink-soft); }
+
+.map-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.map-more {
+  display: block;
+  margin: 10px auto;
+}
+
+.map-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+}
+
+.map-state p { margin: 0; font-size: 15px; color: var(--ink); }
+
+.map-state[role="alert"] p { color: var(--error-ink); }
+
+.map-footnote {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.map-footnote a { color: inherit; }
+
+/* ---- Phones (27A): start panel and map on top, filters scroll sideways ---- */
+@media (max-width: 767px) {
+  .map-main { padding: 16px 16px 32px; }
+
+  .map-header { align-items: center; }
+
+  .map-header h1 { font-size: 26px; }
+
+  .map-ask { padding: 0 12px; font-size: 13px; white-space: normal; text-align: left; }
+
+  .map-top {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .map-panel { padding: 16px; }
+
+  .map-frame {
+    order: 0;
+    height: 40vh;
+    min-height: 200px;
+    border-top: 1px solid var(--line);
+  }
+
+  .map-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px 4px;
+    scrollbar-width: none;
+  }
+
+  .map-row-main { padding-left: 14px; gap: 10px; }
+}
