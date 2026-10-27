@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from app.api.routes.chat_sessions import persist_message
 from app.api.utils import get_or_create_session_for_request_async
-from app.api.visuals import build_visuals
+from app.api.visuals import build_visuals, sources_checked
 from app.core.auth import get_current_active_user
 from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
@@ -200,6 +200,10 @@ async def chat_stream(
             if tool_result.used_tool:
                 # Preserve structured tool output as renderable visual specs.
                 visuals = build_visuals(tool_result.tool_outputs)
+                checked = sources_checked(tool_result.tool_outputs)
+                if checked:
+                    # Leads the answer: which domains it looked at.
+                    visuals = [checked, *visuals]
                 # Append user message to in-memory session and persist to MongoDB
                 session.append_message("orchestrator", tool_result.text)
                 if message.chat_session_id:

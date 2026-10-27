@@ -2,6 +2,10 @@ import React from 'react';
 import CourseVisualCard, { isCourseVisualType } from './CourseVisualCard';
 import { CourseGradeDistribution } from '../course/CourseVisuals';
 import PrereqTree from './PrereqTree';
+import EventListCard from './EventListCard';
+import PlaceCard from './PlaceCard';
+import SourcesChecked from './SourcesChecked';
+import '../../styles/CampusCards.css';
 
 /**
  * Registry mapping a structured visual spec (`visual.type`) to a vetted,
@@ -37,9 +41,12 @@ const REGISTRY = {
   gpa_chart: LegacyGpaChart,
   prereq_tree: PrereqTree,
   next_courses_tree: PrereqTree,
+  event_list: EventListCard,
+  place_card: PlaceCard,
+  sources_checked: SourcesChecked,
 };
 
-const VisualBlock = ({ visual, onSelectCourse }) => {
+const VisualBlock = ({ visual, onSelectCourse, onAsk }) => {
   if (!visual || !visual.type) return null;
 
   if (isCourseVisualType(visual.type)) {
@@ -48,7 +55,7 @@ const VisualBlock = ({ visual, onSelectCourse }) => {
 
   const Component = REGISTRY[visual.type];
   if (!Component) return null;
-  return <Component visual={visual} onSelectCourse={onSelectCourse} />;
+  return <Component visual={visual} onSelectCourse={onSelectCourse} onAsk={onAsk} />;
 };
 
 export default VisualBlock;

@@ -1,350 +1,235 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MessageCircle,
+  ArrowUp,
+  LogOut,
+  MapPin,
+  MessageSquare,
   Plus,
   Settings2,
-  User,
-  LogOut,
-  MessageSquare,
-  FileText,
-  ArrowRight,
-  LayoutDashboard,
 } from 'lucide-react';
-import CopyrightNotice from '../components/CopyrightNotice';
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
+import { formatEventTime } from '../components/visuals/EventListCard';
+import '../styles/CampusHome.css';
 
-const ACCENT_DOTS = ['bg-accent-red', 'bg-accent-blue', 'bg-accent-green'];
+const API_URL = process.env.REACT_APP_API_URL;
 
-const formatRelativeTime = (dateString) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = Math.abs(now - date);
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+// One color per domain, shared with the "Checked" chips in chat.
+export const DOMAIN_COLORS = {
+  academics: 'var(--domain-academics)',
+  student_life: 'var(--domain-student-life)',
+  campus: 'var(--domain-campus)',
+};
 
-  if (diffMins < 60) {
-    if (diffMins <= 1) return 'Just now';
-    return `${diffMins} minutes ago`;
+const todayLabel = (timezone) => {
+  try {
+    return new Date().toLocaleDateString(undefined, {
+      weekday: 'long', month: 'short', day: 'numeric', timeZone: timezone || undefined,
+    });
+  } catch {
+    return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
   }
-  if (diffHours < 24) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
-  }
-  if (diffDays === 1) return 'Today';
-  if (diffDays === 2) return 'Yesterday';
-  if (diffDays <= 7) return `${diffDays - 1} days ago`;
-  return date.toLocaleDateString();
 };
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors, getAdvisorColors, resolveIcon } = useAppConfig();
+  const { config, advisors } = useAppConfig();
+  const [question, setQuestion] = useState('');
   const [sessions, setSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [today, setToday] = useState({ loading: true, events: [], error: null });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const userMenuRef = useRef(null);
+  const inputRef = useRef(null);
 
-  const LogoIcon = resolveIcon(config?.app?.logo_icon || 'GraduationCap');
-  const examples = config?.chat_page?.examples || [];
-  const recentSessions = sessions.slice(0, 5);
-  const mostRecent = sessions[0] || null;
-  const canvasTitle = config?.canvas?.tour_title || 'Academic Progress Canvas';
-  const canvasBody =
-    config?.canvas?.tour_body ||
-    'Review your extracted insights, degree roadmaps, and academic goals';
+  const school = config?.app?.institution || config?.app?.title || 'Your campus';
+  const timezone = config?.school?.timezone;
+  const starters = config?.homepage?.starters || [];
 
   useEffect(() => {
     if (!authToken) return;
+    const headers = { Authorization: `Bearer ${authToken}` };
 
-    const fetchSessions = async () => {
-      setSessionsLoading(true);
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (response.ok) {
-          setSessions(await response.json());
-        }
-      } catch (error) {
-        console.error('Error fetching chat sessions:', error);
-      } finally {
-        setSessionsLoading(false);
-      }
-    };
+    fetch(`${API_URL}/api/chat-sessions`, { headers })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => setSessions(Array.isArray(data) ? data : []))
+      .catch(() => setSessions([]));
 
-    fetchSessions();
+    fetch(`${API_URL}/api/campus/today`, { headers })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => setToday({ loading: false, events: data.events || [], error: data.error, source: data.source }))
+      .catch(() => setToday({ loading: false, events: [], error: 'Events are unavailable right now.' }));
   }, [authToken]);
 
-  useEffect(() => {
-    if (!showUserMenu) return;
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserMenu]);
-
-  const goToChat = (state) => {
-    navigate('/chat', { state });
+  const ask = (text) => {
+    const prompt = (text || '').trim();
+    if (!prompt) {
+      inputRef.current?.focus();
+      return;
+    }
+    navigate('/chat', { state: { startNew: true, pendingPrompt: prompt, autoSend: true } });
   };
 
-  const handleContinueRecent = () => {
-    if (!mostRecent) return;
-    goToChat({ sessionId: mostRecent.id });
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    ask(question);
   };
 
-  const handleStartNew = () => {
-    goToChat({ startNew: true });
-  };
-
-  const handleChipClick = (category) => {
-    const prompt = category.suggestions?.[0] || '';
-    goToChat({ startNew: true, pendingPrompt: prompt });
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      ask(question);
+    }
   };
 
   const handleSignOutClick = () => {
-    setShowUserMenu(false);
     handleSignOut();
     navigate('/', { replace: true });
   };
 
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
+
   return (
-    <div className="home-launchpad min-h-screen bg-bg-primary font-sans">
-      <header className="home-launchpad-header">
-        <nav className="nav-pill home-launchpad-nav mx-auto flex items-center justify-between gap-4 px-4 py-2">
-          <div className="home-launchpad-brand">
-            <div className="logo-container">
-              <LogoIcon className="logo-icon" />
-            </div>
-            <div>
-              <h1 className="logo-title">{config?.app?.title}</h1>
-              <p className="logo-subtitle">{config?.app?.subtitle}</p>
-            </div>
-          </div>
+    <div className="campus-home">
+      <nav className="campus-rail" aria-label="Main">
+        <div className="campus-brand">
+          <span className="campus-brand-mark" aria-hidden="true">
+            <MapPin size={16} strokeWidth={2.4} />
+          </span>
+          <span className="campus-brand-name">Campus Companion</span>
+        </div>
 
-          <div className="home-launchpad-header-actions">
-            <button
-              type="button"
-              className="home-icon-btn"
-              onClick={() => setIsSettingsOpen(true)}
-              aria-label="Open settings"
-              title="Settings"
-            >
-              <Settings2 size={18} />
-            </button>
+        <div className="campus-school">
+          <span className="campus-school-dot" aria-hidden="true" />
+          <span className="campus-school-name">{school}</span>
+        </div>
 
-            <div className="home-user-menu" ref={userMenuRef}>
+        <button type="button" className="campus-new-chat" onClick={() => navigate('/chat', { state: { startNew: true } })}>
+          <Plus size={18} /> New chat
+        </button>
+
+        <div className="campus-recent">
+          <span className="campus-rail-label">Recent</span>
+          {sessions.length === 0 ? (
+            <p className="campus-rail-empty">Your chats will show up here.</p>
+          ) : (
+            sessions.slice(0, 6).map((session) => (
               <button
                 type="button"
-                className="home-icon-btn"
-                onClick={() => setShowUserMenu((open) => !open)}
-                aria-label="User menu"
-                aria-expanded={showUserMenu}
+                key={session.id}
+                className="campus-recent-item"
+                onClick={() => navigate('/chat', { state: { sessionId: session.id } })}
               >
-                <User size={18} />
+                <MessageSquare size={15} aria-hidden="true" />
+                <span>{session.title || 'Untitled chat'}</span>
               </button>
-              {showUserMenu && (
-                <div className="home-user-dropdown surface-card">
-                  <div className="home-user-dropdown-info">
-                    <div className="home-user-dropdown-name">
-                      {user?.firstName} {user?.lastName}
-                    </div>
-                    <div className="home-user-dropdown-email">{user?.email}</div>
-                  </div>
-                  <button
-                    type="button"
-                    className="home-user-dropdown-item"
-                    onClick={() => {
-                      setShowUserMenu(false);
-                      setIsSettingsOpen(true);
-                    }}
-                  >
-                    <Settings2 size={14} />
-                    Settings
-                  </button>
-                  <button
-                    type="button"
-                    className="home-user-dropdown-item sign-out"
-                    onClick={handleSignOutClick}
-                  >
-                    <LogOut size={14} />
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      <main className="home-launchpad-main">
-        <section className="home-launchpad-hero">
-          <h2 className="home-launchpad-greeting text-ink">
-            Welcome back, {user?.firstName || 'there'}!
-          </h2>
-          <p className="home-launchpad-subtext text-text-secondary">
-            Ready to continue your progress or start a new topic?
-          </p>
-
-          <div className="home-launchpad-ctas">
-            {mostRecent && (
-              <button type="button" className="btn-primary" onClick={handleContinueRecent}>
-                <MessageCircle size={18} />
-                Continue Recent Chat
-              </button>
-            )}
-            <button
-              type="button"
-              className={mostRecent ? 'home-btn-secondary' : 'btn-primary'}
-              onClick={handleStartNew}
-            >
-              <Plus size={18} />
-              Start New Conversation
+            ))
+          )}
+          {sessions.length > 6 && (
+            <button type="button" className="campus-recent-all" onClick={() => navigate('/search')}>
+              All chats
             </button>
-          </div>
-        </section>
+          )}
+        </div>
 
-        {examples.length > 0 && (
-          <section className="home-chips-section surface-card">
-            <h3 className="home-section-label">Quick suggestions</h3>
-            <div className="home-chips-row">
-              {examples.map((category, index) => {
-                const Icon = resolveIcon(category.icon);
-                return (
-                  <button
-                    key={category.title}
-                    type="button"
-                    className="home-chip"
-                    onClick={() => handleChipClick(category)}
-                  >
-                    <span className={`accent-dot ${ACCENT_DOTS[index % ACCENT_DOTS.length]}`} />
-                    <Icon size={14} aria-hidden="true" />
-                    {category.title}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        <div className="campus-user">
+          <span className="campus-avatar" aria-hidden="true">{initials}</span>
+          <span className="campus-user-name">{user?.firstName || 'You'}</span>
+          <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={() => setIsSettingsOpen(true)}>
+            <Settings2 size={18} />
+          </button>
+          <button type="button" className="campus-icon-btn" aria-label="Sign out" onClick={handleSignOutClick}>
+            <LogOut size={18} />
+          </button>
+        </div>
+      </nav>
 
-        <section className="home-launchpad-grid">
-          <div className="surface-card home-panel">
-            <h3 className="home-section-label">Your six advisors</h3>
-            <ul className="home-advisor-roster">
-              {Object.entries(advisors).map(([id, advisor]) => {
-                const Icon = advisor.icon;
-                const colors = getAdvisorColors(id);
-                return (
-                  <li key={id} className="home-advisor-row">
-                    <span
-                      className="accent-dot"
-                      style={{ backgroundColor: colors.dotColor || colors.color }}
-                    />
-                    <div
-                      className="home-advisor-icon"
-                      style={{ backgroundColor: 'var(--paper-sunken)' }}
-                    >
-                      {advisor.avatarUrl ? (
-                        <img src={advisor.avatarUrl} alt="" />
-                      ) : (
-                        <Icon size={16} style={{ color: 'var(--ink)' }} />
-                      )}
-                    </div>
-                    <div className="home-advisor-text">
-                      <div className="home-advisor-name">{advisor.name}</div>
-                      <div className="home-advisor-role text-text-secondary">{advisor.role}</div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="home-advisor-footnote text-text-secondary">
-              Questions are routed to all active advisors at once.
-            </p>
-          </div>
+      <main className="campus-main">
+        <div className="campus-column">
+          <header className="campus-hero">
+            <p className="campus-kicker">{school} · {todayLabel(timezone)}</p>
+            <h1>What do you need on campus today?</h1>
+            <form className="campus-ask" onSubmit={handleSubmit}>
+              <label htmlFor="campus-ask-input" className="sr-only">Ask a question</label>
+              <textarea
+                id="campus-ask-input"
+                ref={inputRef}
+                rows={2}
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={starters[0]?.prompts?.[0] ? `Try “${starters[0].prompts[0]}”` : 'Ask about courses, events or places'}
+              />
+              <div className="campus-ask-row">
+                <span>Courses, events and places at {school}</span>
+                <button type="submit" className="campus-send" aria-label="Ask">
+                  <ArrowUp size={18} strokeWidth={2.4} />
+                </button>
+              </div>
+            </form>
+          </header>
 
-          <div className="surface-card home-panel">
-            <h3 className="home-section-label">Recent chat sessions</h3>
-            {sessionsLoading ? (
-              <p className="home-empty-state text-text-secondary">Loading sessions…</p>
-            ) : recentSessions.length === 0 ? (
-              <p className="home-empty-state text-text-secondary">
-                No saved chats yet. Start a conversation to see it here.
-              </p>
-            ) : (
-              <ul className="home-session-list">
-                {recentSessions.map((session) => (
-                  <li key={session.id}>
+          {starters.length > 0 && (
+            <section aria-labelledby="campus-start" className="campus-section">
+              <h2 id="campus-start">Start with</h2>
+              <div className="campus-starters">
+                {starters.map((group) => (
+                  <div className="campus-starter-group" key={group.domain}>
+                    <span className="campus-starter-domain">
+                      <span
+                        className="campus-domain-dot"
+                        style={{ background: DOMAIN_COLORS[group.domain] || 'var(--ink-soft)' }}
+                        aria-hidden="true"
+                      />
+                      {group.title}
+                    </span>
+                    {group.prompts.map((prompt) => (
+                      <button type="button" key={prompt} className="campus-starter" onClick={() => ask(prompt)}>
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section aria-labelledby="campus-today" className="campus-section">
+            <h2 id="campus-today">Today on campus</h2>
+            <div className="campus-today">
+              {today.loading && <p className="campus-today-empty">Loading today’s events…</p>}
+              {!today.loading && today.events.length === 0 && (
+                <p className="campus-today-empty">{today.error || 'Nothing else on the calendar today.'}</p>
+              )}
+              {today.events.map((event) => (
+                <div className="campus-today-row" key={`${event.title}-${event.start}`}>
+                  <span className="campus-today-time">{formatEventTime(event, timezone)}</span>
+                  <span className="campus-today-text">
+                    <strong>{event.title}</strong>
+                    {event.location && <span>{event.location}</span>}
+                  </span>
+                  {event.location && (
                     <button
                       type="button"
-                      className="home-session-row"
-                      onClick={() => goToChat({ sessionId: session.id })}
+                      className="campus-chip-btn"
+                      onClick={() => ask(`How do I get to ${event.location}?`)}
                     >
-                      <MessageSquare size={16} className="home-session-icon" />
-                      <div className="home-session-details">
-                        <div className="home-session-title">{session.title}</div>
-                        <div className="home-session-meta text-text-secondary">
-                          <span>{formatRelativeTime(session.updated_at)}</span>
-                          {session.document_count > 0 && (
-                            <span>
-                              · {session.document_count} document
-                              {session.document_count === 1 ? '' : 's'} attached
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      Directions
                     </button>
-                  </li>
-                ))}
-              </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+            {today.source?.length > 0 && (
+              <p className="campus-footnote">From {today.source.join(', ')}</p>
             )}
-            <button
-              type="button"
-              className="home-view-all"
-              onClick={() => goToChat({})}
-            >
-              View All Saved Chats
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </section>
-
-        <section className="surface-card home-canvas-banner">
-          <div className="home-canvas-banner-content">
-            <div className="home-canvas-banner-icon">
-              <LayoutDashboard size={20} />
-            </div>
-            <div>
-              <h3 className="home-canvas-banner-title">{canvasTitle}</h3>
-              <p className="home-canvas-banner-body text-text-secondary">{canvasBody}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="btn-primary home-canvas-open"
-            onClick={() => navigate('/canvas')}
-          >
-            <FileText size={16} />
-            Open
-          </button>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-content">
-          <CopyrightNotice />
+          </section>
         </div>
-      </footer>
+      </main>
 
       {isSettingsOpen && (
         <SettingsModal

@@ -407,6 +407,13 @@ const handleNewChat = async (sessionId = null) => {
     intentConsumedRef.current = true;
     const applyIntent = async () => {
       try {
+        if (intent.pendingPrompt && intent.autoSend) {
+          // Asked from the home page: send it straight away. With no current
+          // session, sending creates one titled after the question, so a
+          // separate new-chat step would only leave an empty session behind.
+          await handleSendMessage(intent.pendingPrompt);
+          return;
+        }
         if (intent.sessionId) {
           await loadChatSession(intent.sessionId);
         } else if (intent.startNew) {
@@ -1130,6 +1137,7 @@ const handleNewChat = async (sessionId = null) => {
                                 onExpand={handleExpandMessage}
                                 onClick={handleMessageClick}
                                 onCourseSelect={handleCourseSelect}
+                                onAsk={(text) => handleSendMessage(text)}
                               />
                             )}
                           </div>

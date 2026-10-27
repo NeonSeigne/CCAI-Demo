@@ -13,8 +13,6 @@ app:
   institution: "University of Virginia"
   footer_text: "Unofficial student advising demo for the University of Virginia."
 
-homepage:
-  features_title: "Why Use UVA Undergraduate Advisor?"
 
 mongodb:
   database_name: uva_advisor
@@ -75,3 +73,24 @@ tools:
     enabled: true
     # From scripts/rmp_school_lookup.py "University of Virginia".
     school_id: "U2Nob29sLTEyNzc="
+
+# Home page sample questions, grouped by domain. Keep them answerable by
+# this school's enabled tools and places data.
+homepage:
+  features_title: "Why Use UVA Undergraduate Advisor?"
+  starters:
+    - domain: academics
+      title: "Academics"
+      prompts:
+        - "What's the grade spread in CS 2100?"
+        - "Which CS 2100 sections were open?"
+    - domain: student_life
+      title: "Student life"
+      prompts:
+        - "Anything calm to do tonight?"
+        - "Wellness events this week"
+    - domain: campus
+      title: "Getting around"
+      prompts:
+        - "Where is Newcomb Hall?"
+        - "How far is the Rotunda from Alderman Library?"

@@ -35,9 +35,14 @@ const MessageBubble = ({
   inlineAvatar = false,
   userAvatarId,
   userAvatarOptions,
-  onCourseSelect
+  onCourseSelect,
+  onAsk
 }) => {
   const { allPersonas: advisors, getAllPersonaColors: getAdvisorColors } = useAppConfig();
+  // The "Checked" line leads the answer; every other visual follows the text.
+  const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
+  const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
+  const cardVisuals = visuals.filter((visual) => visual?.type !== 'sources_checked');
   const [showTooltip, setShowTooltip] = useState(null);
   const [copiedStates, setCopiedStates] = useState({});
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -523,6 +528,7 @@ const MessageBubble = ({
             className="advisor-message-text"
             style={{ color: colors.textColor || ('var(--ink)') }}
           >
+            {checkedVisual && <VisualBlock visual={checkedVisual} />}
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
             <ReactMarkdown 
               components={markdownComponents}
@@ -539,10 +545,10 @@ const MessageBubble = ({
             </ErrorBoundary>
           </div>
 
-          {Array.isArray(message?.visuals) && message.visuals.length > 0 && (
+          {cardVisuals.length > 0 && (
             <div className="advisor-message-visuals">
-              {message.visuals.map((visual, idx) => (
-                <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} />
+              {cardVisuals.map((visual, idx) => (
+                <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} onAsk={onAsk} />
               ))}
             </div>
           )}

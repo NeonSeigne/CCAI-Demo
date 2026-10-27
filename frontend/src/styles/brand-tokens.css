@@ -11,6 +11,18 @@ html[data-theme="light"],
   --accent-blue: #2E7CF6;
   --accent-green: #34C759;
 
+  /* One color per answer domain (home starters, "Checked" chips). Text on
+     the matching tint uses the -ink shade, which passes 4.5:1. */
+  --domain-academics: #2E7CF6;
+  --domain-academics-tint: #E8F0FE;
+  --domain-academics-ink: #1A4FB0;
+  --domain-student-life: #E8730C;
+  --domain-student-life-tint: #FDEEDF;
+  --domain-student-life-ink: #8A4206;
+  --domain-campus: #1F9D55;
+  --domain-campus-tint: #E3F4EA;
+  --domain-campus-ink: #156B3A;
+
   --font-app: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 

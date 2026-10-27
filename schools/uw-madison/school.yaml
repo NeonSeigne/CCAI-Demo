@@ -29,3 +29,23 @@ tools:
   events_search:
     enabled: true
     max_results: 15
+
+# Home page sample questions, grouped by domain. Keep them answerable by
+# this school's enabled tools and places data.
+homepage:
+  starters:
+    - domain: academics
+      title: "Academics"
+      prompts:
+        - "How hard is COMP SCI 300?"
+        - "What can I take after COMP SCI 300?"
+    - domain: student_life
+      title: "Student life"
+      prompts:
+        - "What's on at Union South today?"
+        - "Any study abroad events this week?"
+    - domain: campus
+      title: "Getting around"
+      prompts:
+        - "Where is Grainger Hall?"
+        - "How far is Union South from College Library?"

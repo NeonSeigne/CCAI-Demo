@@ -30,3 +30,23 @@ tools:
   events_search:
     enabled: true
     max_results: 15
+
+# Home page sample questions, grouped by domain. Keep them answerable by
+# this school's enabled tools and places data.
+homepage:
+  starters:
+    - domain: academics
+      title: "Academics"
+      prompts:
+        - "What sections of CSCI 2270 are offered?"
+        - "How do students rate CSCI professors?"
+    - domain: student_life
+      title: "Student life"
+      prompts:
+        - "What's happening on campus tonight?"
+        - "Any career workshops this week?"
+    - domain: campus
+      title: "Getting around"
+      prompts:
+        - "Where is the UMC?"
+        - "How far is Norlin Library from the UMC?"

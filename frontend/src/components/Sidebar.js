@@ -255,8 +255,8 @@ const Sidebar = ({
             target="_blank"
             rel="noopener noreferrer"
             className="sidebar-neon-link"
-            title="Neon.ai"
-            aria-label={showCollapsed ? 'Neon.ai' : undefined}
+            title="Campus Companion"
+            aria-label={showCollapsed ? 'Campus Companion' : undefined}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -274,7 +274,7 @@ const Sidebar = ({
               className="sidebar-neon-logo"
               sx={{ width: 24, height: 24, objectFit: 'contain' }}
             />
-            {!showCollapsed && <span>Neon.ai</span>}
+            {!showCollapsed && <span>Campus Companion</span>}
           </Box>
 
           <Tooltip

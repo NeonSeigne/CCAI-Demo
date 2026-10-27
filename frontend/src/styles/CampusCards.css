@@ -1,0 +1,143 @@
+/* Chat cards built from campus tool results (events, places, checked line). */
+.cc-checked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.cc-checked svg { color: var(--domain-campus); }
+
+.cc-domain {
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+
+.cc-domain--academics { background: var(--domain-academics-tint); color: var(--domain-academics-ink); }
+.cc-domain--student_life { background: var(--domain-student-life-tint); color: var(--domain-student-life-ink); }
+.cc-domain--campus { background: var(--domain-campus-tint); color: var(--domain-campus-ink); }
+
+.cc-card {
+  margin-top: 12px;
+  border-radius: 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.cc-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cc-event,
+.cc-place {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.cc-event + .cc-event,
+.cc-place + .cc-place { border-top: 1px solid var(--line); }
+
+.cc-event-date,
+.cc-place-pin {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-event-date { background: var(--domain-student-life-tint); color: var(--domain-student-life-ink); }
+.cc-place-pin { background: var(--domain-campus-tint); color: var(--domain-campus-ink); }
+
+.cc-event-body,
+.cc-place-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.cc-event-body strong,
+.cc-place-body strong {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.cc-event-meta,
+.cc-place-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #3A3A40;
+}
+
+.cc-event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.cc-place-walk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--domain-campus-ink);
+}
+
+.cc-place-walk span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.cc-place-walk strong { font-size: 16px; color: var(--ink); }
+.cc-place-walk small { font-size: 12px; color: var(--ink-soft); }
+
+.cc-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1px solid rgba(17, 17, 20, 0.12);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cc-chip-btn:hover { background: var(--paper-sunken); color: var(--ink); }
+
+.cc-card-foot {
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 560px) {
+  .cc-event,
+  .cc-place { flex-wrap: wrap; }
+  .cc-event-actions { width: 100%; justify-content: flex-start; padding-left: 48px; }
+}

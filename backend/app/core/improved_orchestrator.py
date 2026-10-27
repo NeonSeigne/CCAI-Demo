@@ -468,12 +468,24 @@ class ImprovedChatOrchestrator:
             f"{p.name} ({p.id})" for p in self.personas.values()
         )
         domain_keywords = ", ".join(orch_cfg.specific_keywords)
+        # Campus lookups (events, places, courses) are concrete even when short.
+        tool_domains = [
+            DOMAIN_DESCRIPTIONS[d]
+            for d in tools_by_domain(get_settings().tools.get_enabled_names())
+            if d in DOMAIN_DESCRIPTIONS and d != "general"
+        ]
+        lookups = (
+            f"The app can also look up: {'; '.join(tool_domains)}. A question about "
+            "one of these (e.g. 'where is the library?', 'what's on tonight?') is clear enough.\n"
+            if tool_domains else ""
+        )
 
         system_prompt = (
             "You are a routing classifier for an AI advisory application.\n\n"
             f"Application: {app_cfg.title} — {app_cfg.subtitle}\n"
             f"Available advisors: {advisor_descriptions}\n"
-            f"Domain-relevant topics: {domain_keywords}\n\n"
+            f"Domain-relevant topics: {domain_keywords}\n"
+            f"{lookups}\n"
             "Your task: decide whether the user's FIRST message contains enough "
             "substance to send to the advisors, or whether it is too vague and "
             "requires a clarifying follow-up before the advisors can help.\n\n"

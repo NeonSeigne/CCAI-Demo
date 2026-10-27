@@ -110,9 +110,15 @@ def _expand(calendar: icalendar.Calendar, start: datetime, end: datetime) -> Lis
     return list(recurring_ical_events.of(calendar, skip_bad_series=True).between(start, end))
 
 
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
 def _text(component: Any, key: str) -> str:
+    """Plain text of a property: HTML tags dropped, entities decoded."""
     value = component.get(key)
-    return html.unescape(str(value)).strip() if value is not None else ""
+    if value is None:
+        return ""
+    return " ".join(html.unescape(_TAG_RE.sub(" ", str(value))).split())
 
 
 def _localize(value: Any, tz: ZoneInfo) -> Tuple[datetime, bool]:

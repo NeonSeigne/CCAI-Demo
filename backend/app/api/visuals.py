@@ -133,13 +133,83 @@ def _search_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     return []
 
 
-_BUILDERS = {
+EVENT_CARD_LIMIT = 5
+PLACE_CARD_LIMIT = 3
+
+
+def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """An event list card built from the events_search result itself."""
+    events = [e for e in result.get("events") or [] if e.get("title")]
+    if not events:
+        return []
+    return [{
+        "type": "event_list",
+        "timezone": result.get("timezone"),
+        "events": [
+            {
+                key: e.get(key)
+                for key in ("title", "start", "end", "all_day", "location", "url", "calendar", "ongoing")
+            }
+            for e in events[:EVENT_CARD_LIMIT]
+        ],
+        "more": max(0, (result.get("total_results") or len(events)) - EVENT_CARD_LIMIT),
+    }]
+
+
+def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """A place card: matches, and distance from ``from`` when one was given."""
+    places = result.get("places") or []
+    if not places:
+        return []
+    origin = result.get("from")
+    return [{
+        "type": "place_card",
+        "from": {k: origin.get(k) for k in ("name", "lat", "lon")} if origin else None,
+        "note": result.get("note"),
+        "places": [
+            {
+                key: p.get(key)
+                for key in ("name", "category", "lat", "lon", "map_url", "distance_m", "walk_minutes_estimate", "hours")
+            }
+            for p in places[:PLACE_CARD_LIMIT]
+        ],
+    }]
+
+
+# Cards hydrated from the course detail API: only for providers with course pages.
+_COURSE_BUILDERS = {
     "course_grades": _grades_specs,
     "course_prerequisites": _prereq_specs,
     "course_next": _next_specs,
     "course_sections": _sections_specs,
     "course_search": _search_specs,
 }
+# Cards built entirely from the tool result: work for every school.
+_SELF_CONTAINED_BUILDERS = {
+    "events_search": _events_specs,
+    "find_place": _place_specs,
+}
+_BUILDERS = {**_COURSE_BUILDERS, **_SELF_CONTAINED_BUILDERS}
+
+# What the "Checked" line calls each domain.
+DOMAIN_LABELS = {"academics": "Courses", "student_life": "Events", "campus": "Campus map"}
+
+
+def sources_checked(tool_outputs: List[Dict[str, Any]]) -> Optional[VisualSpec]:
+    """Which domains this answer looked at, in the order the tools ran."""
+    from app.core.improved_orchestrator import DOMAIN_OF_TOOL
+
+    domains: List[str] = []
+    for entry in tool_outputs or []:
+        domain = DOMAIN_OF_TOOL.get(entry.get("name") or "")
+        if domain in DOMAIN_LABELS and domain not in domains:
+            domains.append(domain)
+    if not domains:
+        return None
+    return {
+        "type": "sources_checked",
+        "domains": [{"id": d, "label": DOMAIN_LABELS[d]} for d in domains],
+    }
 
 
 def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -151,18 +221,16 @@ def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     skipped.
     """
     visuals: List[Dict[str, Any]] = []
-    if not academics.links_to_course_pages():
-        # Providers without course detail pages (snapshots) have nothing to
-        # hydrate cards from; cards would call another school's course API.
-        return visuals
+    # Providers without course detail pages (snapshots) have nothing to
+    # hydrate course cards from; those cards would call another school's API.
+    course_pages = academics.links_to_course_pages()
     for entry in tool_outputs or []:
         name = entry.get("name")
         result = entry.get("result")
         builder = _BUILDERS.get(name)
         if not builder or not isinstance(result, dict) or result.get("error"):
             continue
-        if "data_as_of" in result:
-            # Snapshot providers have no course detail pages to hydrate cards from.
+        if name in _COURSE_BUILDERS and (not course_pages or "data_as_of" in result):
             continue
         try:
             spec = builder(result)

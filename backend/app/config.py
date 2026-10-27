@@ -59,7 +59,15 @@ class AppConfig(BaseModel):
     footer_text: str = ""
 
 
+class StarterGroup(BaseModel):
+    """Sample questions on the home page, grouped by domain."""
+    domain: str
+    title: str
+    prompts: List[str] = []
+
+
 class HomepageConfig(BaseModel):
+    starters: List[StarterGroup] = []
     headline_prefix: str = "Get Guidance from"
     headline_highlight: str = "Advisor Personas"
     description: str = ""
@@ -461,6 +469,7 @@ class AppSettings(BaseModel):
 
         return {
             "app": self.app.dict(),
+            "school": {"slug": self.school.slug, "timezone": self.school.timezone},
             "homepage": self.homepage.dict(),
             "login": self.login.dict(),
             "chat_page": self.chat_page.dict(),
