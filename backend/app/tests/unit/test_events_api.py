@@ -265,6 +265,8 @@ class TestVenueMatch(EventsApiTestCase):
             "Macky Auditorium, Main Hall": "macky-auditorium",
             "Norlin Library (Also offered online)": "norlin-library",
             "University Memorial Center (UMC), Room 235": "university-memorial-center",
+            # A room nickname that half-matches another place loses to the building.
+            '"The Field," Room 233, Norlin Library': "norlin-library",
             "Online via Zoom": None,
             "Somewhere Unmapped": None,
             "": None,

@@ -225,11 +225,20 @@ def match_venue(location: str) -> Optional[Dict[str, Any]]:
         for candidate in (part, bare):
             if candidate and candidate not in candidates:
                 candidates.append(candidate)
+    # The best match over all parts, earlier parts winning ties: in
+    # '"The Well," Room 233, Union South' the building is a full match, while
+    # "The Well" only half-matches a water well.
+    best, best_score = None, 0.0
     for candidate in candidates:
         found = search(candidate, limit=1)
-        if found:
+        if not found:
+            continue
+        score = _score(found[0], _normalize(candidate))
+        if score >= 1.0:
             return found[0]
-    return None
+        if score > best_score:
+            best, best_score = found[0], score
+    return best
 
 
 def public(place: Dict[str, Any]) -> Dict[str, Any]:
