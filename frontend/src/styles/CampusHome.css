@@ -412,5 +412,20 @@
   .campus-rail { border-right: 0; border-bottom: 1px solid var(--line); }
   .campus-recent { display: none; }
   .campus-main { padding: 32px 16px 48px; }
-  .campus-today-row { flex-wrap: wrap; gap: 8px 12px; }
+  /* Time keeps its column; the title wraps to two lines and the button sits
+     under it, so every row has the same shape whatever the title length. */
+  .campus-today-row {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px 12px;
+  }
+  .campus-today-time { width: auto; padding-top: 2px; }
+  .campus-today-text strong {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .campus-today-row .campus-chip-btn { grid-column: 2; justify-self: start; min-height: 44px; }
 }
