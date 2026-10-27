@@ -12,7 +12,7 @@ import app.config
 from app.api.visuals import build_visuals
 from app.config import load_settings
 from app.core.improved_orchestrator import _tool_guidance_prompt
-from app.sources import csv_snapshot
+from app.sources import cache, csv_snapshot
 from app.tools import course_grades, course_next, course_prerequisites, course_search, course_sections
 
 SECTIONS_URL = "https://raw.githubusercontent.com/org/repo/HEAD/semester_data/2026_fall.csv"
@@ -49,7 +49,7 @@ GRADES = {
 }
 
 
-def fake_download(url):
+def fake_download(url, with_commit_date=False):
     if url == SECTIONS_URL:
         return SECTIONS_CSV, "2026-09-03"
     if url in GRADES:
@@ -79,8 +79,8 @@ class SnapshotTestCase(unittest.IsolatedAsyncioTestCase):
         }))
         load_settings(str(cfg))
         self.patches = [
-            patch.object(csv_snapshot, "CACHE_DIR", Path(self.tmp.name) / "cache"),
-            patch.object(csv_snapshot, "_download", side_effect=fake_download),
+            patch.object(cache, "CACHE_DIR", Path(self.tmp.name) / "cache"),
+            patch.object(cache, "_download", side_effect=fake_download),
             patch.dict(os.environ, {"SOURCES_OFFLINE": ""}),
         ]
         self.download = self.patches[1].start()

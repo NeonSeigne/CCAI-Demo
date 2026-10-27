@@ -40,7 +40,17 @@ academics:
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_spring.csv"
     refresh_hours: 24
 
+student_life:
+  # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
+  # for every event, whatever the feed's own header says.
+  event_feeds:
+    - url: "https://www.trumba.com/calendars/university-of-virginia-events.ics"
+      name: "UVA Events Calendar"
+
 tools:
+  events_search:
+    enabled: true
+    max_results: 15
   # CU's FOSE course search does not serve UVA.
   search_courses:
     enabled: false

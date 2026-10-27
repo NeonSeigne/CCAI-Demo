@@ -8,3 +8,15 @@ school:
 
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
+
+student_life:
+  # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
+  # for every event, whatever the feed's own header says.
+  event_feeds:
+    - url: "https://today.wisc.edu/events.ics"
+      name: "UW–Madison Today"
+
+tools:
+  events_search:
+    enabled: true
+    max_results: 15

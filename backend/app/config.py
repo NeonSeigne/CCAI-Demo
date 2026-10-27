@@ -325,6 +325,17 @@ class AcademicsConfig(BaseModel):
     snapshot: SnapshotConfig = SnapshotConfig()
 
 
+class EventFeedConfig(BaseModel):
+    url: str
+    name: str = ""
+
+
+class StudentLifeConfig(BaseModel):
+    """Campus event calendars (iCal) for the events tools."""
+    event_feeds: List[EventFeedConfig] = []
+    refresh_minutes: int = 15
+
+
 class RAGConfig(BaseModel):
     embedding_model: str = "all-MiniLM-L6-v2"
     chroma_collection: str = "phd_advisor_documents"
@@ -406,6 +417,7 @@ class AppSettings(BaseModel):
     voice: VoiceConfig = VoiceConfig()
     school: SchoolConfig = SchoolConfig()
     academics: AcademicsConfig = AcademicsConfig()
+    student_life: StudentLifeConfig = StudentLifeConfig()
 
     @model_validator(mode="after")
     def _require_school_isolation(self):

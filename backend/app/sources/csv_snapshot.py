@@ -19,23 +19,16 @@ from __future__ import annotations
 import asyncio
 import csv
 import io
-import json
 import logging
-import os
 import re
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlparse
-
-import httpx
 
 from app.config import get_settings
+from app.sources import cache
 
 logger = logging.getLogger(__name__)
 
-CACHE_DIR = Path(os.getenv("SOURCES_CACHE_DIR") or Path(__file__).resolve().parents[2] / ".cache" / "sources")
-FETCH_TIMEOUT = 30.0
 _GRADE_BUCKETS = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "DFW")
 _NOT_AVAILABLE = "This school's course data does not include {what}."
 
@@ -47,87 +40,15 @@ _lock = asyncio.Lock()
 # Loading
 # ---------------------------------------------------------------------------
 
-def _cache_paths(url: str) -> Tuple[Path, Path]:
-    slug = get_settings().school.slug or "default"
-    name = re.sub(r"[^A-Za-z0-9._-]+", "_", urlparse(url).path.strip("/"))[-120:]
-    base = CACHE_DIR / slug / name
-    return base, base.with_suffix(base.suffix + ".meta.json")
-
-
-def _github_commit_date(url: str) -> Optional[str]:
-    """Last commit date of a raw.githubusercontent.com file, or None."""
-    parts = urlparse(url)
-    if parts.netloc != "raw.githubusercontent.com":
-        return None
-    segments = parts.path.strip("/").split("/")
-    if len(segments) < 4:
-        return None
-    owner, repo, ref, path = segments[0], segments[1], segments[2], "/".join(segments[3:])
-    try:
-        response = httpx.get(
-            f"https://api.github.com/repos/{owner}/{repo}/commits",
-            params={"path": path, "sha": ref, "per_page": 1},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        commits = response.json()
-        return commits[0]["commit"]["committer"]["date"][:10] if commits else None
-    except Exception as exc:  # noqa: BLE001 — the date is a label, never a blocker
-        logger.info("Could not read commit date for %s: %s", url, exc)
-        return None
-
-
-def _download(url: str) -> Tuple[str, Optional[str]]:
-    response = httpx.get(url, timeout=FETCH_TIMEOUT, follow_redirects=True)
-    response.raise_for_status()
-    return response.text, _github_commit_date(url)
-
-
-def _read_disk(url: str) -> Optional[Tuple[str, float, Optional[str]]]:
-    data_path, meta_path = _cache_paths(url)
-    if not data_path.exists():
-        return None
-    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
-    return data_path.read_text(), meta.get("fetched_at", 0.0), meta.get("as_of")
-
-
-def _write_disk(url: str, text: str, as_of: Optional[str]) -> None:
-    data_path, meta_path = _cache_paths(url)
-    data_path.parent.mkdir(parents=True, exist_ok=True)
-    data_path.write_text(text)
-    meta_path.write_text(json.dumps({"fetched_at": time.time(), "as_of": as_of, "url": url}))
-
-
-def _load_text(url: str, refresh_hours: int) -> Tuple[str, Optional[str]]:
-    """Return (csv text, as_of date), refreshing the disk copy when stale.
-
-    A failed refresh falls back to the last good disk copy; with no copy the
-    error propagates.
-    """
-    cached = _read_disk(url)
-    offline = os.getenv("SOURCES_OFFLINE") == "1"
-    if cached and (offline or time.time() - cached[1] < refresh_hours * 3600):
-        return cached[0], cached[2]
-    if offline:
-        raise RuntimeError(f"SOURCES_OFFLINE=1 and no cached copy of {url}")
-    try:
-        text, as_of = _download(url)
-    except Exception as exc:  # noqa: BLE001
-        if cached:
-            logger.warning("Refresh of %s failed (%s); serving cached copy", url, exc)
-            return cached[0], cached[2]
-        raise RuntimeError(f"Course data unavailable: {exc}") from exc
-    _write_disk(url, text, as_of)
-    return text, as_of
-
-
 async def _table(url: str) -> Tuple[List[Dict[str, str]], Optional[str]]:
     refresh_hours = get_settings().academics.snapshot.refresh_hours
     async with _lock:
         hit = _tables.get(url)
         if hit and time.time() - hit[0] < refresh_hours * 3600:
             return hit[1], hit[2]
-        text, as_of = await asyncio.to_thread(_load_text, url, refresh_hours)
+        text, as_of = await asyncio.to_thread(
+            cache.load_text, url, refresh_hours, with_commit_date=True
+        )
         rows = list(csv.DictReader(io.StringIO(text)))
         _tables[url] = (time.time(), rows, as_of)
         return rows, as_of
