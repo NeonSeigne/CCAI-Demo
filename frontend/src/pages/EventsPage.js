@@ -14,7 +14,7 @@ import { getCampusOrigin, listEvents, listPlaces, setCampusOrigin } from '../api
 import { downloadEventIcs } from '../utils/ics';
 import {
   WINDOWS, WINDOW_IDS, addDays, dayKey, formatDay, isAllDayLike, listingDay, minutesOfDay, relativeDay,
-  windowDays, windowHeading, windowLabel, windowPhrase, zoneName, eventDays,
+  windowDays, windowHeading, windowLabel, windowPhrase, zoneName, coversDay,
 } from '../utils/eventWindows';
 import '../styles/CampusHome.css';
 import '../styles/EventsPage.css';
@@ -333,8 +333,8 @@ function CalendarWeek({ days, windowSet, events, timezone, todayKey, now, headin
   useEffect(() => { setHourOpen(null); setExpanded(false); }, [days[0]]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const perDay = useMemo(() => days.map((key) => {
-    const allDay = events.filter((event) => isAllDayLike(event) && eventDays(event, timezone).includes(key));
-    const timed = events.filter((event) => !isAllDayLike(event) && eventDays(event, timezone).includes(key));
+    const allDay = events.filter((event) => isAllDayLike(event) && coversDay(event, key, timezone));
+    const timed = events.filter((event) => !isAllDayLike(event) && coversDay(event, key, timezone));
     return { key, allDay, timed, layout: layoutDay(timed, key, timezone) };
   }), [days, events, timezone]);
 
@@ -500,7 +500,7 @@ function DayAgenda({ days, events, timezone, todayKey }) {
   const [index, setIndex] = useState(0);
   useEffect(() => { setIndex(0); }, [days[0], days.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const key = days[Math.min(index, days.length - 1)];
-  const list = events.filter((event) => eventDays(event, timezone).includes(key));
+  const list = events.filter((event) => coversDay(event, key, timezone));
   const ordered = [...list.filter((e) => isAllDayLike(e)), ...list.filter((e) => !isAllDayLike(e)).sort(byStart)];
   const name = formatDay(key, { weekday: 'long', month: 'short', day: 'numeric' });
   return (

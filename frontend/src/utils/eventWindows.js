@@ -136,19 +136,22 @@ export function isAllDayLike(event) {
 }
 
 /** The campus days an event covers (all-day ends are exclusive, as in iCalendar). */
-export function eventDays(event, timezone) {
+/** [first, last] day keys the event covers; an end at midnight doesn't count that day. */
+export function eventSpan(event, timezone) {
   const first = dayKey(event.start, timezone);
-  if (!event.end) return [first];
+  if (!event.end) return [first, first];
   let last = dayKey(event.end, timezone);
   if (event.all_day || minutesOfDay(event.end, timezone) === 0) last = addDays(last, -1);
-  if (last < first) return [first];
-  const days = [];
-  for (let key = first; key <= last && days.length < 60; key = addDays(key, 1)) days.push(key);
-  return days;
+  return [first, last < first ? first : last];
+}
+
+/** Whether the event runs on day *key*, however long it runs (exhibitions span months). */
+export function coversDay(event, key, timezone) {
+  const [first, last] = eventSpan(event, timezone);
+  return first <= key && key <= last;
 }
 
 /** The day an event is listed under within the window's days. */
 export function listingDay(event, days, timezone) {
-  const covered = eventDays(event, timezone);
-  return covered.find((key) => days.includes(key)) || covered[0];
+  return days.find((key) => coversDay(event, key, timezone)) || eventSpan(event, timezone)[0];
 }
