@@ -1,20 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Code2 } from 'lucide-react';
-import AdvisorCard from '../components/AdvisorCard';
+import { ArrowRight, Code2, MapPin } from 'lucide-react';
 import CopyrightNotice from '../components/CopyrightNotice';
+import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ENABLE_DEV_LOGIN } from '../App';
+import '../styles/CampusRail.css';
+import '../styles/CampusHome.css';
+import '../styles/CampusLanding.css';
 
+// What each answer domain draws from; shown beside that domain's starters.
+const DOMAIN_SOURCES = {
+  academics: 'Course grades, instructors and sections',
+  student_life: 'Events from the campus calendars',
+  campus: 'Walking times and the campus map',
+};
+
+/** Signed-out landing page: what Campus Companion answers, and a way in. */
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const { handleAuthSuccess } = useAuth();
-  const { config, advisors, resolveIcon } = useAppConfig();
+  const { config } = useAppConfig();
   const [devLoginLoading, setDevLoginLoading] = useState(false);
   const [devLoginError, setDevLoginError] = useState('');
 
-  const UsersIcon = resolveIcon('Users');
+  const school = config?.app?.institution || config?.app?.title || 'your campus';
+  const starters = config?.homepage?.starters || [];
 
   const handleDevLogin = async () => {
     if (devLoginLoading) return;
@@ -51,91 +63,77 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="homepage min-h-screen bg-bg-primary font-sans">
-      <header className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <div className="logo-container">
-              <UsersIcon className="logo-icon" />
-            </div>
-            <div>
-              <h1 className="logo-title">{config.app.title}</h1>
-              <p className="logo-subtitle">{config.app.subtitle}</p>
-            </div>
-          </div>
-          {ENABLE_DEV_LOGIN && (
-            <div className="header-right">
-              <button
-                type="button"
-                className="dev-mode-btn"
-                onClick={handleDevLogin}
-                disabled={devLoginLoading}
-                title="Skip sign-in and enter as the seeded developer user"
-              >
-                <Code2 className="dev-mode-btn-icon" aria-hidden="true" />
-                <span>{devLoginLoading ? 'Signing in…' : 'Developer mode'}</span>
-              </button>
-            </div>
-          )}
+    <div className="campus-landing">
+      <header className="landing-bar">
+        <div className="campus-brand">
+          <span className="campus-brand-mark" aria-hidden="true">
+            <MapPin size={16} strokeWidth={2.4} />
+          </span>
+          <span className="campus-brand-name">Campus Companion</span>
         </div>
-        {devLoginError && (
-          <p className="dev-mode-error" role="alert">
-            {devLoginError}
-          </p>
-        )}
-      </header>
-
-      <main className="main">
-        <div className="hero-section">
-          <h2 className="hero-title text-ink">
-            {config.homepage.headline_prefix}{' '}
-            <span className="hero-highlight text-ink">{config.homepage.headline_highlight}</span>
-          </h2>
-          <p className="hero-subtitle text-text-secondary">
-            {config.homepage.description}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/auth')}
-            className="btn-primary cta-button"
-          >
-            <MessageCircle className="cta-icon" />
-            <span>Start Conversation</span>
-            <ArrowRight className="cta-arrow" />
+        <div className="landing-bar-actions">
+          {ENABLE_DEV_LOGIN && (
+            <button
+              type="button"
+              className="landing-soft-btn"
+              onClick={handleDevLogin}
+              disabled={devLoginLoading}
+              title="Skip sign-in and enter as the seeded developer user"
+            >
+              <Code2 size={15} aria-hidden="true" />
+              <span>{devLoginLoading ? 'Signing in…' : 'Developer mode'}</span>
+            </button>
+          )}
+          <button type="button" className="landing-soft-btn" onClick={() => navigate('/auth')}>
+            Sign in
           </button>
         </div>
+      </header>
+      {devLoginError && (
+        <p className="landing-error" role="alert">{devLoginError}</p>
+      )}
 
-        <div className="advisors-grid">
-          {Object.entries(advisors).map(([id, advisor]) => (
-            <AdvisorCard key={id} advisor={advisor} advisorId={id} />
-          ))}
-        </div>
+      <main className="landing-main">
+        <section className="landing-hero">
+          <p className="campus-kicker">{school}</p>
+          <h1>Ask about courses, events and places on campus.</h1>
+          <p className="landing-lede">
+            One short answer, with the grades, times and walking distances in cards
+            underneath and the sources it checked listed at the end.
+          </p>
+          <button type="button" className="landing-cta" onClick={() => navigate('/auth')}>
+            Sign in to start asking
+            <ArrowRight size={17} strokeWidth={2.4} aria-hidden="true" />
+          </button>
+        </section>
 
-        <div className="features-section">
-          <h3 className="features-title">{config.homepage.features_title}</h3>
-          <div className="features-grid">
-            {(config.homepage.features || []).map((feature, index) => {
-              const FeatureIcon = resolveIcon(feature.icon);
-              const accentColors = ['bg-accent-red', 'bg-accent-blue', 'bg-accent-green'];
-              return (
-                <div key={index} className="feature-card surface-card">
-                  <div className="feature-icon flex items-center gap-2">
-                    <span className={`accent-dot ${accentColors[index % accentColors.length]}`} />
-                    <FeatureIcon />
+        {starters.length > 0 && (
+          <section className="landing-asks" aria-labelledby="landing-asks-title">
+            <h2 id="landing-asks-title">Questions students ask</h2>
+            <ul className="landing-domains">
+              {starters.map((group) => (
+                <li className="landing-domain" key={group.domain}>
+                  <div className="landing-domain-head">
+                    <span
+                      className="campus-domain-dot"
+                      style={{ background: DOMAIN_COLORS[group.domain] || 'var(--ink-soft)' }}
+                      aria-hidden="true"
+                    />
+                    <strong>{group.title}</strong>
+                    {DOMAIN_SOURCES[group.domain] && <span>{DOMAIN_SOURCES[group.domain]}</span>}
                   </div>
-                  <h4 className="feature-title">{feature.title}</h4>
-                  <p className="feature-description">{feature.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  <ul className="landing-prompts">
+                    {group.prompts.map((prompt) => <li key={prompt}>“{prompt}”</li>)}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
 
-      <footer className="footer">
-        <div className="footer-content">
-          <CopyrightNotice />
-        </div>
+      <footer className="landing-foot">
+        <CopyrightNotice />
       </footer>
     </div>
   );
