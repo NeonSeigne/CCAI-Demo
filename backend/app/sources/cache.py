@@ -165,3 +165,18 @@ def fetched_at(url: str) -> Optional[float]:
     """When the cached copy of *url* was downloaded (epoch seconds), if any."""
     cached = _read(url)
     return cached[1] if cached else None
+
+
+def read_entry(key: str) -> Optional[Tuple[str, float]]:
+    """``(text, fetched_at)`` stored under *key* by :func:`write_entry`.
+
+    For results that are not one URL's download (walking routes keyed by a
+    place pair); the caller decides how old is too old.
+    """
+    cached = _read(key)
+    return (cached[0], cached[1]) if cached else None
+
+
+def write_entry(key: str, text: str) -> bool:
+    """Store *text* under *key*; False when the disk write fails."""
+    return _write(key, text, None)
