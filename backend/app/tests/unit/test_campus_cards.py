@@ -43,6 +43,28 @@ class TestEventAndPlaceCards(unittest.TestCase):
         self.assertEqual(card["places"][0]["walk_minutes_estimate"], 3)
         self.assertNotIn("aliases", card["places"][0])
 
+    def test_event_card_carries_ids_and_the_query(self):
+        result = {
+            "events": [{**EVENT, "id": "2026-10-27:226193@calendar.wisc.edu"}, EVENT],
+            "query": {"when": "tonight", "keyword": "jazz"},
+        }
+        (card,) = build_visuals([{"name": "events_search", "result": result}])
+        self.assertEqual(card["events"][0]["id"], "2026-10-27:226193@calendar.wisc.edu")
+        self.assertNotIn("id", card["events"][1])
+        self.assertEqual(card["query"], {"when": "tonight", "keyword": "jazz"})
+
+    def test_event_card_without_query_has_none(self):
+        (card,) = build_visuals([{"name": "events_search", "result": {"events": [EVENT]}}])
+        self.assertNotIn("query", card)
+
+    def test_place_card_carries_place_and_origin_ids(self):
+        result = {"places": [{**PLACE, "id": "way/123"}, PLACE],
+                  "from": {"id": "way/9", "name": "Norlin Library", "lat": 40.0, "lon": -105.0}}
+        (card,) = build_visuals([{"name": "find_place", "result": result}])
+        self.assertEqual(card["from"]["id"], "way/9")
+        self.assertEqual(card["places"][0]["id"], "way/123")
+        self.assertNotIn("id", card["places"][1])
+
     def test_campus_cards_show_for_schools_without_course_pages(self):
         with patch.object(visuals_module.academics, "links_to_course_pages", return_value=False):
             cards = build_visuals([

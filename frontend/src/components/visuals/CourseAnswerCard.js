@@ -1,8 +1,10 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
+import ContextLink from '../ContextLink';
+import SaveButton from '../SaveButton';
 import {
   calculateCompletionRate,
   calculateGpa,
@@ -215,9 +217,12 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
           <span className="cc-course-code">{label}</span>
           <strong>{titleCase(data.course?.course_title || '')}</strong>
         </div>
-        <button type="button" className="cc-soft-btn" onClick={() => openCourse(label)}>
-          Course page
-        </button>
+        <div className="cc-course-actions">
+          <button type="button" className="cc-soft-btn" onClick={() => openCourse(label)}>
+            Course page
+          </button>
+          <SaveButton item={{ kind: 'course', key: label, display_name: label }} />
+        </div>
       </div>
       {showGrades && <GradeBar grades={selectedGrades} termLabel={termLabel} />}
       {(instructors.length > 0 || meetings.length > 0) && (
@@ -226,6 +231,9 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
           <SeatsTile meetings={meetings} />
         </div>
       )}
+      <ContextLink className="cc-context-link" to={`/courses?selected=${encodeURIComponent(label)}`}>
+        Open in Courses <ArrowRight size={13} aria-hidden="true" />
+      </ContextLink>
     </section>
   );
 }

@@ -24,8 +24,8 @@
 .chat-frame .modern-chat-page { background: var(--paper-sunken); }
 
 .chat-frame :focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ---- Header -------------------------------------------------------------- */
@@ -315,6 +315,13 @@
   .chat-frame .floating-input-area.phase-transitioning { padding: 6px 12px 12px; }
   .chat-suggestions { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .chat-suggestion { flex-shrink: 0; min-height: 40px; }
+}
+
+@media (max-width: 767px) {
+  /* Room for the phone tab bar (CampusRail.css). */
+  .chat-frame,
+  .chat-frame .main-chat-area,
+  .chat-frame .modern-chat-page { height: calc(100vh - 56px - env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

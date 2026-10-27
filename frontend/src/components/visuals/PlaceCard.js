@@ -1,5 +1,7 @@
 import React from 'react';
-import { ExternalLink, MapPin } from 'lucide-react';
+import { ArrowRight, ExternalLink, MapPin } from 'lucide-react';
+import ContextLink from '../ContextLink';
+import SaveButton from '../SaveButton';
 
 const CATEGORY_LABELS = {
   academic: 'Building',
@@ -16,6 +18,14 @@ const CATEGORY_LABELS = {
 
 function mapLabel(url = '') {
   return url.includes('openstreetmap.org') ? 'Open in OpenStreetMap' : 'Open map';
+}
+
+/** /map?from=<origin id>&to=<place id>, the walk on the Campus map page (14A). */
+export function mapPageLink(origin, place) {
+  const params = new URLSearchParams();
+  if (origin?.id) params.set('from', origin.id);
+  params.set('to', place.id);
+  return `/map?${params.toString()}`;
 }
 
 /** A drawn walk from origin to place; decoration, not a map. */
@@ -43,7 +53,7 @@ export default function PlaceCard({ visual }) {
       {places.map((place, index) => {
         const walking = origin && place.walk_minutes_estimate != null;
         return (
-          <div key={`${place.name}-${index}`} className="cc-card cc-place">
+          <div key={place.id || `${place.name}-${index}`} className="cc-card cc-place">
             {walking && <WalkSketch />}
             <div className="cc-place-top">
               {!walking && (
@@ -63,7 +73,13 @@ export default function PlaceCard({ visual }) {
                   <small>{Math.round(place.distance_m)} m straight line</small>
                 </span>
               )}
+              <SaveButton item={place.id ? { kind: 'place', key: place.id, display_name: place.name } : null} />
             </div>
+            {place.id && (
+              <ContextLink className="cc-context-link" to={mapPageLink(origin, place)}>
+                Open on map <ArrowRight size={13} aria-hidden="true" />
+              </ContextLink>
+            )}
             {place.map_url && (
               <a className="cc-soft-btn cc-place-map" href={place.map_url} target="_blank" rel="noopener noreferrer">
                 {mapLabel(place.map_url)} <ExternalLink size={12} aria-hidden="true" />

@@ -137,23 +137,35 @@ EVENT_CARD_LIMIT = 5
 PLACE_CARD_LIMIT = 3
 
 
+def _with_id(item: Dict[str, Any], source: Dict[str, Any]) -> Dict[str, Any]:
+    """Pass the stable ``id`` through when the source has one; Save and the page links need it."""
+    if source.get("id"):
+        item["id"] = source["id"]
+    return item
+
+
 def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     """An event list card built from the events_search result itself."""
     events = [e for e in result.get("events") or [] if e.get("title")]
     if not events:
         return []
-    return [{
+    spec: VisualSpec = {
         "type": "event_list",
         "timezone": result.get("timezone"),
         "events": [
-            {
+            _with_id({
                 key: e.get(key)
                 for key in ("title", "start", "end", "all_day", "location", "url", "calendar", "ongoing")
-            }
+            }, e)
             for e in events[:EVENT_CARD_LIMIT]
         ],
         "more": max(0, (result.get("total_results") or len(events)) - EVENT_CARD_LIMIT),
-    }]
+    }
+    query = result.get("query")
+    if isinstance(query, dict):
+        # The window and keyword behind "See all on Events".
+        spec["query"] = {"when": query.get("when"), "keyword": query.get("keyword")}
+    return [spec]
 
 
 def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
@@ -164,13 +176,13 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     origin = result.get("from")
     return [{
         "type": "place_card",
-        "from": {k: origin.get(k) for k in ("name", "lat", "lon")} if origin else None,
+        "from": _with_id({k: origin.get(k) for k in ("name", "lat", "lon")}, origin) if origin else None,
         "note": result.get("note"),
         "places": [
-            {
+            _with_id({
                 key: p.get(key)
                 for key in ("name", "category", "lat", "lon", "map_url", "distance_m", "walk_minutes_estimate", "hours")
-            }
+            }, p)
             for p in places[:PLACE_CARD_LIMIT]
         ],
     }]

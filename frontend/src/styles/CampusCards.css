@@ -404,3 +404,39 @@
 @media (max-width: 560px) {
   .cc-course, .cc-event, .cc-place { padding: 16px; }
 }
+
+/* ---- Save and links into the pages (12A, 14A) ----------------------------- */
+.cc-save-end { margin-left: auto; }
+
+.cc-place-top .cc-save { margin: -10px -10px 0 auto; }
+
+.cc-course-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cc-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.cc-card-foot .cc-more { margin: 0; }
+
+.cc-context-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  align-self: flex-start;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cc-context-link:hover { color: var(--domain-academics-ink); }

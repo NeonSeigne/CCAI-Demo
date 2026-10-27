@@ -902,7 +902,7 @@ const handleNewChat = async (sessionId = null) => {
         />
       )}
 
-      <div className="main-chat-area">
+      <main className="main-chat-area" id="main-content">
         <div className="modern-chat-page">
           <header className="chat-head">
             <button
@@ -1138,7 +1138,7 @@ const handleNewChat = async (sessionId = null) => {
             />
           </div>
         </div>
-      </div>
+      </main>
 
       <AnswerPanel
         visuals={answerVisuals}

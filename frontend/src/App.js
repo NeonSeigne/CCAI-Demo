@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AppConfigProvider } from './contexts/AppConfigContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SavedProvider } from './contexts/SavedContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
@@ -12,6 +13,8 @@ import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import CanvasPage from './pages/CanvasPage';
 import UserGuide from './components/UserGuide';
+import { ToastProvider } from './components/Toast';
+import RouteFocus, { SkipLink } from './components/RouteFocus';
 import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
@@ -74,10 +77,16 @@ function App() {
         <ThemeProvider>
           <MuiThemeProvider theme={muiTheme}>
             <AuthProvider>
-              <div className="App">
-                <AppRoutes />
-                <UserGuide />
-              </div>
+              <SavedProvider>
+                <ToastProvider>
+                  <SkipLink />
+                  <RouteFocus />
+                  <div className="App">
+                    <AppRoutes />
+                    <UserGuide />
+                  </div>
+                </ToastProvider>
+              </SavedProvider>
             </AuthProvider>
           </MuiThemeProvider>
         </ThemeProvider>

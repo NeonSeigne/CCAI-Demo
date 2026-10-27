@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import CourseAnswerCard, { groupCourseVisuals, titleCase } from './CourseAnswerCard';
 import { sourceLines } from './AnswerSources';
 import useCourseDetail from '../../hooks/useCourseDetail';
+import { SavedContext } from '../../contexts/SavedContext';
 
 jest.mock('../../hooks/useCourseDetail');
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
@@ -95,4 +96,21 @@ test('sources name each feed the cards came from', () => {
     'Events: UW–Madison Today calendar',
     'Map: OpenStreetMap contributors',
   ]);
+});
+
+test('course card saves the course and opens it in Courses', () => {
+  useCourseDetail.mockReturnValue({ data: PAYLOAD, error: null, loading: false, retry: jest.fn() });
+  const save = jest.fn(() => Promise.resolve({}));
+  render(
+    <MemoryRouter>
+      <SavedContext.Provider value={{ count: 0, isSaved: () => false, save, unsave: jest.fn() }}>
+        <CourseAnswerCard visual={{ type: 'course_answer', course: 'COMPSCI 300', types: ['course_gpa'] }} />
+      </SavedContext.Provider>
+    </MemoryRouter>,
+  );
+  expect(screen.getByRole('link', { name: /Open in Courses/ })).toHaveAttribute('href', '/courses?selected=COMPSCI%20300');
+  const button = screen.getByRole('button', { name: 'Save COMPSCI 300' });
+  expect(button).toHaveAttribute('aria-pressed', 'false');
+  fireEvent.click(button);
+  expect(save).toHaveBeenCalledWith({ kind: 'course', key: 'COMPSCI 300', display_name: 'COMPSCI 300' });
 });

@@ -23,9 +23,57 @@ html[data-theme="light"],
   --domain-campus-tint: #E3F4EA;
   --domain-campus-ink: #156B3A;
 
+  /* States and selection (design 24A). New page CSS uses var() only, no hex.
+     --error-ink measures 6.57:1 on white and 5.75:1 on --error-tint. */
+  --error-ink: #B42318;
+  --error-tint: #FDECEA;
+  --selection: var(--domain-academics-tint);
+  --focus-ring: 2px solid var(--ink);
+  --focus-ring-offset: 2px;
+
   --font-app: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --shadow-soft: 0 1px 3px rgba(17, 17, 20, 0.06), 0 4px 12px rgba(17, 17, 20, 0.04);
   --shadow-soft-md: 0 4px 16px rgba(17, 17, 20, 0.08);
 }
+
+
+::selection {
+  background: var(--selection);
+  color: var(--ink);
+}
+
+/* One keyboard focus style everywhere: 2px ink ring, 2px off the element. */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* "Skip to content": off screen until focused (design 28A). */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-app);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible { transform: none; }
