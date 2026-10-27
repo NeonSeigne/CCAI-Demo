@@ -23,8 +23,12 @@ _BASE_TOOL_PROMPT = (
     "If a tool response includes 'truncated': true, let the user know "
     "how many total results were found and suggest they narrow their "
     "search for more specific results. "
-    "Format your responses using markdown. Use bullet points "
-    "to present structured data like course listings or professor ratings."
+    "Format your responses using markdown."
+)
+
+_BULLETS_PROMPT = (
+    "Use bullet points to present structured data like course listings or "
+    "professor ratings."
 )
 
 # Course tools that can attach inline course cards when the school's academics
@@ -36,6 +40,47 @@ _COURSE_CARD_TOOLS = (
     "course_next",
 )
 
+# Tools whose results always show as cards (built from the result itself).
+_SELF_CONTAINED_CARD_TOOLS = ("events_search", "find_place")
+
+# What the card for each tool shows, so the answer can leave it out.
+_CARD_CONTENTS = {
+    "course_grades": "the grade distribution, GPA and class size for the latest term",
+    "course_sections": "sections, seats left and instructor ratings",
+    "course_prerequisites": "the prerequisite tree",
+    "course_next": "the courses it leads to",
+    "events_search": "each event's date, time, place and link",
+    "find_place": "each place's map link and walking time",
+}
+
+
+def _card_answer_prompt(card_tools: List[str]) -> str:
+    """Tell the model the cards carry the data, so the text gives the verdict.
+
+    Answers used to restate every number the cards below them already show
+    (grade-by-grade bullets, per-event time and place lists, coordinates).
+    """
+    shows = "; ".join(f"{name}: {_CARD_CONTENTS[name]}" for name in card_tools)
+    prompt = (
+        "The app shows the results of these tools as cards right under your "
+        f"answer ({shows}). When you used one of them, answer in at most three "
+        "short sentences of plain prose: lead with the verdict (is the course "
+        "hard, which event fits, how long the walk is), cite at most one or "
+        "two numbers that support it, and add "
+        "advice the cards cannot show. Do not repeat the cards: no lists of "
+        "grades or percentages, no bullet lists of events with their times, "
+        "locations or calendars, no coordinates and no map links. "
+    )
+    if "course_grades" in card_tools:
+        prompt += (
+            "If you cite grade numbers, use the most recent term in the result, "
+            "which is the term the card shows, and name that term. "
+        )
+    return prompt + (
+        "For results of other tools, use bullet points to present structured "
+        "data like course listings or professor ratings."
+    )
+
 
 def _tool_guidance_prompt(
     tools_enabled: List[str], institution: str, *, link_courses: bool = True
@@ -46,13 +91,19 @@ def _tool_guidance_prompt(
     deployment is never told about tools it does not have. Course links and
     cards are only described when the provider has course detail pages.
     """
-    card_tools = [name for name in _COURSE_CARD_TOOLS if name in tools_enabled]
-    if not card_tools:
-        return _BASE_TOOL_PROMPT
-    tool_list = ", ".join(card_tools)
+    course_tools = [name for name in _COURSE_CARD_TOOLS if name in tools_enabled]
+    card_tools = [
+        *(course_tools if link_courses else []),
+        *(name for name in _SELF_CONTAINED_CARD_TOOLS if name in tools_enabled),
+    ]
+    style = _card_answer_prompt(card_tools) if card_tools else _BULLETS_PROMPT
+    prompt = f"{_BASE_TOOL_PROMPT} {style}"
+    if not course_tools:
+        return prompt
+    tool_list = ", ".join(course_tools)
     if not link_courses:
         return (
-            f"{_BASE_TOOL_PROMPT} "
+            f"{prompt} "
             "When the user asks about course GPA, grade distribution, sections, "
             f"or instructors, call the matching course tool ({tool_list}). "
             "If a tool result includes data_as_of or data_note, tell the user "
@@ -61,7 +112,7 @@ def _tool_guidance_prompt(
         )
     school = f"{institution} " if institution else ""
     return (
-        f"{_BASE_TOOL_PROMPT} "
+        f"{prompt} "
         f"Whenever you mention a specific {school}course, render its "
         "identifier as a markdown link using the 'course:' scheme, e.g. "
         "[COMP SCI 300](course:COMP SCI 300) or [MATH 240](course:MATH 240). "

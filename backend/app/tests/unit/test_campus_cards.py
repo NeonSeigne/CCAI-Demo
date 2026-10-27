@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from app.api import visuals as visuals_module
 from app.api.routes import campus
 from app.api.visuals import build_visuals, sources_checked
+from app.core.improved_orchestrator import _tool_guidance_prompt
 from app.sources import ical_events
 
 EVENT = {
@@ -68,6 +69,30 @@ class TestSourcesChecked(unittest.TestCase):
 
     def test_no_known_tool_means_no_line(self):
         self.assertIsNone(sources_checked([{"name": "mystery", "result": {}}]))
+
+
+class TestAnswerLeavesDataToCards(unittest.TestCase):
+    CARD_LINE = "cards right under your answer"
+
+    def test_card_tools_get_short_verdict_guidance(self):
+        prompt = _tool_guidance_prompt(["events_search", "find_place"], "CU Boulder", link_courses=False)
+        self.assertIn(self.CARD_LINE, prompt)
+        self.assertIn("at most three short sentences", prompt)
+        self.assertIn("no coordinates", prompt)
+        self.assertNotIn("course_grades", prompt)
+
+    def test_course_cards_counted_only_with_course_pages(self):
+        linked = _tool_guidance_prompt(["course_grades"], "UW–Madison", link_courses=True)
+        self.assertIn("course_grades: the grade distribution", linked)
+        self.assertIn("name that term", linked)
+        unlinked = _tool_guidance_prompt(["course_grades", "events_search"], "UVA", link_courses=False)
+        self.assertNotIn("course_grades: the grade distribution", unlinked)
+        self.assertIn("events_search:", unlinked)
+
+    def test_tools_without_cards_keep_bullets(self):
+        prompt = _tool_guidance_prompt(["rate_my_professor"], "UW–Madison")
+        self.assertNotIn(self.CARD_LINE, prompt)
+        self.assertIn("bullet points", prompt)
 
 
 class TestFeedText(unittest.TestCase):
