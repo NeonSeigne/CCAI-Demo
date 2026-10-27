@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import EventListCard, { formatEventTime } from './EventListCard';
+import EventListCard, { formatEventTime, hasPhysicalLocation } from './EventListCard';
 import PlaceCard from './PlaceCard';
 import SourcesChecked from './SourcesChecked';
 
@@ -21,6 +21,14 @@ test('event card lists events and asks for directions to the venue', () => {
   expect(screen.getByText('3 more on the calendar')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Directions' }));
   expect(onAsk).toHaveBeenCalledWith('How do I get to Macky Auditorium?');
+});
+
+test('online events get no Directions button', () => {
+  render(<EventListCard visual={{ type: 'event_list', events: [{ ...EVENT, location: '(Online)' }] }} onAsk={jest.fn()} />);
+  expect(screen.getByText('(Online)')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Directions' })).not.toBeInTheDocument();
+  expect(hasPhysicalLocation('Zoom webinar')).toBe(false);
+  expect(hasPhysicalLocation('Check T.I.T.U., Memorial Union')).toBe(true);
 });
 
 test('all-day and ongoing events read "All day"', () => {
