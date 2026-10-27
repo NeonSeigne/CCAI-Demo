@@ -149,6 +149,34 @@ class TestUWSearch(CatalogTestCase):
         self.assertEqual([c["identifier"] for c in body["courses"]], ["COMPSCI 532", "COMPSCI 537"])
         self.assertTrue(body["truncated"])
 
+    def test_subject_listing_runs_in_course_order(self):
+        # Course Map ranks graduate research first; a subject listing reads lowest number first.
+        first = search_items(["COMPSCI 990", "COMPSCI 900", "COMPSCI 799", "COMPSCI 300"]
+                             + [f"COMPSCI {n}" for n in range(800, 826)])  # a full page
+        second = search_items(["COMPSCI 200", "COMPSCI 1000"])
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap([first, second])):
+            body = self.client.get("/api/catalog/search", params={"q": "comp sci", "limit": 3}).json()
+        self.assertEqual([c["identifier"] for c in body["courses"]], ["COMPSCI 200", "COMPSCI 300", "COMPSCI 799"])
+        self.assertTrue(body["truncated"])
+
+    def test_keyword_search_keeps_relevance_order(self):
+        items = search_items(["COMPSCI 400", "COMPSCI 300"])
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap([items])):
+            body = self.client.get("/api/catalog/search", params={"q": "programming practice"}).json()
+        self.assertEqual([c["identifier"] for c in body["courses"]], ["COMPSCI 400", "COMPSCI 300"])
+
+    def test_capital_titles_read_as_title_case(self):
+        cases = {
+            "MASTER'S RESEARCH OR THESIS": "Master's Research or Thesis",
+            "PROGRAMMING II": "Programming II",
+            "DIRECTED STUDY IN COMPUTER SCIENCE": "Directed Study in Computer Science",
+            "INTRODUCTION TO AI": "Introduction to AI",
+            "O'BRIEN, KATE": "O'Brien, Kate",
+            "Already Mixed Case": "Already Mixed Case",
+        }
+        for raw, expected in cases.items():
+            self.assertEqual(_uw_source._title_case(raw), expected)
+
     def test_capabilities_have_no_seat_filter(self):
         with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
             body = self.client.get("/api/catalog/search", params={"q": "COMP SCI 300"}).json()

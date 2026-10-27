@@ -73,7 +73,7 @@ class TestUWSearchCourses(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(len(result["courses"]), 1)
         self.assertEqual(result["courses"][0]["identifier"], "COMPSCI 300")
-        self.assertEqual(result["courses"][0]["title"], "Programming Ii")
+        self.assertEqual(result["courses"][0]["title"], "Programming II")
         # Live requirement text uses non-breaking spaces ("COMP\xa0SCI\xa0200").
         self.assertIn("COMP SCI 200", result["courses"][0]["prereq_text"].replace("\xa0", " "))
         self.assertEqual(fetch.await_args_list[0].args[0], "/courses/COMPSCI_300.json")

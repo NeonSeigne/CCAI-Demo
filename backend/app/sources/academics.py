@@ -142,6 +142,12 @@ def _number_of(row: Dict[str, Any]) -> str:
     return parse_query(row.get("identifier") or "")[1]
 
 
+def _number_order(row: Dict[str, Any]) -> Tuple[int, str]:
+    number = _number_of(row)
+    digits = re.match(r"\d+", number)
+    return (int(digits.group()) if digits else 10**6, number)
+
+
 def _same_code(text: Any) -> str:
     return " ".join(str(text or "").split()).upper()
 
@@ -203,6 +209,7 @@ async def search_catalog(
     backend = catalog_backend()
     caps = _CAPABILITIES[backend]
     guess_subject = False
+    subject_listing = bool(subject) and not (course_number or keyword)
     if q:
         subject, course_number, keyword = parse_query(q)
         guess_subject = bool(keyword)
@@ -212,7 +219,7 @@ async def search_catalog(
     if open_only and not caps["seat_filter"]:
         raise CatalogQueryError(f"{catalog_source()['name']} does not list seats in search results.")
 
-    pool = max(limit, FILTER_POOL) if (level is not None or open_only) else limit
+    pool = max(limit, FILTER_POOL) if (level is not None or open_only or subject_listing) else limit
     if backend == FOSE:
         from app.tools import search_courses as fose
 
@@ -222,15 +229,21 @@ async def search_catalog(
                 subject, keyword = first.upper(), rest
         if not subject:
             raise CatalogQueryError(CU_SUBJECT_HINT)
+        subject_listing = not (course_number or keyword)
         rows = _fose_courses(await fose.fose_search(subject), course_number.upper(), keyword)
     else:
         rows = []
-        if guess_subject and _looks_like_subject(keyword, 8):
-            # A lone word like "MATH" or "CS" is most likely a subject code.
-            rows = await _provider_search(keyword, "", "", pool + 1)
+        if guess_subject and _looks_like_subject(keyword.replace(" ", ""), 8):
+            # A lone word like "MATH" or "CS", or "comp sci", is most likely a
+            # subject. Read the whole listing so it can run in course order;
+            # upstream ranks graduate research courses first.
+            rows = await _provider_search(keyword, "", "", max(pool, FILTER_POOL) + 1)
+            subject_listing = bool(rows)
         if not rows:
             rows = await _provider_search(subject, course_number, keyword, pool + 1)
 
+    if subject_listing:
+        rows.sort(key=_number_order)
     for row in rows:
         row["level"] = course_level(_number_of(row))
     if level is not None:

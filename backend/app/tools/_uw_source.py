@@ -197,8 +197,37 @@ def _course_display(course: Dict[str, Any]) -> str:
     return course.get("course_id") or _display_identifier(course.get("subjects") or [], course.get("course_number"))
 
 
+_ROMAN = re.compile(r"^(?=[IVX])X{0,3}(IX|IV|V?I{0,3})$")
+_KEEP_UPPER = {"AI", "UW", "US", "USA", "DNA", "RNA", "HIV", "STEM", "GIS", "CAD", "ESL", "LGBTQ"}
+_SMALL = {"a", "an", "and", "as", "at", "but", "by", "for", "in", "of", "on", "or", "the", "to", "with"}
+_CONTRACTION = {"s", "t", "d", "ll", "re", "ve", "m"}
+
+
+def _title_word(word: str, first: bool) -> str:
+    upper = word.upper()
+    if _ROMAN.match(upper) or upper in _KEEP_UPPER:
+        return upper
+    lower = word.lower()
+    if not first and lower in _SMALL:
+        return lower
+    head, apostrophe, tail = lower.partition("'")
+    if apostrophe and tail and tail not in _CONTRACTION:
+        return f"{head.capitalize()}'{tail.capitalize()}"  # O'Brien
+    return lower.capitalize()  # Master's
+
+
 def _title_case(title: str) -> str:
-    return title.title() if title and title.isupper() else (title or "")
+    """Course Map sends some titles in capitals; ``MASTER'S RESEARCH II`` -> ``Master's Research II``."""
+    if not title or not title.isupper():
+        return title or ""
+    count = 0
+
+    def fix(match: re.Match) -> str:
+        nonlocal count
+        count += 1
+        return _title_word(match.group(), count == 1)
+
+    return re.sub(r"[A-Za-z]+(?:'[A-Za-z]+)?", fix, title)
 
 
 def _compute_gpa(row: Dict[str, Any]) -> Optional[float]:
