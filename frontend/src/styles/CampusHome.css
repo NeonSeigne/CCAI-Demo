@@ -20,8 +20,8 @@
 /* Keyboard focus in the app's ink, not the browser's default blue. The ask
    box shows focus on its border instead (.campus-ask:focus-within). */
 .campus-home :focus-visible:not(textarea) {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ---- Main column --------------------------------------------------------- */
