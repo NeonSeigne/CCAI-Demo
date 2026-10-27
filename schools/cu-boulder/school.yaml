@@ -31,6 +31,10 @@ tools:
     enabled: true
     max_results: 15
 
+# Chat composer prompt, in the same words as the home page.
+chat_page:
+  placeholder: "Ask about courses, events or places"
+
 # Home page sample questions, grouped by domain. Keep them answerable by
 # this school's enabled tools and places data.
 homepage:
