@@ -196,6 +196,75 @@ class TestCourseResolution(unittest.IsolatedAsyncioTestCase):
                 await _uw_source._get_course("MATH")
 
 
+class TestOutageSemantics(unittest.IsolatedAsyncioTestCase):
+    """R11: an upstream failure is never reported as a missing course."""
+
+    async def test_5xx_on_direct_page_raises_runtime_error(self):
+        async def fetch(path, *, params=None, optional=False):
+            if path.startswith("/courses/"):
+                raise RuntimeError("Course Map error 502")
+            return {"data": {"results": {"items": []}}}
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            with self.assertRaises(RuntimeError):
+                await _uw_source._get_course("COMP SCI 300")
+
+    async def test_search_outage_raises_runtime_error(self):
+        async def fetch(path, *, params=None, optional=False):
+            if path == "/search.json":
+                raise RuntimeError("Course Map unavailable")
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            with self.assertRaises(RuntimeError):
+                await _uw_source._get_course("E C E 252")
+
+    async def test_real_404_stays_not_found(self):
+        with patch.object(_uw_source, "_fetch_json", side_effect=missing_coursemap()):
+            with self.assertRaises(FileNotFoundError):
+                await _uw_source._get_course("BOGUS 999")
+
+    async def test_match_wins_over_an_earlier_failure(self):
+        # A cross-listed subject fails but the other resolves: no error.
+        async def fetch(path, *, params=None, optional=False):
+            if path == "/courses/ECE_252.json":
+                raise RuntimeError("Course Map error 500")
+            if path == "/courses/COMPSCI_252.json":
+                return {"data": {"course": {"course_id": "COMPSCI/ECE 252"}}}
+            return None
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=fetch):
+            data = await _uw_source._get_course("ECE/COMP SCI 252")
+        self.assertEqual(data["course"]["course_id"], "COMPSCI/ECE 252")
+
+    async def test_fetch_json_optional_still_raises_on_5xx(self):
+        response = MagicMock(status_code=503, is_error=True)
+        client = MagicMock()
+        client.__aenter__ = AsyncMock(return_value=client)
+        client.__aexit__ = AsyncMock(return_value=False)
+        client.get = AsyncMock(return_value=response)
+        _uw_source._cache.clear()
+        with patch.object(_uw_source.httpx, "AsyncClient", return_value=client):
+            with self.assertRaises(RuntimeError):
+                await _uw_source._fetch_json("/courses/X_1.json", optional=True)
+
+    async def test_fetch_json_optional_returns_none_on_404(self):
+        response = MagicMock(status_code=404, is_error=True)
+        client = MagicMock()
+        client.__aenter__ = AsyncMock(return_value=client)
+        client.__aexit__ = AsyncMock(return_value=False)
+        client.get = AsyncMock(return_value=response)
+        _uw_source._cache.clear()
+        with patch.object(_uw_source.httpx, "AsyncClient", return_value=client):
+            self.assertIsNone(await _uw_source._fetch_json("/courses/X_2.json", optional=True))
+
+    async def test_tool_reports_outage_as_error(self):
+        with patch.object(_uw_source, "_fetch_json", new=AsyncMock(side_effect=RuntimeError("down"))):
+            result = await course_grades.execute(course_identifier="COMP SCI 300")
+        self.assertIsNone(result["grades"])
+        self.assertIn("unavailable", result["error"])
+
+
 class TestUWPrerequisites(unittest.IsolatedAsyncioTestCase):
     async def test_returns_prereq_text_and_edges(self):
         with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):

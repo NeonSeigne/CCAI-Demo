@@ -78,16 +78,14 @@ async def _fetch_json(path: str, *, params: Optional[Dict[str, Any]] = None, opt
         async with httpx.AsyncClient(base_url=UPSTREAM_BASE, timeout=15.0, follow_redirects=True) as client:
             response = await client.get(path, params=params)
     except httpx.RequestError as exc:
-        if optional:
-            return None
         raise RuntimeError(f"Course Map unavailable: {exc}") from exc
+    # ``optional`` only softens a real 404; outages always raise, so callers
+    # can tell a missing course from an unreachable source.
     if response.status_code == 404:
         if optional:
             return None
         raise FileNotFoundError(f"Course Map resource not found: {path}")
     if response.is_error:
-        if optional:
-            return None
         raise RuntimeError(f"Course Map error {response.status_code} for {path}")
     value = response.json()
     async with _cache_lock:
@@ -109,10 +107,21 @@ def _split_identifier(identifier: str) -> Tuple[List[str], str]:
     return subjects, number
 
 
-async def _search_items(query: str) -> List[Dict[str, Any]]:
-    payload = await _fetch_json("/search.json", params={"q": query[:200]}, optional=True)
-    results = ((payload or {}).get("data") or {}).get("results") or {}
-    return results.get("items") or []
+SEARCH_PAGE_SIZE = 30
+
+
+async def _search_items(query: str, pages: int = 1) -> List[Dict[str, Any]]:
+    """Search hits, up to ``pages`` pages of ``SEARCH_PAGE_SIZE``."""
+    items: List[Dict[str, Any]] = []
+    for page in range(1, max(pages, 1) + 1):
+        params = {"q": query[:200], **({"page": page} if page > 1 else {})}
+        payload = await _fetch_json("/search.json", params=params, optional=True)
+        results = ((payload or {}).get("data") or {}).get("results") or {}
+        batch = results.get("items") or []
+        items.extend(batch)
+        if len(batch) < SEARCH_PAGE_SIZE or len(items) >= (results.get("total") or 0):
+            break
+    return items
 
 
 def _subject_matches(wanted: str, found: str) -> bool:
@@ -127,14 +136,34 @@ def _subject_matches(wanted: str, found: str) -> bool:
 async def _get_course(identifier: str) -> Dict[str, Any]:
     """Resolve an identifier to the Course Map course payload (``data`` object)."""
     subjects, number = _split_identifier(identifier)
+    failures: List[str] = []
+
+    async def fetch_page(subject: str) -> Optional[Dict[str, Any]]:
+        try:
+            page = await _fetch_json(f"/courses/{quote(subject)}_{number}.json", optional=True)
+        except RuntimeError as exc:
+            failures.append(str(exc))
+            return None
+        return page["data"] if page and (page.get("data") or {}).get("course") else None
+
+    def not_found() -> Exception:
+        # Nothing matched: an outage on any fetch means we can't say it's missing.
+        if failures:
+            return RuntimeError(f"Course Map unavailable for '{identifier}': {failures[0]}")
+        return FileNotFoundError(f"No course found for '{identifier}'")
+
     for subject in subjects:
-        page = await _fetch_json(f"/courses/{quote(subject)}_{number}.json", optional=True)
-        if page and (page.get("data") or {}).get("course"):
-            return page["data"]
+        data = await fetch_page(subject)
+        if data:
+            return data
     # Fall back to search when the code isn't canonical (e.g. "E C E 252").
     if not number:
-        raise FileNotFoundError(f"No course found for '{identifier}'")
-    items = await _search_items(normalize_identifier(identifier))
+        raise not_found()
+    try:
+        items = await _search_items(normalize_identifier(identifier))
+    except RuntimeError as exc:
+        failures.append(str(exc))
+        items = []
     wanted = {s.upper() for s in subjects}
     same_number = []
     for item in items:
@@ -152,12 +181,11 @@ async def _get_course(identifier: str) -> Dict[str, Any]:
         ]
         candidates = shorthand if len(shorthand) == 1 else []
     for subs in candidates:
-        num = number
         for subject in subs:
-            page = await _fetch_json(f"/courses/{quote(subject)}_{num}.json", optional=True)
-            if page and (page.get("data") or {}).get("course"):
-                return page["data"]
-    raise FileNotFoundError(f"No course found for '{identifier}'")
+            data = await fetch_page(subject)
+            if data:
+                return data
+    raise not_found()
 
 
 def _display_identifier(subjects: List[Any], number: Any) -> str:
@@ -217,7 +245,7 @@ def _requirement_courses(requirements: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 async def _search_coursemap(
-    subject: str, course_number: str, keyword: str, limit: int
+    subject: str, course_number: str, keyword: str, limit: int, pages: int = 1
 ) -> List[Dict[str, Any]]:
     parts = [p for p in (subject, course_number, keyword) if p]
     query_text = " ".join(parts).strip()
@@ -242,7 +270,7 @@ async def _search_coursemap(
             logger.info("Course Map direct resolve failed (%s); falling back to search", exc)
 
     try:
-        items = await _search_items(query_text)
+        items = await _search_items(query_text, pages)
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(f"Course Map search failed: {exc}") from exc
 
@@ -286,7 +314,11 @@ async def _grades_coursemap(identifier: str) -> Tuple[str, Optional[Dict], List[
     display = _course_display(course)
     rows = course.get("grades") or []
     if not rows and course.get("course_uid"):
-        page = await _fetch_json(f"/api/courses/{course['course_uid']}/grades", optional=True)
+        try:
+            page = await _fetch_json(f"/api/courses/{course['course_uid']}/grades", optional=True)
+        except RuntimeError as exc:  # the course resolved; grades are an extra
+            logger.warning("Course Map grades fetch failed: %s", exc)
+            page = None
         rows = (page or {}).get("items") or []
     terms: List[Dict[str, Any]] = []
     totals: Dict[str, Any] = {bucket: 0 for bucket in _GPA_WEIGHTS}
@@ -391,9 +423,25 @@ async def search_courses(
     course_number: str = "",
     keyword: str = "",
     limit: int = 20,
+    pages: int = 1,
 ) -> List[Dict[str, Any]]:
+    """``pages`` widens the upstream search when the caller filters afterwards."""
     del tool_name  # kept for call-site compatibility
-    return await _search_coursemap(subject, course_number, keyword, limit)
+    return await _search_coursemap(subject, course_number, keyword, limit, pages)
+
+
+async def lookup_course(identifier: str) -> Dict[str, Any]:
+    """The course's identifier, title and description.
+
+    Raises ``FileNotFoundError`` when the course doesn't exist and
+    ``RuntimeError`` when Course Map can't be reached.
+    """
+    course = (await _get_course(normalize_identifier(identifier)))["course"]
+    return {
+        "identifier": _course_display(course),
+        "title": _title_case(course.get("title") or ""),
+        "description": course.get("description") or course.get("llm_summary") or "",
+    }
 
 
 async def course_grades(

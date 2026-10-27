@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 FOSE_SEARCH_URL = "https://classes.colorado.edu/api/?page=fose&route=search"
 CLASSES_BASE_URL = "https://classes.colorado.edu"
+# FOSE term the tool and the catalog read when none is given.
+DEFAULT_SEMESTER = "Spring 2026"
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
@@ -126,13 +128,42 @@ def _row_to_course(item: Dict[str, Any], term: str) -> Optional[Dict[str, Any]]:
     }
 
 
+async def fose_search(subject: str, semester: str = DEFAULT_SEMESTER) -> List[Dict[str, Any]]:
+    """Every lecture/seminar section FOSE lists for ``subject`` in ``semester``.
+
+    Raises ``RuntimeError`` when FOSE can't be reached or answers non-200, so
+    an outage is never mistaken for a subject with no classes.
+    """
+    subject = subject.upper().strip()
+    payload = {
+        "other": {"srcdb": _term_to_srcdb(semester)},
+        "criteria": [{"field": "subject", "value": subject}],
+    }
+    headers = {
+        "User-Agent": BROWSER_UA,
+        "Content-Type": "application/json",
+        "Referer": CLASSES_BASE_URL,
+        "Origin": CLASSES_BASE_URL,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            resp = await client.post(FOSE_SEARCH_URL, json=payload, headers=headers)
+    except httpx.RequestError as exc:
+        raise RuntimeError(f"CU class search unavailable: {exc}") from exc
+    if resp.status_code != 200:
+        logger.warning("FOSE API returned %s for %s", resp.status_code, subject)
+        raise RuntimeError(f"CU class search error {resp.status_code}")
+    body = resp.json()
+    results = body.get("results", body.get("data", []))
+    return [row for row in (_row_to_course(item, semester) for item in results) if row]
+
 
 async def execute(
     *,
     name: str = "",
     subject: str,
     course_number: str = "",
-    semester: str = "Spring 2026",
+    semester: str = DEFAULT_SEMESTER,
 ) -> Dict[str, Any]:
     """Query the CU Boulder FOSE API and return matching courses.
 
@@ -159,39 +190,9 @@ async def execute(
             "query": {"subject": subject, "semester": semester},
         }
 
-    srcdb = _term_to_srcdb(semester)
     subject = subject.upper().strip()
-
-    payload = {
-        "other": {"srcdb": srcdb},
-        "criteria": [{"field": "subject", "value": subject}],
-    }
-    headers = {
-        "User-Agent": BROWSER_UA,
-        "Content-Type": "application/json",
-        "Referer": CLASSES_BASE_URL,
-        "Origin": CLASSES_BASE_URL,
-    }
-
-    courses: List[Dict[str, Any]] = []
-
     try:
-        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            resp = await client.post(
-                FOSE_SEARCH_URL, json=payload, headers=headers,
-            )
-            if resp.status_code != 200:
-                logger.warning("FOSE API returned %s for %s", resp.status_code, subject)
-                return {"courses": [], "query": {"subject": subject, "semester": semester}}
-
-            body = resp.json()
-            results = body.get("results", body.get("data", []))
-
-            for item in results:
-                row = _row_to_course(item, semester)
-                if row:
-                    courses.append(row)
-
+        courses = await fose_search(subject, semester)
     except Exception as exc:
         logger.error("FOSE API error for %s: %s", subject, exc)
         return {"courses": [], "error": str(exc), "query": {"subject": subject, "semester": semester}}
