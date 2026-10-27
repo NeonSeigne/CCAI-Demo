@@ -12,6 +12,7 @@ import ChatPage from './pages/ChatPage';
 import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import CanvasPage from './pages/CanvasPage';
+import EventsPage from './pages/EventsPage';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
@@ -55,6 +56,7 @@ function AppRoutes() {
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/search" element={<ChatSearchPage />} />
         <Route path="/canvas" element={<CanvasPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route
           path="/courses/:courseIdentifier"
           element={(
