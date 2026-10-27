@@ -44,6 +44,10 @@ campus:
     type: relation
     id: 4218705
   places_file: places.geojson
+  # Events and the Campus map start from here until a student picks their own
+  # start (a place name or id); the map opens on this category.
+  default_origin: "Shannon Library"
+  default_category: library
 
 student_life:
   # Public iCal feed (see schools/FEEDS.md). The school timezone above is used

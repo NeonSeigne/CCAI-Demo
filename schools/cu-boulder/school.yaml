@@ -16,6 +16,10 @@ campus:
     type: way
     id: 46226108
   places_file: places.geojson
+  # Events and the Campus map start from here until a student picks their own
+  # start (a place name or id); the map opens on this category.
+  default_origin: "University Memorial Center"
+  default_category: dining
 
 student_life:
   # Public iCal feed (see schools/FEEDS.md). The school timezone above is used
