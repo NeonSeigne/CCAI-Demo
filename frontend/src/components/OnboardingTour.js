@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { TourProvider, useTour } from '@reactour/tour';
 import { Hand, GraduationCap, Plus, MessageCircle, Paperclip, BarChart3 } from 'lucide-react';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -223,17 +224,20 @@ const makeButtons = (c) => {
   return { PrevButton, NextButton, SkipButton };
 };
 
-// Auto-opens the tour, writes flag on close.
+// Auto-opens the tour, writes flag on close. Not when the chat opened with a
+// question from home: the tour would cover the answer the student asked for.
 const TourLauncher = () => {
   const { setIsOpen, isOpen } = useTour();
+  const location = useLocation();
+  const [arrivedWithQuestion] = useState(() => Boolean(location.state?.pendingPrompt));
 
   useEffect(() => {
     const seen = localStorage.getItem(STORAGE_KEY) === 'true';
-    if (TESTING_ONBOARDING || !seen) {
+    if (TESTING_ONBOARDING || (!seen && !arrivedWithQuestion)) {
       const t = setTimeout(() => setIsOpen(true), 400);
       return () => clearTimeout(t);
     }
-  }, [setIsOpen]);
+  }, [setIsOpen, arrivedWithQuestion]);
 
   useEffect(() => {
     if (!isOpen) {
