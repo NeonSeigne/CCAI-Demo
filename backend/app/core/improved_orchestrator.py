@@ -8,6 +8,7 @@ from app.llm.llm_client import LLMClient, ToolCallResult
 from app.sources import academics
 from app.tools import get_tool_definitions, get_tool_executor
 
+import asyncio
 import json
 import logging
 import re
@@ -75,6 +76,59 @@ def _tool_guidance_prompt(
     )
 
 
+# Which domain each tool belongs to. Tools not listed share a "general" pass.
+DOMAIN_OF_TOOL = {
+    "search_courses": "academics",
+    "rate_my_professor": "academics",
+    "course_search": "academics",
+    "course_grades": "academics",
+    "course_sections": "academics",
+    "course_prerequisites": "academics",
+    "course_next": "academics",
+    "events_search": "student_life",
+    "find_place": "campus",
+}
+DOMAIN_DESCRIPTIONS = {
+    "academics": "courses, grades, sections, professors, prerequisites",
+    "student_life": "campus events, things to do, deadlines on the events calendar",
+    "campus": "where buildings, libraries, dining or bus stops are; how to get somewhere",
+    "general": "anything else the remaining tools cover",
+}
+CLASSIFIER_TIMEOUT_S = 5.0
+TOOL_PASS_TIMEOUT_S = 20.0
+
+
+def tools_by_domain(tools: List[str]) -> Dict[str, List[str]]:
+    grouped: Dict[str, List[str]] = {}
+    for name in tools:
+        grouped.setdefault(DOMAIN_OF_TOOL.get(name, "general"), []).append(name)
+    return grouped
+
+
+def event_venues(result: ToolCallResult, limit: int = 5) -> List[str]:
+    venues: List[str] = []
+    for output in result.tool_outputs or []:
+        for event in (output.get("result") or {}).get("events") or []:
+            location = (event.get("location") or "").strip()
+            if location and location not in venues:
+                venues.append(location)
+    return venues[:limit]
+
+
+def merge_tool_results(results: List[ToolCallResult]) -> ToolCallResult:
+    used = [r for r in results if r.used_tool]
+    if not used:
+        return ToolCallResult(text="", used_tool=False)
+    return ToolCallResult(
+        text="\n\n".join(r.text.strip() for r in used if r.text and r.text.strip()),
+        used_tool=True,
+        tool_name=used[0].tool_name,
+        tool_args=used[0].tool_args,
+        tool_calls_made=[call for r in used for call in r.tool_calls_made],
+        tool_outputs=[output for r in used for output in r.tool_outputs],
+    )
+
+
 class ImprovedChatOrchestrator:
     """
     Enhanced orchestrator with document awareness and improved context handling
@@ -111,10 +165,20 @@ class ImprovedChatOrchestrator:
                                llm_client: LLMClient = None) -> ToolCallResult:
         """Check whether a tool can handle *user_message*.
 
-        If tools are disabled in config, no LLM client is available, or the
-        model decides no tool is needed, returns
-        ``ToolCallResult(used_tool=False)``.  Otherwise executes the tool and
-        returns the grounded response with ``used_tool=True``.
+        Tools are grouped by domain (academics, student life, campus). With
+        one enabled domain this is a single tool pass. With several, a short
+        classifier call picks the domains the message needs, and each picked
+        domain gets its own tool pass with only its tools::
+
+            message ─► classify ── error/timeout/empty ─► all enabled domains
+                          │ picked domains
+                          ├─ independent ─► gather(pass per domain, timeout each)
+                          └─ student_life + campus ─► events pass ─► venues ─► campus pass
+                                                   ▼
+                                    merged ToolCallResult (text, tool outputs)
+
+        Returns ``ToolCallResult(used_tool=False)`` when tools are disabled,
+        no LLM client is available, or no pass used a tool.
         """
         effective_llm = llm_client or self.llm_client
         if effective_llm is None:
@@ -122,28 +186,89 @@ class ImprovedChatOrchestrator:
 
         settings = get_settings()
         tools_enabled = settings.tools.get_enabled_names()
-
-        if not tools_enabled:
+        if not tools_enabled or not get_tool_definitions(enabled=tools_enabled):
             return ToolCallResult(text="", used_tool=False)
 
-        tool_definitions = get_tool_definitions(enabled=tools_enabled)
-        tool_executor = get_tool_executor(enabled=tools_enabled)
+        by_domain = tools_by_domain(tools_enabled)
+        if len(by_domain) == 1:
+            (tools,) = by_domain.values()
+            return await self._tool_pass(effective_llm, tools, user_message)
 
-        if not tool_definitions:
-            return ToolCallResult(text="", used_tool=False)
-
-        system_prompt = _tool_guidance_prompt(
-            tools_enabled,
-            settings.app.institution,
-            link_courses=academics.links_to_course_pages(),
+        selected = await self._classify_domains(effective_llm, user_message, list(by_domain))
+        tasks = []
+        if "student_life" in selected and "campus" in selected:
+            tasks.append(self._events_then_campus(effective_llm, by_domain, user_message))
+            selected = [d for d in selected if d not in ("student_life", "campus")]
+        tasks += [self._tool_pass(effective_llm, by_domain[d], user_message) for d in selected]
+        results = await asyncio.gather(
+            *(asyncio.wait_for(task, TOOL_PASS_TIMEOUT_S) for task in tasks),
+            return_exceptions=True,
         )
+        passes: List[ToolCallResult] = []
+        for result in results:
+            if isinstance(result, BaseException):
+                logger.warning("Tool pass dropped: %r", result)
+                continue
+            passes.extend(result if isinstance(result, list) else [result])
+        return merge_tool_results(passes)
 
-        return await effective_llm.generate_with_tools(
-            system_prompt=system_prompt,
+    async def _tool_pass(self, llm: LLMClient, tools: List[str], user_message: str) -> ToolCallResult:
+        settings = get_settings()
+        return await llm.generate_with_tools(
+            system_prompt=_tool_guidance_prompt(
+                tools,
+                settings.app.institution,
+                link_courses=academics.links_to_course_pages(),
+            ),
             user_message=user_message,
-            tool_definitions=tool_definitions,
-            tool_executor=tool_executor,
+            tool_definitions=get_tool_definitions(enabled=tools),
+            tool_executor=get_tool_executor(enabled=tools),
         )
+
+    async def _events_then_campus(
+        self, llm: LLMClient, by_domain: Dict[str, List[str]], user_message: str
+    ) -> List[ToolCallResult]:
+        """Run events first, then campus with the event venues it found."""
+        events = await self._tool_pass(llm, by_domain["student_life"], user_message)
+        venues = event_venues(events)
+        campus_message = user_message
+        if venues:
+            campus_message = (
+                f"{user_message}\n\nThe events found are at these locations; look "
+                f"them up on the campus map: {'; '.join(venues)}"
+            )
+        campus = await self._tool_pass(llm, by_domain["campus"], campus_message)
+        return [events, campus]
+
+    async def _classify_domains(self, llm: LLMClient, user_message: str, domains: List[str]) -> List[str]:
+        """Pick the domains *user_message* needs; any failure means all of them."""
+        prompt = (
+            "Classify which of these domains a student's message needs. "
+            f"Domains: {json.dumps({d: DOMAIN_DESCRIPTIONS.get(d, d) for d in domains})}. "
+            'Reply with JSON only, e.g. {"domains": ["campus"]}. Pick every domain '
+            "the message needs; pick none if no domain fits."
+        )
+        try:
+            raw = await asyncio.wait_for(
+                llm.generate(
+                    system_prompt=prompt,
+                    context=[{"role": "user", "content": user_message}],
+                    temperature=0.0,
+                    max_tokens=60,
+                    response_mime_type="application/json",
+                ),
+                CLASSIFIER_TIMEOUT_S,
+            )
+            match = re.search(r"\{.*\}", raw or "", re.S)
+            picked = json.loads(match.group(0)).get("domains") if match else None
+        except Exception as exc:  # noqa: BLE001 — fall back to every domain
+            logger.warning("Domain classifier failed (%r); using all domains", exc)
+            return domains
+        picked = [d for d in picked or [] if d in domains] if isinstance(picked, list) else []
+        if not picked:
+            logger.info("Domain classifier picked nothing; using all domains")
+            return domains
+        return picked
 
     # TODO: Investigate if this method is still needed and remove if not.
     async def process_message(self, 
