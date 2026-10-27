@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover } from '@mui/material';
-import { Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
+import { ArrowUp, Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { useAppConfig } from '../contexts/AppConfigContext';
 
@@ -24,6 +24,9 @@ const EnhancedChatInput = ({
   selectedAdvisorIds = null,
   onSelectedAdvisorIdsChange,
   isLanding = false,
+  // One-row pill (+, text, mic, send). Advisor choice moves into the + menu
+  // and answer style into the chat header's menu.
+  compact = false,
   onInvokeSkill,
   activeSkills = [],
   onDismissSkill,
@@ -237,7 +240,7 @@ const EnhancedChatInput = ({
   };
 
   return (
-    <div className={`enhanced-chat-input-container ${isLanding ? 'landing-composer' : ''}`}>
+    <div className={`enhanced-chat-input-container ${isLanding ? 'landing-composer' : ''} ${compact ? 'compact-composer' : ''}`}>
       {/* File Upload Area */}
       {showUpload && (
         <div className="floating-upload-section" ref={uploadRef}>
@@ -357,6 +360,20 @@ const EnhancedChatInput = ({
                   <Paperclip size={15} />
                   <span>Upload documents</span>
                 </button>
+                {compact && advisorEntries.length > 0 && (
+                  <button
+                    type="button"
+                    className="composer-plus-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setPlusAnchorEl(null);
+                      setAdvisorAnchorEl(plusBtnRef.current);
+                    }}
+                  >
+                    <Users size={15} />
+                    <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors chosen` : 'Choose advisors'}</span>
+                  </button>
+                )}
                 {/* Skills show only when the page can run them. */}
                 {onInvokeSkill && (
                   <>
@@ -387,6 +404,7 @@ const EnhancedChatInput = ({
               </button>
             )}
 
+            {!compact && (
             <button
               type="button"
               className={`advisor-menu-button ${hasExactSelection ? 'active' : ''}`}
@@ -398,6 +416,7 @@ const EnhancedChatInput = ({
               <Users size={16} />
               <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors` : 'Advisors'}</span>
             </button>
+            )}
             <Popover
               open={Boolean(advisorAnchorEl)}
               anchorEl={advisorAnchorEl}
@@ -465,6 +484,7 @@ const EnhancedChatInput = ({
               </>
             )}
 
+            {!compact && (
             <div
               role="group"
               aria-label="Response mode"
@@ -500,6 +520,7 @@ const EnhancedChatInput = ({
                 );
               })}
             </div>
+            )}
           </div>
 
           {/* Right - Mic + Send */}
@@ -528,8 +549,9 @@ const EnhancedChatInput = ({
               disabled={!canSend}
               className={`send-button ${canSend ? 'enabled' : 'disabled'}`}
               type="button"
+              aria-label="Send"
             >
-              <Send size={16} />
+              {compact ? <ArrowUp size={18} strokeWidth={2.4} /> : <Send size={16} />}
             </button>
           </div>
         </div>

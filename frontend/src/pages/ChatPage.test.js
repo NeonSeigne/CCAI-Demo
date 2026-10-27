@@ -25,7 +25,8 @@ jest.mock('../contexts/AppConfigContext', () => ({
     advisors: {},
   }),
 }));
-jest.mock('../components/Sidebar', () => () => <aside />);
+jest.mock('../components/CampusRail', () => () => <nav />);
+jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
 jest.mock('../components/OnboardingTour', () => ({ children }) => <>{children}</>);
 jest.mock('../components/ExportButton', () => () => null);
 jest.mock('../components/SettingsModal', () => () => null);

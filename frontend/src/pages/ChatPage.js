@@ -1,31 +1,23 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  AppBar,
-  Box,
-  IconButton,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-} from '@mui/material';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
-import MenuIcon from '@mui/icons-material/Menu';
+import { useMediaQuery } from '@mui/material';
 
-import { MessageCircle, Reply, X, Sparkles, Users, FileText } from 'lucide-react';
+import { Menu, MessageCircle, Reply, X, Sparkles, Users, FileText } from 'lucide-react';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
 import ThinkingIndicator from '../components/ThinkingIndicator';
-import SuggestionsPanel from '../components/SuggestionsPanel';
 import SettingsModal from '../components/SettingsModal';
 import ExportButton from '../components/ExportButton';
-import Sidebar from '../components/Sidebar';
+import CampusRail from '../components/CampusRail';
+import ChatMoreMenu from '../components/ChatMoreMenu';
+import AnswerPanel, { buildSuggestions, latestVisuals } from '../components/AnswerPanel';
+import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
+import '../styles/ChatFrame.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
 import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
@@ -307,20 +299,6 @@ const updateSessionTitle = async (sessionId, newTitle) => {
 const handleSelectSession = async (sessionId) => {
   if (sessionId === currentSessionId) return;
   await loadChatSession(sessionId);
-};
-
-// Sidebar deleted the currently-active chat. Clear local state without
-// creating a replacement session.
-const handleCurrentSessionDeleted = () => {
-  setCurrentSessionId(null);
-  setCurrentSessionTitle('');
-  setMessages([]);
-  setComposerMessage('');
-  setSelectedAdvisorIds(null);
-  setChatPhase('landing');
-  setReplyingTo(null);
-  setThinkingAdvisors([]);
-  setUploadedDocuments([]);
 };
 
 // Handle creating new chat from sidebar
@@ -945,17 +923,12 @@ const handleNewChat = async (sessionId = null) => {
   }
 };
 
-  const handleSuggestionSelect = (prompt, advisorIds) => {
-    setComposerMessage(prompt);
-    setSelectedAdvisorIds(advisorIds.length > 0 ? advisorIds : null);
-  };
-
   const cancelReply = () => {
     setReplyingTo(null);
   };
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const dialogInset = isMobile ? 0 : isSidebarCollapsed ? 70 : 300;
+  // Dialogs center over the conversation, right of the 260px rail.
+  const dialogInset = isMobile ? 0 : 260;
 
   useEffect(() => {
     window.dispatchEvent(
@@ -968,101 +941,86 @@ const handleNewChat = async (sessionId = null) => {
     };
   }, [dialogInset]);
 
-  const handleSidebarToggle = (isCollapsed) => {
-    setIsSidebarCollapsed(isCollapsed);
-  };
-
   const hasMessages = messages.length > 0;
   const hasConversationMessages = messages.filter(m => m.type !== 'system' && m.type !== 'document_upload').length > 0;
 
-  const chatPlaceholder = config?.chat_page?.placeholder || "Ask your advisors anything...";
+  const chatPlaceholder = config?.chat_page?.placeholder || 'Ask about courses, events or places';
+  const firstQuestion = messages.find((m) => m.type === 'user')?.content;
+  const chatTitle = firstQuestion || (hasMessages && currentSessionTitle) || 'New chat';
+  const answerVisuals = latestVisuals(messages);
+  const suggestions = buildSuggestions({
+    visuals: answerVisuals,
+    starters: config?.homepage?.starters || [],
+    asked: messages.filter((m) => m.type === 'user').map((m) => m.content || ''),
+  });
 
   return (
     <OnboardingTour>
-    <div className="chat-page-with-sidebar">
-      {/* Sidebar Component */}
-      <Sidebar
-        user={user}
+    <div className={`chat-frame ${isMobileMenuOpen ? 'rail-open' : ''}`}>
+      <CampusRail
+        className="chat-rail"
         currentSessionId={currentSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-        onCurrentSessionDeleted={handleCurrentSessionDeleted}
+        refreshTrigger={sidebarRefreshTrigger}
+        onNewChat={() => { setIsMobileMenuOpen(false); handleNewChat(); }}
+        onSelectSession={(sessionId) => { setIsMobileMenuOpen(false); handleSelectSession(sessionId); }}
+        onShowAllChats={() => navigate('/search')}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         onSignOut={() => {
           handleSignOut();
           navigate('/', { replace: true });
         }}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        authToken={authToken}
-        onSidebarToggle={handleSidebarToggle}
-        isMobileOpen={isMobileMenuOpen}
-        onMobileToggle={setIsMobileMenuOpen}
-        refreshTrigger={sidebarRefreshTrigger}
-        thinkingAdvisors={thinkingAdvisors}
-        dialogInset={dialogInset}
       />
-      
-      <div className={`main-chat-area ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {isMobileMenuOpen && (
+        <button
+          type="button"
+          className="chat-rail-backdrop"
+          aria-label="Close menu"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <div className="main-chat-area">
         <div className="modern-chat-page">
-          <AppBar
-            position="static"
-            color="transparent"
-            elevation={0}
-            className="material-chat-header"
-          >
-            <Toolbar className="material-chat-toolbar">
-              <Box className="header-left">
-                <Tooltip title="Open sidebar">
-                  <IconButton
-                    className="mobile-menu-button"
-                    aria-label="Open sidebar"
-                    onClick={handleMobileMenuToggle}
-                    edge="start"
-                  >
-                    <MenuIcon />
-                  </IconButton>
-                </Tooltip>
-                <Box className="header-brand">
-                  <Box className="brand-icon" aria-hidden="true">
-                    <GroupOutlinedIcon />
-                  </Box>
-                  <Typography component="h1" className="header-title">
-                    {config?.app?.title || 'Advisory'}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box className="header-controls">
-                <ExportButton
-                  hasMessages={hasConversationMessages}
-                  currentSessionId={currentSessionId}
-                  authToken={authToken}
-                />
-
-                <Tooltip title="Open user guide">
-                  <IconButton
-                  aria-label="Open user guide"
-                  onClick={() => window.dispatchEvent(new CustomEvent(
-                    'open-user-guide',
-                    { detail: { leftInset: dialogInset } },
-                  ))}
-                  >
-                    <HelpOutlineIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Toolbar>
-          </AppBar>
+          <header className="chat-head">
+            <button
+              type="button"
+              className="chat-head-btn chat-menu-btn"
+              aria-label="Open menu"
+              onClick={handleMobileMenuToggle}
+            >
+              <Menu size={18} />
+            </button>
+            <h1 className="chat-title">{chatTitle}</h1>
+            <div className="chat-head-actions">
+              <ExportButton
+                hasMessages={hasConversationMessages}
+                currentSessionId={currentSessionId}
+                authToken={authToken}
+              />
+              <ChatMoreMenu
+                responseMode={responseMode}
+                onResponseModeChange={setResponseMode}
+                thinkingAdvisors={thinkingAdvisors}
+                dialogInset={dialogInset}
+                canvasLabel={config?.app?.title ? `${config.app.title} Canvas` : 'Canvas'}
+                onOpenCanvas={() => navigate('/canvas')}
+                onSearchChats={() => navigate('/search')}
+                onOpenGuide={() => window.dispatchEvent(new CustomEvent(
+                  'open-user-guide',
+                  { detail: { leftInset: dialogInset } },
+                ))}
+              />
+            </div>
+          </header>
 
           {/* Main Content */}
           <div className="chat-content">
             {chatPhase !== 'active' && (
               <div className={`welcome-state ${chatPhase === 'transitioning' ? 'is-leaving' : ''}`}>
                 <div className="chat-hero-copy">
-                  <span className="accent-dot bg-accent-blue" aria-hidden="true" />
-                  <h2>What can we help you plan today?</h2>
-                  <p>Choose a starting point or ask your advisor panel anything.</p>
+                  <h2>What do you need on campus today?</h2>
+                  <p>Ask about courses, events or places at {config?.app?.institution || 'your school'}.</p>
                 </div>
-                <SuggestionsPanel onSuggestionClick={handleSuggestionSelect} />
               </div>
             )}
             {hasMessages && (
@@ -1242,7 +1200,7 @@ const handleNewChat = async (sessionId = null) => {
             )}
           </div>
 
-          <div className={`floating-input-area ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} phase-${chatPhase}`}>
+          <div className={`floating-input-area phase-${chatPhase}`}>
             {replyingTo && (
               <div className="reply-banner">
                 <div className="reply-info">
@@ -1255,7 +1213,29 @@ const handleNewChat = async (sessionId = null) => {
               </div>
             )}
             
+            {suggestions.length > 0 && !replyingTo && (
+              <div className="chat-suggestions" aria-label="Suggested questions">
+                {suggestions.map((suggestion) => (
+                  <button
+                    type="button"
+                    key={suggestion.text}
+                    className="chat-suggestion"
+                    disabled={isLoading}
+                    onClick={() => handleSendMessage(suggestion.text)}
+                  >
+                    <span
+                      className="chat-suggestion-dot"
+                      style={{ background: DOMAIN_COLORS[suggestion.domain] || 'var(--ink-soft)' }}
+                      aria-hidden="true"
+                    />
+                    {suggestion.text}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <EnhancedChatInput
+              compact
               onSendMessage={handleInputSubmit}
               onFileUploaded={handleFileUploaded}
               uploadedDocuments={uploadedDocuments}
@@ -1278,6 +1258,13 @@ const handleNewChat = async (sessionId = null) => {
           </div>
         </div>
       </div>
+
+      <AnswerPanel
+        visuals={answerVisuals}
+        authToken={authToken}
+        timezone={config?.school?.timezone}
+        onAsk={(text) => handleSendMessage(text)}
+      />
 
       {isSettingsOpen && (
         <SettingsModal
