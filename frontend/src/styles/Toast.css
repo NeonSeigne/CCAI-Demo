@@ -1,0 +1,47 @@
+/* Shared toast: one message, bottom centre, above the phone tab bar. */
+.cc-toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 200;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+}
+
+.cc-toast {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-app);
+  font-size: 14px;
+  box-shadow: var(--shadow-soft-md);
+}
+
+.cc-toast.is-error { background: var(--error-ink); }
+
+.cc-toast > span { padding-right: 8px; }
+
+.cc-toast-action {
+  min-height: 44px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cc-toast-action:focus-visible { outline-color: var(--paper); }
+
+@media (max-width: 767px) {
+  .cc-toast-region { bottom: calc(56px + 16px + env(safe-area-inset-bottom, 0px)); }
+}
