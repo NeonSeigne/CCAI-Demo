@@ -76,23 +76,21 @@ async def execute(
         }
 
     try:
-        rows = await academics.get_provider().search_courses(
-            tool_name=TOOL_NAME,
+        # The same search the Courses page uses (R12); filters, if any, run
+        # before the result is cut to max_results.
+        result = await academics.search_catalog(
             subject=subject,
             course_number=course_number,
             keyword=keyword,
-            limit=max_results + 1,
+            limit=max_results,
         )
     except Exception as exc:
         logger.error("course_search query failed: %s", exc)
         return {"courses": [], "error": str(exc), "query": query_meta}
 
-    truncated = len(rows) > max_results
-    rows = rows[:max_results]
-
     return {
-        "courses": rows,
-        "total_results": len(rows),
-        "truncated": truncated,
+        "courses": result["courses"],
+        "total_results": result["total_results"],
+        "truncated": result["truncated"],
         "query": query_meta,
     }

@@ -184,6 +184,12 @@ async def search_courses(
         if number_token and num != number_token:
             continue
         key = _identifier(subj, num)
+        if key in courses:
+            # Keep adding this course's sections to its seat count.
+            _add_seats(courses[key], row)
+            continue
+        if len(courses) >= limit:
+            continue
         if words:
             haystack = " ".join([key, row.get("Title", ""), row.get("Topic", ""), row.get("Description", "")]).lower()
             if not all(word in haystack for word in words):
@@ -197,11 +203,41 @@ async def search_courses(
                 "description": row.get("Description", ""),
                 "units": row.get("Units", ""),
                 "prereq_text": "",
+                "seats_open_at_snapshot": 0,
                 **meta,
             }
-            if len(courses) >= limit:
-                break
+            _add_seats(courses[key], row)
     return list(courses.values())
+
+
+def _add_seats(course: Dict[str, Any], row: Dict[str, str]) -> None:
+    """Add a section's open seats (at snapshot time) to its course row."""
+    open_seats = _int(row.get("EnrollmentLimit")) - _int(row.get("Enrollment"))
+    course["seats_open_at_snapshot"] += max(open_seats, 0)
+
+
+async def lookup_course(identifier: str) -> Dict[str, Any]:
+    """The course's identifier, title and description from the snapshot.
+
+    Raises ``FileNotFoundError`` when neither the sections nor the grades
+    files list it, and ``RuntimeError`` when the files can't be loaded.
+    """
+    subject, number = _split(identifier)
+    if not subject:
+        raise FileNotFoundError(f"Could not read '{identifier}' as a course.")
+    rows, _ = await _sections()
+    for row in rows:
+        if row.get("Mnemonic", "").upper() == subject and row.get("Number", "").upper() == number:
+            return {
+                "identifier": _identifier(subject, number),
+                "title": row.get("Title", ""),
+                "description": row.get("Description", ""),
+            }
+    grade_rows, _, _ = await _grades()
+    for row in grade_rows:
+        if row.get("Subject", "").upper() == subject and row.get("Catalog Number", "").upper() == number:
+            return {"identifier": _identifier(subject, number), "title": row.get("Class Title", ""), "description": ""}
+    raise FileNotFoundError(f"No course found for '{_identifier(subject, number)}'")
 
 
 async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[str, Any]:
