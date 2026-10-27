@@ -1,36 +1,30 @@
 """Tests for the authenticated course-detail aggregate API."""
 
+import json
 import unittest
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from fastapi import HTTPException
 
 from app.api.routes import courses
+from app.tools import _uw_source
 
 
-COURSE = {
-    "course_reference": {"subjects": ["MUSIC"], "course_number": 113},
-    "course_title": "MUSIC IN PERFORMANCE",
-    "description": "Descriptive lectures on chamber music.",
-    "similar_courses": [{"subjects": ["MUSIC"], "course_number": 269}],
-    "term_data": {
-        "1254": {
-            "grade_data": {
-                "total": 10,
-                "a": 9,
-                "instructors": ["Johanna Wienholts", "Unknown Person"],
-            },
-            "enrollment_data": None,
-        },
-        "1264": {
-            "grade_data": None,
-            "enrollment_data": {
-                "credit_count": [1, 1],
-                "instructors": {"Johanna Wienholts": "teacher@wisc.edu"},
-            },
-        },
-    },
-}
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "uw_coursemap"
+# Trimmed from the live https://uwcourses.com/courses/COMPSCI_300.json payload.
+COURSE_PAGE = json.loads((FIXTURES / "COMPSCI_300.json").read_text())
+
+
+def fake_coursemap(page=COURSE_PAGE):
+    async def fetch(path, *, params=None, optional=False):
+        if path == "/courses/COMPSCI_300.json":
+            return page
+        if optional:
+            return None
+        raise FileNotFoundError(path)
+
+    return fetch
 
 
 class CourseIdentifierTests(unittest.TestCase):
@@ -48,46 +42,59 @@ class CourseIdentifierTests(unittest.TestCase):
             courses.sanitize_course_identifier("MUSIC")
 
 
-class CoursePayloadTests(unittest.IsolatedAsyncioTestCase):
-    async def test_aggregates_optional_resources_and_sorts_instructors(self):
-        async def fake_fetch(path, optional=False):
-            values = {
-                "/terms.json": {"1254": "Spring 2025", "1264": "Spring 2026"},
-                "/course/MUSIC_113.json": COURSE,
-                "/graphs/course/MUSIC_113.json": [{"data": {"id": "MUSIC 113"}}],
-                "/styles/MUSIC.json": [{"MUSIC": "#000000"}],
-                "/course/MUSIC_113/meetings.json": [{"name": "LEC 001"}],
-                "/instructors/JOHANNA_WIENHOLTS.json": {
-                    "name": "Johanna Wienholts",
-                    "rmp_data": {"average_rating": 4.8},
-                },
-                "/instructors/UNKNOWN_PERSON.json": None,
-                "/course/MUSIC_269.json": {
-                    "course_reference": {"subjects": ["MUSIC"], "course_number": 269},
-                    "course_title": "STRING ENSEMBLE",
-                },
-            }
-            return values.get(path)
+class CourseDetailPayloadTests(unittest.IsolatedAsyncioTestCase):
+    async def payload(self, term=None, page=COURSE_PAGE):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap(page)):
+            return await courses._build_course_payload("COMPSCI_300", term)
 
-        with patch.object(courses, "_fetch_json", side_effect=fake_fetch):
-            payload = await courses._build_course_payload("MUSIC_113", None)
+    async def test_maps_live_record_to_page_shape(self):
+        payload = await self.payload()
+        course = payload["course"]
+        self.assertEqual(course["course_reference"], {"subjects": ["COMPSCI"], "course_number": 300})
+        self.assertEqual(course["course_title"], "PROGRAMMING II")
+        self.assertTrue(course["description"])
+        self.assertIn({"subjects": ["COMPSCI"], "course_number": 200},
+                      course["prerequisites"]["course_references"])
+        self.assertIn({"subjects": ["COMPSCI"], "course_number": 320}, course["satisfies"])
+        self.assertGreater(course["cumulative_grade_data"]["total"], 0)
+        self.assertEqual(payload["source"]["url"], "https://uwcourses.com")
 
-        self.assertEqual(payload["selected_term"], "1254")
-        self.assertEqual(payload["selected_term_label"], "Spring 2025")
-        self.assertEqual(payload["instructors"][0]["name"], "Johanna Wienholts")
-        self.assertEqual(payload["instructors"][1]["name"], "Unknown Person")
-        self.assertEqual(payload["meetings"][0]["name"], "LEC 001")
-        self.assertEqual(payload["similar_courses"][0]["course_title"], "STRING ENSEMBLE")
+    async def test_selects_latest_graded_term_by_default(self):
+        payload = await self.payload()
+        self.assertEqual(payload["selected_term"], "1264")
+        self.assertEqual(payload["selected_term_label"], "Spring 2026")
+        self.assertTrue(payload["course"]["term_data"]["1264"]["grade_data"]["total"])
+        # Spring 2026 has grades but no sections yet; the schedule falls back to Fall 2026.
+        self.assertEqual(len(payload["meetings"]), 3)
 
     async def test_requested_term_is_selected_when_available(self):
-        with patch.object(courses, "_fetch_json", new=AsyncMock()) as fetch:
-            fetch.side_effect = lambda path, optional=False: (
-                {"1254": "Spring 2025", "1264": "Spring 2026"}
-                if path == "/terms.json"
-                else COURSE if path == "/course/MUSIC_113.json" else None
-            )
-            payload = await courses._build_course_payload("MUSIC_113", "1264")
-        self.assertEqual(payload["selected_term"], "1264")
+        payload = await self.payload(term="1272")
+        self.assertEqual(payload["selected_term"], "1272")
+        self.assertEqual(payload["selected_term_label"], "Fall 2026")
+        self.assertEqual([m["name"] for m in payload["meetings"]], ["LEC 001", "LEC 002", "LEC 003"])
+        self.assertEqual(payload["meetings"][0]["current_enrollment"], 146)
+
+    async def test_instructors_carry_ratings(self):
+        payload = await self.payload()
+        self.assertEqual(payload["instructors"][0]["name"], "Jim Williams")
+        self.assertIsNotNone(payload["instructors"][0]["rmp_data"]["average_rating"])
+
+    async def test_unknown_course_maps_to_404(self):
+        async def missing(path, *, params=None, optional=False):
+            if optional:
+                return None
+            raise FileNotFoundError(path)
+
+        with patch.object(_uw_source, "_fetch_json", side_effect=missing):
+            with self.assertRaises(HTTPException) as context:
+                await courses._build_course_payload("BOGUS_999", None)
+        self.assertEqual(context.exception.status_code, 404)
+
+    async def test_upstream_outage_maps_to_502(self):
+        with patch.object(_uw_source, "_fetch_json", new=AsyncMock(side_effect=RuntimeError("down"))):
+            with self.assertRaises(HTTPException) as context:
+                await courses._build_course_payload("COMPSCI_300", None)
+        self.assertEqual(context.exception.status_code, 502)
 
     async def test_route_maps_bad_identifier_to_400(self):
         with self.assertRaises(HTTPException) as context:

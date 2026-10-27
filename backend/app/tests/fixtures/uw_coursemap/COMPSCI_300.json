@@ -212,7 +212,13 @@
    },
    "instructors": [
     {
-     "name": "Jim Williams"
+     "name": "Jim Williams",
+     "email": "JIMW@CS.WISC.EDU",
+     "ratings": {
+      "review_count": 155,
+      "quality": 2.98,
+      "difficulty": 3.39
+     }
     }
    ],
    "sections": [

@@ -1,46 +1,28 @@
 """Authenticated UW course-detail API.
 
-This is a clean-room adapter over the public UW Course Map static API. The
-payload contract and fetch sequence were researched from:
-https://github.com/twangodev/uw-coursemap/blob/main/src/routes/courses/%5BcourseIdentifier%5D/+page.ts
+Serves the course detail page from the live UW Course Map API through
+``app.tools._uw_source`` (the same client and cache the chat course tools
+use). The old ``static.uwcourses.com`` host no longer resolves, so the live
+course record is mapped into the payload shape the page already reads.
 
 No AGPL-licensed UI source is copied into this project.
 """
 
 from __future__ import annotations
 
-import asyncio
 import re
-import time
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-from urllib.parse import quote
 
-import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.auth import get_current_active_user
 from app.models.user import User
+from app.tools import _uw_source
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
-UPSTREAM_BASE = "https://static.uwcourses.com"
-DEFAULT_TTL_SECONDS = 15 * 60
-MAX_CACHE_ITEMS = 256
 MAX_HYDRATED_INSTRUCTORS = 24
-MAX_HYDRATED_SIMILAR = 12
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 /&-]{1,80}$")
-
-
-@dataclass
-class _CacheEntry:
-    value: Any
-    expires_at: float
-    etag: Optional[str] = None
-
-
-_cache: Dict[str, _CacheEntry] = {}
-_cache_lock = asyncio.Lock()
 
 
 def sanitize_course_identifier(identifier: str) -> str:
@@ -83,135 +65,145 @@ def sanitize_instructor_id(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", name.strip()).strip("_").upper()
 
 
-def _cache_ttl(headers: httpx.Headers) -> int:
-    cache_control = headers.get("cache-control", "")
-    match = re.search(r"(?:s-maxage|max-age)=(\d+)", cache_control)
-    return max(60, min(int(match.group(1)), 24 * 60 * 60)) if match else DEFAULT_TTL_SECONDS
+_GRADE_BUCKETS = ("a", "ab", "b", "bc", "c", "d", "f")
 
 
-async def _fetch_json(path: str, *, optional: bool = False) -> Any:
-    """Fetch one fixed-origin JSON resource with bounded ETag-aware caching."""
-    now = time.monotonic()
-    async with _cache_lock:
-        cached = _cache.get(path)
-        if cached and cached.expires_at > now:
-            return cached.value
-        etag = cached.etag if cached else None
+def _reference(subjects: List[Any], number: Any) -> Dict[str, Any]:
+    return {"subjects": [str(s) for s in subjects or []], "course_number": number}
 
-    headers = {"If-None-Match": etag} if etag else {}
-    try:
-        async with httpx.AsyncClient(base_url=UPSTREAM_BASE, timeout=12.0) as client:
-            response = await client.get(path, headers=headers)
-    except httpx.RequestError as exc:
-        if optional:
-            return None
-        raise HTTPException(status_code=502, detail="Course data service is unavailable") from exc
 
-    if response.status_code == 304 and cached:
-        cached.expires_at = now + _cache_ttl(response.headers)
-        return cached.value
-    if response.status_code == 404 and optional:
+def _reference_from_code(code: str) -> Optional[Dict[str, Any]]:
+    subjects, number = _uw_source._split_identifier(code)
+    if not subjects or not number:
         return None
-    if response.status_code == 404:
-        raise HTTPException(status_code=404, detail="Course not found")
-    if response.is_error:
-        if optional:
-            return None
-        raise HTTPException(status_code=502, detail="Course data service returned an error")
-
-    value = response.json()
-    entry = _CacheEntry(
-        value=value,
-        expires_at=now + _cache_ttl(response.headers),
-        etag=response.headers.get("etag"),
-    )
-    async with _cache_lock:
-        if len(_cache) >= MAX_CACHE_ITEMS:
-            oldest = min(_cache, key=lambda key: _cache[key].expires_at)
-            _cache.pop(oldest, None)
-        _cache[path] = entry
-    return value
+    return _reference(subjects, int(number) if number.isdigit() else number)
 
 
-def _select_term(course: Dict[str, Any], requested_term: Optional[str]) -> Optional[str]:
-    term_data = course.get("term_data") or {}
+def _grade_data(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    totals = {bucket: sum(row.get(bucket) or 0 for row in rows) for bucket in _GRADE_BUCKETS}
+    totals["total"] = sum(row.get("total") or 0 for row in rows)
+    names = [name for row in rows for name in (row.get("instructors") or [])]
+    totals["instructors"] = list(dict.fromkeys(names)) or None
+    return totals
+
+
+def _instructor(item: Dict[str, Any]) -> Dict[str, Any]:
+    ratings = item.get("ratings") or {}
+    rmp = None
+    if ratings:
+        rmp = {
+            "average_rating": ratings.get("quality"),
+            "average_difficulty": ratings.get("difficulty"),
+            "num_ratings": ratings.get("review_count"),
+            "ratings": [],
+        }
+    return {
+        "name": _uw_source._title_case(item.get("name") or ""),
+        "email": (item.get("email") or "").lower() or None,
+        "rmp_data": rmp,
+    }
+
+
+def _meeting(section: Dict[str, Any], instructors: List[str]) -> Dict[str, Any]:
+    return {
+        "name": f"{section.get('section_type') or ''} {section.get('section_number') or ''}".strip(),
+        "type": "CLASS",
+        "instructors": instructors,
+        "current_enrollment": section.get("enrolled") or 0,
+        "location": {"capacity": section.get("capacity")},
+        "start_time": None,
+        "end_time": None,
+    }
+
+
+def _build_course(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Map a live Course Map record to the course detail page's shape."""
+    course = data["course"]
+    grades = course.get("grades") or []
+    term_data: Dict[str, Dict[str, Any]] = {}
+    for row in grades:
+        term = str(row.get("term_id") or "")
+        if term:
+            term_data.setdefault(term, {})["grade_data"] = _grade_data([row])
+    for section in course.get("sections") or []:
+        term = str(section.get("term_id") or "")
+        if term:
+            term_data.setdefault(term, {})
+    instructors = course.get("instructors") or []
+    emails = {
+        _uw_source._title_case(i.get("name") or ""): (i.get("email") or "").lower()
+        for i in instructors if i.get("name")
+    }
+    for term, entry in term_data.items():
+        entry.setdefault("enrollment_data", {"instructors": emails})
+
+    prerequisite_refs = []
+    for node in (course.get("requirements") or {}).get("nodes") or []:
+        ref = node.get("course") if isinstance(node, dict) else None
+        if ref:
+            prerequisite_refs.append(_reference(ref.get("subjects"), ref.get("course_number")))
+    satisfies = [
+        ref for ref in (_reference_from_code(item.get("code") or "") for item in data.get("following") or [])
+        if ref
+    ]
+    return {
+        "course_reference": _reference(course.get("subjects"), course.get("course_number")),
+        "course_title": course.get("title") or "",
+        "description": course.get("description") or course.get("llm_summary") or "",
+        "prerequisites": {
+            "course_references": prerequisite_refs,
+            "linked_requisite_text": [course.get("requirements_text") or ""],
+        },
+        "satisfies": satisfies,
+        "cumulative_grade_data": _grade_data(grades) if grades else None,
+        "term_data": term_data,
+    }
+
+
+def _select_term(term_data: Dict[str, Any], requested_term: Optional[str]) -> Optional[str]:
     if requested_term and requested_term in term_data:
         return requested_term
-    graded_terms = [
-        code for code, data in term_data.items() if (data or {}).get("grade_data")
-    ]
-    available = graded_terms or list(term_data)
-    return max(available, key=lambda code: int(code)) if available else None
-
-
-def _latest_enrollment(course: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    term_data = course.get("term_data") or {}
-    for code in sorted(term_data, key=lambda item: int(item), reverse=True):
-        enrollment = (term_data[code] or {}).get("enrollment_data")
-        if enrollment:
-            return enrollment
-    return None
-
-
-async def _optional(path: str) -> Any:
-    return await _fetch_json(path, optional=True)
+    graded = [code for code, entry in term_data.items() if (entry or {}).get("grade_data")]
+    available = graded or list(term_data)
+    return max(available, key=int) if available else None
 
 
 async def _build_course_payload(course_key: str, requested_term: Optional[str]) -> Dict[str, Any]:
-    terms, course = await asyncio.gather(
-        _fetch_json("/terms.json"),
-        _fetch_json(f"/course/{quote(course_key, safe='_')}.json"),
-    )
-    selected_term = _select_term(course, requested_term)
-    selected_data = (course.get("term_data") or {}).get(selected_term, {}) if selected_term else {}
-    enrollment = selected_data.get("enrollment_data") or _latest_enrollment(course) or {}
-    instructor_names = list(dict.fromkeys(
-        (selected_data.get("grade_data") or {}).get("instructors") or
-        list((enrollment.get("instructors") or {}).keys())
-    ))[:MAX_HYDRATED_INSTRUCTORS]
-    similar_refs = (course.get("similar_courses") or [])[:MAX_HYDRATED_SIMILAR]
+    try:
+        data = await _uw_source._get_course(course_key.replace("_", " "))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Course not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail="Course data is unavailable right now") from exc
 
-    subject = ((course.get("course_reference") or {}).get("subjects") or [""])[0]
-    subject_key = re.sub(r"[^A-Za-z0-9]", "", str(subject)).upper()
-    base_tasks = [
-        _optional(f"/graphs/course/{quote(course_key, safe='_')}.json"),
-        _optional(f"/styles/{quote(subject_key)}.json"),
-        _optional(f"/course/{quote(course_key, safe='_')}/meetings.json"),
-    ]
-    instructor_tasks = [
-        _optional(f"/instructors/{quote(sanitize_instructor_id(name), safe='_')}.json")
-        for name in instructor_names
-    ]
-    similar_tasks = [
-        _optional(f"/course/{quote(course_reference_key(ref), safe='_')}.json")
-        for ref in similar_refs
-    ]
-    results = await asyncio.gather(*base_tasks, *instructor_tasks, *similar_tasks)
-    graph, graph_styles, meetings = results[:3]
-    instructor_results = results[3:3 + len(instructor_tasks)]
-    similar_results = results[3 + len(instructor_tasks):]
+    course = _build_course(data)
+    raw = data["course"]
+    term_data = course["term_data"]
+    terms = {code: _uw_source.term_label(code) for code in term_data}
+    for row in raw.get("grades") or []:
+        if row.get("term_id") and row.get("term_name"):
+            terms[str(row["term_id"])] = row["term_name"]
+    selected_term = _select_term(term_data, requested_term)
 
-    instructors: List[Dict[str, Any]] = []
-    emails = enrollment.get("instructors") or {}
-    for name, details in zip(instructor_names, instructor_results):
-        item = details or {"name": name}
-        item.setdefault("email", emails.get(name))
-        instructors.append(item)
+    instructors = [_instructor(item) for item in raw.get("instructors") or []]
     instructors.sort(
         key=lambda item: ((item.get("rmp_data") or {}).get("average_rating") is not None,
                           (item.get("rmp_data") or {}).get("average_rating") or 0),
         reverse=True,
     )
-
-    similar_courses = []
-    for reference, details in zip(similar_refs, similar_results):
-        if details:
-            similar_courses.append(details)
-        else:
-            similar_courses.append({
-                "course_reference": reference,
-                "course_title": course_reference_label(reference),
-            })
+    names = [item["name"] for item in instructors]
+    sections = raw.get("sections") or []
+    section_terms = {str(section.get("term_id")) for section in sections if section.get("term_id")}
+    # Grades lag a term behind schedules; show the newest schedule when the
+    # selected term has none.
+    meeting_term = selected_term if selected_term in section_terms else (
+        max(section_terms, key=int) if section_terms else None
+    )
+    meetings = [
+        _meeting(section, names)
+        for section in sections
+        if str(section.get("term_id")) == meeting_term
+    ]
 
     return {
         "source": {
@@ -224,12 +216,12 @@ async def _build_course_payload(course_key: str, requested_term: Optional[str]) 
         "terms": terms,
         "selected_term": selected_term,
         "selected_term_label": terms.get(selected_term) if selected_term else None,
-        "enrollment": enrollment,
-        "instructors": instructors,
-        "similar_courses": similar_courses,
-        "prerequisite_graph": graph or [],
-        "graph_styles": graph_styles or [],
-        "meetings": meetings or [],
+        "enrollment": (term_data.get(selected_term) or {}).get("enrollment_data") or {},
+        "instructors": instructors[:MAX_HYDRATED_INSTRUCTORS],
+        "similar_courses": [],
+        "prerequisite_graph": [],
+        "graph_styles": [],
+        "meetings": meetings,
     }
 
 
