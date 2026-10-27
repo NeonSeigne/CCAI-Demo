@@ -412,6 +412,11 @@
   background: var(--ink);
   color: var(--paper);
   font-weight: 600;
+  /* Stays in reach under a long result list. */
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  box-shadow: var(--shadow-soft-md);
 }
 
 /* ---- Preview -------------------------------------------------------------- */
