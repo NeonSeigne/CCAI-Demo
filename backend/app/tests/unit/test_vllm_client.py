@@ -444,6 +444,41 @@ class TestVllmGenerateWithTools(unittest.TestCase):
     # Error handling
     # ------------------------------------------------------------------
 
+    def test_followup_drops_empty_openai_only_fields(self, MockAsyncOpenAI, mock_get_ctx):
+        """Mistral rejects refusal/audio/annotations/function_call, even as null."""
+        from openai.types.chat import ChatCompletionMessage
+
+        assistant = ChatCompletionMessage.model_validate({
+            "role": "assistant",
+            "content": None,
+            "refusal": None,
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": {"name": "search_courses", "arguments": '{"subject": "CSCI"}'},
+            }],
+        })
+        client = ImprovedVllmClient(
+            api_url=FAKE_URL, api_key=FAKE_KEY, model_name="test-model",
+        )
+        client.client.chat.completions.create = AsyncMock(side_effect=[
+            MagicMock(choices=[MagicMock(message=assistant)]),
+            _make_text_completion_mock("Here are the results."),
+        ])
+
+        asyncio.run(client.generate_with_tools(
+            system_prompt="You are helpful.",
+            user_message="Find CSCI courses",
+            tool_definitions=[FAKE_TOOL],
+            tool_executor=AsyncMock(return_value={"courses": []}),
+        ))
+
+        messages = client.client.chat.completions.create.call_args_list[1][1]["messages"]
+        assistant_msg = messages[-2]
+        self.assertEqual(assistant_msg["tool_calls"][0]["id"], "call_123")
+        for field in ("refusal", "audio", "annotations", "function_call", "content"):
+            self.assertNotIn(field, assistant_msg)
+
     def test_tool_executor_failure_serialises_error_and_continues(self, MockAsyncOpenAI, mock_get_ctx):
         """If the tool executor raises, the error is serialised as the
         tool result and the loop continues to the follow-up completion."""

@@ -138,7 +138,9 @@ class ImprovedVllmClient(LLMClient):
                         tool_outputs=tool_outputs,
                     )
 
-                messages.append(choice.model_dump())
+                # Drop empty OpenAI-only fields (refusal, audio, ...): stricter
+                # OpenAI-compatible APIs such as Mistral reject them.
+                messages.append(choice.model_dump(exclude_none=True))
 
                 for tc in choice.tool_calls:
                     fn_name = tc.function.name
