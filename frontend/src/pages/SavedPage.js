@@ -15,6 +15,7 @@ import {
   createSaved,
   deleteCollection,
   deleteSaved,
+  getCampusOrigin,
   getCatalogCourse,
   getEvent,
   getPlace,
@@ -69,7 +70,10 @@ const dayLabel = (iso, timezone) => {
   }
 };
 
-const walkText = (minutes) => (minutes == null ? 'Walk time unavailable' : `${minutes} min walk`);
+function Walk({ minutes }) {
+  if (minutes == null) return <span className="saved-walk is-unavailable">Walk time unavailable</span>;
+  return <span className="saved-walk">{minutes === 0 ? 'Your starting place' : `${minutes} min walk`}</span>;
+}
 
 const gradeLine = (grades) => {
   if (!grades || grades.gpa == null) return null;
@@ -152,7 +156,8 @@ function EventRow({ event, timezone }) {
           <strong>{event.title}</strong>
           <span className="saved-meta">
             {event.location && <span>{event.location}</span>}
-            <span className="saved-walk">{walkText(event.walk_minutes)}</span>
+            {/* Only a venue on the campus map has a walk; off-campus and online ones show none. */}
+            {event.place_id && <Walk minutes={event.walk_minutes} />}
           </span>
         </span>
       </div>
@@ -176,7 +181,7 @@ function PlaceRow({ place, timezone }) {
           <strong>{place.name}</strong>
           <span className="saved-meta">
             <span>{hoursText(place, timezone)}</span>
-            <span className="saved-walk">{walkText(place.walk_minutes)}</span>
+            <Walk minutes={place.walk_minutes} />
           </span>
         </span>
       </div>
@@ -308,6 +313,7 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const renameButton = useRef(null);
   const controllers = useRef(new Map());
   const started = useRef(new Set());
+  const originId = useRef(null);
   const loadRun = useRef(0);
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
@@ -319,9 +325,15 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
     const run = loadRun.current + 1;
     loadRun.current = run;
     setStatus('loading');
-    Promise.all([listSaved(authToken), listCollections(authToken)])
-      .then(([list, cols]) => {
+    Promise.all([
+      listSaved(authToken),
+      listCollections(authToken),
+      // Walk times are measured from the student's starting place; without it rows just say unavailable.
+      getCampusOrigin(authToken).catch(() => null),
+    ])
+      .then(([list, cols, origin]) => {
         if (loadRun.current !== run) return;
+        originId.current = origin?.place?.id || null;
         setItems(Array.isArray(list) ? list : []);
         setCollections(Array.isArray(cols) ? cols : cols?.collections || []);
         setStatus('ready');
@@ -354,7 +366,7 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
     }, lookupTimeout);
     setLookups((current) => ({ ...current, [item.id]: { state: 'loading' } }));
     Promise.resolve()
-      .then(() => fetcher(authToken, item.key, { signal: controller.signal }))
+      .then(() => fetcher(authToken, item.key, { signal: controller.signal, from: originId.current || undefined }))
       // Events and places come wrapped ({event}, {place}); course summaries do not.
       .then((data) => settle({ state: 'ok', data: data?.[item.kind] || data || {} }))
       // Only a confirmed 404 means the item is gone; timeouts, 5xx and network errors may pass.

@@ -31,6 +31,7 @@ jest.mock('../api/campus', () => {
     getCatalogCourse: jest.fn(),
     getEvent: jest.fn(),
     getPlace: jest.fn(),
+    getCampusOrigin: jest.fn(),
   };
 });
 jest.mock('../utils/ics', () => ({ downloadEventIcs: jest.fn() }));
@@ -97,13 +98,14 @@ beforeEach(() => {
   }));
   api.getEvent.mockImplementation((token, id) => Promise.resolve({
     event: {
-      id, title: `Live ${id}`, start: iso(DAY), end: iso(DAY + 3600000), all_day: false, location: 'Union South', walk_minutes: 7,
+      id, title: `Live ${id}`, start: iso(DAY), end: iso(DAY + 3600000), all_day: false, location: 'Union South', place_id: 'union-south', walk_minutes: 7,
     },
     timezone: 'America/Chicago',
   }));
   api.getPlace.mockImplementation((token, id) => Promise.resolve({
     place: { id, name: `Live ${id}`, category: 'library', open_now: true, hours: 'Mon-Fri 8-22' },
   }));
+  api.getCampusOrigin.mockResolvedValue({ place: { id: 'college-library', name: 'College Library' } });
 });
 
 test('Unsorted comes first, shows its count and is selected by default', async () => {
@@ -144,7 +146,9 @@ test('rows show live data per kind', async () => {
   expect(eventRow.getByText('7 min walk')).toBeInTheDocument();
   fireEvent.click(eventRow.getByRole('button', { name: 'Add Live 2026-10-28:225823@calendar.wisc.edu to calendar' }));
   expect(downloadEventIcs).toHaveBeenCalledWith(expect.objectContaining({ id: '2026-10-28:225823@calendar.wisc.edu' }));
-  expect(api.getEvent).toHaveBeenCalledWith('token', '2026-10-28:225823@calendar.wisc.edu', expect.anything());
+  expect(api.getEvent).toHaveBeenCalledWith(
+    'token', '2026-10-28:225823@calendar.wisc.edu', expect.objectContaining({ from: 'college-library' }),
+  );
 
   const placeRow = within(row('memorial-library'));
   expect(await placeRow.findByText('Live memorial-library')).toBeInTheDocument();
@@ -359,4 +363,30 @@ test('the phone picker lists the same collections and switches the selection', a
     .toEqual(['Unsorted (1)', 'Spring 2027 schedule (0)', 'Study spots (0)']);
   fireEvent.change(picker, { target: { value: 'c2' } });
   expect(await screen.findByRole('heading', { level: 2, name: 'Study spots' })).toBeInTheDocument();
+});
+
+test('walk times come from the starting place; off-campus events show none', async () => {
+  api.getEvent.mockImplementation((token, id) => Promise.resolve({
+    event: { id, title: `Live ${id}`, start: iso(DAY), location: 'UWM Music Building, Milwaukee' },
+  }));
+  api.getPlace.mockImplementation((token, id) => Promise.resolve({
+    place: id === 'college-library'
+      ? { id, name: 'College Library', category: 'library', walk_minutes: 0 }
+      : { id, name: `Live ${id}`, category: 'library' },
+  }));
+  setup({ items: [event('far'), place('college-library'), place('memorial-library')] });
+
+  const eventRow = within(await screen.findByTestId('saved-row-far'));
+  expect(await eventRow.findByText('UWM Music Building, Milwaukee')).toBeInTheDocument();
+  expect(eventRow.queryByText(/walk/i)).not.toBeInTheDocument();
+  expect(await within(row('college-library')).findByText('Your starting place')).toBeInTheDocument();
+  expect(await within(row('memorial-library')).findByText('Walk time unavailable')).toBeInTheDocument();
+  expect(api.getPlace).toHaveBeenCalledWith('token', 'memorial-library', expect.objectContaining({ from: 'college-library' }));
+});
+
+test('the list still loads when the starting place cannot be read', async () => {
+  api.getCampusOrigin.mockRejectedValue(unavailable());
+  setup({ items: [place('memorial-library')] });
+  expect(await within(await screen.findByTestId('saved-row-memorial-library')).findByText('Live memorial-library')).toBeInTheDocument();
+  expect(api.getPlace).toHaveBeenCalledWith('token', 'memorial-library', expect.objectContaining({ from: undefined }));
 });

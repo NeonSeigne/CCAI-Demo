@@ -82,12 +82,16 @@ export const getCatalogCourse = (token, id, options) => request(token, `/api/cat
 // ---- Events -----------------------------------------------------------------
 export const listEvents = (token, { window, q, from } = {}, options) =>
   request(token, `/api/events${query({ window, q, from })}`, options);
-export const getEvent = (token, id, options) => request(token, `/api/events/${path(id)}`, options);
+/** `from` (a place id) adds walk_minutes when the event's venue is on campus. */
+export const getEvent = (token, id, { from, ...options } = {}) =>
+  request(token, `/api/events/${path(id)}${query({ from })}`, options);
 
 // ---- Places and routes ------------------------------------------------------
 export const listPlaces = (token, { category, q, from, limit } = {}, options) =>
   request(token, `/api/places${query({ category, q, from, limit })}`, options);
-export const getPlace = (token, id, options) => request(token, `/api/places/${path(id)}`, options);
+/** `from` (a place id) adds walk_minutes. */
+export const getPlace = (token, id, { from, ...options } = {}) =>
+  request(token, `/api/places/${path(id)}${query({ from })}`, options);
 export const getRoute = (token, { from, to }, options) =>
   request(token, `/api/route${query({ from, to })}`, options);
 

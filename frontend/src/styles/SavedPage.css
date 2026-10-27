@@ -277,6 +277,7 @@
 }
 
 .saved-walk { color: var(--domain-campus-ink); }
+.saved-walk.is-unavailable { color: var(--ink-soft); }
 
 .saved-status { color: var(--error-ink); }
 
