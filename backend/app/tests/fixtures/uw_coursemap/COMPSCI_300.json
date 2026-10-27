@@ -1,0 +1,343 @@
+{
+ "data": {
+  "course": {
+   "course_id": "COMPSCI 300",
+   "course_uid": "course_28c3390ba944d49fd17f7c72",
+   "subjects": [
+    "COMPSCI"
+   ],
+   "course_number": 300,
+   "title": "PROGRAMMING II",
+   "description": "Introduction to Object-Oriented Programming using classes and objects to solve more complex problems. Introduces array-based and linked data structures: including lists, stacks, and queues. Programming assignments require writing and developing multi-class (file) programs using interfaces, generics, and exception handling to solve challenging real world problems. Topics reviewed include reading/writing data and objects from/to files and exception handling, and command line arguments. Topics introduced: object-oriented design; class vs. object; create and define interfaces and iterators; searching and sorting; abstract data types (List,Stack,Queue,PriorityQueue(Heap),Binary Search Tree); generic interfaces (parametric polymorphism); how to design and write test methods and classes; array based vs. linked node implementations; introduction to complexity analysis; recursion.",
+   "llm_summary": "Programming II covers Object-Oriented Programming, introducing array-based and linked data structures like lists, stacks, and queues to solve complex problems.",
+   "requirements_text": "Satisfied QR-A and (COMP\u00a0SCI\u00a0200,220,310, 301, or placement intoCOMP\u00a0SCI\u00a0300) or (E\u00a0C\u00a0E/\u200bCOMP\u00a0SCI\u00a0\u00a0252andE\u00a0C\u00a0E\u00a0203); graduate/professional standing; declared in Capstone Certificate in COMP SCI. Not open to students with credit for COMP SCI 367.",
+   "requirements": {
+    "root": "n_root",
+    "nodes": [
+     {
+      "children": [
+       "n_eligibility",
+       "n_exclusion"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "Satisfied QR-A and (COMP SCI 200,220,310, 301, or placement intoCOMP SCI 300) or (E C E/COMP SCI 252andE C E 203); graduate/professional standing; declared in Capstone Certificate in COMP SCI. Not open to students with credit for COMP SCI 367.",
+      "id": "n_root",
+      "kind": "all"
+     },
+     {
+      "children": [
+       "n_undergrad_path",
+       "n_ece_path",
+       "n_grad_standing",
+       "n_capstone_declaration"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "Satisfied QR-A and (COMP SCI 200,220,310, 301, or placement intoCOMP SCI 300) or (E C E/COMP SCI 252andE C E 203); graduate/professional standing; declared in Capstone Certificate in COMP SCI.",
+      "id": "n_eligibility",
+      "kind": "any"
+     },
+     {
+      "children": [
+       "n_qr_a",
+       "n_undergrad_course_alternatives"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "Satisfied QR-A and (COMP SCI 200,220,310, 301, or placement intoCOMP SCI 300)",
+      "id": "n_undergrad_path",
+      "kind": "all"
+     },
+     {
+      "children": [],
+      "condition": "Satisfied QR-A",
+      "course": null,
+      "evidence": "Satisfied QR-A",
+      "id": "n_qr_a",
+      "kind": "condition"
+     },
+     {
+      "children": [
+       "n_comp_sci_200",
+       "n_comp_sci_220",
+       "n_comp_sci_310",
+       "n_comp_sci_301_condition",
+       "n_placement_into_comp_sci_300"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "(COMP SCI 200,220,310, 301, or placement intoCOMP SCI 300)",
+      "id": "n_undergrad_course_alternatives",
+      "kind": "any"
+     },
+     {
+      "children": [],
+      "condition": null,
+      "course": {
+       "course_number": 200,
+       "minimum_grade": null,
+       "subjects": [
+        "COMPSCI"
+       ],
+       "timing": "prior"
+      },
+      "evidence": "COMP SCI 200",
+      "id": "n_comp_sci_200",
+      "kind": "course"
+     },
+     {
+      "children": [],
+      "condition": null,
+      "course": {
+       "course_number": 220,
+       "minimum_grade": null,
+       "subjects": [
+        "COMPSCI"
+       ],
+       "timing": "prior"
+      },
+      "evidence": "220",
+      "id": "n_comp_sci_220",
+      "kind": "course"
+     },
+     {
+      "children": [],
+      "condition": null,
+      "course": {
+       "course_number": 310,
+       "minimum_grade": null,
+       "subjects": [
+        "COMPSCI"
+       ],
+       "timing": "prior"
+      },
+      "evidence": "310",
+      "id": "n_comp_sci_310",
+      "kind": "course"
+     },
+     {
+      "children": [],
+      "condition": "301",
+      "course": null,
+      "evidence": "301",
+      "id": "n_comp_sci_301_condition",
+      "kind": "condition"
+     },
+     {
+      "children": [],
+      "condition": "placement intoCOMP SCI 300",
+      "course": null,
+      "evidence": "placement intoCOMP SCI 300",
+      "id": "n_placement_into_comp_sci_300",
+      "kind": "condition"
+     },
+     {
+      "children": [
+       "n_ece_comp_sci_252",
+       "n_ece_203"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "(E C E/COMP SCI 252andE C E 203)",
+      "id": "n_ece_path",
+      "kind": "all"
+     },
+     {
+      "children": [],
+      "condition": null,
+      "course": {
+       "course_number": 252,
+       "minimum_grade": null,
+       "subjects": [
+        "COMPSCI",
+        "ECE"
+       ],
+       "timing": "prior"
+      },
+      "evidence": "E C E/COMP SCI 252",
+      "id": "n_ece_comp_sci_252",
+      "kind": "course"
+     },
+     {
+      "children": [],
+      "condition": null,
+      "course": {
+       "course_number": 203,
+       "minimum_grade": null,
+       "subjects": [
+        "ECE"
+       ],
+       "timing": "prior"
+      },
+      "evidence": "E C E 203",
+      "id": "n_ece_203",
+      "kind": "course"
+     },
+     {
+      "children": [],
+      "condition": "graduate/professional standing",
+      "course": null,
+      "evidence": "graduate/professional standing",
+      "id": "n_grad_standing",
+      "kind": "condition"
+     },
+     {
+      "children": [],
+      "condition": "declared in Capstone Certificate in COMP SCI",
+      "course": null,
+      "evidence": "declared in Capstone Certificate in COMP SCI",
+      "id": "n_capstone_declaration",
+      "kind": "condition"
+     },
+     {
+      "children": [
+       "n_credit_for_comp_sci_367"
+      ],
+      "condition": null,
+      "course": null,
+      "evidence": "Not open to students with credit for COMP SCI 367",
+      "id": "n_exclusion",
+      "kind": "not"
+     },
+     {
+      "children": [],
+      "condition": "credit for COMP SCI 367",
+      "course": null,
+      "evidence": "credit for COMP SCI 367",
+      "id": "n_credit_for_comp_sci_367",
+      "kind": "condition"
+     }
+    ]
+   },
+   "instructors": [
+    {
+     "name": "Jim Williams"
+    }
+   ],
+   "sections": [
+    {
+     "term_id": "1272",
+     "section_number": "001",
+     "section_type": "LEC",
+     "capacity": 150,
+     "enrolled": 146
+    },
+    {
+     "term_id": "1272",
+     "section_number": "002",
+     "section_type": "LEC",
+     "capacity": 265,
+     "enrolled": 261
+    },
+    {
+     "term_id": "1272",
+     "section_number": "003",
+     "section_type": "LEC",
+     "capacity": 60,
+     "enrolled": 64
+    }
+   ],
+   "grades": [
+    {
+     "term_id": "1254",
+     "term_name": "Spring 2025",
+     "instructors": [
+      "ADITYA KOLSUR",
+      "ASHU KUMAR",
+      "BENJAMIN JACOBSEN",
+      "BERYL JIANG",
+      "CALEB RASCHKA",
+      "GUY THAMPAKKUL",
+      "Huifang Xu",
+      "JIAQI CHENG",
+      "KENDALL PARK",
+      "LAURA LEGAULT",
+      "Mouna Kacem",
+      "POOJA YADAV",
+      "RAHUL CHOUDHARY",
+      "RIYAD HASSEN",
+      "WILLIAM SUN",
+      "YIHENG SU"
+     ],
+     "a": 106,
+     "ab": 132,
+     "b": 197,
+     "bc": 65,
+     "c": 55,
+     "d": 27,
+     "f": 11,
+     "total": 596
+    },
+    {
+     "term_id": "1262",
+     "term_name": "Fall 2025",
+     "instructors": [
+      "BENJAMIN JACOBSEN",
+      "BERYL JIANG",
+      "GUY THAMPAKKUL",
+      "Huifang Xu",
+      "JAMES WILLIAMS",
+      "LAURA LEGAULT",
+      "MAX PHILLIPS",
+      "PROTEET PAUL",
+      "WILLIAM CONG",
+      "WILLIAM SUN",
+      "YIHENG SU",
+      "YUYUAN KANG",
+      "Yiwei Zhang"
+     ],
+     "a": 191,
+     "ab": 159,
+     "b": 145,
+     "bc": 33,
+     "c": 13,
+     "d": 11,
+     "f": 4,
+     "total": 558
+    },
+    {
+     "term_id": "1264",
+     "term_name": "Spring 2026",
+     "instructors": [
+      "ANTHONY SAUER",
+      "ASHLEY SAMUELSON",
+      "GUY THAMPAKKUL",
+      "JAMES WILLIAMS",
+      "JIAQI CHENG",
+      "LAURA LEGAULT",
+      "MAX PHILLIPS",
+      "WILLIAM CONG",
+      "WILLIAM SUN",
+      "YIHENG SU",
+      "YUYUAN KANG",
+      "Yiwei Zhang"
+     ],
+     "a": 119,
+     "ab": 112,
+     "b": 166,
+     "bc": 35,
+     "c": 21,
+     "d": 18,
+     "f": 7,
+     "total": 486
+    }
+   ]
+  },
+  "following": [
+   {
+    "code": "BSE 405",
+    "title": "ARTIFICIAL INTELLIGENCE IN AGRICULTURE"
+   },
+   {
+    "code": "COMPSCI 320",
+    "title": "DATA SCIENCE PROGRAMMING II"
+   },
+   {
+    "code": "COMPSCI 400",
+    "title": "PROGRAMMING III"
+   }
+  ]
+ },
+ "_fixture_note": "Trimmed from https://uwcourses.com/courses/COMPSCI_300.json on 2026-10-26"
+}

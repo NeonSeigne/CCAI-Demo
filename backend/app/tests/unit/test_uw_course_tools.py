@@ -14,117 +14,82 @@ from app.tools import (
     uw_search_courses,
 )
 
-COURSE_PAYLOAD = {
-    "course_reference": {"subjects": ["COMPSCI"], "course_number": 300},
-    "course_title": "PROGRAMMING II",
-    "description": "Object-oriented programming and data structures.",
-    "prerequisites": {
-        "abstract_syntax_tree": {
-            "type": "AND",
-            "children": [
-                {"subjects": ["COMPSCI"], "course_number": 200},
-            ],
+import json
+from pathlib import Path
+
+FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "uw_coursemap"
+# Trimmed from the live https://uwcourses.com/courses/COMPSCI_300.json payload.
+COURSE_PAGE = json.loads((FIXTURES / "COMPSCI_300.json").read_text())
+
+SEARCH_PAGE = {
+    "data": {
+        "results": {
+            "items": [
+                {"course_id": "COMPSCI 300", "title": "PROGRAMMING II", "gpa": 3.123},
+                {"course_id": "COMPSCI 400", "title": "PROGRAMMING III", "gpa": 3.2},
+            ]
         }
-    },
-    "satisfies": [
-        {"subjects": ["COMPSCI"], "course_number": 400},
-        {"subjects": ["COMPSCI"], "course_number": 407},
-    ],
-    "cumulative_grade_data": {
-        "a": 40,
-        "ab": 20,
-        "b": 20,
-        "bc": 10,
-        "c": 5,
-        "d": 3,
-        "f": 2,
-        "total": 100,
-        "instructors": None,
-    },
-    "term_data": {
-        "1254": {
-            "grade_data": {
-                "a": 10,
-                "ab": 5,
-                "b": 5,
-                "bc": 2,
-                "c": 1,
-                "d": 0,
-                "f": 0,
-                "total": 23,
-                "instructors": ["Ada Lovelace"],
-            },
-            "enrollment_data": {
-                "instructors": {"Ada Lovelace": "ada@wisc.edu"},
-            },
-        }
-    },
+    }
 }
 
-MEETINGS = [
-    {
-        "name": "LEC 001",
-        "type": "CLASS",
-        "instructors": ["Ada Lovelace"],
-        "current_enrollment": 120,
-        "location": {"capacity": 150},
-        "start_time": 1769196000000,
-        "end_time": 1769199000000,
-    }
-]
+
+def fake_coursemap(pages=None):
+    """Route ``_fetch_json`` paths to fixture payloads, like the live API."""
+    pages = {"/courses/COMPSCI_300.json": COURSE_PAGE, **(pages or {})}
+
+    async def fetch(path, *, params=None, optional=False):
+        if path == "/search.json":
+            return SEARCH_PAGE
+        if path in pages:
+            return pages[path]
+        if optional:
+            return None
+        raise FileNotFoundError(path)
+
+    return fetch
+
+
+def missing_coursemap():
+    async def fetch(path, *, params=None, optional=False):
+        if optional:
+            return None
+        raise FileNotFoundError(path)
+
+    return fetch
+
+
+def tool_settings(max_results):
+    fake = MagicMock()
+    fake.tools.get_tool_config.return_value = {"max_results": max_results}
+    return fake
 
 
 class TestUWSearchCourses(unittest.IsolatedAsyncioTestCase):
     async def test_search_by_subject_and_number_uses_direct_resolve(self):
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 20}
-        with patch.object(uw_search_courses, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(return_value=COURSE_PAYLOAD),
-        ):
-            result = await uw_search_courses.execute(
-                subject="COMP SCI", course_number="300"
-            )
+        with patch.object(uw_search_courses, "get_settings", return_value=tool_settings(20)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
+        ) as fetch:
+            result = await uw_search_courses.execute(subject="COMP SCI", course_number="300")
 
         self.assertEqual(len(result["courses"]), 1)
         self.assertEqual(result["courses"][0]["identifier"], "COMPSCI 300")
-        self.assertIn("Object-oriented", result["courses"][0]["description"])
+        self.assertEqual(result["courses"][0]["title"], "Programming Ii")
+        # Live requirement text uses non-breaking spaces ("COMP\xa0SCI\xa0200").
+        self.assertIn("COMP SCI 200", result["courses"][0]["prereq_text"].replace("\xa0", " "))
+        self.assertEqual(fetch.await_args_list[0].args[0], "/courses/COMPSCI_300.json")
 
     async def test_search_by_keyword_uses_search_api(self):
-        search_payload = {
-            "courses": [
-                {
-                    "course_id": "COMPSCI_300",
-                    "course_number": 300,
-                    "course_title": "PROGRAMMING II",
-                    "subjects": ["COMPSCI"],
-                }
-            ]
-        }
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock()
-        mock_response.json.return_value = search_payload
-        mock_client = AsyncMock()
-        mock_client.__aenter__.return_value = mock_client
-        mock_client.post.return_value = mock_response
-
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 20}
-        with patch.object(uw_search_courses, "get_settings", return_value=fake_settings), patch(
-            "app.tools._uw_source.httpx.AsyncClient", return_value=mock_client
-        ), patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(return_value=COURSE_PAYLOAD),
-        ):
+        with patch.object(uw_search_courses, "get_settings", return_value=tool_settings(20)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
+        ) as fetch:
             result = await uw_search_courses.execute(keyword="programming")
 
-        self.assertEqual(result["courses"][0]["identifier"], "COMPSCI 300")
-        mock_client.post.assert_awaited()
-        self.assertEqual(
-            mock_client.post.await_args.kwargs["json"], {"query": "programming"}
-        )
+        ids = [c["identifier"] for c in result["courses"]]
+        self.assertEqual(ids, ["COMPSCI 300", "COMPSCI 400"])
+        self.assertEqual(result["courses"][0]["average_gpa"], 3.12)
+        search_call = fetch.await_args_list[0]
+        self.assertEqual(search_call.args[0], "/search.json")
+        self.assertEqual(search_call.kwargs["params"], {"q": "programming"})
 
     async def test_search_requires_a_filter(self):
         result = await uw_search_courses.execute()
@@ -134,26 +99,19 @@ class TestUWSearchCourses(unittest.IsolatedAsyncioTestCase):
 
 class TestUWCourseGrades(unittest.IsolatedAsyncioTestCase):
     async def test_computes_average_gpa_and_visuals(self):
-        with patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(return_value=COURSE_PAYLOAD),
-        ):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
             result = await uw_course_grades.execute(course_identifier="COMP SCI 300")
 
-        self.assertAlmostEqual(result["cumulative"]["average_gpa"], 3.28, places=2)
         self.assertEqual(result["course_identifier"], "COMPSCI 300")
+        self.assertIsNotNone(result["cumulative"]["average_gpa"])
+        self.assertGreater(result["cumulative"]["total"], 0)
         visuals = build_visuals([{"name": "uw_course_grades", "result": result}])
         types = {v["type"] for v in visuals}
         self.assertIn("course_gpa", types)
         self.assertIn("course_grade_distribution", types)
 
     async def test_missing_course_returns_error(self):
-        with patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(side_effect=FileNotFoundError("missing")),
-        ):
+        with patch.object(_uw_source, "_fetch_json", side_effect=missing_coursemap()):
             result = await uw_course_grades.execute(course_identifier="BOGUS 999")
         self.assertIsNone(result["grades"])
         self.assertIn("error", result)
@@ -161,52 +119,26 @@ class TestUWCourseGrades(unittest.IsolatedAsyncioTestCase):
 
 class TestUWPrerequisites(unittest.IsolatedAsyncioTestCase):
     async def test_returns_prereq_text_and_edges(self):
-        with patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(return_value=COURSE_PAYLOAD),
-        ):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
             result = await uw_prerequisites.execute(course_identifier="COMP SCI 300")
 
         self.assertEqual(result["course_identifier"], "COMPSCI 300")
         self.assertTrue(result["has_prerequisites"])
         edge_ids = {p["identifier"] for p in result["prerequisites"]}
         self.assertIn("COMPSCI 200", edge_ids)
+        self.assertIn("COMPSCI/ECE 252", edge_ids)
 
     async def test_unknown_course_returns_error(self):
-        with patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(side_effect=FileNotFoundError("missing")),
-        ):
+        with patch.object(_uw_source, "_fetch_json", side_effect=missing_coursemap()):
             result = await uw_prerequisites.execute(course_identifier="BOGUS 999")
         self.assertIsNone(result["course"])
         self.assertIn("error", result)
 
 
 class TestUWNextCourses(unittest.IsolatedAsyncioTestCase):
-    async def test_returns_satisfies_as_next_courses(self):
-        async def fake_fetch(path, optional=False):
-            if path.endswith("COMPSCI_300.json"):
-                return COURSE_PAYLOAD
-            if path.endswith("COMPSCI_400.json"):
-                return {
-                    "course_reference": {"subjects": ["COMPSCI"], "course_number": 400},
-                    "course_title": "PROGRAMMING III",
-                }
-            if path.endswith("COMPSCI_407.json"):
-                return {
-                    "course_reference": {"subjects": ["COMPSCI"], "course_number": 407},
-                    "course_title": "FOUNDATIONS OF MOBILE SYSTEMS",
-                }
-            if optional:
-                return None
-            raise FileNotFoundError(path)
-
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 40}
-        with patch.object(uw_next_courses, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source, "_fetch_static_json", side_effect=fake_fetch
+    async def test_returns_following_as_next_courses(self):
+        with patch.object(uw_next_courses, "get_settings", return_value=tool_settings(40)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
         ):
             result = await uw_next_courses.execute(course_identifier="COMP SCI 300")
 
@@ -215,22 +147,24 @@ class TestUWNextCourses(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result["truncated"])
         self.assertIn("additional", result["note"].lower())
         ids = {c["identifier"] for c in result["next_courses"]}
-        self.assertEqual(ids, {"COMPSCI 400", "COMPSCI 407"})
-        titles = {c["identifier"]: c["title"] for c in result["next_courses"]}
-        self.assertEqual(titles["COMPSCI 400"], "PROGRAMMING III")
+        self.assertEqual(ids, {"BSE 405", "COMPSCI 320", "COMPSCI 400"})
 
         visuals = build_visuals([{"name": "uw_next_courses", "result": result}])
         self.assertEqual(visuals[0]["type"], "next_courses_tree")
-        self.assertEqual(len(visuals[0]["next_courses"]), 2)
+        self.assertEqual(len(visuals[0]["next_courses"]), 3)
 
-    async def test_empty_satisfies_returns_no_next(self):
-        payload = {**COURSE_PAYLOAD, "satisfies": []}
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 40}
-        with patch.object(uw_next_courses, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(return_value=payload),
+    async def test_truncates_to_max_results(self):
+        with patch.object(uw_next_courses, "get_settings", return_value=tool_settings(2)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
+        ):
+            result = await uw_next_courses.execute(course_identifier="COMP SCI 300")
+        self.assertTrue(result["truncated"])
+        self.assertEqual(len(result["next_courses"]), 2)
+
+    async def test_empty_following_returns_no_next(self):
+        page = {"data": {**COURSE_PAGE["data"], "following": []}}
+        with patch.object(uw_next_courses, "get_settings", return_value=tool_settings(40)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap({"/courses/COMPSCI_300.json": page})
         ):
             result = await uw_next_courses.execute(course_identifier="COMP SCI 300")
         self.assertFalse(result["has_next_courses"])
@@ -238,12 +172,8 @@ class TestUWNextCourses(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(build_visuals([{"name": "uw_next_courses", "result": result}]), [])
 
     async def test_unknown_course_returns_error(self):
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 40}
-        with patch.object(uw_next_courses, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source,
-            "_fetch_static_json",
-            new=AsyncMock(side_effect=FileNotFoundError("missing")),
+        with patch.object(uw_next_courses, "get_settings", return_value=tool_settings(40)), patch.object(
+            _uw_source, "_fetch_json", side_effect=missing_coursemap()
         ):
             result = await uw_next_courses.execute(course_identifier="BOGUS 999")
         self.assertIsNone(result["course"])
@@ -251,43 +181,25 @@ class TestUWNextCourses(unittest.IsolatedAsyncioTestCase):
 
 
 class TestUWCourseSections(unittest.IsolatedAsyncioTestCase):
-    async def test_returns_sections_from_meetings(self):
-        async def fake_fetch(path, optional=False):
-            if path == "/terms.json":
-                return {"1254": "Fall 2025"}
-            if path.endswith("/meetings.json"):
-                return MEETINGS
-            if path.startswith("/course/"):
-                return COURSE_PAYLOAD
-            return None
-
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 25}
-        with patch.object(uw_course_sections, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source, "_fetch_static_json", side_effect=fake_fetch
+    async def test_returns_sections_with_seat_counts(self):
+        with patch.object(uw_course_sections, "get_settings", return_value=tool_settings(25)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
         ):
             result = await uw_course_sections.execute(course_identifier="COMP SCI 300")
 
-        self.assertEqual(len(result["sections"]), 1)
-        sec = result["sections"][0]
-        self.assertEqual(sec["section"], "LEC 001")
-        self.assertEqual(sec["seats_available"], 30)
-        self.assertTrue(sec["is_open"])
+        self.assertEqual(len(result["sections"]), 3)
+        first = result["sections"][0]
+        self.assertEqual(first["section"], "001")
+        self.assertEqual(first["term"], "Fall 2026")
+        self.assertEqual(first["seats_available"], 4)
+        self.assertTrue(first["is_open"])
+        overfull = result["sections"][2]
+        self.assertEqual(overfull["seats_available"], 0)
+        self.assertFalse(overfull["is_open"])
 
     async def test_term_filter_miss_returns_error(self):
-        async def fake_fetch(path, optional=False):
-            if path == "/terms.json":
-                return {"1254": "Fall 2025"}
-            if path.endswith("/meetings.json"):
-                return MEETINGS
-            if path.startswith("/course/"):
-                return COURSE_PAYLOAD
-            return None
-
-        fake_settings = MagicMock()
-        fake_settings.tools.get_tool_config.return_value = {"max_results": 25}
-        with patch.object(uw_course_sections, "get_settings", return_value=fake_settings), patch.object(
-            _uw_source, "_fetch_static_json", side_effect=fake_fetch
+        with patch.object(uw_course_sections, "get_settings", return_value=tool_settings(25)), patch.object(
+            _uw_source, "_fetch_json", side_effect=fake_coursemap()
         ):
             result = await uw_course_sections.execute(
                 course_identifier="COMP SCI 300", term="Spring 2099"

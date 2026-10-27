@@ -732,7 +732,7 @@ Question D9: (menu A apply / B keep / C investigate / D defer)
 State: approved
 Actual answer: A) Apply (recommended), user answer to D9, 2026-10-26
 Accepted scope: one uw_coursemap provider serves chat tools and backend/app/api/routes/courses.py through one cache; E2E: chat question to rendered course card after restart with SOURCES_OFFLINE=1.
-History: none
+History: 2026-10-26 factual correction during implementation: `static.uwcourses.com` and `search.uwcourses.com` no longer resolve in DNS (dig returned nothing); the live API is `https://uwcourses.com/courses/<SUBJ>_<NUM>.json` and `/search.json?q=` (both 200). So the one provider uses uwcourses.com; courses.py (course detail page) is broken today; 11 tests in test_uw_course_tools.py still mock the removed `_fetch_static_json` and fail on the base branch. Those tests are updated to the live contract first, so R3's 'identical to today' bar is measured against working behavior.
 
 ### R7: Explicit "not available at this school" outcome
 Finding: O3, High, confidence 9/10, backend/app/api/routes/chat.py:195-231, reviewer: Outside voice, confirmed
