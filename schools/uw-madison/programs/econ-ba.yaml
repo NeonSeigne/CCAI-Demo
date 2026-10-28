@@ -1,0 +1,73 @@
+# Drafted from https://guide.wisc.edu/undergraduate/letters-science/economics/economics-ba/ ; needs a human check against the official page before the demo.
+# Guide 2026-2027, Option A (Economics). Option B (Mathematical Emphasis) has its own page and is not covered here.
+# Cross-listed courses are listed under their ECON number (e.g. ECON/FINANCE 300 as ECON 300), except
+# MATH/STAT 309 and 431, which are listed under both subjects.
+id: econ-ba
+name: Economics B.A.
+type: major
+catalog_year: 2026
+source_url: https://guide.wisc.edu/undergraduate/letters-science/economics/economics-ba/
+checked_on: 2026-10-28
+total_credits: 120
+rules:
+  - id: statistics
+    title: Statistics
+    kind: n_of
+    n: 1
+    courses: [ECON 310, ECON 400, ECON 410, MATH 309, STAT 309, MATH 431, STAT 431, STAT 311, STAT 324, STAT 340]
+    notes:
+      - ECON 310 is the recommended choice.
+  - id: micro-theory
+    title: Intermediate microeconomic theory
+    kind: n_of
+    n: 1
+    courses: [ECON 301, ECON 311]
+    notes:
+      - ECON 311 is the advanced treatment.
+  - id: macro-theory
+    title: Intermediate macroeconomic theory
+    kind: n_of
+    n: 1
+    courses: [ECON 302, ECON 312]
+    notes:
+      - ECON 312 is the advanced treatment.
+  - id: core
+    title: Two Core ECON courses
+    kind: n_of
+    n: 2
+    courses: [
+      ECON 400, ECON 409, ECON 410, ECON 435, ECON 441, ECON 442, ECON 448, ECON 450,
+      ECON 455, ECON 458, ECON 460, ECON 461, ECON 464, ECON 467, ECON 468, ECON 475,
+      ECON 503, ECON 521, ECON 522, ECON 530, ECON 535, ECON 548, ECON 570, ECON 580,
+      ECON 621, ECON 623, ECON 661, ECON 664, ECON 666, ECON 690, ECON 695,
+    ]
+  - id: electives
+    title: Economics electives
+    kind: credits_from
+    credits: 6
+    courses: [
+      # Any Core ECON course not used above
+      ECON 400, ECON 409, ECON 410, ECON 435, ECON 441, ECON 442, ECON 448, ECON 450,
+      ECON 455, ECON 458, ECON 460, ECON 461, ECON 464, ECON 467, ECON 468, ECON 475,
+      ECON 503, ECON 521, ECON 522, ECON 530, ECON 535, ECON 548, ECON 570, ECON 580,
+      ECON 621, ECON 623, ECON 661, ECON 664, ECON 666, ECON 690, ECON 695,
+      # Elective list
+      ECON 300, ECON 305, ECON 306, ECON 309, ECON 315, ECON 321, ECON 325, ECON 330,
+      ECON 340, ECON 355, ECON 370, ECON 390, ECON 320, ECON 343, ECON 350, ECON 371,
+      ECON 420, ECON 421, ECON 449, ECON 462, ECON 465, ECON 466, ECON 473, ECON 474,
+      ECON 477, ECON 526, ECON 531, ECON 524, ECON 671,
+    ]
+    notes:
+      - The Guide lists electives as 6-14 credits; the exact amount is whatever brings the ECON total to 30 credits.
+notes:
+  - "Mathematics (complete one): MATH 221; or MATH 211 and MATH 213; or MATH 211 and ECON 205. Not encoded: the rule kinds cannot express a choice between course pairs."
+  - "Principles (complete one): ECON 101 and ECON 102; or ECON 111. Not encoded: the rule kinds cannot express a choice between course sets."
+  - The Economics courses (principles, theory, Core and electives) must total 30 credits.
+  - Minimum 2.000 GPA in all ECON and major courses.
+  - Minimum 2.000 GPA on at least 15 upper-level major credits taken in residence; Intermediate and Advanced ECON courses count as upper level.
+  - At least 15 ECON credits taken on the UW-Madison campus.
+  - At least two Core ECON courses taken in residence at UW-Madison, not by transfer or through a UW-Madison Study Abroad program.
+  - "To declare: one calculus course (MATH 211, 221 or 222), any one ECON course except ECON 100, and a 2.000 GPA in all ECON and major courses."
+  - Students cannot be declared in both this major and the Certificate in Economic Analytics.
+  - Honors in the major requires the Mathematical Emphasis option (a separate program).
+  - "L&S B.A. degree requirements (not encoded): 120 credits, 108 in Liberal Arts and Science coursework, 60 at the Intermediate or Advanced level, 30 credits in residence and 30 in residence after the 86th credit, 2.000 GPA overall and in Intermediate/Advanced coursework, Communication A and B, Quantitative Reasoning A and B, one Ethnic Studies course, the language requirement, and breadth (12 Humanities including 6 Literature, 12 Social Science, 12 Natural Science including one Biological and one Physical Science course)."

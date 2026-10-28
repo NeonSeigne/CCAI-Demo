@@ -1,0 +1,85 @@
+# Drafted from https://economics.virginia.edu/overview-major ; needs a human check against the official page before the demo.
+# The Undergraduate Record 2026-2027 (records.ureg.virginia.edu, catalog 72) could not be read on 2026-10-28:
+# it answers automated requests with a bot challenge. The department page above says the Record is the
+# official source, so compare this file with the Record's Economics B.A. page as part of the human check.
+id: econ-ba
+name: Economics B.A.
+type: major
+catalog_year: 2026
+source_url: https://economics.virginia.edu/overview-major
+checked_on: 2026-10-28
+rules:
+  - id: intro
+    title: Introductory economics
+    kind: all_of
+    courses: [ECON 2010, ECON 2020]
+    notes:
+      - Students with transfer credit for ECON 3010 or 3020 but not ECON 2010 or 2020 are exempt from that 2000-level course and take one more elective (five in all).
+  - id: calculus
+    title: Calculus I
+    kind: n_of
+    n: 1
+    courses: [MATH 1210, MATH 1310, APMA 1090]
+    min_grade: C+
+    notes:
+      - MATH 1191 and MATH 1192 together (each C+ or higher) also satisfy this; the rule kinds cannot express that pair.
+      - AP or transfer credit for Calculus I, II or III earned before matriculation satisfies this.
+      - Financial Economics concentrators and students planning graduate study should take MATH 1310 or APMA 1110.
+  - id: statistics
+    title: Statistics
+    kind: n_of
+    n: 1
+    courses: [STAT 2120, STAT 3120, APMA 3110, APMA 3120]
+    min_grade: C+
+  - id: micro-theory
+    title: Intermediate microeconomics
+    kind: n_of
+    n: 1
+    courses: [ECON 3010, ECON 3110]
+    min_grade: C+
+    notes:
+      - Credit is not given for both ECON 3010 and ECON 3110.
+  - id: macro-theory
+    title: Intermediate macroeconomics
+    kind: all_of
+    courses: [ECON 3020]
+  - id: econometrics
+    title: Econometrics
+    kind: n_of
+    n: 1
+    courses: [ECON 3720, ECON 4720]
+  - id: electives
+    title: Economics electives
+    kind: level
+    subjects: [ECON]
+    min_level: 2000
+    n: 4
+    notes:
+      - Each elective must carry at least 3 credits.
+  - id: electives-3000
+    title: Electives at the 3000 level or above
+    kind: level
+    subjects: [ECON]
+    min_level: 3000
+    n: 3
+    double_count: true
+    notes:
+      - Encodes "no more than one elective at the 2000 level"; these courses are among the four electives, not extra.
+  - id: electives-4000
+    title: Electives at the 4000 level or above
+    kind: level
+    subjects: [ECON]
+    min_level: 4000
+    n: 2
+    double_count: true
+    notes:
+      - Encodes "at least two electives numbered 4000 or above"; these courses are among the four electives, not extra.
+notes:
+  - Total degree credits are not stated on the source page, so total_credits is omitted.
+  - "To declare: at least two graded UVA Economics courses and an Economics GPA of 2.3 or higher on UVA ECON courses at the 2000 level or above (transfer, study-abroad direct credit and ECON credit from other UVA departments excluded; HIUS 2061 included)."
+  - Calculus I, intermediate microeconomics and statistics each need C+ or higher before declaring, with one retake allowed per course; two attempts without a C+ make a student ineligible. Transfer credit counts only if earned with C+ or higher before matriculation.
+  - ECON 2010, ECON 2020, ECON 3010/3110 and ECON 3720/4720 must be completed by the end of the sixth semester, or the student is dropped from the major.
+  - An Economics GPA of at least 2.0 is required to graduate; below 2.0 at the end of the sixth semester, the student is dropped from the major.
+  - Courses taken credit/no credit cannot satisfy major requirements.
+  - Students declaring after Fall 2011 must complete at least four Economics courses at UVA, regardless of transfer credit.
+  - Post-matriculation transfer credit is allowed with restrictions (department Transfer Credit page).
