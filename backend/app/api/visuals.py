@@ -188,6 +188,38 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     }]
 
 
+_PROPOSAL_KEYS = ("id", "status", "summary", "diff", "base_revision", "created_at", "expires_at")
+_SHORTLIST_KEYS = ("option_id", "id", "title", "why", "labels", "prereqs", "credits")
+
+
+def _proposal_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """A Proposed-change card from ``plan_edit``: the proposal with its diff (2A, 6A).
+
+    Planner errors (``unknown_course``, ``couldnt_verify_course``,
+    ``revision_conflict``) carry ``error`` and never reach here: no card, the
+    model replies in plain words.
+    """
+    proposal = result.get("proposal")
+    if not isinstance(proposal, dict) or not proposal.get("id") or not isinstance(proposal.get("diff"), dict):
+        return []
+    return [{
+        "type": "proposed_change",
+        "proposal": {key: proposal.get(key) for key in _PROPOSAL_KEYS},
+    }]
+
+
+def _shortlist_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """A suggestion shortlist card from ``plan_suggest`` (19A), rows keyed by option id."""
+    items = [i for i in result.get("items") or [] if i.get("id") and i.get("option_id")]
+    if not items:
+        return []
+    return [{
+        "type": "course_shortlist",
+        "query": result.get("query") or "",
+        "items": [{key: item.get(key) for key in _SHORTLIST_KEYS} for item in items],
+    }]
+
+
 # Cards hydrated from the course detail API: only for providers with course pages.
 _COURSE_BUILDERS = {
     "course_grades": _grades_specs,
@@ -200,11 +232,13 @@ _COURSE_BUILDERS = {
 _SELF_CONTAINED_BUILDERS = {
     "events_search": _events_specs,
     "find_place": _place_specs,
+    "plan_edit": _proposal_specs,
+    "plan_suggest": _shortlist_specs,
 }
 _BUILDERS = {**_COURSE_BUILDERS, **_SELF_CONTAINED_BUILDERS}
 
 # What the "Checked" line calls each domain.
-DOMAIN_LABELS = {"academics": "Courses", "student_life": "Events", "campus": "Campus map"}
+DOMAIN_LABELS = {"academics": "Courses", "student_life": "Events", "campus": "Campus map", "planning": "Your plan"}
 
 
 def sources_checked(tool_outputs: List[Dict[str, Any]]) -> Optional[VisualSpec]:
