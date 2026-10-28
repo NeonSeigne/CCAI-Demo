@@ -17,11 +17,20 @@ source can serve, so pages can say "Not available" for the rest.
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 import re
+from dataclasses import replace
+from datetime import date, datetime
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 from app.config import get_settings
+from app.planner.facts import CourseFacts, Meeting, Section
+
+logger = logging.getLogger(__name__)
 
 PROVIDERS = ("uw_coursemap", "csv_snapshot")
 
@@ -55,23 +64,28 @@ FILTER_POOL = 150
 SECTION_LIMIT = 100
 CU_SUBJECT_HINT = "Search CU courses by subject code, e.g. CSCI"
 
+# ``meeting_times``, ``section_bundles`` and ``gen_ed`` say what the
+# planner's course facts can carry (see ``course_facts``).
 _CAPABILITIES: Dict[str, Dict[str, bool]] = {
     "uw_coursemap": {
         "keyword_search": True, "seat_filter": False, "grades": True, "sections": True,
         "seats": True, "seats_historical": False, "instructors": True,
         "prerequisites": True, "next_courses": True,
+        "meeting_times": False, "section_bundles": False, "gen_ed": True,
     },
     # UVA: theCourseForum snapshot. Seats are counts at snapshot time.
     "csv_snapshot": {
         "keyword_search": True, "seat_filter": True, "grades": True, "sections": True,
         "seats": True, "seats_historical": True, "instructors": True,
         "prerequisites": False, "next_courses": False,
+        "meeting_times": True, "section_bundles": True, "gen_ed": True,
     },
     # CU: FOSE needs a subject code and lists sections without seat counts.
     FOSE: {
         "keyword_search": False, "seat_filter": False, "grades": False, "sections": True,
         "seats": False, "seats_historical": False, "instructors": True,
         "prerequisites": False, "next_courses": False,
+        "meeting_times": True, "section_bundles": True, "gen_ed": False,
     },
 }
 # Section types whose seats count toward a course's open seats.
@@ -459,3 +473,234 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
         result = await provider.next_courses(course_identifier=canonical)
         summary["next_courses"] = None if result.get("error") else result.get("next_courses") or []
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Planner course facts
+# ---------------------------------------------------------------------------
+
+# Roughly when each season's classes start, for picking the next term.
+_TERM_STARTS = {"january": (1, 2), "spring": (1, 15), "summer": (5, 15), "fall": (8, 20)}
+_FOSE_KINDS = {"LEC": "lecture", "REC": "discussion", "LAB": "lab", "SEM": "seminar"}
+_BUNDLE_KINDS = ("lecture", "lab", "discussion")
+_WEEKDAYS = ("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")  # FOSE meet_day 0..6
+_FOSE_UNAVAILABLE = "CU Class Search didn't answer"
+
+
+def _same_term(term: str) -> str:
+    return " ".join((term or "").split()).title()
+
+
+def planner_terms() -> List[str]:
+    """Terms this school's course data covers, oldest first."""
+    if catalog_backend() == "csv_snapshot":
+        from app.sources import csv_snapshot
+
+        return csv_snapshot.planner_terms()
+    terms = dict.fromkeys(_same_term(t) for t in get_settings().planner.terms if t.strip())
+    return sorted(terms, key=_term_order)
+
+
+def _term_start(term: str) -> date:
+    season, _, year = term.rpartition(" ")
+    month, day = _TERM_STARTS.get(season.lower(), (1, 1))
+    return date(int(year) if year.isdigit() else 1, month, day)
+
+
+def _school_today() -> date:
+    timezone = get_settings().school.timezone
+    return datetime.now(ZoneInfo(timezone)).date() if timezone else date.today()
+
+
+def next_term(today: Optional[date] = None) -> str:
+    """The term students plan for now: ``planner.next_term`` when set, else
+    the first covered term that hasn't started, else the next spring or fall."""
+    configured = get_settings().planner.next_term
+    if configured.strip():
+        return _same_term(configured)
+    today = today or _school_today()
+    terms = planner_terms()
+    upcoming = [t for t in terms if _term_start(t) > today]
+    if upcoming:
+        return upcoming[0]
+    if terms:
+        return terms[-1]
+    if today >= date(today.year, *_TERM_STARTS["fall"]):
+        return f"Spring {today.year + 1}"
+    if today >= date(today.year, *_TERM_STARTS["spring"]):
+        return f"Fall {today.year}"
+    return f"Spring {today.year}"
+
+
+async def course_facts(identifiers: List[str], term: str) -> Dict[str, CourseFacts]:
+    """Planner facts for each identifier in ``term`` (``"Spring 2027"``),
+    keyed by the identifiers as passed. Never raises: a course the source
+    can't answer for reads ``known="unavailable"`` with a reason."""
+    identifiers = list(identifiers)
+    if not identifiers:
+        return {}
+    term = _same_term(term)
+    planner = get_settings().planner
+    backend = catalog_backend()
+    try:
+        if backend == FOSE:
+            return await _fose_facts(identifiers, term)
+        if backend == "csv_snapshot":
+            from app.sources import csv_snapshot
+
+            return await csv_snapshot.course_facts(
+                identifiers, term, harder_below_gpa=planner.harder_below_gpa
+            )
+        from app.tools import _uw_source
+
+        return await _uw_source.course_facts(
+            identifiers, term, covered_terms=planner_terms(), harder_below_gpa=planner.harder_below_gpa
+        )
+    except Exception:  # noqa: BLE001 — providers handle their own failures; this is a backstop
+        logger.exception("course_facts failed for %s", backend)
+        reason = f"{catalog_source()['name']} didn't answer"
+        return {
+            i: CourseFacts(identifier=i, known="unavailable", unavailable_reason=reason)
+            for i in identifiers
+        }
+
+
+def _fose_clock(text: Any) -> Optional[str]:
+    """FOSE ``"930"`` -> ``"09:30"``."""
+    digits = str(text or "").strip()
+    if not digits.isdigit() or len(digits) > 4:
+        return None
+    digits = digits.zfill(4)
+    return f"{digits[:2]}:{digits[2:]}"
+
+
+def _fose_meetings(item: Dict[str, Any]) -> Optional[Tuple[Meeting, ...]]:
+    """FOSE ``meetingTimes`` (a JSON string) to meetings; None when not given."""
+    raw = item.get("meetingTimes")
+    try:
+        times = json.loads(raw) if isinstance(raw, str) else raw
+    except ValueError:
+        return None
+    meetings = []
+    for slot in times or []:
+        day, start, end = str(slot.get("meet_day", "")), _fose_clock(slot.get("start_time")), _fose_clock(slot.get("end_time"))
+        if day.isdigit() and int(day) < len(_WEEKDAYS) and start and end:
+            meetings.append(Meeting(day=_WEEKDAYS[int(day)], start=start, end=end))
+    return tuple(meetings) or None
+
+
+def _fose_units(item: Dict[str, Any]) -> Optional[Tuple[float, float]]:
+    """Credit hours from FOSE ``cart_opts`` (``"3"`` or ``"1-3"``)."""
+    raw = item.get("cart_opts")
+    try:
+        opts = json.loads(raw) if isinstance(raw, str) else raw or {}
+        labels = [o.get("label") for o in opts.get("credit_hrs", {}).get("options") or []]
+    except (ValueError, AttributeError):
+        return None
+    numbers = []
+    for label in labels:
+        for part in re.split(r"\s*(?:-|to)\s*", str(label or "")):
+            try:
+                numbers.append(float(part))
+            except ValueError:
+                pass
+    return (min(numbers), max(numbers)) if numbers else None
+
+
+def _fose_kind(item: Dict[str, Any]) -> str:
+    return _FOSE_KINDS.get(str(item.get("schd") or "").upper(), "other")
+
+
+def _fose_course_facts(code: str, items: List[Dict[str, Any]], term: str) -> CourseFacts:
+    kinds = {_fose_kind(i) for i in items}
+    bundle = [k for k in _BUNDLE_KINDS if k in kinds]
+    sections = []
+    for item in items:
+        kind = _fose_kind(item)
+        sections.append(Section(
+            id=str(item.get("crn") or item.get("no") or ""),
+            kind=kind,
+            meetings=_fose_meetings(item),
+            requires=tuple(k for k in bundle if k != kind) if len(bundle) > 1 and kind in bundle else (),
+        ))
+    lectures = [i for i in items if _fose_kind(i) == "lecture"] or items
+    ranges = [u for u in (_fose_units(i) for i in lectures) if u]
+    ranges = [u for u in ranges if u[1] > 0] or ranges
+    return CourseFacts(
+        identifier=code,
+        known="yes",
+        title=items[0].get("title") or "",
+        credits=(min(u[0] for u in ranges), max(u[1] for u in ranges)) if ranges else None,
+        offered="yes",
+        sections=sections,
+        # FOSE lists every row of the subject, recitations and labs included.
+        bundles_known=True,
+        prereq_known=False,
+        as_of=term,
+    )
+
+
+async def _fose_facts(identifiers: List[str], term: str) -> Dict[str, CourseFacts]:
+    """CU facts from FOSE, one request per subject and term.
+
+    A course the asked term doesn't list is not offered then; if no covered
+    term lists it either, its identity can't be confirmed (``unavailable``).
+    """
+    from app.tools import search_courses as fose
+
+    codes: Dict[str, str] = {}
+    for identifier in identifiers:
+        subject, number, _ = parse_query(identifier)
+        if subject and number:
+            codes[identifier] = f"{subject} {number}"
+    other_terms = [t for t in planner_terms() if t != term]
+
+    async def rows_for(subject: str, semester: str) -> Optional[Dict[str, List[Dict[str, Any]]]]:
+        try:
+            items = await fose.fose_sections(subject, semester)
+        except RuntimeError as exc:
+            logger.warning("FOSE facts for %s %s failed: %s", subject, semester, exc)
+            return None
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for item in items:
+            grouped.setdefault(_same_code(item.get("code") or item.get("course_code")), []).append(item)
+        return grouped
+
+    async def subject_facts(subject: str, wanted: List[str]) -> Dict[str, CourseFacts]:
+        listed = await rows_for(subject, term)
+        if listed is None:
+            return {
+                code: CourseFacts(identifier=code, known="unavailable", unavailable_reason=_FOSE_UNAVAILABLE)
+                for code in wanted
+            }
+        out = {code: _fose_course_facts(code, listed[code], term) for code in wanted if code in listed}
+        missing = [code for code in wanted if code not in listed]
+        # An empty subject listing means the term isn't published (or the
+        # subject is wrong), so "not offered" can't be said.
+        offered = "no" if listed else "unknown"
+        others = await asyncio.gather(*(rows_for(subject, t) for t in other_terms)) if missing else []
+        for code in missing:
+            found = next(((t, o[code]) for t, o in zip(other_terms, others) if o and code in o), None)
+            if found:
+                facts = _fose_course_facts(code, found[1], found[0])
+                facts.offered, facts.sections, facts.as_of = offered, [] if offered == "no" else None, term
+                out[code] = facts
+            else:
+                checked = ", ".join([term, *other_terms])
+                out[code] = CourseFacts(
+                    identifier=code, known="unavailable", offered=offered,
+                    sections=[] if offered == "no" else None,
+                    unavailable_reason=f"CU Class Search doesn't list {code} in {checked}",
+                )
+        return out
+
+    by_subject: Dict[str, List[str]] = {}
+    for code in dict.fromkeys(codes.values()):
+        by_subject.setdefault(parse_query(code)[0], []).append(code)
+    results = await asyncio.gather(*(subject_facts(s, wanted) for s, wanted in by_subject.items()))
+    facts = {code: f for result in results for code, f in result.items()}
+    return {
+        identifier: replace(facts[codes[identifier]]) if identifier in codes
+        else CourseFacts(identifier=identifier, known="no")
+        for identifier in identifiers
+    }

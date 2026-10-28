@@ -13,7 +13,8 @@ It is NOT generic across schools. For a non-CU deployment, set
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Tuple
 import httpx
 from app.tools import BROWSER_UA
 from app.config import get_settings
@@ -134,6 +135,34 @@ async def fose_search(subject: str, semester: str = DEFAULT_SEMESTER) -> List[Di
     Raises ``RuntimeError`` when FOSE can't be reached or answers non-200, so
     an outage is never mistaken for a subject with no classes.
     """
+    results = await _fose_results(subject, semester)
+    return [row for row in (_row_to_course(item, semester) for item in results) if row]
+
+
+# Planner reads of whole subjects, kept briefly so one plan check asks once.
+PLANNER_TTL_SECONDS = 15 * 60
+_planner_cache: Dict[Tuple[str, str], Tuple[float, List[Dict[str, Any]]]] = {}
+
+
+async def fose_sections(subject: str, semester: str) -> List[Dict[str, Any]]:
+    """Every uncancelled FOSE row for ``subject`` in ``semester``, all types.
+
+    Unlike ``fose_search`` this keeps recitations and labs and FOSE's own
+    fields (``schd``, ``crn``, ``meetingTimes``, ``cart_opts``), for the
+    planner. Cached for ``PLANNER_TTL_SECONDS``; raises ``RuntimeError`` like
+    ``fose_search``.
+    """
+    key = (subject.upper().strip(), _term_to_srcdb(semester))
+    hit = _planner_cache.get(key)
+    if hit and hit[0] > time.monotonic():
+        return hit[1]
+    rows = [item for item in await _fose_results(subject, semester) if not item.get("isCancelled")]
+    _planner_cache[key] = (time.monotonic() + PLANNER_TTL_SECONDS, rows)
+    return rows
+
+
+async def _fose_results(subject: str, semester: str) -> List[Dict[str, Any]]:
+    """FOSE's raw result rows for one subject and term."""
     subject = subject.upper().strip()
     payload = {
         "other": {"srcdb": _term_to_srcdb(semester)},
@@ -154,8 +183,7 @@ async def fose_search(subject: str, semester: str = DEFAULT_SEMESTER) -> List[Di
         logger.warning("FOSE API returned %s for %s", resp.status_code, subject)
         raise RuntimeError(f"CU class search error {resp.status_code}")
     body = resp.json()
-    results = body.get("results", body.get("data", []))
-    return [row for row in (_row_to_course(item, semester) for item in results) if row]
+    return body.get("results", body.get("data", [])) or []
 
 
 async def execute(

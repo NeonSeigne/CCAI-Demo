@@ -9,6 +9,17 @@ school:
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
 
+planner:
+  # Registrar: undergraduates are full time at 12-18 credits in fall and
+  # spring; more than 18 needs the academic dean's approval.
+  credit_limits: {min: 12, max: 18}
+  credit_limits_source: "https://registrar.wisc.edu/credit-load-and-ranges/"
+  # About the hardest third of undergraduate courses by Course Map average
+  # GPA (sample of ~850 courses numbered below 500, October 2026).
+  harder_below_gpa: 3.4
+  # Terms Course Map lists offerings for.
+  terms: ["Fall 2026", "Spring 2027"]
+
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (amenity=university).
   osm_area:

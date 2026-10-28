@@ -331,6 +331,9 @@ class LLMConfig(BaseModel):
 class SnapshotConfig(BaseModel):
     """Public CSV exports for the ``csv_snapshot`` academics provider."""
     sections_url: str = ""
+    # Sections files by term label ("Spring 2027"), for the planner. The
+    # chat tools keep reading ``sections_url``, which counts as its own term.
+    sections_by_term: Dict[str, str] = {}
     grades_urls: List[str] = []
     source_name: str = ""
     source_url: str = ""
@@ -341,6 +344,27 @@ class AcademicsConfig(BaseModel):
     """Which provider answers the course tools for this school."""
     provider: Literal["uw_coursemap", "csv_snapshot"] = "uw_coursemap"
     snapshot: SnapshotConfig = SnapshotConfig()
+
+
+class CreditLimits(BaseModel):
+    min: float
+    max: float
+
+
+class PlannerConfig(BaseModel):
+    """Semester planner settings a school pack may set; all optional."""
+    # A course whose average GPA is below this reads "harder". Unset: the
+    # provider uses the hardest third of its own grade data, or unknown.
+    harder_below_gpa: Optional[float] = None
+    # Full-time minimum and the most a student may take without approval.
+    credit_limits: Optional[CreditLimits] = None
+    credit_limits_source: str = ""
+    # Terms the school's live source covers, e.g. ["Fall 2026", "Spring 2027"].
+    # Snapshot schools take theirs from academics.snapshot.sections_by_term.
+    terms: List[str] = []
+    # The term students plan for now; unset: the first covered term that
+    # hasn't started yet.
+    next_term: str = ""
 
 
 class EventFeedConfig(BaseModel):
@@ -448,6 +472,7 @@ class AppSettings(BaseModel):
     voice: VoiceConfig = VoiceConfig()
     school: SchoolConfig = SchoolConfig()
     academics: AcademicsConfig = AcademicsConfig()
+    planner: PlannerConfig = PlannerConfig()
     student_life: StudentLifeConfig = StudentLifeConfig()
     campus: CampusConfig = CampusConfig()
 
