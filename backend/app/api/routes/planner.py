@@ -58,7 +58,19 @@ async def get_plan(current_user: User = Depends(get_current_active_user)) -> Dic
 async def list_programs(current_user: User = Depends(get_current_active_user)):
     """Program files this school has, for the profile picker."""
     del current_user  # signed-in only; programs are the same for every student
-    return [{"id": p.id, "name": p.name, "type": p.type} for p in service.list_programs(_school())]
+    return [
+        {
+            "id": p.id, "name": p.name, "type": p.type,
+            # Course lists for the "Tick off courses" checklist (8A); level rules
+            # name subjects, not courses, so they have none.
+            "rules": [
+                {"id": r.id, "title": r.title,
+                 "courses": list(r.courses) or sorted({c for group in r.groups for c in group})}
+                for r in p.rules
+            ],
+        }
+        for p in service.list_programs(_school())
+    ]
 
 
 @router.post("/edits")

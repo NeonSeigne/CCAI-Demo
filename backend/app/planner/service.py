@@ -179,7 +179,8 @@ async def accept(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:
         return await _validated_diff(plan, proposal["ops"], school)
 
     plan = await store.accept(db, str(user_id), school, proposal_id, recheck=recheck)
-    return {"plan": store.public_plan(plan), "report": await report_for(plan, school)}
+    view_ = await _view(plan, school)
+    return {"plan": view_["plan"], "report": view_["report"], "undo_label": view_["undo_label"]}
 
 
 async def discard(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:

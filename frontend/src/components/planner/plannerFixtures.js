@@ -83,6 +83,8 @@ export const diff = (overrides = {}) => ({
   clashes: { before: 'none', after: 'none' },
   unknowns: ['Prerequisites not published for UVA'],
   literal_differs: null,
+  added_courses: [{ id: 'ECON 3300', title: 'Labor Economics', credits: [3, 3], harder: false }],
+  schedule: { blocks: [] },
   ...overrides,
 });
 

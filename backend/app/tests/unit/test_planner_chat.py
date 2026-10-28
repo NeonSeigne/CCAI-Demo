@@ -291,6 +291,7 @@ class TestPlannerVisuals(unittest.TestCase):
         self.assertEqual(spec["proposal"]["id"], "p1")
         self.assertEqual(spec["proposal"]["status"], "pending")
         self.assertEqual(spec["proposal"]["diff"]["heading"], "Add ECON 3020")
+        self.assertEqual(spec["proposal"]["ops"], [add("ECON 3020")])  # "Drop it instead" rewrites these
 
     def test_course_shortlist_card(self):
         items = [{"option_id": f"option-{i}", "id": cid, "title": f"{cid} title", "why": "Fills: electives",

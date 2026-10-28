@@ -131,6 +131,10 @@ class PlannerApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Prerequisites not published for ECON 3300", proposal["diff"]["unknowns"])
         self.assertEqual(proposal["base_revision"], 1)
         self.assertEqual((await routes.get_plan(self.alice))["proposal"]["id"], proposal["id"])
+        # The panel draws the proposed addition from these (design 1A, 18A).
+        self.assertEqual([c["id"] for c in proposal["diff"]["added_courses"]], ["ECON 3300"])
+        self.assertIn("title", proposal["diff"]["added_courses"][0])
+        self.assertIn("blocks", proposal["diff"]["schedule"])
 
     async def test_new_proposal_replaces_the_old(self):
         old = await self.propose(self.alice, [add("ECON 3010")])
@@ -168,6 +172,7 @@ class PlannerApiTests(unittest.IsolatedAsyncioTestCase):
         # Asked again with the refreshed diff, Accept now applies.
         result = await routes.accept_proposal(proposal["id"], {}, self.alice)
         self.assertEqual(sorted(c["id"] for c in result["plan"]["courses"]), ["ECON 3010", "ECON 3300"])
+        self.assertEqual(result["undo_label"], "Undo: added ECON 3300")
 
     async def test_stale_accept_that_no_longer_applies_is_refused(self):
         await self.edit(self.alice, [add("ECON 3010")])
@@ -232,7 +237,9 @@ class PlannerApiTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(await store.get_or_create(self.db, "u", SCHOOL, term=TERM), {"user_id": "u"})
 
     async def test_programs_listing(self):
-        self.assertEqual(await routes.list_programs(self.alice), [{"id": "econ-ba", "name": "Economics B.A.", "type": "major"}])
+        (program,) = await routes.list_programs(self.alice)
+        self.assertEqual((program["id"], program["name"], program["type"]), ("econ-ba", "Economics B.A.", "major"))
+        self.assertTrue(all({"id", "title", "courses"} <= set(r) for r in program["rules"]))
 
     async def test_chat_entry_points(self):
         await self.edit(self.alice, [{"op": "set_profile", "program_ids": ["econ-ba"], "completed": [{"id": "ECON 2010", "grade": "B+"}]},

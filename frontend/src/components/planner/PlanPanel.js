@@ -706,14 +706,25 @@ export default function PlanPanel({
                 onRemove={proposal ? null : removeCourse}
               />
             ))}
-            {[...added, ...movedIn.map((m) => m.id)].map((id) => (
-              <li key={`${flashKey}-add-${id}`} className="pp-course is-addition pp-flash">
-                <button type="button" className="pp-course-main" onClick={() => onOpenCourse?.(id)}>
-                  <span className="pp-course-name"><span className="pp-course-code">{id}</span></span>
-                  <span className="pp-course-meta pp-proposed-label"> · Proposed addition</span>
-                </button>
-              </li>
-            ))}
+            {[...added, ...movedIn.map((m) => m.id)].map((id) => {
+              // The diff carries the added course's report row (title, credits, difficulty).
+              const row = (proposal?.diff?.added_courses || []).find((c) => c.id === id) || {};
+              const credits = creditSpan(row.credits);
+              return (
+                <li key={`${flashKey}-add-${id}`} className="pp-course is-addition pp-flash">
+                  <button type="button" className="pp-course-main" onClick={() => onOpenCourse?.(id)}>
+                    <span className="pp-course-name">
+                      <span className="pp-course-code">{id}</span> {row.title}
+                    </span>
+                    <span className="pp-course-meta">
+                      {credits ? ` · ${credits} cr` : ''}
+                      <span className="pp-proposed-label"> · Proposed addition</span>
+                    </span>
+                  </button>
+                  {'harder' in row && <Tag harder={row.harder} />}
+                </li>
+              );
+            })}
             <AddSlot term={term} onPrefill={onPrefill} onAdd={(id) => runEdit([{ op: 'add', course: id }])} />
           </ul>
         </section>

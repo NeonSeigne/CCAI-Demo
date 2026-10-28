@@ -98,6 +98,8 @@ diff = {
   "clashes": {"before": status, "after": status},
   "unknowns": [str],                    # "Prerequisites not published for UVA"
   "literal_differs": str|null,          # 11A: "You said drop; I moved ECON 3010 to fall"
+  "added_courses": [report course rows], # title, credits, labels of proposed additions
+  "schedule": {"blocks": [...]},        # week blocks of proposed additions (dashed in the grid)
 }
 ```
 
@@ -106,7 +108,7 @@ diff = {
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/planner/plan` | | `{plan, report, proposal: {…, diff}|null, undo_label}` |
-| GET | `/api/planner/programs` | | `[{id, name, type}]` |
+| GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
 | POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |

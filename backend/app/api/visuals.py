@@ -188,7 +188,7 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     }]
 
 
-_PROPOSAL_KEYS = ("id", "status", "summary", "diff", "base_revision", "created_at", "expires_at")
+_PROPOSAL_KEYS = ("id", "status", "summary", "ops", "diff", "base_revision", "created_at", "expires_at")
 _SHORTLIST_KEYS = ("option_id", "id", "title", "why", "labels", "prereqs", "credits")
 
 

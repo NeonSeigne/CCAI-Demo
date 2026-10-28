@@ -131,7 +131,8 @@ class DiffTests(unittest.TestCase):
         self.assertEqual(result["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": "Fall 2027"}])
         self.assertIn("Prerequisites not published for ECON 3300", result["unknowns"])
         self.assertEqual(result["unknowns"][0], "Couldn't verify ECON 1990; kept as you entered it")
-        self.assertEqual(set(result), {"heading", "courses", "rules", "credits", "difficulty", "clashes", "unknowns", "literal_differs"})
+        self.assertEqual(set(result), {"heading", "courses", "rules", "credits", "difficulty", "clashes", "unknowns", "literal_differs",
+                                       "added_courses", "schedule"})
 
     def test_literal_differs(self):
         before_plan = plan(["ECON 3010"])

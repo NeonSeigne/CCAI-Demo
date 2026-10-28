@@ -338,5 +338,10 @@ def diff(
                     "after": (after.get("clashes") or {}).get("status")},
         "unknowns": list(dict.fromkeys(list(notes or []) + _unknowns(after))),
         "literal_differs": _literal_differs(asked, ops),
+        # What the panel needs to draw a proposed addition: its report row
+        # (title, credits, labels) and its week blocks (design 1A, 18A).
+        "added_courses": [c for c in after.get("courses") or [] if c.get("id") in courses["added"]],
+        "schedule": {"blocks": [b for b in (after.get("schedule") or {}).get("blocks") or []
+                                if b.get("course") in courses["added"]]},
     }
 

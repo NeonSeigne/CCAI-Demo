@@ -117,7 +117,10 @@ test('a pending proposal shows the Preview label, before → after, and proposed
   expect(electives.querySelector('.pp-change')).toHaveTextContent(/^1 →.*2$/);
   expect(screen.getByText(/Difficulty estimate:/).querySelector('.pp-change')).toHaveTextContent(/^Heavy →.*Balanced$/);
   expect(screen.getByText('ECON 3010').closest('li')).toHaveTextContent('Proposed removal');
-  expect(screen.getByText('ECON 3300').closest('li')).toHaveTextContent('Proposed addition');
+  const addition = screen.getByText('ECON 3300').closest('li');
+  expect(addition).toHaveTextContent('Proposed addition');
+  expect(addition).toHaveTextContent('Labor Economics');
+  expect(addition).toHaveTextContent('3 cr');
   expect(screen.getByText(/ECON 3010 · moves to Fall 2027 · Proposed/)).toBeInTheDocument();
 });
 
