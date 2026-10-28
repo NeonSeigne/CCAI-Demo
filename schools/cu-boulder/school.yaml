@@ -34,6 +34,11 @@ tools:
   events_search:
     enabled: true
     max_results: 15
+  # Semester planner (chat proposes only; the student accepts on the card).
+  plan_edit:
+    enabled: true
+  plan_suggest:
+    enabled: true
 
 # Chat composer prompt, in the same words as the home page.
 chat_page:

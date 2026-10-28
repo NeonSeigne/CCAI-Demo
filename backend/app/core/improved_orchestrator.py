@@ -6,9 +6,10 @@ from app.core.rag_manager import get_rag_manager
 from app.config import get_settings
 from app.llm.llm_client import LLMClient, ToolCallResult
 from app.sources import academics
-from app.tools import get_tool_definitions, get_tool_executor
+from app.tools import ToolContext, get_tool_definitions, get_tool_executor
 
 import asyncio
+import dataclasses
 import json
 import logging
 import os
@@ -140,16 +141,154 @@ DOMAIN_OF_TOOL = {
     "course_next": "academics",
     "events_search": "student_life",
     "find_place": "campus",
+    "plan_edit": "planning",
+    "plan_suggest": "planning",
 }
 DOMAIN_DESCRIPTIONS = {
     "academics": "courses, grades, sections, professors, prerequisites",
     "student_life": "campus events, things to do, deadlines on the events calendar",
     "campus": "where buildings, libraries, dining or bus stops are; how to get somewhere",
+    "planning": "the student's semester plan: adding, dropping, moving courses, what to take, requirements",
     "general": "anything else the remaining tools cover",
 }
 # Local models (e.g. Ollama on a laptop) need longer; set these in the environment.
 CLASSIFIER_TIMEOUT_S = float(os.getenv("CLASSIFIER_TIMEOUT_S", "5"))
 TOOL_PASS_TIMEOUT_S = float(os.getenv("TOOL_PASS_TIMEOUT_S", "20"))
+
+
+PLANNING_TOOLS = tuple(name for name, domain in DOMAIN_OF_TOOL.items() if domain == "planning")
+# How much of the conversation the planning pass sees (R15).
+PLANNING_EXCHANGES = 6
+PLANNING_TURN_CHARS = 400
+PLAN_RETRY_TEXT = (
+    "Your plan changed while I was checking that change. Please send your "
+    "request again and I'll check it against the latest plan."
+)
+
+_PLANNING_PROMPT = (
+    "You help a student change their semester plan at {school}. You can only "
+    "propose: plan_edit stores your change as a proposal the student accepts "
+    "or discards with buttons on a card under your answer. Never say a change "
+    "was made, applied or saved; say what you proposed. "
+    "Call plan_edit for adding, dropping, moving or swapping courses, using "
+    "course identifiers exactly as they appear in the plan or the shortlist; "
+    "pass the student's own words as `asked`. If the student refers to a "
+    "shortlist option ('the second one', 'option 2'), use that option's "
+    "course. Call plan_suggest when the student asks what to take or wants "
+    "ideas. "
+    "Explain a proposal only with what the tool result states: its heading, "
+    "its diff (courses, rule counts, credits, difficulty, clashes) and its "
+    "unknowns, and for suggestions only the item labels. Never claim a "
+    "course fills a requirement, a gen-ed or a prerequisite unless the tool "
+    "result says so; if it says unknown, say unknown. "
+    "If what you propose differs from what the student literally asked "
+    "(for example they said drop and you moved the course to a later term), "
+    "say so plainly in the first sentence and why. "
+    "If a tool returns an error such as unknown_course or "
+    "couldnt_verify_course, reply in one or two plain sentences (for example "
+    "\"I couldn't find ECON 3999 at {school}\") and do not invent a course. "
+    "Keep the answer to at most three short sentences; the card shows the "
+    "details."
+)
+
+
+def _clip(text: str, limit: int = PLANNING_TURN_CHARS) -> str:
+    text = " ".join((text or "").split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def planning_exchanges(history: Optional[List[Dict[str, Any]]], limit: int = PLANNING_EXCHANGES) -> List[Dict[str, str]]:
+    """The last *limit* (student, reply) pairs whose reply was a planning reply."""
+    pairs: List[Dict[str, str]] = []
+    last_user = ""
+    for msg in history or []:
+        if not isinstance(msg, dict):
+            continue
+        if msg.get("role") == "user":
+            last_user = msg.get("content") or ""
+        elif msg.get("planning"):
+            pairs.append({"student": last_user, "reply": msg.get("content") or ""})
+            last_user = ""
+    return pairs[-limit:]
+
+
+def current_shortlist(history: Optional[List[Dict[str, Any]]]) -> List[Dict[str, str]]:
+    """The most recent shortlist shown in this chat, with its option ids."""
+    for msg in reversed(list(history or [])):
+        if isinstance(msg, dict) and (msg.get("planning") or {}).get("shortlist"):
+            return list(msg["planning"]["shortlist"])
+    return []
+
+
+def previous_planning_reply(history: Optional[List[Dict[str, Any]]]) -> Optional[str]:
+    """The previous assistant turn, when it was a planning reply (for the classifier)."""
+    for msg in reversed(list(history or [])):
+        if not isinstance(msg, dict) or msg.get("role") == "user":
+            continue
+        return msg.get("content") if msg.get("planning") else None
+    return None
+
+
+def planning_note(result: ToolCallResult) -> Optional[Dict[str, Any]]:
+    """What the session remembers about a planning reply: its shortlist and proposal.
+
+    ``None`` when no planning tool ran. The chat route stores it on the
+    orchestrator message so later passes can resolve "the second one".
+    """
+    outputs = [o for o in result.tool_outputs or [] if o.get("name") in PLANNING_TOOLS]
+    if not outputs:
+        return None
+    note: Dict[str, Any] = {"tools": [o["name"] for o in outputs]}
+    for output in outputs:
+        found = output.get("result") or {}
+        if not isinstance(found, dict) or found.get("error"):
+            continue
+        if output["name"] == "plan_suggest" and found.get("items"):
+            note["shortlist"] = [
+                {"option": item.get("option_id"), "id": item.get("id"), "title": item.get("title") or ""}
+                for item in found["items"]
+                if item.get("option_id") and item.get("id")
+            ]
+        elif output["name"] == "plan_edit" and found.get("proposal"):
+            note["proposal_id"] = found["proposal"].get("id")
+    return note
+
+
+def planning_prompt(
+    institution: str,
+    summary: str,
+    revision: int,
+    exchanges: List[Dict[str, str]],
+    shortlist: List[Dict[str, str]],
+) -> str:
+    """System prompt for the planning pass: rules, plan summary, recent turns, shortlist."""
+    parts = [
+        _PLANNING_PROMPT.format(school=institution or "this school"),
+        f"The student's plan (revision {revision}):\n{summary}",
+    ]
+    if exchanges:
+        turns = "\n".join(
+            f"Student: {_clip(e['student'])}\nYou: {_clip(e['reply'])}" for e in exchanges
+        )
+        parts.append(f"Recent planning conversation, oldest first:\n{turns}")
+    if shortlist:
+        rows = "\n".join(
+            f"{item['option']}: {item['id']}" + (f" ({item['title']})" if item.get("title") else "")
+            for item in shortlist
+        )
+        parts.append(
+            "The shortlist the student was last shown (option ids in order; "
+            f"'the second one' is option-2):\n{rows}"
+        )
+    return "\n\n".join(parts)
+
+
+def _revision_conflicted(result: ToolCallResult) -> bool:
+    return any(
+        o.get("name") == "plan_edit" and isinstance(o.get("result"), dict)
+        and o["result"].get("code") == "revision_conflict"
+        for o in result.tool_outputs or []
+    )
 
 
 def tools_by_domain(tools: List[str]) -> Dict[str, List[str]]:
@@ -216,7 +355,9 @@ class ImprovedChatOrchestrator:
         return list(self.personas.keys())
 
     async def get_tool_response(self, user_message: str,
-                               llm_client: LLMClient = None) -> ToolCallResult:
+                               llm_client: LLMClient = None,
+                               context: Optional[ToolContext] = None,
+                               history: Optional[List[Dict[str, Any]]] = None) -> ToolCallResult:
         """Check whether a tool can handle *user_message*.
 
         Tools are grouped by domain (academics, student life, campus). With
@@ -231,6 +372,11 @@ class ImprovedChatOrchestrator:
                                                    ▼
                                     merged ToolCallResult (text, tool outputs)
 
+        *context* is the signed-in student (``ToolContext``), built by the chat
+        route; without it the planning domain is left out. *history* is the
+        chat session's earlier messages, which the planning pass and the
+        classifier read (R15).
+
         Returns ``ToolCallResult(used_tool=False)`` when tools are disabled,
         no LLM client is available, or no pass used a tool.
         """
@@ -240,15 +386,19 @@ class ImprovedChatOrchestrator:
 
         settings = get_settings()
         tools_enabled = settings.tools.get_enabled_names()
+        if context is None:
+            # Planning tools act on a signed-in student's plan.
+            tools_enabled = [name for name in tools_enabled if name not in PLANNING_TOOLS]
         if not tools_enabled or not get_tool_definitions(enabled=tools_enabled):
             return ToolCallResult(text="", used_tool=False)
 
         by_domain = tools_by_domain(tools_enabled)
         if len(by_domain) == 1:
             (tools,) = by_domain.values()
-            return await self._tool_pass(effective_llm, tools, user_message)
+            return await self._tool_pass(effective_llm, tools, user_message, context=context, history=history)
 
-        selected = await self._classify_domains(effective_llm, user_message, list(by_domain))
+        previous = previous_planning_reply(history) if "planning" in by_domain else None
+        selected = await self._classify_domains(effective_llm, user_message, list(by_domain), previous=previous)
         if not selected:
             return ToolCallResult(text="", used_tool=False)
         tasks = []
@@ -257,7 +407,10 @@ class ImprovedChatOrchestrator:
             tasks.append(self._events_then_campus(effective_llm, by_domain, user_message))
             selected = [d for d in selected if d not in ("student_life", "campus")]
         tasks += [
-            asyncio.wait_for(self._tool_pass(effective_llm, by_domain[d], user_message), TOOL_PASS_TIMEOUT_S)
+            asyncio.wait_for(
+                self._tool_pass(effective_llm, by_domain[d], user_message, context=context, history=history),
+                TOOL_PASS_TIMEOUT_S,
+            )
             for d in selected
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -269,8 +422,17 @@ class ImprovedChatOrchestrator:
             passes.extend(result if isinstance(result, list) else [result])
         return merge_tool_results(passes)
 
-    async def _tool_pass(self, llm: LLMClient, tools: List[str], user_message: str) -> ToolCallResult:
+    async def _tool_pass(
+        self,
+        llm: LLMClient,
+        tools: List[str],
+        user_message: str,
+        context: Optional[ToolContext] = None,
+        history: Optional[List[Dict[str, Any]]] = None,
+    ) -> ToolCallResult:
         settings = get_settings()
+        if context is not None and any(name in PLANNING_TOOLS for name in tools):
+            return await self._planning_pass(llm, tools, user_message, context, history)
         return await llm.generate_with_tools(
             system_prompt=_tool_guidance_prompt(
                 tools,
@@ -279,8 +441,50 @@ class ImprovedChatOrchestrator:
             ),
             user_message=user_message,
             tool_definitions=get_tool_definitions(enabled=tools),
-            tool_executor=get_tool_executor(enabled=tools),
+            tool_executor=get_tool_executor(enabled=tools, context=context),
         )
+
+    async def _planning_pass(
+        self,
+        llm: LLMClient,
+        tools: List[str],
+        user_message: str,
+        context: ToolContext,
+        history: Optional[List[Dict[str, Any]]],
+    ) -> ToolCallResult:
+        """The planning domain's pass: the model sees the plan and proposes.
+
+        The prompt carries the plan summary and the revision it was built from
+        (R3, R9), the last planning exchanges and the current shortlist (R15).
+        The revision and the shortlist's option ids go into the tool context,
+        so the model never supplies them. On ``revision_conflict`` the summary
+        is re-read and the pass runs once more; a second conflict stops and
+        asks the student to retry.
+        """
+        from app.planner import service as planner_service
+
+        institution = get_settings().app.institution
+        exchanges = planning_exchanges(history)
+        shortlist = current_shortlist(history)
+        options = {item["option"]: item["id"] for item in shortlist}
+        result = ToolCallResult(text="", used_tool=False)
+        for _attempt in range(2):
+            try:
+                summary, revision = await planner_service.plan_summary(context.user_id, context.school)
+            except Exception as exc:  # noqa: BLE001 — no plan, no planning pass
+                logger.warning("Plan summary failed (%r); skipping the planning pass", exc)
+                return ToolCallResult(text="", used_tool=False)
+            pass_context = dataclasses.replace(context, plan_revision=revision, options=options)
+            result = await llm.generate_with_tools(
+                system_prompt=planning_prompt(institution, summary, revision, exchanges, shortlist),
+                user_message=user_message,
+                tool_definitions=get_tool_definitions(enabled=tools),
+                tool_executor=get_tool_executor(enabled=tools, context=pass_context),
+            )
+            if not _revision_conflicted(result):
+                return result
+            logger.info("Plan moved during the planning pass; re-reading the summary")
+        return dataclasses.replace(result, text=PLAN_RETRY_TEXT, used_tool=True)
 
     async def _events_then_campus(
         self, llm: LLMClient, by_domain: Dict[str, List[str]], user_message: str
@@ -309,9 +513,13 @@ class ImprovedChatOrchestrator:
             return [events]
         return [events, campus]
 
-    async def _classify_domains(self, llm: LLMClient, user_message: str, domains: List[str]) -> List[str]:
+    async def _classify_domains(
+        self, llm: LLMClient, user_message: str, domains: List[str], previous: Optional[str] = None
+    ) -> List[str]:
         """Pick the domains *user_message* needs.
 
+        *previous* is the previous assistant turn when it was a planning
+        reply, so a follow-up like "use the second one" reaches planning.
         An explicit empty pick means no tools. A failure, timeout, unparseable
         reply or a pick of only unknown domains means all of them.
         """
@@ -325,7 +533,10 @@ class ImprovedChatOrchestrator:
             raw = await asyncio.wait_for(
                 llm.generate(
                     system_prompt=prompt,
-                    context=[{"role": "user", "content": user_message}],
+                    context=[
+                        *([{"role": "assistant", "content": _clip(previous)}] if previous else []),
+                        {"role": "user", "content": user_message},
+                    ],
                     temperature=0.0,
                     max_tokens=60,
                     response_mime_type="application/json",

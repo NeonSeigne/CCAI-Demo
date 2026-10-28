@@ -77,6 +77,11 @@ tools:
     enabled: true
     # From scripts/rmp_school_lookup.py "University of Virginia".
     school_id: "U2Nob29sLTEyNzc="
+  # Semester planner (chat proposes only; the student accepts on the card).
+  plan_edit:
+    enabled: true
+  plan_suggest:
+    enabled: true
 
 # Chat composer prompt, in the same words as the home page.
 chat_page:

@@ -16,17 +16,38 @@ from app.core.auth import get_current_active_user
 from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
 from app.core.database import get_database
+from app.core.improved_orchestrator import planning_note
 from app.core.persona_filter import (
     get_available_persona_ids,
     get_requested_persona_ids,
 )
 from app.core.session_manager import get_session_manager
 from app.models.user import PersistMessage, ReplyToRef, User
+from app.tools import ToolContext
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 session_manager = get_session_manager()
+
+
+def tool_context_for(user: User) -> Optional[ToolContext]:
+    """The tool context for *user*'s chat: their id and this deployment's school (R2).
+
+    ``None`` for a legacy config without a school slug (no planner there).
+    """
+    school = get_settings().school.slug
+    if not school or getattr(user, "id", None) is None:
+        return None
+    return ToolContext(user_id=str(user.id), school=school)
+
+
+def _session_history(session: Any) -> List[Dict[str, Any]]:
+    """The session's messages before the one just appended."""
+    messages = getattr(session, "messages", None)
+    if not isinstance(messages, list):
+        return []
+    return list(messages[:-1])
 
 
 def resolve_llm_clients(user: User) -> Dict[str, Any]:
@@ -198,6 +219,8 @@ async def chat_stream(
             # directly and skip persona generation.
             tool_result = await chat_orchestrator.get_tool_response(
                 message.user_input, llm_client=orchestrator_llm,
+                context=tool_context_for(current_user),
+                history=_session_history(session),
             )
             if tool_result.used_tool:
                 # Preserve structured tool output as renderable visual specs.
@@ -208,6 +231,10 @@ async def chat_stream(
                     visuals = [checked, *visuals]
                 # Append user message to in-memory session and persist to MongoDB
                 session.append_message("orchestrator", tool_result.text)
+                note = planning_note(tool_result)
+                if note and isinstance(getattr(session, "messages", None), list):
+                    # Lets the next planning pass resolve "the second one" (R15).
+                    session.messages[-1]["planning"] = note
                 if message.chat_session_id:
                     await persist_message(
                         message.chat_session_id,
