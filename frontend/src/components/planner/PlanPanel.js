@@ -314,6 +314,31 @@ function CourseRow({ course, preview, flash, solid, onOpen, onRemove }) {
   );
 }
 
+/**
+ * Accept / Discard for a pending proposal, in the panel too: the chat card may
+ * be in another chat or gone after a reload, and a proposal from "Suggest
+ * courses" has no card at all. Same planner calls as the card, so they agree.
+ */
+function PendingReview({ proposal, planner }) {
+  const state = planner.proposalState?.(proposal.id);
+  const busy = state?.status === 'applying' || state?.status === 'discarding';
+  return (
+    <div className="pp-review" role="group" aria-label="Pending change">
+      <span className="pp-review-heading">{proposal.diff?.heading || 'Proposed change'}</span>
+      <span className="pp-review-actions">
+        <button type="button" className="pp-btn is-primary" disabled={busy} onClick={() => planner.accept(proposal)}>
+          {state?.status === 'applying' ? 'Applying…' : 'Accept'}
+        </button>
+        <button type="button" className="pp-btn" disabled={busy} onClick={() => planner.discard(proposal)}>
+          Discard
+        </button>
+      </span>
+      {state?.error && <span className="pp-short">{state.error}</span>}
+      {state?.status === 'refused' && <span className="pp-short">{state.reason}</span>}
+    </div>
+  );
+}
+
 function AddSlot({ term, onPrefill, onAdd }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
@@ -680,6 +705,7 @@ export default function PlanPanel({
             <h2 className="pp-title">{term}</h2>
             {proposal && <span className="pp-preview-label">Preview · not applied</span>}
           </div>
+          {proposal && <PendingReview proposal={proposal} planner={planner} />}
           {view.undo_label && (
             <button type="button" className="pp-undo" onClick={doUndo} disabled={undoing}>
               {view.undo_label}

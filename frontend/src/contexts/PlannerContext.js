@@ -171,7 +171,7 @@ export function PlannerProvider({ children }) {
     setOutcome(id, { status: 'applying', error: null });
     try {
       const data = await acceptProposal(tokenRef.current, id);
-      const next = { plan: data.plan, report: data.report, proposal: null, undo_label: undoLabelOf(data.plan) };
+      const next = { plan: data.plan, report: data.report, proposal: null, undo_label: data.undo_label || undoLabelOf(data.plan) };
       commitView(next);
       setStatus('ready');
       setOutcome(id, { status: 'applied', revision: data.plan?.revision ?? null });

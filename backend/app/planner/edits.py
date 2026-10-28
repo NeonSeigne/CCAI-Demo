@@ -263,7 +263,10 @@ def _rule_state(rule: Dict[str, Any]) -> Dict[str, Any]:
     return {name: rule.get(name) for name in ("status", "completed", "planned", "needed")}
 
 
-def _unknowns(report: Dict[str, Any]) -> List[str]:
+def _unknowns(report: Dict[str, Any], changed: Optional[set] = None, rule_ids: Optional[set] = None) -> List[str]:
+    """What the check couldn't settle. With ``changed`` (course ids) and
+    ``rule_ids``, only course and rule lines the edit touches are kept, so a
+    card lists what bears on this change, not every unknown in the plan."""
     found: List[str] = []
     credits = report.get("credits") or {}
     if credits.get("status") == "unknown" and credits.get("reason"):
@@ -272,10 +275,14 @@ def _unknowns(report: Dict[str, Any]) -> List[str]:
     if clashes.get("status") != "none" and clashes.get("reason"):
         found.append(f"Clashes: {clashes['reason']}")
     for course in report.get("courses") or []:
+        if changed is not None and course.get("id") not in changed:
+            continue
         prereqs = course.get("prereqs") or {}
         if prereqs.get("status") == "unknown":
             found.append(f"{prereqs.get('reason') or 'Prerequisites unknown'} for {course['id']}")
     for rule in report.get("rules") or []:
+        if rule_ids is not None and (rule.get("program_id"), rule.get("rule_id")) not in rule_ids:
+            continue
         if rule.get("status") == "unknown":
             found.append(f"{rule.get('title')}: {rule.get('reason') or 'unknown'}")
     return list(dict.fromkeys(found))
@@ -336,7 +343,11 @@ def diff(
                        "after": (after.get("difficulty") or {}).get("label")},
         "clashes": {"before": (before.get("clashes") or {}).get("status"),
                     "after": (after.get("clashes") or {}).get("status")},
-        "unknowns": list(dict.fromkeys(list(notes or []) + _unknowns(after))),
+        "unknowns": list(dict.fromkeys(list(notes or []) + _unknowns(
+            after,
+            changed=set(courses["added"]) | set(courses["removed"]) | {m["id"] for m in courses["moved"]},
+            rule_ids={(r["program_id"], r["rule_id"]) for r in rules},
+        ))),
         "literal_differs": _literal_differs(asked, ops),
         # What the panel needs to draw a proposed addition: its report row
         # (title, credits, labels) and its week blocks (design 1A, 18A).

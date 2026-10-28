@@ -60,6 +60,19 @@
   font-weight: 600;
 }
 
+.pp-review {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1.5px dashed var(--domain-academics);
+  border-radius: 10px;
+  background: var(--domain-academics-tint);
+}
+.pp-review-heading { flex: 1 1 180px; font-size: 14px; font-weight: 600; color: var(--domain-academics-ink); }
+.pp-review-actions { display: flex; gap: 8px; }
+
 .pp-undo {
   align-self: flex-start;
   min-height: 44px;

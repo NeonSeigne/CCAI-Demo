@@ -184,3 +184,28 @@ test('a found clash outlines the blocks and says Clash', async () => {
   expect(await screen.findByText('Mon 9:00–9:50 CHEM 2410 (Clash)')).toBeInTheDocument();
   expect(document.querySelectorAll('.pp-block.is-clash')).toHaveLength(2);
 });
+
+// Found in the browser: with no chat card in view (reload, new chat, a
+// "Suggest courses" pick), a pending proposal had no Accept or Discard.
+test('a pending proposal can be accepted or discarded from the panel', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal() }));
+  api.acceptProposal.mockResolvedValue({ plan: plan({ revision: 5 }), report: report(), undo_label: 'Undo: added ECON 3300' });
+  renderPanel();
+
+  const pending = await screen.findByRole('group', { name: 'Pending change' });
+  expect(pending).toHaveTextContent('Move ECON 3010 to Fall 2027, add ECON 3300');
+  fireEvent.click(within(pending).getByRole('button', { name: 'Accept' }));
+  await waitFor(() => expect(api.acceptProposal).toHaveBeenCalledWith('token', 'p1'));
+  expect(await screen.findByRole('button', { name: 'Undo: added ECON 3300' })).toBeInTheDocument();
+  expect(screen.queryByText('Preview · not applied')).not.toBeInTheDocument();
+});
+
+test('discarding from the panel clears the preview', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal() }));
+  api.discardProposal.mockResolvedValue({ proposal: { ...proposal(), status: 'discarded' } });
+  renderPanel();
+
+  const pending = await screen.findByRole('group', { name: 'Pending change' });
+  fireEvent.click(within(pending).getByRole('button', { name: 'Discard' }));
+  await waitFor(() => expect(screen.queryByText('Preview · not applied')).not.toBeInTheDocument());
+});

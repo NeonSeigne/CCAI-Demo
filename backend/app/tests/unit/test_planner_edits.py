@@ -124,12 +124,20 @@ class DiffTests(unittest.TestCase):
 
     def test_moved_and_unknowns(self):
         self.facts["ECON 3300"] = course("ECON 3300", prereq_known=False)
+        self.facts["ECON 3010"] = course("ECON 3010", prereq_known=False)
         before_plan = plan(["ECON 3010", "ECON 3300"])
         ops = [{"op": "move", "course": "ECON 3010", "to_term": "Fall 2027"}]
         result = edits.diff(self.report(before_plan), self.report(edits.apply_ops(before_plan, ops)), ops,
                             notes=["Couldn't verify ECON 1990; kept as you entered it"])
         self.assertEqual(result["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": "Fall 2027"}])
-        self.assertIn("Prerequisites not published for ECON 3300", result["unknowns"])
+        # Unknowns about courses the edit doesn't touch stay off the card (found in the browser).
+        self.assertNotIn("Prerequisites not published for ECON 3300", result["unknowns"])
+        # An added course's own unknowns do show.
+        self.facts["ECON 3820"] = course("ECON 3820", prereq_known=False)
+        add = [{"op": "add", "course": "ECON 3820"}]
+        added = edits.diff(self.report(before_plan), self.report(edits.apply_ops(before_plan, add)), add)
+        self.assertIn("Prerequisites not published for ECON 3820", added["unknowns"])
+        self.assertNotIn("Prerequisites not published for ECON 3300", added["unknowns"])
         self.assertEqual(result["unknowns"][0], "Couldn't verify ECON 1990; kept as you entered it")
         self.assertEqual(set(result), {"heading", "courses", "rules", "credits", "difficulty", "clashes", "unknowns", "literal_differs",
                                        "added_courses", "schedule"})

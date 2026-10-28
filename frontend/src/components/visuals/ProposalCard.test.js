@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import ProposalCard from './ProposalCard';
 import VisualBlock from './VisualBlock';
 import PlanPanel from '../planner/PlanPanel';
@@ -81,9 +81,13 @@ test('Applying, then Applied · Undo while it is the latest edit; the panel agre
   renderCard(card(), { withPanel: true });
   expect(await screen.findByText('Preview · not applied')).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
-  expect(screen.getByRole('button', { name: 'Applying…' })).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Discard' })).toBeDisabled();
+  // The panel has its own Accept for the same proposal; act on the card's.
+  const cardEl = () => document.querySelector('.proposal-card');
+  fireEvent.click(within(cardEl()).getByRole('button', { name: 'Accept' }));
+  expect(within(cardEl()).getByRole('button', { name: 'Applying…' })).toBeDisabled();
+  expect(within(cardEl()).getByRole('button', { name: 'Discard' })).toBeDisabled();
+  // The panel's buttons wait on the same call.
+  expect(within(screen.getByRole('group', { name: 'Pending change' })).getByRole('button', { name: 'Applying…' })).toBeDisabled();
 
   accept.resolve({
     plan: plan({ revision: 5, undo: { pointer: 1, stack: [{ label: 'Undo: moved ECON 3010 to Fall 2027, added ECON 3300', revision: 5 }] } }),
