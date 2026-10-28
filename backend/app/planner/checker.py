@@ -150,6 +150,8 @@ def _matches_rule(rule: Any, course_id: str) -> bool:
         return False
     if kind in ("all_of", "n_of") or (kind == "credits_from" and listed):
         return norm(course_id) in listed
+    if kind == "one_of_groups":
+        return any(norm(course_id) in [norm(c) for c in group] for group in _get(rule, "groups") or ())
     # level rules, and credits_from rules described by subject and level
     subject, number = split_id(course_id)
     subjects = [norm(s) for s in _get(rule, "subjects") or ()]
@@ -184,6 +186,8 @@ def _check_rule(
 ) -> Tuple[Dict[str, Any], List[str]]:
     """Allocate courses to one rule; returns the report entry and the ids it took."""
     kind = _get(rule, "kind")
+    if kind == "one_of_groups":
+        return _check_groups(program_id, rule, candidates, used)
     unit = "credits" if kind == "credits_from" else "courses"
     needed = _rule_needed(rule)
     min_grade = _get(rule, "min_grade")
@@ -251,6 +255,68 @@ def _check_rule(
     if not double_count:
         used.update(t.id for t in taken)
     return entry, [t.id for t in taken]
+
+
+def _check_groups(
+    program_id: str, rule: Any, candidates: List[_Candidate], used: set
+) -> Tuple[Dict[str, Any], List[str]]:
+    """A ``one_of_groups`` rule: every course of any one group.
+
+    The report follows the group closest to done (a complete group first,
+    then the largest share finished), so "Still needs" names the shortest
+    way to finish.
+    """
+    min_grade = _get(rule, "min_grade")
+    double_count = bool(_get(rule, "double_count", False))
+    available: Dict[str, _Candidate] = {}
+    for cand in candidates:
+        if cand.id in used and not double_count:
+            continue
+        available.setdefault(norm(cand.id), cand)
+
+    best = None
+    for group in _get(rule, "groups") or ():
+        ids = [norm(c) for c in group]
+        done: List[_Candidate] = []
+        unsure: List[str] = []
+        for course_id in ids:
+            cand = available.get(course_id)
+            if cand is None:
+                continue
+            if cand.completed and min_grade:
+                ok = grade_at_least(cand.grade, min_grade)
+                if ok is False:
+                    continue
+                if ok is None:
+                    unsure.append(f"Grade needed to check the {min_grade} minimum for {cand.id}")
+            done.append(cand)
+        complete = len(done) == len(ids)
+        score = (complete and not unsure, complete, len(done) / len(ids), -len(ids))
+        if best is None or score > best[0]:
+            best = (score, ids, done, unsure)
+
+    _, ids, done, unsure = best
+    if len(done) == len(ids):
+        status, reason = ("unknown", "; ".join(unsure)) if unsure else ("met", None)
+    else:
+        missing = [c for c in ids if c not in {norm(d.id) for d in done}]
+        status, reason = "short", "Still needs " + ", ".join(missing)
+    entry = {
+        "program_id": program_id,
+        "rule_id": _get(rule, "id"),
+        "title": _get(rule, "title"),
+        "status": status,
+        "unit": "courses",
+        "completed": sum(1 for d in done if d.completed),
+        "planned": sum(1 for d in done if not d.completed),
+        "needed": len(ids),
+        "completed_courses": [d.id for d in done if d.completed],
+        "planned_courses": [d.id for d in done if not d.completed],
+        "reason": reason,
+    }
+    if not double_count:
+        used.update(d.id for d in done)
+    return entry, [d.id for d in done]
 
 
 def _credits_known(course_id: str, facts: Dict[str, CourseFacts]) -> bool:

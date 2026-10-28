@@ -10,6 +10,19 @@ source_url: https://guide.wisc.edu/undergraduate/letters-science/economics/econo
 checked_on: 2026-10-28
 total_credits: 120
 rules:
+  - id: mathematics
+    title: Mathematics
+    kind: one_of_groups
+    groups:
+      - [MATH 221]
+      - [MATH 211, MATH 213]
+      - [MATH 211, ECON 205]
+  - id: principles
+    title: Principles of economics
+    kind: one_of_groups
+    groups:
+      - [ECON 101, ECON 102]
+      - [ECON 111]
   - id: statistics
     title: Statistics
     kind: n_of
@@ -60,8 +73,6 @@ rules:
     notes:
       - The Guide lists electives as 6-14 credits; the exact amount is whatever brings the ECON total to 30 credits.
 notes:
-  - "Mathematics (complete one): MATH 221; or MATH 211 and MATH 213; or MATH 211 and ECON 205. Not encoded: the rule kinds cannot express a choice between course pairs."
-  - "Principles (complete one): ECON 101 and ECON 102; or ECON 111. Not encoded: the rule kinds cannot express a choice between course sets."
   - The Economics courses (principles, theory, Core and electives) must total 30 credits.
   - Minimum 2.000 GPA in all ECON and major courses.
   - Minimum 2.000 GPA on at least 15 upper-level major credits taken in residence; Intermediate and Advanced ECON courses count as upper level.

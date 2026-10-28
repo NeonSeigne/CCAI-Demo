@@ -172,7 +172,8 @@ class ShippedProgramsTest(unittest.TestCase):
         self.assertEqual(rules["core"].n, 2)
         self.assertIn("ECON 310", rules["statistics"].courses)
         self.assertEqual(rules["electives"].kind, "credits_from")
-        self.assertTrue(any("ECON 101" in note for note in program.notes))
+        self.assertEqual(rules["principles"].groups, (("ECON 101", "ECON 102"), ("ECON 111",)))
+        self.assertFalse(any("ECON 101" in note for note in program.notes))
 
 
 if __name__ == "__main__":

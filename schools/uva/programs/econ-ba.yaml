@@ -17,12 +17,14 @@ rules:
       - Students with transfer credit for ECON 3010 or 3020 but not ECON 2010 or 2020 are exempt from that 2000-level course and take one more elective (five in all).
   - id: calculus
     title: Calculus I
-    kind: n_of
-    n: 1
-    courses: [MATH 1210, MATH 1310, APMA 1090]
+    kind: one_of_groups
+    groups:
+      - [MATH 1210]
+      - [MATH 1310]
+      - [APMA 1090]
+      - [MATH 1191, MATH 1192]
     min_grade: C+
     notes:
-      - MATH 1191 and MATH 1192 together (each C+ or higher) also satisfy this; the rule kinds cannot express that pair.
       - AP or transfer credit for Calculus I, II or III earned before matriculation satisfies this.
       - Financial Economics concentrators and students planning graduate study should take MATH 1310 or APMA 1110.
   - id: statistics

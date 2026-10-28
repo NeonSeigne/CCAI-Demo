@@ -32,6 +32,7 @@ class Rule:
     min_level: Optional[int] = None
     max_level: Optional[int] = None
     exclude: Tuple[str, ...] = ()
+    groups: Tuple[Tuple[str, ...], ...] = ()
     min_grade: Optional[str] = None
     double_count: bool = False
 

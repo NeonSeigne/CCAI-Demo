@@ -13,6 +13,8 @@ Rule kinds:
 - ``credits_from``  ``credits`` credits from the listed courses
 - ``level``         ``n`` courses in ``subjects`` numbered ``min_level`` or
                     above (and ``max_level`` or below), minus ``exclude``
+- ``one_of_groups`` every course of any one listed group (``groups``), e.g.
+                    MATH 221, or MATH 211 and MATH 213
 
 Anything the official page states that these kinds cannot express goes in the
 program's (or rule's) ``notes`` so it is shown, not dropped. Course
@@ -33,12 +35,12 @@ import yaml
 from app.config import SCHOOLS_DIR
 
 PROGRAM_TYPES = ("major", "minor", "certificate")
-RULE_KINDS = ("all_of", "n_of", "credits_from", "level")
+RULE_KINDS = ("all_of", "n_of", "credits_from", "level", "one_of_groups")
 
 PROGRAM_FIELDS = {"id", "name", "type", "catalog_year", "source_url", "checked_on", "total_credits", "rules", "notes"}
 RULE_FIELDS = {
     "id", "title", "kind", "courses", "n", "credits", "subjects", "min_level", "max_level",
-    "exclude", "min_grade", "double_count", "notes",
+    "exclude", "min_grade", "double_count", "notes", "groups",
 }
 
 _COURSE = re.compile(r"^([A-Z][A-Z &/]*?)\s*(\d{2,4}[A-Z]?)$")
@@ -59,6 +61,7 @@ class Rule:
     min_level: Optional[int] = None  # level
     max_level: Optional[int] = None  # level, optional
     exclude: Tuple[str, ...] = ()  # level
+    groups: Tuple[Tuple[str, ...], ...] = ()  # one_of_groups
     min_grade: Optional[str] = None
     double_count: bool = False  # may a course also count toward another rule
     notes: Tuple[str, ...] = ()
@@ -172,7 +175,22 @@ def _rule(raw: Any, index: int, where: _Where) -> Rule:
     if kind not in RULE_KINDS:
         raise rw.error("kind", f"must be one of {', '.join(RULE_KINDS)}, got {kind!r}")
 
-    courses = _courses(raw, "courses", where, f"{field}.courses", required=kind != "level")
+    courses = _courses(raw, "courses", where, f"{field}.courses", required=kind not in ("level", "one_of_groups"))
+    groups: Tuple[Tuple[str, ...], ...] = ()
+    if kind == "one_of_groups":
+        value = raw.get("groups")
+        if not isinstance(value, list) or len(value) < 2:
+            raise rw.error("groups", "must list at least two course groups")
+        parsed = []
+        for g_index, group in enumerate(value):
+            if not isinstance(group, list) or not group:
+                raise rw.error(f"groups[{g_index}]", "must be a non-empty list of courses")
+            parsed.append(_courses({"group": group}, "group", where, f"{field}.groups[{g_index}]", required=True))
+        groups = tuple(parsed)
+        if courses:
+            raise rw.error("courses", "is not used by one_of_groups; list the courses in groups")
+    elif "groups" in raw:
+        raise rw.error("groups", f"is only used by one_of_groups rules, not {kind}")
     n = _int(raw, "n", rw, required=kind in ("n_of", "level"), minimum=1)
     if kind == "n_of" and n > len(courses):
         raise rw.error("n", f"is {n} but only {len(courses)} courses are listed")
@@ -217,7 +235,7 @@ def _rule(raw: Any, index: int, where: _Where) -> Rule:
     return Rule(
         id=rule_id, title=title, kind=kind, courses=courses, n=n, credits=credits,
         subjects=subjects, min_level=min_level, max_level=max_level, exclude=exclude,
-        min_grade=min_grade, double_count=double_count, notes=_notes(raw, rw, "notes"),
+        groups=groups, min_grade=min_grade, double_count=double_count, notes=_notes(raw, rw, "notes"),
     )
 
 
