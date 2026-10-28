@@ -6,6 +6,8 @@ import EventListCard from './EventListCard';
 import PlaceCard from './PlaceCard';
 import CourseAnswerCard from './CourseAnswerCard';
 import SourcesChecked from './SourcesChecked';
+import ProposalCard from './ProposalCard';
+import CourseShortlistCard from './CourseShortlistCard';
 import '../../styles/CampusCards.css';
 
 /**
@@ -46,6 +48,8 @@ const REGISTRY = {
   place_card: PlaceCard,
   sources_checked: SourcesChecked,
   course_answer: CourseAnswerCard,
+  proposed_change: ProposalCard,
+  course_shortlist: CourseShortlistCard,
 };
 
 const VisualBlock = ({ visual, onSelectCourse, onAsk }) => {

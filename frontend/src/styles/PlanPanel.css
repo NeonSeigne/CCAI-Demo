@@ -1,0 +1,585 @@
+/* Semester plan panel, proposal and shortlist cards, and the plan's
+   placement around the chat (design review 1A–19A). brand-tokens.css
+   variables only; no literal colours. */
+
+/* ---- Panel ----------------------------------------------------------------- */
+.plan-panel {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-app);
+  font-size: 14px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-panel :focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.pp-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.pp-close:hover { background: var(--paper-sunken); color: var(--ink); }
+
+.pp-header { display: flex; flex-direction: column; gap: 6px; padding-right: 44px; }
+.pp-header-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.pp-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.pp-preview-label {
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: var(--domain-academics-tint);
+  color: var(--domain-academics-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pp-undo {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pp-undo:hover { background: var(--paper-sunken); }
+.pp-undo:disabled { color: var(--ink-soft); cursor: default; }
+
+.pp-provenance { margin: 0; color: var(--ink-soft); font-size: 13px; }
+
+.pp-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.pp-list { margin: 0; padding: 0; list-style: none; }
+
+.pp-muted { color: var(--ink-soft); }
+.pp-short { color: var(--error-ink); }
+
+.pp-change .pp-before,
+.pp-change .pp-after,
+.pp-change { color: var(--domain-academics-ink); font-weight: 600; }
+
+/* ---- Course rows ------------------------------------------------------------ */
+.pp-course {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pp-course-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pp-course-code { font-weight: 600; }
+.pp-course-meta { color: var(--ink-soft); font-size: 12px; }
+.pp-proposed-label { color: var(--domain-academics-ink); }
+
+.pp-course.is-removal .pp-course-name { text-decoration: line-through; color: var(--ink-soft); }
+
+.pp-course.is-addition {
+  margin: 4px 0;
+  padding: 0 8px;
+  border: 1.5px dashed var(--domain-academics);
+  border-radius: 10px;
+  background: var(--domain-academics-tint);
+  color: var(--domain-academics-ink);
+}
+
+.pp-tag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--paper-sunken);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.pp-tag.is-harder { color: var(--ink); font-weight: 600; }
+
+.pp-icon-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.pp-icon-btn:hover { background: var(--paper-sunken); color: var(--ink); }
+
+.pp-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
+
+.pp-dot { color: var(--ink-soft); }
+
+.pp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--domain-academics-ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pp-link:hover { text-decoration: underline; }
+
+.pp-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pp-btn:hover:not(:disabled) { background: var(--paper-sunken); }
+.pp-btn:disabled { color: var(--ink-soft); cursor: default; }
+.pp-btn.is-primary { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.pp-btn.is-primary:hover:not(:disabled) { background: var(--ink); }
+.pp-btn.is-primary:disabled { background: var(--paper-sunken); border-color: var(--line); color: var(--ink-soft); }
+
+.pp-add { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; padding: 4px 0; }
+
+.pp-input {
+  flex: 1;
+  min-width: 140px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.pp-inline-error {
+  margin: 4px 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--error-tint);
+  color: var(--error-ink);
+}
+
+/* ---- Summary --------------------------------------------------------------- */
+.pp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+
+/* ---- Requirements (9A) ----------------------------------------------------- */
+.pp-rule { padding: 8px 0; }
+.pp-rule-line { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pp-rule-title { min-width: 0; }
+.pp-rule-status { text-align: right; }
+.pp-glyph { display: inline-block; width: 1em; font-weight: 600; }
+.pp-rule.is-short .pp-glyph { color: var(--error-ink); }
+.pp-rule.is-unknown .pp-glyph { color: var(--ink-soft); }
+
+.pp-bar {
+  display: flex;
+  height: 6px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--paper-sunken);
+}
+
+.pp-bar-done { background: var(--domain-academics); }
+.pp-bar-planned { background: var(--domain-academics-tint); }
+
+/* ---- Weekly schedule (18A) ------------------------------------------------- */
+.pp-week-wrap { display: flex; flex-direction: column; gap: 4px; }
+.pp-week-toggle { align-self: flex-end; }
+.pp-schedule-note { margin: 0; }
+.pp-week-list { margin: 0; padding-left: 18px; }
+
+.pp-week {
+  display: grid;
+  grid-template-columns: 24px repeat(5, 1fr);
+  gap: 4px;
+  font-size: 11px;
+}
+
+.pp-week-dayhead { display: block; height: 18px; color: var(--ink-soft); font-weight: 600; }
+
+.pp-week-col-body {
+  position: relative;
+  height: 288px;
+  border-radius: 6px;
+  background: var(--paper-sunken);
+}
+
+.pp-week-hours .pp-week-col-body { background: transparent; }
+.pp-week-hour { position: absolute; left: 0; color: var(--ink-soft); transform: translateY(-2px); }
+
+.pp-block {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 2px 4px;
+  border: 1px solid var(--domain-academics);
+  border-radius: 4px;
+  background: var(--domain-academics-tint);
+  color: var(--domain-academics-ink);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pp-block.is-secondary { background: var(--paper); font-weight: 400; }
+.pp-block.is-proposed { border: 1.5px dashed var(--domain-academics); }
+.pp-block.is-removal { background: var(--paper); color: var(--ink-soft); text-decoration: line-through; }
+.pp-block.is-clash { outline: 2px solid var(--error-ink); outline-offset: -1px; color: var(--error-ink); }
+
+.pp-later li { padding: 4px 0; color: var(--ink-soft); }
+
+/* ---- Notices, loading, error ---------------------------------------------------- */
+.pp-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-right: 44px;
+  padding: 0 0 0 12px;
+  border-radius: 10px;
+  background: var(--domain-academics-tint);
+  color: var(--domain-academics-ink);
+}
+
+.pp-error { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.pp-error p { margin: 0; font-weight: 600; }
+
+.pp-skeleton { display: flex; flex-direction: column; gap: 10px; }
+.pp-skel { border-radius: 8px; background: var(--paper-sunken); }
+.pp-skel-title { width: 50%; height: 22px; }
+.pp-skel-line { width: 80%; height: 12px; }
+.pp-skel-row { height: 36px; }
+
+/* ---- First visit, checklist, details --------------------------------------------- */
+.pp-first { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding-right: 44px; }
+.pp-first-line { margin: 0; color: var(--ink-soft); }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pp-chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pp-chip:hover { background: var(--paper-sunken); }
+
+.pp-checklist,
+.pp-detail { display: flex; flex-direction: column; gap: 12px; padding-right: 44px; }
+
+.pp-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pp-fieldset { margin: 0; padding: 0; border: 0; }
+.pp-fieldset legend { margin-bottom: 6px; font-weight: 600; }
+.pp-check { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.pp-check input { width: 18px; height: 18px; }
+.pp-actions { display: flex; gap: 8px; }
+
+.pp-detail-title { margin: 0; color: var(--ink-soft); }
+.pp-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
+.pp-facts dt { color: var(--ink-soft); }
+.pp-facts dd { margin: 0; }
+.pp-facts dd.is-short { color: var(--error-ink); }
+
+/* ---- Motion (13A): one moment, gone under reduced motion ------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  .pp-flash { animation: pp-flash 150ms ease-out; }
+  .pp-solidify { animation: pp-solidify 200ms ease-out; }
+}
+
+@keyframes pp-flash {
+  from { background-color: var(--paper); }
+  to { background-color: var(--domain-academics-tint); }
+}
+
+@keyframes pp-solidify {
+  from { background-color: var(--domain-academics-tint); outline: 1.5px dashed var(--domain-academics); }
+  to { background-color: var(--paper); outline: 1.5px dashed transparent; }
+}
+
+/* ---- Placement (3A, 5A, 15A, 16A) --------------------------------------------------- */
+.plan-toggle {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-toggle[aria-expanded="true"] { border-color: var(--ink); }
+.plan-toggle:hover { background: var(--paper-sunken); }
+
+/* Desktop: the plan takes the AnswerPanel slot. */
+.plan-slot {
+  flex: 0 0 420px;
+  width: 420px;
+  height: 100vh;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: var(--paper);
+}
+
+/* Tablet: a 400px drawer over the chat. */
+.plan-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  width: 400px;
+  max-width: 100vw;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft-md);
+}
+
+/* Phone: peek bar and bottom sheet. */
+.plan-peek {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.plan-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Above the phone tab bar (CampusRail.css), which stays. */
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  height: 45dvh;
+  max-height: calc(100dvh - 56px - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
+  border-radius: 16px 16px 0 0;
+  background: var(--paper);
+  box-shadow: var(--shadow-soft-md);
+  touch-action: none;
+}
+
+.plan-sheet.is-full { height: 92dvh; }
+.plan-sheet-body { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; }
+
+.plan-sheet-handle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+}
+
+.plan-sheet-handle span {
+  width: 40px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .plan-sheet { transition: height 200ms ease-out; }
+}
+
+/* ---- Proposal card (2A, 6A) ----------------------------------------------------------- */
+.proposal-card {
+  box-sizing: border-box;
+  max-width: 520px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+  font-family: var(--font-app);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.proposal-card :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+
+.pc-label { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+.pc-heading { margin: 2px 0 4px; font-size: 16px; font-weight: 700; }
+.pc-literal { margin: 0 0 6px; color: var(--ink-soft); }
+.pc-lead { margin: 0 0 8px; color: var(--ink-soft); }
+.pc-rows { margin: 0; padding: 0; list-style: none; }
+
+.pc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.pc-row-value { font-weight: 600; text-align: right; }
+.pc-row.is-changed { margin: 0 -8px; padding: 6px 8px; border-radius: 6px; background: var(--domain-academics-tint); }
+.pc-changed-tag { color: var(--domain-academics-ink); font-size: 12px; font-weight: 600; }
+
+.pc-unknowns { margin: 8px 0 0; padding: 0; list-style: none; color: var(--ink-soft); font-size: 13px; }
+.pc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.pc-review {
+  margin: 8px 0 0;
+  color: var(--domain-academics-ink);
+  font-weight: 600;
+}
+
+.pc-refused {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--error-tint);
+  color: var(--error-ink);
+}
+
+.pc-line { display: flex; align-items: center; gap: 8px; margin: 0; min-height: 44px; }
+.pc-line.is-muted { color: var(--ink-soft); }
+
+.pc-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  border: 2px solid var(--line);
+  border-top-color: currentColor;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pc-spinner { animation: pc-spin 800ms linear infinite; }
+}
+
+@keyframes pc-spin { to { transform: rotate(360deg); } }
+
+/* ---- Course shortlist (19A) ------------------------------------------------------------- */
+.shortlist-card { max-width: 560px; }
+.sl-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.sl-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sl-name { font-weight: 600; }
+.sl-name .sl-title { font-weight: 400; }
+.sl-why { margin: 0; color: var(--ink-soft); font-size: 13px; }
+.sl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.sl-chip {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--paper-sunken);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.sl-prereq { font-size: 12px; color: var(--ink-soft); }
+.sl-prereq.is-short { color: var(--error-ink); }
+.sl-row-action { flex-shrink: 0; align-self: center; }
+.sl-chosen { margin-top: 12px; }
