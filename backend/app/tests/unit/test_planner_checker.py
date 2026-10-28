@@ -220,6 +220,9 @@ class ClashTests(unittest.TestCase):
                                                              sections=[section("001")]), None, "labs/discussions not checked"),
             ("several lectures, none chosen", course("X 1010", bundles_known=True,
                                                      sections=[section("001"), section("002")]), None, "sections not chosen"),
+            # Regression (live UW run): several sections, none with times, must read "not published".
+            ("several sections, no times (UW)", course("X 1010", sections=[
+                section("001", meetings=None), section("002", meetings=None)]), None, "class times not published"),
         ]
         for name, fact, chosen, reason in cases:
             with self.subTest(name):
@@ -232,6 +235,16 @@ class ClashTests(unittest.TestCase):
         self.assertTrue(schedule["published"])
         self.assertEqual(schedule["blocks"], [{"course": "ECON 3010", "section": "001", "kind": "lecture",
                                                "day": "Mo", "start": "09:00", "end": "09:50"}])
+        self.assertIsNone(schedule["reason"])
+
+    def test_empty_week_says_why(self):
+        uw = {"ECON 301": course("ECON 301", sections=[section("001", meetings=None), section("002", meetings=None)])}
+        schedule = checker.check(plan(["ECON 301"]), uw, [])["schedule"]
+        self.assertEqual((schedule["published"], schedule["reason"], schedule["blocks"]),
+                         (False, "class times not published", []))
+        uva = {"ECON 3010": course("ECON 3010", bundles_known=True, sections=[section("001"), section("002")])}
+        schedule = checker.check(plan(["ECON 3010"]), uva, [])["schedule"]
+        self.assertEqual((schedule["published"], schedule["reason"]), (True, "sections not chosen"))
 
 
 class LabelTests(unittest.TestCase):

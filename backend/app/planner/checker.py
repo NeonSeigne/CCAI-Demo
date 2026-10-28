@@ -470,6 +470,8 @@ def _chosen_bundle(course: Dict[str, Any], fact: Optional[CourseFacts]) -> Tuple
     """The sections this course is checked with, or a reason it can't be checked."""
     if not _usable(fact) or not fact.sections:
         return [], TIMES_NOT_PUBLISHED
+    if all(s.meetings is None for s in fact.sections):
+        return [], TIMES_NOT_PUBLISHED  # e.g. UW: sections listed, never their times
     chosen_ids = course.get("sections")
     if chosen_ids:
         chosen = [s for s in fact.sections if s.id in set(chosen_ids)]
@@ -528,7 +530,9 @@ def check_schedule(
     else:
         clashes = {"status": "none", "pairs": [], "reason": None}
     published = TIMES_NOT_PUBLISHED not in reasons
-    schedule = {"published": published, "reason": None if published else TIMES_NOT_PUBLISHED, "blocks": blocks}
+    # An empty week still says why (e.g. "sections not chosen"), never just blank.
+    schedule_reason = None if published and blocks else reason
+    schedule = {"published": published, "reason": schedule_reason, "blocks": blocks}
     return clashes, schedule
 
 
