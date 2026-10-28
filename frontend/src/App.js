@@ -5,6 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AppConfigProvider } from './contexts/AppConfigContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SavedProvider } from './contexts/SavedContext';
+import { PlannerProvider } from './contexts/PlannerContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
@@ -112,14 +113,16 @@ function App() {
           <MuiThemeProvider theme={muiTheme}>
             <AuthProvider>
               <SavedProvider>
-                <ToastProvider>
-                  <SkipLink />
-                  <RouteFocus />
-                  <div className="App">
-                    <AppRoutes />
-                    <UserGuide />
-                  </div>
-                </ToastProvider>
+                <PlannerProvider>
+                  <ToastProvider>
+                    <SkipLink />
+                    <RouteFocus />
+                    <div className="App">
+                      <AppRoutes />
+                      <UserGuide />
+                    </div>
+                  </ToastProvider>
+                </PlannerProvider>
               </SavedProvider>
             </AuthProvider>
           </MuiThemeProvider>
