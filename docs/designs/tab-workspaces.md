@@ -560,25 +560,492 @@ Synthesized from this review's findings. Each task derives from a specific findi
 
 None.
 
+## Eng Review (plan-eng-review, 2026-10-28)
+
+Target: `docs/designs/tab-workspaces.md` (this file). Report file: this file.
+
+### Scope record
+
+- **Feature answers:** none asked; no cuts proposed.
+- **Structure:** A, "Original arrangement" (D1, user answer, 2026-10-28; the user declined the recommended smaller arrangement).
+- **Accepted scope:**
+  - All five areas as designed: about 12 new modules and about 35 files `[estimated]`.
+  - Separate pop-up systems for course, event and place.
+  - Separate planner endpoints per screen.
+- **Pending remedies:** R1–R7.
+- **Scope Challenge result:** scope accepted as-is (MODE: FULL_REVIEW).
+
+### Scope Challenge findings
+
+1. `[CRITICAL] (confidence: 9/10) frontend/src/pages/ChatPage.js:37` — `const [messages, setMessages] = useState([]);` Every piece of chat state (messages, session id, streaming at `:450`) is local to ChatPage. A dock that "keeps one conversation as you move between pages" cannot share it. → R1
+2. `[CRITICAL] (confidence: 9/10) backend/app/planner/store.py:20` — "At most one is pending: a new one replaces the old". The pop-up's "Fits" tile and the planner preview have no endpoint that doesn't save. Using `POST /api/planner/proposals` would silently replace a pending chat proposal. → R2
+3. `[CRITICAL] (confidence: 8/10) docs/designs/tab-workspaces.md:250` — "a Tonight tile (where the student's class times exist)". The plan stores future terms (`store.new_plan(..., term)`) and completed courses without sections, so nothing records the student's classes today. → R3
+4. `[INFORMATIONAL] (confidence: 9/10) backend/app/planner/store.py:18` — "There is no redo." The approved design adds a redo button (D16, r7-degree-1). → R4
+5. `[INFORMATIONAL] (confidence: 8/10) frontend/package.json:7` — no drag-and-drop library. D18 requires keyboard dragging and touch support. → R5
+6. `[INFORMATIONAL] (confidence: 8/10) frontend/src/App.js:93` — `path="/courses/:courseIdentifier"` (CourseDetailPage, UW-only `/api/courses`) remains a second course-detail path once the pop-up exists. → R6
+7. `[INFORMATIONAL] (confidence: 8/10) backend/app/sources/ical_events.py:213` — `"description": _text(component, "DESCRIPTION")[:400]`. The event pop-up's About tile needs the full text. Folded into T9 (approved design scope); no question.
+8. `[INFORMATIONAL] (confidence: 7/10) scripts/import_places.py` — the planned Wikidata photos need the author and licence of each Commons file for the credit line. → R7
+
+### Architecture (Section 1)
+
+```
+ App.js providers:  Auth ─ Saved ─ Planner ─ Chat (new, R1) ─ Toast
+                                                  │
+  ┌──────────────┬──────────────┬─────────────┬──┴──────────┬─────────────┐
+  CampusRail     CoursesPage    EventsPage    CampusMapPage  ChatDock (new)
+  (Saved drop)   Browse│Degree│  (event       (place sheet)  ChatPage (full)
+                 Semester       pop-up)
+       │              │              │              │              │
+  /api/saved    /api/catalog/*  /api/events   /api/places    /chat-stream
+                /api/planner/*  (+image, categories, geo, custom fields, full description)
+                  + /degree (new, every term)
+                  + /preview (new, R2, no write)
+                  + /redo    (new, R4)
+  Course pop-up (?course=ID): /api/catalog/{id} + course_facts + /api/planner/preview
+  dnd-kit (R5): sources → targets (D4): results→list, card→term, any→Saved|ChatDock
+```
+
+- **Design-twice:**
+  - **Chat state:** a provider plus two views (picked, R1) versus ChatPage reused in the dock (rejected). The provider hides session, stream and retry behind `useChat()`: `{messages, send, attach, newChat, openSession}`.
+  - **Pop-ups:** one shell (smaller arrangement, declined in D1) versus three systems (chosen).
+- **Red flags:**
+  - **Split ownership:** `ChatPage.js` owns chat state today; R1 fixes it.
+  - **Two ways to do one task:** the course detail page and the preview; R6 fixes it.
+  - **Hand-synced list:** the event and place partial-state rules exist only in this doc. Each pop-up maps a missing field to "not rendered" in one function per surface.
+- **Production failure per new path:**
+  - **Degree endpoint:** a provider times out for one term, and that term's courses come back "unavailable". The board shows unknown credits for that term, not zeros (D7).
+  - **Preview:** a 409 when the plan revision moved. The Fits tile refetches once, then shows "Couldn't load · Retry".
+  - **Redo:** refused, shown as "Couldn't save".
+  - **Chat stream:** drops while on another page. The dock shows the existing error, and the page stays usable.
+  - **Wikimedia at import:** rate-limited, so those photos are skipped. A rerun fills them in.
+
+Findings: R8 (where the course pop-up can open) and R9 (attachment format) below.
+
+### Code quality (Section 2)
+
+- `[INFORMATIONAL] (confidence: 9/10) frontend/src/components/AppDialog.js:8` — `const inset = Math.max(0, Number(leftInset) || 0);`. AppDialog already offsets its scrim from the left for the rail. D3 needs the same offset on the right for the dock, so the three pop-ups can share it. → R10
+- `[INFORMATIONAL] (confidence: 8/10) frontend/src/pages/ChatPage.js` (1,282 lines) and `EventsPage.js` (1,025 lines) — large files that the plan grows. R1 shrinks ChatPage. The event pop-up should be a new component, not more of EventsPage. This is covered by the original arrangement, so no question.
+
+### Test review (Section 3)
+
+Framework: Jest + React Testing Library (frontend, CRA); pytest (backend, `backend/.venv/bin/python -m pytest`).
+
+```
+CODE PATHS                                          USER FLOWS
+[+] ChatProvider (new, R1)                          [+] Ask from a course pop-up
+  ├── send / stream / error   [GAP] (4 tests today)   ├── [GAP] [→E2E] pop-up stays open, chip in dock
+  ├── session switch / new    [GAP]                   └── [GAP] navigate mid-stream keeps reply
+  └── attach item             [GAP]
+[+] /api/planner/preview (R2)                       [+] Drag course → term
+  ├── diff == proposal diff   [GAP]                   ├── [GAP] keyboard lift/move/drop
+  └── no write, proposal kept [GAP]                   ├── [GAP] duplicate springs back
+[+] /api/planner/redo (R4)                          │   └── [GAP] save fails → revert + toast
+  ├── redo after undo         [GAP]                 [+] Degree board
+  ├── cleared by new edit     [GAP]                   ├── [GAP] CU: no requirement UI
+  └── refused / 409           [GAP]                   └── [GAP] empty plan → Program picker
+[+] /api/planner/degree                             [+] Course pop-up per school
+  ├── per-term credits/load   [GAP]                   ├── [GAP] UW / UVA / CU no empty tiles
+  └── provider timeout term   [GAP]                   └── [GAP] API fail → Couldn't load · Retry
+[+] ical_events new fields    [GAP]                 [+] Place sheet
+[+] import_places photo/meta  [GAP]                   ├── [GAP] rich vs sparse place
+[+] /courses/:id redirect R6  [GAP]                   └── [GAP] pin click selects list row
+[★★ TESTED] planner edits/undo (test_planner_store_api.py)
+[★★ TESTED] Events views (EventsPage.test.js, 20)   [★★ TESTED] Map list (CampusMapPage.test.js, 13)
+COVERAGE: 2/24 paths tested (8%) | GAPS: 22 (1 E2E)
+```
+
+- **Regression risk:** the R1 refactor moves the chat logic behind `/chat`. That page has 4 tests today, which don't pin streaming, session switching or advisor replies. → R11 (regression contract)
+
+### Performance (Section 4)
+
+- `[INFORMATIONAL] (confidence: 8/10) backend/app/planner/service.py:77` — `return await load_facts(list(ids), term, provider=facts_provider)`. Facts are loaded for one term per call, with a 6s budget (`facts.py:97`). A degree board with 3–4 planned terms loaded term by term could take up to 18–24s `[estimated]` when a provider is slow. Scale: about 5 courses per term × 3–4 terms, so 15–20 provider calls per board load. → R12
+
+## Decision ledger
+
+### R1: Where chat state lives so the dock keeps one conversation
+Finding: 1, CRITICAL, 9/10, frontend/src/pages/ChatPage.js:37
+Plan baseline: D17 (chat dock on every page, one conversation); no owner chosen
+Runtime evidence: chat state and streaming live only inside ChatPage (`ChatPage.js:37-82`, `:450`)
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R1 owner of chat state | ChatPage local | new app-level ChatProvider; ChatPage and ChatDock are two views of it | ChatPage rendered inside the dock in a compact mode |
+| R2–R7 | pending | pending | pending |
+State: approved
+Actual answer: A, "ChatProvider" (D2, user answer, 2026-10-28)
+Accepted scope: Move session, messages and streaming from `ChatPage.js` into an app-level `ChatProvider`. ChatPage and the new ChatDock both read from it. Tests cover the provider and keep the existing ChatPage tests passing.
+History: none
+
+### R2: A preview that never saves
+Finding: 2, CRITICAL, 9/10, backend/app/planner/store.py:20
+Plan baseline: D9 (ghost preview), pop-up "Fits" tile; no endpoint chosen
+Runtime evidence: `put_proposal` replaces the pending proposal (`store.py:229`)
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R2 preview path | none | new `POST /api/planner/preview {ops}` returns the diff from `edits.diff`; nothing stored | Fits computed in the browser from the report |
+State: approved
+Actual answer: A, "preview endpoint" (D3, user answer, 2026-10-28)
+Accepted scope: Add `POST /api/planner/preview {ops, expected_revision}`. It returns the same diff a proposal would, writes nothing, and leaves any pending proposal untouched. The browser caches it by the normalized ops payload and plan revision (corrected after Outside review's outside-voice finding 5: a per-course key mixed up previews for different terms and sections; this fixes a bug in the accepted scope and changes no approved behavior). Tests: the preview leaves the pending proposal and the revision unchanged, and its diff equals the diff of the equivalent proposal.
+History: none
+
+### R3: Tonight tile data source
+Finding: 3, CRITICAL, 8/10, docs/designs/tab-workspaces.md:250
+Plan baseline: approved r1-event-2 (Tonight tile where class times exist)
+Runtime evidence: no current-term class schedule is stored anywhere
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R3 Tonight tile | designed | cut it; the other tiles fill the slot | show it only for events dated inside the planned term, using planned sections |
+State: approved
+Actual answer: A, "cut it" (D4, user answer, 2026-10-28)
+Accepted scope: Remove the Tonight tile from the event pop-up; About and the map take its space. Remove "Tonight" from the D7 partial-state row and the D12 label list.
+History: none
+
+### R4: Redo
+Finding: 4, INFORMATIONAL, 9/10, backend/app/planner/store.py:18
+Plan baseline: D16 (undo and redo icons)
+Runtime evidence: undo pointer exists; steps after the pointer are dropped only on a new edit (`store.py:178`)
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R4 redo | none | `POST /api/planner/redo` re-applies `stack[pointer]` and advances the pointer; a new edit still clears the steps after it | no redo; hide the redo icon |
+State: approved
+Actual answer: A, "server redo" (D5, user answer, 2026-10-28)
+Accepted scope: Add `POST /api/planner/redo {expected_revision}`. It re-applies `stack[pointer].ops` through the same validation as an edit and advances the pointer. A new edit still drops the steps after the pointer. A refused redo returns the reason, and the UI shows "Couldn't save". `view` returns a `redo_label`. Update the `store.py` docstring. Tests cover redo after undo, redo cleared by a new edit, a refused redo, and a revision conflict.
+History: none
+
+### R5: Drag-and-drop library
+Finding: 5, INFORMATIONAL, 8/10, frontend/package.json:7
+Plan baseline: D18 (keyboard dragging, live announcements)
+Runtime evidence: no dnd dependency
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R5 library | none | `@dnd-kit/core` + `@dnd-kit/sortable` (keyboard and touch sensors, announcements) | native HTML5 drag events plus button fallbacks |
+State: approved
+Actual answer: A, "dnd-kit" (D6, user answer, 2026-10-28)
+Accepted scope: Add `@dnd-kit/core` and `@dnd-kit/sortable`, pinned to exact versions. Use pointer, touch and keyboard sensors and the built-in announcer. Verify the React 19 install before the first drag work, because that premise is unverified.
+History: none
+
+### R6: Old course page
+Finding: 6, INFORMATIONAL, 8/10, frontend/src/App.js:93
+Plan baseline: design scope ("`/courses/:id` redirects")
+Runtime evidence: CourseDetailPage and UW-only `/api/courses/{id}` still routed
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R6 old page | routed | redirect the route to `/courses?course=ID`, delete CourseDetailPage and `/api/courses/{id}` in the same change, move links | keep both behind the redirect for now |
+State: approved
+Actual answer: A, "redirect + delete" (D7, user answer, 2026-10-28)
+Accepted scope:
+- **Redirect:** `/courses/:courseIdentifier` redirects to `/courses?course=ID`.
+- **Links:** CourseChip, CourseVisualCard, CourseAnswerCard, ChatPage and the plan panel open the pop-up instead.
+- **Delete:** CourseDetailPage, its components used nowhere else, `/api/courses/{id}` and their tests.
+- **Before deleting,** check that the pop-up covers the old Trends (GPA by term) and Schedule data.
+- **Tests:** a redirect test, and the chat course chip opens the pop-up.
+History: none
+
+### R7: Photo credits
+Finding: 8, INFORMATIONAL, 7/10, scripts/import_places.py
+Plan baseline: approved r1-place-2 (photo with Wikimedia credit)
+Runtime evidence: import keeps no image fields
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R7 credit data | none | fetch each image's author and licence (`extmetadata`) at import and store them with the thumbnail URL; skip images without a licence | show photos with a generic "Wikimedia Commons" credit |
+State: approved
+Actual answer: A, "author + licence" (D8, user answer, 2026-10-28)
+Accepted scope: `scripts/import_places.py` reads Wikidata P18. For each image it fetches the Commons `imageinfo` (thumburl plus `extmetadata` Artist and LicenseShortName) with the repo User-Agent. It stores `photo: {url, author, license, page}` in places.geojson and skips any image without a licence. The sheet renders "Photo: <author> · <licence>", linked to the file page. Tests cover parsing a recorded `imageinfo` response and skipping a missing licence.
+History: none
+
+### R8: Where the course pop-up can open
+Finding: Section 1, INFORMATIONAL, 8/10, frontend/src/components/visuals/CourseChip.js:22
+Plan baseline: R6 (`/courses?course=ID`); chat cards appear in the dock on every page (D17)
+Runtime evidence: chat course chips link to `/courses/:id` today
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R8 pop-up host | Courses page only | `?course=ID` opens the course pop-up over whatever page you're on (one host mounted at app level) | course links navigate to `/courses?course=ID` |
+State: approved
+Actual answer: A, "any page" (D9, user answer, 2026-10-28)
+Accepted scope: A lazy-loaded `CoursePopupHost` mounted at app level reads `?course=ID` on any route. Course chips and cards add the param to the current location, and Back removes it. The R6 redirect still targets `/courses?course=ID`. Tests: a chip on the map page opens the pop-up without changing the path, and Back closes it.
+History: none
+
+### R9: Chat attachment format
+Finding: Section 1, INFORMATIONAL, 7/10, frontend/src/components/EnhancedChatInput.js
+Plan baseline: D3 / D4 (Ask and drag-to-chat attach an item)
+Runtime evidence: `/chat-stream` takes text
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R9 attachment | none | chip in the composer; on send it becomes a short text line ("Course: ECON 3720 Intermediate Macroeconomics") before the message; no backend change | new structured `context_items` field on `/chat-stream`, passed to tools |
+State: approved
+Actual answer: A, "text line" (D10, user answer, 2026-10-28)
+Accepted scope: Ask and drop-on-dock add one chip per item to the composer (course, event or place: type, id and title). On send, each chip becomes one line ("Course: <code> <title>", "Event: <title> · <date>", "Place: <name>") before the user's text. Nothing is sent until the user presses send. Tests: a chip is serialized on send, removing a chip drops its line, and Ask doesn't send.
+History: none
+
+### R10: Dialog primitive for the three pop-ups
+Finding: Section 2, INFORMATIONAL, 9/10, frontend/src/components/AppDialog.js:8
+Plan baseline: D1 original arrangement (three pop-up systems); D3 (scrim over the page column only)
+Runtime evidence: AppDialog wraps MUI Dialog with a left inset
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R10 primitive | AppDialog (left inset) | all three pop-ups use AppDialog with a new `rightInset` for the dock | each pop-up builds its own modal |
+State: approved
+Actual answer: A, "AppDialog + rightInset" (D11, user answer, 2026-10-28)
+Accepted scope: Add `rightInset` to AppDialog: the dialog and scrim stop at the dock's left edge. The course, event and place pop-ups use it. D3 says the dock stays usable, so the pop-ups pass `disableEnforceFocus` and use `aria-modal="false"`. Focus moves into the pop-up on open, Escape closes it, and focus returns to the trigger. Tabbing can reach the dock. Tests: the insets are applied, Escape closes the pop-up and returns focus, and the dock's input can take focus while a pop-up is open.
+History: none
+
+### R11: Regression contract for the chat refactor
+Finding: Section 3, CRITICAL, 9/10, frontend/src/pages/ChatPage.test.js
+Plan baseline: R1 (ChatProvider)
+Runtime evidence: 4 tests cover a 1,282-line page
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R11 coverage | 4 tests | before moving any code, add characterization tests for send + streamed reply, a stream error, new chat, opening a saved session and an advisor reply; they must pass unchanged after the move | test only the new provider |
+State: approved
+Actual answer: A, "characterize first" (D12, user answer, 2026-10-28)
+Accepted scope:
+- **Before R1 moves any code,** add 5 tests to `ChatPage.test.js` (mocking fetch and the stream):
+  - send + streamed reply renders;
+  - a stream error shows the existing error;
+  - New chat clears the messages and calls `/new-chat`;
+  - opening a saved session loads its messages;
+  - an advisor reply posts to `/reply-to-advisor`.
+- **After the move,** they pass unchanged.
+- **Add `ChatProvider` unit tests:** state survives a route change mid-stream, and send / newChat / openSession / attach.
+History: none
+
+### R12: Loading facts for the degree board
+Finding: Section 4, INFORMATIONAL, 8/10, backend/app/planner/service.py:77
+Plan baseline: D1 (separate `/api/planner/degree`)
+Runtime evidence: `load_facts` handles one term with a 6s budget
+Comparison grid:
+| Choice | Current | A | B |
+|---|---|---|---|
+| R12 loading | one term per call | one `asyncio.gather` across every planned term under one 6s deadline; terms past the data's coverage return offered "unknown"; a term that misses the deadline shows unknown | load terms one after another |
+State: approved
+Actual answer: A, "all terms, one deadline" (D13, user answer, 2026-10-28)
+Accepted scope:
+- **Loading:** `/api/planner/degree` loads facts for every planned term in one bounded batch (shared 6s deadline, concurrency 8). It reuses `load_facts` by grouping `(id, term)` pairs.
+- **Uncovered terms:** a term outside `planner_terms()` skips its provider call and returns offered "unknown".
+- **Missed deadline:** a term that misses it gets "unavailable" courses, shown as unknown credits and load.
+- **Tests:** a slow provider for one term doesn't delay the others past the deadline; uncovered terms make no provider call.
+History: none
+
+### R13: Edits validate against the destination term
+Finding: Outside voice 1, CRITICAL, 9/10, backend/app/planner/service.py:120, Outside review (verified)
+Plan baseline: planner M1 validates every edit against `plan["term"]`; R12 adds multi-term reads only
+Runtime evidence: `facts = await _facts(ids, plan["term"])` (`service.py:120`, `:135`); `move` keeps the old section ids (`edits.py:176`)
+Comparison grid:
+| Choice | Current | A | B | C | D |
+|---|---|---|---|---|---|
+| R13 term-aware validation | one term | Apply: (1) `view`, `report_for` and `/preview` take an optional `term` and check `dict(plan, term=term)`, the same pattern as `suggest.py:81`; the semester view for any term uses it; (2) validation groups ops by destination term (`add.term`, `move.to_term`, otherwise `plan.term`) and loads each term's facts in one bounded batch (R12); (3) `move` clears `sections` unless the op gives sections for the new term | Keep: board edits to other terms validate against the planned term | Investigate again | Defer |
+State: approved
+Actual answer: A, "Apply" (D15, user answer, 2026-10-28)
+Accepted scope:
+1. **Per-term reports:** `view`, `report_for` and `POST /api/planner/preview` take an optional `term` and check `dict(plan, term=term)`. The semester view for any term uses this.
+2. **Per-term validation:** `_validated_diff` and `apply_edit` group ops by destination term (`add.term`, `move.to_term`, otherwise `plan.term`) and load each term's facts in one bounded batch (R12).
+3. **Move clears sections** unless the op gives sections for the new term.
+4. **Tests:**
+   - a move into a term where the course isn't offered is flagged;
+   - a move clears sections;
+   - the per-term view returns that term's courses and credits;
+   - a two-term edit loads facts for both terms in one batch.
+History: D14 answered C "Investigate first" (user, 2026-10-28). The bounded investigation found these single-term assumptions:
+- `service.py:87` (`report_for`), `:120` and `:135` (validation), `:203` (suggestions);
+- `checker.py:573-606` (report scoped to `plan["term"]`, other terms listed as "later");
+- `edits.py:172` (add defaults to the plan term) and `:178` (move keeps sections).
+An existing per-term pattern is `suggest.py:81` (`dict(plan, term=term)`). The chat `plan_summary` (`service.py:233-248`) already lists other terms and needs no change. Option A's scope was rebuilt from these findings.
+
+### R14: What the degree waffle may claim
+Finding: Outside voice 2, CRITICAL, 8/10, schools/uw-madison/programs/econ-ba.yaml:84, Outside review (verified)
+Plan baseline: D13 (credit total from the program file; Finish shown only when everything is planned); approved r7-degree-1 waffle groups include "Gen-ed areas" and "Free electives"
+Runtime evidence: program files encode major rules plus `total_credits` only; UW lists L&S requirements as "not encoded"
+Comparison grid:
+| Choice | Current | A | B | C | D |
+|---|---|---|---|---|---|
+| R14 waffle groups | major groups + gen-ed + free electives | Apply: groups only for rules the program file encodes, plus one "Other credit" group up to `total_credits`; a program `complete: false` flag hides Finish | Apply A plus a new `gen_ed` rule kind (match by gen-ed tag; `n` or `credits`), with hand-checked UW breadth / Comm / QR and UVA Disciplines groups encoded so the waffle shows real gen-ed groups; Finish stays hidden while `complete: false` | Keep the approved groups | Defer |
+State: approved
+Actual answer: A, "Encoded groups" (D17, user answer, 2026-10-28)
+Accepted scope:
+- **Waffle groups** come only from the rules a program file encodes, plus one "Other credit" group that fills to `total_credits`. There is no gen-ed group, which replaces the "Gen-ed areas" and "Free electives" groups in r7-degree-1.
+- **New program field:** `complete: bool` (default false). UW and UVA econ files are false today, and Finish is hidden while it's false (amends D13).
+- **Tests:**
+  - the groups match the encoded rules;
+  - "Other credit" plus the groups equals `total_credits`;
+  - Finish is hidden when `complete` is false.
+History: D16 answered C "Investigate first" (user, 2026-10-28). The bounded investigation found:
+- gen-ed tags exist (UW designations, `_uw_source.py:738`; UVA Disciplines, `csv_snapshot.py:508`);
+- no rule kind matches by tag (`programs.py:38`), so encoding gen-eds needs a new `gen_ed` rule kind plus hand-checked rules;
+- UW residency, language and the 108 L&S credits have no data source, so `complete` stays false at UW even with gen-eds encoded.
+The options were rebuilt from these findings.
+
+### R15: Keep the dock visible to screen readers while a pop-up is open
+Finding: Outside voice 3, CRITICAL, 8/10, frontend/src/components/AppDialog.js:12, Outside review (verified)
+Plan baseline: R10 (AppDialog + rightInset, `disableEnforceFocus`, `aria-modal="false"`)
+Runtime evidence: MUI Modal sets `aria-hidden` on the siblings of its portal container, which would include the dock
+Comparison grid:
+| Choice | Current | A | B | C | D |
+|---|---|---|---|---|---|
+| R15 container | portal to body | Apply: render pop-ups into the page-column element (MUI `container`), so only page-column content is hidden; test that the dock stays in the accessibility tree | Keep R10 as approved | Investigate | Defer |
+State: approved
+Actual answer: A, "Apply" (D19, user answer, 2026-10-28)
+Accepted scope:
+- **Container:** the app shell exposes the page-column element (a ref through context). Course, event and place pop-ups pass it as AppDialog's MUI `container`.
+- **Insets:** with the container, the scrim and dialog already stop at the rail and the dock. R10's behaviour is met by the container, so its left and right insets are 0 there.
+- **Tests:** with a pop-up open, the dock and rail have no `aria-hidden` and the page content does. Escape and focus return still work.
+History: R10 approved scope stands; this adds the container requirement if A. D18 answered C "Investigate first" (user, 2026-10-28).
+- **Investigation:** in MUI 9.2.0 (`Modal/ModalManager.js:39`), `ariaHiddenSiblings(container, …)` sets `aria-hidden` on every child of the modal's container except the modal itself. The container defaults to `document.body`, which hides the dock.
+- **`container` (`Modal.js:248`)** sends the portal to a given element, so only that element's other children are hidden.
+- **`disablePortal` (`Modal.js:271`)** renders in place. It doesn't fit the app-level `CoursePopupHost` (R8), which renders outside the page column.
+- **`hideBackdrop`** removes the dimming, which D3 needs to keep.
+- **Conclusion:** option A's `container` approach is the fit. Scroll lock then applies to the page column only, which matches D3.
+
+### R16: Ghost preview for moves and section changes
+Finding: Outside voice 4, INFORMATIONAL, 8/10, backend/app/planner/edits.py:354, Outside review (verified)
+Plan baseline: D9 (ghost preview), R2 (preview endpoint)
+Runtime evidence: the diff's `schedule.blocks` contains only added courses
+Comparison grid:
+| Choice | Current | A | B | C | D |
+|---|---|---|---|---|---|
+| R16 diff blocks | added only | Apply: the diff gains `schedule.blocks_in` (added, moved-in or re-sectioned course blocks) and `blocks_out` (blocks that disappear); ghost preview draws both | Keep added-only | Investigate | Defer |
+State: approved
+Actual answer: A, "Apply" (D20, user answer, 2026-10-28)
+Accepted scope: `edits.diff` returns `schedule.blocks_in` (the after-blocks of added, moved-in and re-sectioned courses in the shown term) and `schedule.blocks_out` (the before-blocks that disappear). `schedule.blocks` stays as an alias of `blocks_in` for the current PlanPanel until it migrates. The ghost preview draws `blocks_in` dashed and `blocks_out` faded. `CONTRACTS.md` is updated. Tests: move-in, `pick_section` and remove each produce the right in/out blocks, and an add-only diff matches today's output.
+History: none
+
+Approval readiness: PASS. R1 (D2), R2 (D3), R3 (D4), R4 (D5), R5 (D6), R6 (D7), R7 (D8), R8 (D9), R9 (D10), R10 (D11), R11 (D12), R12 (D13), R13 (D15, after D14 investigate), R14 (D17, after D16 investigate), R15 (D19, after D18 investigate), R16 (D20) all cite the user's answers. Structure: D1. TODO: D21.
+
+## Eng Review Outputs
+
+### NOT in scope
+
+- **Shared pop-up shell (DetailHost):** declined in D1. Three pop-ups share AppDialog only (R10, R15).
+- **Structured chat context (`context_items`):** declined in D10. Attachments are text lines.
+- **Tonight tile:** cut (R3). There is no current-term schedule data.
+- **Gen-ed rule kind:** deferred to TODOS.md (D21).
+- **Redo across devices beyond the server stack:** redo follows the single server undo stack (R4).
+
+### What already exists (reuse)
+
+| Need | Existing | Use |
+|---|---|---|
+| Per-term check | `suggest.py:81` `dict(plan, term=term)` | R13 view/report/preview |
+| Bounded fact loading | `facts.load_facts` (concurrency 8, 6s) | R12 degree board |
+| Undo stack + pointer | `store.py:177-183` | R4 redo |
+| Diff of two reports | `edits.diff` | R2 preview, R16 blocks |
+| Dialog with focus/Escape | `AppDialog.js` (MUI Dialog) | R10 / R15 pop-ups |
+| Graph rendering | `cytoscape` + `fcose` (`CourseVisuals.js`) | Prerequisite web |
+| Charts | `recharts` | Gauges, grade bars, GPA line |
+| Gen-ed tags | `_uw_source.py:738`, `csv_snapshot.py:508` | Course chips (waffle groups wait for the TODO) |
+| Saved store | `SavedContext` | Saved drop target |
+
+### Failure modes
+
+| New path | Realistic failure | Test | User sees |
+|---|---|---|---|
+| ChatProvider stream | Stream drops after navigating | R11 provider test | Existing chat error in the dock |
+| `/api/planner/preview` | Revision moved (409) | R2 test | Refetch once, then "Couldn't load · Retry" |
+| `/api/planner/redo` | Edit no longer valid | R4 test | "Couldn't save" |
+| `/api/planner/degree` | One provider slow | R12 test | That term shows unknown credits and load |
+| Term-aware edit | Course not offered in the destination term | R13 test | Card shows not-offered state (D8 flagged drop) |
+| dnd drop save | 500 from the planner | D8 / T6 test | Card reverts, "Couldn't save · Retry" |
+| Course pop-up | Catalog API down | T3 test | "Couldn't load · Retry" in the body |
+| Pop-up a11y | Dock hidden by the modal manager | R15 test | Dock stays reachable |
+| Place photo import | Commons rate-limit | R7 test | Photo skipped; rerun fills it |
+
+No failure mode is silent and untested, so there are 0 critical gaps.
+
+### Worktree parallelization strategy
+
+| Step | Modules touched | Depends on |
+|---|---|---|
+| E1 chat characterization + ChatProvider | frontend/src/contexts, frontend/src/pages (ChatPage) | — |
+| E2 planner backend (R2, R4, R12, R13, R14, R16) | backend/app/planner, backend/app/api/routes, schools/*/programs | — |
+| E3 data backends (events fields, place photos, catalog fields) | backend/app/sources, scripts, schools/*/places | — |
+| E4 dialog container + pop-up hosts + old page removal | frontend/src/components (AppDialog, course, events, map), frontend/src/App.js | E1 (App.js shell) |
+| E5 dnd-kit + chat dock + attachments | frontend/src/components (dnd, ChatDock), frontend/src/contexts | E1, E4 |
+| E6 degree board + semester view UI | frontend/src/components/planner, frontend/src/pages (Courses) | E2, E5 |
+
+- **Lanes:** Lane A is E1 → E4 → E5 (shared frontend shell). Lane B is E2 (independent). Lane C is E3 (independent). E6 follows A and B.
+- **Execution order:** launch A, B and C. Merge B and C as they finish. After A merges, run E6.
+- **Conflict flags:**
+  - `frontend/src/App.js` is touched by E1, E4 and E5, so keep them in one lane.
+  - `docs/designs/tab-workspaces.md` and `CONTRACTS.md` are touched by E2 (diff contract). Update them in E2 only.
+
+### Eng Implementation Tasks
+
+These amend design tasks T1–T12 above. Effort ratios: features ~30×, tests ~50×, architecture ~5×; human ÷ CC.
+
+- [ ] **E1 (P1, human: ~3d / CC: ~2h)**: Chat. Characterization tests, then ChatProvider.
+  - Surfaced by: R1, R11.
+  - Files: `frontend/src/pages/ChatPage.js`, `ChatPage.test.js`, new `frontend/src/contexts/ChatContext.js`.
+  - Verify: the 5 characterization tests pass before and after the move; provider tests pass.
+- [ ] **E2 (P1, human: ~3d / CC: ~2h)**: Planner backend. Term-aware view and validation, preview, redo, degree endpoint, diff in/out blocks, `complete` flag with encoded-only groups.
+  - Surfaced by: R2, R4, R12, R13, R14, R16.
+  - Files: `backend/app/planner/{service,edits,store,programs,checker}.py`, `backend/app/api/routes/planner.py`, `backend/app/planner/CONTRACTS.md`, `schools/*/programs/*.yaml`.
+  - Verify: `backend/.venv/bin/python -m pytest backend/app/tests -q`.
+- [ ] **E3 (P2, human: ~2d / CC: ~1h)**: Data backends. Event fields with the full description, place photo + author + licence, catalog fields for all schools.
+  - Surfaced by: R7, T9, T10, T12.
+  - Files: `backend/app/sources/ical_events.py`, `scripts/import_places.py`, `backend/app/sources/academics.py`.
+  - Verify: pytest for each provider, plus a recorded `imageinfo` fixture.
+- [ ] **E4 (P1, human: ~3d / CC: ~2h)**: Pop-ups.
+  - Surfaced by: R3, R6, R8, R10, R15.
+  - Details: the page-column container, AppDialog `container` / insets, the app-level `CoursePopupHost` (`?course=`), the event pop-up without Tonight, the place sheet. Redirect `/courses/:id` and delete CourseDetailPage and `/api/courses/{id}`.
+  - Files: `frontend/src/App.js`, `frontend/src/components/AppDialog.js`, new pop-up components, `backend/app/api/routes/courses.py`.
+  - Verify: Jest a11y test (dock not `aria-hidden`), redirect test, chip on `/map` opens the pop-up.
+- [ ] **E5 (P1, human: ~3d / CC: ~2h)**: Drag and drop + dock.
+  - Surfaced by: R5, R9, D17, D18.
+  - Details: dnd-kit (pinned) with keyboard and touch sensors, attachment chips as text lines, dock breakpoints.
+  - Files: `frontend/package.json`, new `frontend/src/components/dnd/*`, `ChatDock`, `EnhancedChatInput.js`.
+  - Verify: keyboard move between terms; a chip is serialized on send; Ask doesn't send.
+- [ ] **E6 (P1, human: ~1w / CC: ~4h)**: Degree board and semester view on the term-aware API.
+  - Surfaced by: R12, R13, R14 (with design D5, D8–D11, D13).
+  - Files: `frontend/src/components/planner/*`, `frontend/src/pages/CoursesPage.js`.
+  - Verify: CU board with no requirement UI; Finish hidden while `complete` is false; the semester view for Fall 2027 shows that term's report.
+
+### Eng completion summary
+
+- **Step 0, Scope Challenge:** scope accepted as-is (Original arrangement, D1).
+- **Reality rows:** 7/7 tier-1 rows emitted, 1 unverified premise (dnd-kit on React 19, to verify at install, R5).
+- **Architecture review:** 2 issues (R8, R9).
+- **Code quality review:** 2 issues (R10, plus the large-file note).
+- **Test review:** diagram produced, 22 gaps identified (regression contract R11).
+- **Performance review:** 1 issue (R12).
+- **NOT in scope:** written.
+- **What already exists:** written.
+- **TODOS.md updates:** 1 item proposed and added (D21).
+- **Failure modes:** 0 critical gaps.
+- **Unresolved decisions:** 0 in this review.
+- **Outside voice:** Outside review, completed, 5 findings. 4 became decisions (R13–R16); 1 was a correction to R2's cache key.
+- **Parallelization:** 3 lanes, 2 parallel and 1 sequential (E6 after A + B).
+- **Lake Score:** 4/16, the answers that picked a 10/10 option out of those scored for completeness.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
-| Outside Review | Outside review (design phase) + second review | Independent 2nd opinion | 1 | completed | Outside review: 11 findings, hard rejection #7; main review: 12 findings |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 0 | — | Not run for this plan |
+| Outside Review | Outside review `outside review exec` (plan-review + design phases) | Independent 2nd opinion | 2 | completed | plan-review: 5 findings (4 decisions R13–R16, 1 correction to R2); design: 11 findings folded into D3–D24 |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 27 issues, 0 critical gaps (all 16 decisions resolved; tasks E1–E6) |
 | Design Review | `/plan-design-review` | UI/UX gaps | 1 | clean | score: 3/10 → 8/10, 22 decisions |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
-- **OUTSIDE COVERAGE:** Outside review design phase completed with 11 findings, all folded into D3–D24. second review completed with 12 findings, all folded in.
-- **CROSS-MODEL:** Outside review and main review independently agreed on:
-  - pop-ups covering the dock;
-  - undefined drag paths and failure states;
-  - missing loading and error states;
-  - dock behaviour at tablet and phone widths;
-  - keyboard equivalents for drag.
-  - Only Outside review raised: hard rejection #7 (stacked cards), coloured-text contrast, and data honesty (Finish, Load, historical seats).
-  - Only main review raised: first-run / CU states, and the Saved drop target.
-- **VERDICT:** DESIGN CLEARED. Eng review required: the plan brings planner M2 (multi-term) forward and adds dnd-kit, an app-level chat dock and new backend data fields.
+- **OUTSIDE COVERAGE:**
+  - **Plan-review phase:** Outside review completed with 5 findings. All 5 were verified against code (`service.py:120`, `econ-ba.yaml:84`, `ModalManager.js:39`, `edits.py:354`, `edits.py:172`) and resolved.
+  - **Design phase:** Outside review completed with 11 findings, resolved in the design review.
+- **CROSS-MODEL:** The main review's sections found the single-owner chat state (R1), the saving preview (R2), the Tonight data gap (R3), redo (R4) and degree loading (R12). Outside review alone found:
+  - term-aware validation (R13), confirmed by a bounded investigation;
+  - over-claiming in the waffle (R14), confirmed;
+  - MUI `aria-hidden` on the dock (R15), confirmed in MUI 9.2.0 source;
+  - missing ghost blocks for moves (R16), confirmed;
+  - the R2 cache key, confirmed.
+
+  The two models agreed on the R2 / R10 direction. Outside review extended both.
+- **VERDICT:** DESIGN CLEARED. ENG REVIEWED: every decision is resolved and the status is issues_open only because mapped work remains (E1–E6). Ready to implement.
 
 NO UNRESOLVED DECISIONS

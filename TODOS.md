@@ -14,6 +14,24 @@
 **Priority:** P2
 **Depends on:** None
 
+## Planner
+
+### Add a gen-ed rule kind and encode gen-ed groups
+
+**What:** Add a `gen_ed` rule kind to `backend/app/planner/programs.py` (RULE_KINDS) and `checker.py`. It matches courses by gen-ed tag, needing `n` courses or `credits`. Then hand-check and encode UW breadth / Comm / QR groups and UVA Disciplines groups in the program files.
+
+**Why:** The degree waffle shows only the rules a program file encodes, plus one "Other credit" block (eng review R14, docs/designs/tab-workspaces.md). Encoded gen-ed rules would give real gen-ed squares and better requirement coverage.
+
+**Pros:** The data is already parsed: UW designations (`_uw_source.py:738`) and UVA Disciplines (`csv_snapshot.py:508`). No redesign is needed; the waffle already draws one group per encoded rule.
+
+**Cons:** About a day of code plus hand-checking for each school. Finish stays hidden at UW, because residency, the language requirement and the 108 L&S credits have no data source, so `complete` stays false.
+
+**Context:** This came out of the R14 investigation in the 2026-10-28 eng review. Start with UW breadth, since its designations carry clear prefixes.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** R14 (the encoded-groups waffle) shipped
+
 ## QA follow-ups (from /qa on undergrad-experimental, 2026-10-27)
 
 Report: .gstack/qa-reports/run-20261027T211619Z/qa-report-localhost-2026-10-27.md
