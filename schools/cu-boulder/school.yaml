@@ -10,6 +10,10 @@ school:
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
 
+planner:
+  # Terms CU Class Search (FOSE) publishes sections for.
+  terms: ["Fall 2026", "Spring 2027"]
+
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (Main Campus (tagged boundary=administrative in OSM)).
   osm_area:

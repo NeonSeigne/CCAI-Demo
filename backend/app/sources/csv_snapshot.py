@@ -25,6 +25,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.config import get_settings
+from app.planner.facts import CourseFacts, Meeting, Section
 from app.sources import cache
 
 logger = logging.getLogger(__name__)
@@ -354,3 +355,250 @@ async def course_sections(
         "query": query_meta,
         **_meta(as_of),
     }
+
+
+# ---------------------------------------------------------------------------
+# Planner course facts
+# ---------------------------------------------------------------------------
+
+_SECTION_KINDS = {
+    "lecture": "lecture", "discussion": "discussion", "laboratory": "lab",
+    "seminar": "seminar", "sem": "seminar",
+}
+# Kinds a full enrolment takes one of each of, when a course lists them.
+_BUNDLE_KINDS = ("lecture", "lab", "discussion")
+_DAYS = {"mo": "Mo", "tu": "Tu", "we": "We", "th": "Th", "fr": "Fr", "sa": "Sa", "su": "Su"}
+_MEETING = re.compile(r"^([a-z]+)\s+(\d{1,2}:\d{2}\s*[ap]m)\s*-\s*(\d{1,2}:\d{2}\s*[ap]m)$", re.I)
+_UNAVAILABLE = "theCourseForum snapshot couldn't be loaded"
+
+Index = Dict[str, List[Dict[str, str]]]
+# Per-file course index, rebuilt when the file's rows are reloaded.
+_indexes: Dict[str, Tuple[List[Dict[str, str]], Index]] = {}
+# Hardest-third cutoff for the grade tables it was computed from.
+_grade_stats: Dict[str, Any] = {}
+
+
+def _file_term(url: str) -> Optional[str]:
+    """``.../2027_spring.csv`` -> ``"Spring 2027"``."""
+    match = re.search(r"(\d{4})_(spring|summer|fall|january)", url or "", re.I)
+    return f"{match.group(2).title()} {match.group(1)}" if match else None
+
+
+def _same_term(term: str) -> str:
+    return " ".join((term or "").split()).title()
+
+
+def term_files() -> Dict[str, str]:
+    """Sections file per term: ``sections_by_term`` plus ``sections_url``."""
+    snapshot = get_settings().academics.snapshot
+    files = {_same_term(term): url for term, url in snapshot.sections_by_term.items() if url}
+    term = _file_term(snapshot.sections_url)
+    if snapshot.sections_url and term and term not in files:
+        files[term] = snapshot.sections_url
+    return files
+
+
+def planner_terms() -> List[str]:
+    """Terms the configured sections files cover, oldest first."""
+    def order(term: str) -> Tuple[int, int]:
+        season, _, year = term.rpartition(" ")
+        return _int(year), _SEASON_ORDER.get(season.lower(), -1)
+
+    return sorted(term_files(), key=order)
+
+
+def _index(url: str, rows: List[Dict[str, str]], subject_key: str, number_key: str) -> Index:
+    """Rows of one loaded file by course identifier."""
+    hit = _indexes.get(url)
+    if hit and hit[0] is rows:
+        return hit[1]
+    index: Index = {}
+    for row in rows:
+        key = _identifier(row.get(subject_key, "").upper(), row.get(number_key, "").upper())
+        index.setdefault(key, []).append(row)
+    _indexes[url] = (rows, index)
+    return index
+
+
+async def _grade_index() -> Tuple[Index, Optional[str], bool, Tuple[int, ...]]:
+    """Grade rows of every grades file by course, the newest file date,
+    whether any file failed, and a key that changes when a file reloads."""
+    urls = get_settings().academics.snapshot.grades_urls
+    loaded = await asyncio.gather(*(_table(url) for url in urls), return_exceptions=True)
+    merged: Index = {}
+    dates: List[str] = []
+    failed = False
+    key: List[int] = []
+    for url, result in zip(urls, loaded):
+        if isinstance(result, BaseException):
+            logger.warning("Grades file %s failed: %s", url, result)
+            failed = True
+            continue
+        rows, as_of = result
+        key.append(id(rows))
+        if as_of:
+            dates.append(as_of)
+        for course, group in _index(url, rows, "Subject", "Catalog Number").items():
+            merged.setdefault(course, []).extend(group)
+    return merged, max(dates) if dates else None, failed, tuple(key)
+
+
+def _clock(text: str) -> str:
+    """``"1:45pm"`` -> ``"13:45"``."""
+    match = re.match(r"(\d{1,2}):(\d{2})\s*([ap])m", text.strip(), re.I)
+    hour, minute, half = int(match.group(1)), match.group(2), match.group(3).lower()
+    hour = hour % 12 + (12 if half == "p" else 0)
+    return f"{hour:02d}:{minute}"
+
+
+def parse_meetings(text: str) -> List[Meeting]:
+    """``"tuth 12:30pm - 1:45pm"`` -> Tu and Th 12:30-13:45; ``"tba"`` -> []."""
+    match = _MEETING.match((text or "").strip())
+    if not match:
+        return []
+    letters = match.group(1).lower()
+    days = [letters[i:i + 2] for i in range(0, len(letters), 2)]
+    if not days or any(d not in _DAYS for d in days):
+        return []
+    start, end = _clock(match.group(2)), _clock(match.group(3))
+    return [Meeting(day=_DAYS[d], start=start, end=end) for d in days]
+
+
+def parse_units(text: str) -> Optional[Tuple[float, float]]:
+    """``"3"`` -> (3, 3), ``"1 - 12"`` -> (1, 12), ``""`` -> None."""
+    numbers = [_float(part) for part in (text or "").split("-")]
+    if not numbers or any(n is None for n in numbers):
+        return None
+    return min(numbers), max(numbers)
+
+
+def _section_kind(text: str) -> str:
+    return _SECTION_KINDS.get((text or "").strip().lower(), "other")
+
+
+def _course_credits(rows: List[Dict[str, str]]) -> Optional[Tuple[float, float]]:
+    """Credit range of a course: its lectures' units, zero-unit companions aside."""
+    lectures = [r for r in rows if _section_kind(r.get("Type", "")) == "lecture"]
+    ranges = [u for u in (parse_units(r.get("Units", "")) for r in lectures or rows) if u]
+    nonzero = [u for u in ranges if u[1] > 0] or ranges
+    if not nonzero:
+        return None
+    return min(u[0] for u in nonzero), max(u[1] for u in nonzero)
+
+
+def _term_sections(rows: List[Dict[str, str]]) -> List[Section]:
+    kinds = {_section_kind(r.get("Type", "")) for r in rows}
+    bundle = [k for k in _BUNDLE_KINDS if k in kinds]
+    sections = []
+    for row in rows:
+        kind = _section_kind(row.get("Type", ""))
+        meetings = [m for i in range(1, 5) for m in parse_meetings(row.get(f"Days{i}", ""))]
+        open_seats = _int(row.get("EnrollmentLimit")) - _int(row.get("Enrollment"))
+        sections.append(Section(
+            id=row.get("ClassNumber") or row.get("Section", ""),
+            kind=kind,
+            meetings=tuple(meetings) if meetings else None,
+            seats_open=max(open_seats, 0),
+            # Lecture plus discussion/lab rows: a full enrolment takes one of each.
+            requires=tuple(k for k in bundle if k != kind) if len(bundle) > 1 and kind in bundle else (),
+        ))
+    return sections
+
+
+def _gen_ed(rows: List[Dict[str, str]]) -> Optional[List[str]]:
+    """``Disciplines`` names, split on ``$`` (names themselves contain commas)."""
+    names = [
+        name.strip() for row in rows
+        for name in (row.get("Disciplines") or "").split("$") if name.strip()
+    ]
+    return list(dict.fromkeys(names)) or None
+
+
+def _course_gpa(rows: List[Dict[str, str]]) -> Optional[float]:
+    students = sum(_int(r.get("# of Students")) for r in rows)
+    weighted = sum((_float(r.get("Course GPA")) or 0) * _int(r.get("# of Students")) for r in rows)
+    return round(weighted / students, 2) if students else None
+
+
+def _hardest_third(index: Index, key: Tuple[int, ...]) -> Optional[float]:
+    """Average GPA below which a course is in the snapshot's hardest third."""
+    if _grade_stats.get("key") == key:
+        return _grade_stats["cutoff"]
+    gpas = sorted(g for g in (_course_gpa(group) for group in index.values()) if g is not None)
+    cutoff = gpas[len(gpas) // 3] if len(gpas) >= 3 else None
+    _grade_stats.update(key=key, cutoff=cutoff)
+    return cutoff
+
+
+async def course_facts(
+    identifiers: List[str], term: str, *, harder_below_gpa: Optional[float] = None
+) -> Dict[str, CourseFacts]:
+    """Planner facts for ``identifiers`` in ``term`` from the snapshot files.
+
+    A course is known when any sections or grades file lists it; it is
+    offered when the asked term's file does. Prerequisites aren't published.
+    ``harder_below_gpa`` overrides the hardest-third cutoff from the grades.
+    Never raises: a file that can't load makes its answers unknown, and a
+    course found nowhere while a file is down reads unavailable.
+    """
+    term = _same_term(term)
+    files = term_files()
+    loaded = await asyncio.gather(*(_table(url) for url in files.values()), return_exceptions=True)
+    indexes: Dict[str, Tuple[Index, Optional[str]]] = {}
+    failed = False
+    for (label, url), result in zip(files.items(), loaded):
+        if isinstance(result, BaseException):
+            logger.warning("Sections file %s failed: %s", url, result)
+            failed = True
+            continue
+        rows, as_of = result
+        indexes[label] = (_index(url, rows, "Mnemonic", "Number"), as_of)
+    grades, grades_as_of, grades_failed, grades_key = await _grade_index()
+    failed = failed or grades_failed
+    cutoff = harder_below_gpa if harder_below_gpa is not None else _hardest_third(grades, grades_key)
+
+    def one(identifier: str) -> CourseFacts:
+        subject, number = _split(identifier)
+        if not subject:
+            return CourseFacts(identifier=identifier, known="no")
+        key = _identifier(subject, number)
+        here = indexes[term][0].get(key) if term in indexes else None
+        # Rows from every term's file, the asked term first.
+        listed = [row for label in [term, *indexes] if label in indexes for row in indexes[label][0].get(key) or []]
+        listed = list({id(row): row for row in listed}.values())
+        graded = grades.get(key)
+        if not (listed or graded):
+            if failed:
+                return CourseFacts(identifier=key, known="unavailable", unavailable_reason=_UNAVAILABLE)
+            return CourseFacts(identifier=key, known="no")
+
+        rows = here or listed
+        offered = ("yes" if here else "no") if term in indexes else "unknown"
+        avg_gpa = _course_gpa(graded) if graded else None
+        title = rows[0].get("Title", "") if rows else graded[0].get("Class Title", "")
+        return CourseFacts(
+            identifier=key,
+            known="yes",
+            title=title,
+            credits=_course_credits(rows) if rows else None,
+            offered=offered,
+            sections=_term_sections(here) if here else ([] if offered == "no" else None),
+            bundles_known=bool(here),
+            gen_ed=_gen_ed(listed),
+            avg_gpa=avg_gpa,
+            harder=(avg_gpa < cutoff) if avg_gpa is not None and cutoff is not None else None,
+            prereq_tree=None,
+            prereq_known=False,
+            as_of=indexes[term][1] if here else grades_as_of,
+        )
+
+    out: Dict[str, CourseFacts] = {}
+    for identifier in identifiers:
+        try:
+            out[identifier] = one(identifier)
+        except Exception:  # noqa: BLE001 — one bad course never fails the batch
+            logger.exception("Snapshot facts failed for %s", identifier)
+            out[identifier] = CourseFacts(
+                identifier=identifier, known="unavailable", unavailable_reason=_UNAVAILABLE
+            )
+    return out

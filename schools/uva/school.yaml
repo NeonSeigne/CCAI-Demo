@@ -30,6 +30,10 @@ academics:
     source_name: "theCourseForum"
     source_url: "https://thecourseforum.com"
     sections_url: "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/semester_data/csv/2026_fall.csv"
+    # Every term the planner covers. The chat tools read sections_url above.
+    sections_by_term:
+      "Fall 2026": "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/semester_data/csv/2026_fall.csv"
+      "Spring 2027": "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/semester_data/csv/2027_spring.csv"
     grades_urls:
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2026_spring.csv"
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2025_fall.csv"
@@ -37,6 +41,13 @@ academics:
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_fall.csv"
       - "https://raw.githubusercontent.com/thecourseforum/theCourseForum2/HEAD/tcf_website/management/commands/grade_data/csv/2024_spring.csv"
     refresh_hours: 24
+
+planner:
+  # College of Arts & Sciences course load: 12 credits minimum, 18 maximum
+  # without the advising dean's permission (other UVA schools may differ).
+  # "Harder" uses the hardest third of the snapshot's grade data.
+  credit_limits: {min: 12, max: 18}
+  credit_limits_source: "https://college.as.virginia.edu/course_load"
 
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (amenity=university).

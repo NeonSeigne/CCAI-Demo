@@ -16,6 +16,8 @@ from urllib.parse import quote
 
 import httpx
 
+from app.planner.facts import CourseFacts, PrereqNode, Section
+
 logger = logging.getLogger(__name__)
 
 
@@ -614,3 +616,239 @@ async def course_sections(
         "truncated": truncated,
         "query": query_meta,
     }
+
+
+# ---------------------------------------------------------------------------
+# Planner course facts
+# ---------------------------------------------------------------------------
+
+_SECTION_KINDS = {"LEC": "lecture", "LAB": "lab", "DIS": "discussion", "SEM": "seminar"}
+# Designations that are gen-ed labels; "Level" and "L&S Credit" are not.
+_GEN_ED_PREFIXES = ("Core GenEd", "Breadth", "Comm")
+# Course pages fetched at once for one batch of facts.
+FACTS_CONCURRENCY = 6
+_UNAVAILABLE = "Course Map didn't answer"
+_COURSE_CODE = re.compile(r"^[A-Z][A-Z&/ ]*?\s*\d{2,4}[A-Z]?$")
+_BARE_NUMBER = re.compile(r"^\d{2,4}[A-Z]?$")
+
+
+def prerequisite_tree(requirements: Dict[str, Any]) -> Tuple[Optional[PrereqNode], List[str]]:
+    """Course Map ``requirements.nodes`` to a prerequisite tree, plus notes.
+
+    Keeps ``all``/``any`` groups and ``course`` leaves with their minimum
+    grade and timing. A ``condition`` that is only a course code (``"MATH
+    217"``, or ``"217"`` beside other MATH courses) becomes a course; any
+    other condition (standing, a QR requirement) and every ``not`` exclusion
+    is left out of the tree and described in the notes instead. Returns
+    ``(None, notes)`` when nothing checkable remains. The flat
+    ``prerequisites`` list the chat tools return is unchanged.
+    """
+    nodes = {
+        n["id"]: n for n in (requirements or {}).get("nodes") or []
+        if isinstance(n, dict) and n.get("id")
+    }
+    notes: List[str] = []
+    if not nodes:
+        return None, notes
+
+    def course_leaf(course: Dict[str, Any]) -> Optional[PrereqNode]:
+        label = _display_identifier(course.get("subjects") or [], course.get("course_number"))
+        if not course.get("subjects") or not course.get("course_number"):
+            return None
+        timing = "concurrent" if "concurrent" in str(course.get("timing") or "") else "prior"
+        return PrereqNode(
+            kind="course", course=label, minimum_grade=course.get("minimum_grade") or None, timing=timing
+        )
+
+    def condition_leaf(text: str, siblings: List[Dict[str, Any]]) -> Optional[PrereqNode]:
+        code = normalize_identifier(text)
+        if _BARE_NUMBER.match(code):
+            # "MATH 211, 217, or 221": the bare number takes its siblings' subject.
+            subjects = {tuple(s["course"].get("subjects") or []) for s in siblings}
+            if len(subjects) == 1:
+                return course_leaf({"subjects": list(subjects.pop()), "course_number": code})
+            return None
+        if _COURSE_CODE.match(code):
+            subjects, number = _split_identifier(code)
+            if subjects and number:
+                return course_leaf({"subjects": subjects, "course_number": number})
+        return None
+
+    def described(node_id: str, seen: frozenset) -> List[str]:
+        """Course codes and condition texts under a node, for a note."""
+        node = nodes.get(node_id)
+        if not node or node_id in seen:
+            return []
+        if node.get("kind") == "course" and node.get("course"):
+            leaf = course_leaf(node["course"])
+            return [leaf.course] if leaf else []
+        if node.get("kind") == "condition":
+            return [" ".join(str(node.get("condition") or "").split())]
+        return [d for child in node.get("children") or [] for d in described(child, seen | {node_id})]
+
+    def build(node_id: str, seen: frozenset, siblings: List[Dict[str, Any]]) -> Optional[PrereqNode]:
+        node = nodes.get(node_id)
+        if not node or node_id in seen:
+            return None
+        seen = seen | {node_id}
+        kind = node.get("kind")
+        if kind == "course" and node.get("course"):
+            return course_leaf(node["course"])
+        if kind == "condition":
+            text = " ".join(str(node.get("condition") or "").split())
+            leaf = condition_leaf(text, siblings)
+            if not leaf and text:
+                notes.append(f"Not checked: {text}")
+            return leaf
+        if kind == "not":
+            excluded = [
+                re.sub(r"^students with credit for\s+", "", d, flags=re.I)
+                for child in node.get("children") or [] for d in described(child, seen)
+            ]
+            if excluded:
+                notes.append("Not open to students with credit for " + ", ".join(dict.fromkeys(excluded)))
+            return None
+        if kind in ("all", "any"):
+            children = [nodes[c] for c in node.get("children") or [] if c in nodes]
+            courses = [c for c in children if c.get("kind") == "course" and c.get("course")]
+            built = [b for b in (build(c["id"], seen, courses) for c in children) if b]
+            if not built:
+                return None
+            return built[0] if len(built) == 1 else PrereqNode(kind=kind, children=tuple(built))
+        return None
+
+    root = (requirements or {}).get("root")
+    if root not in nodes:
+        root = next(iter(nodes))
+    return build(root, frozenset(), []), notes
+
+
+def _same_term(term: str) -> str:
+    return " ".join((term or "").split()).title()
+
+
+def _credits_range(course: Dict[str, Any]) -> Optional[Tuple[float, float]]:
+    low, high = course.get("credits_min"), course.get("credits_max")
+    numbers = [v for v in (low, high) if isinstance(v, (int, float))]
+    if not numbers:
+        return None
+    return float(min(numbers)), float(max(numbers))
+
+
+def _gen_ed(course: Dict[str, Any]) -> Optional[List[str]]:
+    designations = course.get("designations")
+    if not isinstance(designations, list):
+        return None
+    return [str(d) for d in designations if str(d).startswith(_GEN_ED_PREFIXES)]
+
+
+def _term_sections(course: Dict[str, Any], term: str) -> List[Section]:
+    out = []
+    for row in course.get("sections") or []:
+        if term_label(row.get("term_id")) != term:
+            continue
+        capacity, enrolled = row.get("capacity"), row.get("enrolled")
+        seats = (
+            max(capacity - enrolled, 0)
+            if isinstance(capacity, int) and isinstance(enrolled, int) else None
+        )
+        out.append(Section(
+            id=str(row.get("section_number") or row.get("source_section_id") or ""),
+            kind=_SECTION_KINDS.get(str(row.get("section_type") or "").upper(), "other"),
+            # Course Map doesn't publish meeting times.
+            meetings=None,
+            seats_open=seats,
+        ))
+    return out
+
+
+async def _course_facts_one(
+    identifier: str, term: str, covered: List[str], harder_below: Optional[float]
+) -> CourseFacts:
+    data = await _get_course(normalize_identifier(identifier))
+    course = data["course"]
+    display = _course_display(course)
+    rows = (course.get("offerings") or []) + (course.get("sections") or [])
+    terms = {term_label(r.get("term_id")) for r in rows if r.get("term_id")}
+    if term in terms:
+        offered = "yes"
+    elif term in covered:
+        offered = "no"
+    else:
+        offered = "unknown"
+    sections = _term_sections(course, term)
+
+    avg_gpa = None
+    try:
+        _, cumulative, _ = await _grades_coursemap(display)
+        avg_gpa = (cumulative or {}).get("average_gpa")
+    except (FileNotFoundError, RuntimeError) as exc:  # the course resolved; grades are an extra
+        logger.warning("Course Map grades for facts failed: %s", exc)
+
+    requirements = course.get("requirements") or {}
+    tree, notes = prerequisite_tree(requirements)
+    text = " ".join((course.get("requirements_text") or "").split())
+    # Requisite text Course Map didn't structure can't be checked.
+    prereq_known = bool(requirements.get("nodes")) or not text
+    if text and not requirements.get("nodes"):
+        notes.append(f"Prerequisites as written: {text}")
+
+    observed = next(
+        (r.get("observed_at") for r in course.get("offerings") or []
+         if term_label(r.get("term_id")) == term and r.get("observed_at")),
+        course.get("observed_at"),
+    )
+    return CourseFacts(
+        identifier=display,
+        known="yes",
+        title=_title_case(course.get("title") or ""),
+        credits=_credits_range(course),
+        offered=offered,
+        sections=sections if sections or offered == "no" else None,
+        bundles_known=False,  # Course Map doesn't say which sections go together
+        gen_ed=_gen_ed(course),
+        avg_gpa=avg_gpa,
+        harder=(avg_gpa < harder_below) if avg_gpa is not None and harder_below is not None else None,
+        prereq_tree=tree,
+        prereq_known=prereq_known,
+        as_of=str(observed)[:10] if observed else None,
+        notes=notes,
+    )
+
+
+async def course_facts(
+    identifiers: List[str],
+    term: str,
+    *,
+    covered_terms: Optional[List[str]] = None,
+    harder_below_gpa: Optional[float] = None,
+) -> Dict[str, CourseFacts]:
+    """Planner facts for ``identifiers`` in ``term`` (``"Spring 2027"``).
+
+    ``covered_terms`` are the terms Course Map lists offerings for: a course
+    without an offering in a covered term reads not offered; in any other
+    term, unknown. Never raises for one course: a missing course is
+    ``known="no"``, an outage ``known="unavailable"``.
+    """
+    term = _same_term(term)
+    covered = [_same_term(t) for t in covered_terms or []]
+    limit = asyncio.Semaphore(FACTS_CONCURRENCY)
+
+    async def one(identifier: str) -> CourseFacts:
+        async with limit:
+            try:
+                return await _course_facts_one(identifier, term, covered, harder_below_gpa)
+            except FileNotFoundError:
+                return CourseFacts(identifier=normalize_identifier(identifier), known="no")
+            except Exception as exc:  # noqa: BLE001 — one bad course never fails the batch
+                if not isinstance(exc, RuntimeError):
+                    logger.exception("Course Map facts failed for %s", identifier)
+                return CourseFacts(
+                    identifier=normalize_identifier(identifier),
+                    known="unavailable",
+                    unavailable_reason=_UNAVAILABLE,
+                )
+
+    unique = list(dict.fromkeys(identifiers))
+    results = await asyncio.gather(*(one(i) for i in unique))
+    return dict(zip(unique, results))

@@ -1,0 +1,256 @@
+{
+  "data": {
+    "course": {
+      "course_id": "ECON 310",
+      "course_uid": "course_e104fb600738e5af6d58c4dd",
+      "course_number": 310,
+      "subjects": [
+        "ECON"
+      ],
+      "title": "STATISTICS: MEASUREMENT IN ECONOMICS",
+      "observed_at": "2026-10-14 17:50:09.728220+00:00",
+      "description": "Introduction to analysis of economic data. The techniques of descriptive statistics and statistical inference (hypothesis testing and estimation) as directed toward application in economic research.",
+      "requirements_text": "(ECON 101,102, or111) and (MATH 211, 217, or221)",
+      "credits_min": 4,
+      "credits_max": 4,
+      "designations": [
+        "Core GenEd - Mathematics & Quantitative Reasoning",
+        "Comm QR - Quantitative Reasoning B",
+        "Level - Intermediate",
+        "L&S Credit - L&S Liberal Arts and Science"
+      ],
+      "requirements": {
+        "nodes": [
+          {
+            "children": [
+              "req_econ_any",
+              "req_math_any"
+            ],
+            "condition": null,
+            "course": null,
+            "evidence": "(ECON 101,102, or111) and (MATH 211, 217, or221)",
+            "id": "root_all",
+            "kind": "all"
+          },
+          {
+            "children": [
+              "req_econ_101",
+              "req_econ_102",
+              "req_econ_111"
+            ],
+            "condition": null,
+            "course": null,
+            "evidence": "ECON 101,102, or111",
+            "id": "req_econ_any",
+            "kind": "any"
+          },
+          {
+            "children": [
+              "req_math_211",
+              "req_math_217",
+              "req_math_221"
+            ],
+            "condition": null,
+            "course": null,
+            "evidence": "MATH 211, 217, or221",
+            "id": "req_math_any",
+            "kind": "any"
+          },
+          {
+            "children": [],
+            "condition": null,
+            "course": {
+              "course_number": 101,
+              "minimum_grade": null,
+              "subjects": [
+                "ECON"
+              ],
+              "timing": "prior"
+            },
+            "evidence": "ECON 101",
+            "id": "req_econ_101",
+            "kind": "course"
+          },
+          {
+            "children": [],
+            "condition": null,
+            "course": {
+              "course_number": 102,
+              "minimum_grade": null,
+              "subjects": [
+                "ECON"
+              ],
+              "timing": "prior"
+            },
+            "evidence": "102",
+            "id": "req_econ_102",
+            "kind": "course"
+          },
+          {
+            "children": [],
+            "condition": null,
+            "course": {
+              "course_number": 111,
+              "minimum_grade": null,
+              "subjects": [
+                "ECON"
+              ],
+              "timing": "prior"
+            },
+            "evidence": "or111",
+            "id": "req_econ_111",
+            "kind": "course"
+          },
+          {
+            "children": [],
+            "condition": null,
+            "course": {
+              "course_number": 211,
+              "minimum_grade": null,
+              "subjects": [
+                "MATH"
+              ],
+              "timing": "prior"
+            },
+            "evidence": "MATH 211",
+            "id": "req_math_211",
+            "kind": "course"
+          },
+          {
+            "children": [],
+            "condition": "217",
+            "course": null,
+            "evidence": "MATH 211, 217, or221",
+            "id": "req_math_217",
+            "kind": "condition"
+          },
+          {
+            "children": [],
+            "condition": null,
+            "course": {
+              "course_number": 221,
+              "minimum_grade": null,
+              "subjects": [
+                "MATH"
+              ],
+              "timing": "prior"
+            },
+            "evidence": "or221",
+            "id": "req_math_221",
+            "kind": "course"
+          }
+        ],
+        "notes": [
+          "MATH 217 appears in direct requirements but is not in linked_courses; represented as a condition for review."
+        ],
+        "root": "root_all",
+        "status": "needs_review"
+      },
+      "offerings": [
+        {
+          "offering_id": "1272:296:005569",
+          "course_id": "ECON 310",
+          "term_id": "1272",
+          "observed_at": "2026-09-07 15:55:43.033547+00:00",
+          "credits_min": 4,
+          "credits_max": 4,
+          "typically_offered": "Fall, Spring"
+        },
+        {
+          "offering_id": "1274:296:005569",
+          "course_id": "ECON 310",
+          "term_id": "1274",
+          "observed_at": "2026-10-14 17:50:09.728220+00:00",
+          "credits_min": 4,
+          "credits_max": 4,
+          "typically_offered": "Fall, Spring"
+        }
+      ],
+      "sections": [
+        {
+          "term_id": "1272",
+          "source_section_id": "12938",
+          "section_number": "001",
+          "section_type": "LEC",
+          "capacity": 154,
+          "enrolled": 140
+        },
+        {
+          "term_id": "1272",
+          "source_section_id": "12939",
+          "section_number": "302",
+          "section_type": "LAB",
+          "capacity": 22,
+          "enrolled": 21
+        },
+        {
+          "term_id": "1272",
+          "source_section_id": "13462",
+          "section_number": "305",
+          "section_type": "LAB",
+          "capacity": 22,
+          "enrolled": 22
+        },
+        {
+          "term_id": "1274",
+          "source_section_id": "42818",
+          "section_number": "001",
+          "section_type": "LEC",
+          "capacity": 144,
+          "enrolled": 0
+        },
+        {
+          "term_id": "1274",
+          "source_section_id": "43189",
+          "section_number": "306",
+          "section_type": "LAB",
+          "capacity": 24,
+          "enrolled": 0
+        },
+        {
+          "term_id": "1274",
+          "source_section_id": "43190",
+          "section_number": "301",
+          "section_type": "LAB",
+          "capacity": 24,
+          "enrolled": 0
+        }
+      ],
+      "grades": [
+        {
+          "term_id": "1262",
+          "term_name": "Fall 2025",
+          "instructors": [
+            "David Hansen",
+            "Gregory Pac"
+          ],
+          "a": 114,
+          "ab": 82,
+          "b": 66,
+          "bc": 57,
+          "c": 63,
+          "d": 8,
+          "f": 2,
+          "total": 393
+        },
+        {
+          "term_id": "1264",
+          "term_name": "Spring 2026",
+          "instructors": [
+            "David Hansen",
+            "Gregory Pac"
+          ],
+          "a": 97,
+          "ab": 57,
+          "b": 72,
+          "bc": 41,
+          "c": 36,
+          "d": 14,
+          "f": 3,
+          "total": 322
+        }
+      ]
+    },
+    "following": []
+  }
+}
