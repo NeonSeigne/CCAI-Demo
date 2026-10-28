@@ -78,6 +78,10 @@ async def create_indexes():
         await db.database.saved_items.create_index([("user_id", 1), ("kind", 1), ("key", 1)], unique=True)
         await db.database.saved_items.create_index([("user_id", 1), ("collection_id", 1)])
         await db.database.saved_collections.create_index("user_id")
+
+        # Semester plans: one per student per school
+        from app.planner.store import ensure_indexes as ensure_plan_indexes
+        await ensure_plan_indexes(db.database)
         
         logger.info("Database indexes created successfully")
     except Exception as e:

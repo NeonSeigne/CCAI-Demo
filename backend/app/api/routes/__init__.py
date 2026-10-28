@@ -15,6 +15,7 @@ from .events import router as events_router
 from .places import router as places_router
 from .route import router as route_router
 from .origin import router as origin_router
+from .planner import router as planner_router
 
 router = APIRouter()
 router.include_router(chat_router)
@@ -33,3 +34,4 @@ router.include_router(events_router, prefix="/api")
 router.include_router(places_router, prefix="/api")
 router.include_router(route_router, prefix="/api")
 router.include_router(origin_router, prefix="/api")
+router.include_router(planner_router, prefix="/api")
