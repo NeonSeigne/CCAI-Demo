@@ -51,8 +51,8 @@ Report: .gstack/qa-reports/run-20261027T211619Z/qa-report-localhost-2026-10-27.m
 **What:** `pytest app/tests` stops at collection: app/tests/integration/test_document_upload.py raises FileNotFoundError. Fails on the base commit too.
 **Severity:** Medium · **Category:** Tests · **Priority:** P2
 
-## Completed
-
 ## Semester planner follow-ups
 
 - **Find a public UW-Madison meeting-time source.** Course Map sections have seats and term dates but no days, times or rooms, so UW gets no week grid, clash check or walk times. Look for a public, terms-compliant source (UW's public enrollment search, published schedule exports). Depends on nothing. Context: docs/designs/semester-planner.md, eng review R17.
+
+## Completed
