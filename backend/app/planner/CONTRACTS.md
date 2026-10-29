@@ -135,7 +135,8 @@ degree = {
     "complete": bool,                              # every program file says complete: true
     "groups": [{"program_id", "rule_id", "title", "status",   # one per encoded rule, file order
                 "size", "earned", "planned", "open",          # credits; earned + planned + open == size
-                "unknown_grade": n,                           # completed courses with no grade on record
+                "unknown_grade": n,                           # this group's own earned courses with no grade on record
+                "unknown_grade_credits": n,                   # their credits (<= earned); counted_elsewhere courses excluded
                 "courses": [ids],                             # what the rule took (status follows these)
                 "counted_elsewhere": [ids]}],                 # taken, but credits counted by an earlier group
                 # last: {"program_id": null, "rule_id": null, "title": "Other credit", "status": null, ...}

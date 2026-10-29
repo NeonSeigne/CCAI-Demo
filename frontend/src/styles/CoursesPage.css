@@ -617,3 +617,22 @@
     box-shadow: var(--shadow-soft-md);
   }
 }
+
+/* ---- Browse rows as drag sources (D4) ------------------------------------ */
+.cc-row-grip {
+  flex: 0 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: grab;
+}
+
+.cc-row-grip:hover { color: var(--ink); }
+
+.cc-tab { white-space: nowrap; }
+
+/* My degree and the semester view use the full column width. */
+.cc-page.cc-page-wide { max-width: none; }

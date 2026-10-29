@@ -1,0 +1,553 @@
+/* My degree board (design D5, D8, D13, D14, D17, D19, D22; approved r7-degree-1).
+   Tokens only: every colour comes from brand-tokens.css via var(). */
+
+.dg-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Group colours: the six course colours in file order, a neutral "Other credit". */
+.tone-c1 { --tone: var(--course-1); --tone-tint: var(--course-1-tint); --tone-ink: var(--course-1-ink); }
+.tone-c2 { --tone: var(--course-2); --tone-tint: var(--course-2-tint); --tone-ink: var(--course-2-ink); }
+.tone-c3 { --tone: var(--course-3); --tone-tint: var(--course-3-tint); --tone-ink: var(--course-3-ink); }
+.tone-c4 { --tone: var(--course-4); --tone-tint: var(--course-4-tint); --tone-ink: var(--course-4-ink); }
+.tone-c5 { --tone: var(--course-5); --tone-tint: var(--course-5-tint); --tone-ink: var(--course-5-ink); }
+.tone-c6 { --tone: var(--course-6); --tone-tint: var(--course-6-tint); --tone-ink: var(--course-6-ink); }
+.tone-other { --tone: var(--ink-soft); --tone-tint: var(--gauge-track); --tone-ink: var(--ink-soft); }
+
+/* ---- Toolbar: tabs, program, undo / redo ---------------------------------- */
+.dg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dg-program {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+}
+
+.dg-program h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.dg-catalog { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+
+.dg-history {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.dg-icon-btn {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dg-icon-btn:disabled { color: var(--ink-soft); opacity: 0.45; cursor: not-allowed; }
+.dg-icon-btn:not(:disabled):hover { background: var(--paper-sunken); }
+
+/* ---- Summary: Finish / open count, totals, waffle, key -------------------- */
+.dg-summary {
+  --dg-square: 16px;
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(150px, 180px) auto minmax(220px, 1fr);
+  gap: 24px 32px;
+  align-items: start;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+
+.dg-summary-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+.dg-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+
+.dg-finish { display: flex; flex-direction: column; gap: 4px; }
+
+.dg-finish-date {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--domain-academics-ink);
+}
+
+.dg-finish-count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--domain-student-life-ink);
+}
+
+.dg-stats { margin: 0; display: flex; flex-direction: column; }
+
+.dg-stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dg-stats dt { font-size: 13px; color: var(--ink-soft); }
+
+.dg-stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dg-stats dd.is-open { color: var(--domain-student-life-ink); }
+.dg-of { font-weight: 400; color: var(--ink-soft); }
+
+.dg-waffle {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--dg-square);
+  gap: 3px;
+  align-self: center;
+}
+
+.dg-square {
+  width: var(--dg-square);
+  height: var(--dg-square);
+  box-sizing: border-box;
+  border-radius: 3px;
+}
+
+.dg-square.is-earned { background: var(--tone); }
+.dg-square.is-planned { background: var(--tone-tint); }
+.dg-square.is-open { background: var(--paper); border: 1.5px dashed var(--tone); }
+
+.dg-square.is-unknown,
+.dg-key-hatch {
+  border: 1px solid var(--tone);
+  background: repeating-linear-gradient(135deg, var(--tone) 0 1.5px, var(--paper) 1.5px 4.5px);
+}
+
+.dg-key {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dg-key-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dg-key-dot {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  background: var(--tone);
+}
+
+.dg-key-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dg-key-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dg-key-left { color: var(--domain-student-life-ink); }
+
+.dg-key-ungraded { display: inline-flex; align-items: center; gap: 4px; color: var(--ink-soft); }
+
+.dg-key-hatch {
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border-radius: 3px;
+}
+
+/* Program picker in the waffle's place (D5). */
+.dg-picker {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dg-picker-field { display: flex; flex-direction: column; gap: 6px; min-width: 240px; }
+
+.dg-picker select,
+.dg-editor-row select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+/* ---- Term columns ------------------------------------------------------- */
+.dg-terms {
+  position: relative; /* keeps visually hidden text inside the scroller */
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+
+.dg-col {
+  flex: 0 0 280px;
+  min-width: 280px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  scroll-snap-align: start;
+}
+
+.dg-col.is-current { border: 1.5px solid var(--ink); }
+.dg-col.is-past { background: var(--paper-sunken); }
+
+.dg-col.dnd-target.is-drop-ready { outline-offset: -2px; }
+
+.dg-col-head { display: flex; flex-direction: column; gap: 6px; }
+
+.dg-col-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dg-col-title h3 { margin: 0; font-size: 17px; font-weight: 700; }
+
+.dg-load {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dg-load.is-easier { background: var(--difficulty-easier-tint); color: var(--difficulty-easier-ink); }
+.dg-load.is-typical { background: var(--paper-sunken); color: var(--ink-soft); }
+.dg-load.is-harder { background: var(--difficulty-harder-tint); color: var(--difficulty-harder-ink); }
+
+.dg-credits {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 20px;
+}
+
+.dg-credits-num {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dg-credits-unit { font-weight: 500; }
+.dg-credits-preview { color: var(--domain-academics-ink); }
+
+.dg-band {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gauge-track);
+}
+
+.dg-band-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--gauge-band-tint);
+}
+
+.dg-band-fill,
+.dg-band-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+
+.dg-band-fill { background: var(--domain-academics); }
+.dg-band-ghost { border: 1.5px dashed var(--domain-academics); box-sizing: border-box; }
+
+.dg-band-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1.5px;
+  background: var(--ink-soft);
+}
+
+.dg-cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.dg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  cursor: grab;
+}
+
+.dg-card.is-past { cursor: default; }
+.dg-card.is-pending { opacity: 0.7; }
+
+.dg-card.is-pulsing { animation: dg-pulse 700ms ease-out; }
+
+@keyframes dg-pulse {
+  0% { box-shadow: 0 0 0 0 var(--domain-academics); }
+  30% { box-shadow: 0 0 0 4px var(--domain-academics-tint); transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 0 var(--domain-academics-tint); transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-card.is-pulsing { animation: none; outline: 2px solid var(--domain-academics); }
+}
+
+.dg-card-top { display: flex; align-items: center; gap: 8px; }
+
+.dg-card-code {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dg-card-code:hover { text-decoration: underline; }
+
+.dg-gpa,
+.dg-grade {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dg-gpa.is-easier { background: var(--difficulty-easier-tint); color: var(--difficulty-easier-ink); }
+.dg-gpa.is-typical { background: var(--difficulty-typical-tint); color: var(--difficulty-typical-ink); }
+.dg-gpa.is-harder { background: var(--difficulty-harder-tint); color: var(--difficulty-harder-ink); }
+.dg-grade { background: var(--gauge-track); color: var(--ink); }
+
+.dg-card-more { width: 28px; height: 28px; border-color: transparent; color: var(--ink-soft); }
+
+.dg-card-title {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-tags { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+
+.dg-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.dg-tag .dg-key-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+.dg-slot { border-radius: 12px; }
+
+.dg-slot-btn {
+  width: 100%;
+  min-height: 52px;
+  border: 1.5px dashed var(--domain-academics);
+  border-radius: 12px;
+  background: var(--domain-academics-tint);
+  color: var(--domain-academics-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dg-open {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dg-open.is-primary { background: var(--ink); color: var(--paper); }
+
+/* ---- Past column -------------------------------------------------------- */
+.dg-past {
+  flex: 0 0 132px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  scroll-snap-align: start;
+}
+
+.dg-past h3 { margin: 0; font-size: 14px; font-weight: 700; }
+
+.dg-past-terms { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; flex: 1; }
+
+.dg-past-term {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dg-past-row { display: flex; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 700; }
+.dg-past-row.is-gpa { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.dg-past-credits, .dg-past-gpa { font-family: var(--font-mono); color: var(--ink); }
+
+.dg-past-bar { display: flex; gap: 2px; height: 4px; }
+.dg-past-bar > span { flex: 1; border-radius: 2px; background: var(--tone); }
+
+.dg-past-actions { display: flex; flex-direction: column; gap: 8px; }
+.dg-past-actions .dg-open { background: var(--paper); border: 1px solid var(--line); }
+
+/* ---- Completed editor (O2) ---------------------------------------------- */
+.dg-editor { padding: 20px; border-radius: 16px !important; font-family: var(--font-app); }
+
+.dg-editor-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.dg-editor-head h2 { margin: 0; font-size: 20px; }
+
+.dg-editor-search { display: flex; flex-direction: column; gap: 8px; }
+
+.dg-editor-search input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+}
+
+.dg-editor-results,
+.dg-editor-list { margin: 0; padding: 0; list-style: none; }
+
+.dg-editor-results li,
+.dg-editor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+.dg-editor-list { margin-top: 12px; max-height: 50vh; overflow-y: auto; }
+
+.dg-editor-check { display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.dg-editor-check input { width: 18px; height: 18px; accent-color: var(--ink); }
+.dg-editor-title { font-size: 13px; color: var(--ink-soft); }
+
+.dg-editor-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+/* ---- Loading ------------------------------------------------------------ */
+.dg-summary.is-loading .cc-ph { width: 100%; }
+.dg-ph-big { height: 40px !important; width: 70% !important; }
+.dg-ph-waffle { width: 285px; height: 149px; border-radius: 6px; }
+.dg-col.is-loading .cc-ph { width: 100%; }
+.dg-ph-title { height: 18px !important; width: 60% !important; }
+.dg-ph-card { height: 72px !important; border-radius: 12px !important; }
+
+/* ---- Widths (D17) ------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .dg-summary { grid-template-columns: minmax(150px, 180px) 1fr; }
+  .dg-key { grid-column: 1 / -1; }
+}
+
+@media (max-width: 767px) {
+  .dg-summary { --dg-square: 12px; grid-template-columns: 1fr; padding: 16px; }
+  .dg-waffle { justify-self: start; }
+  .dg-terms { scroll-snap-type: x mandatory; }
+  .dg-col { flex: 0 0 100%; min-width: 100%; }
+  .dg-past { flex: 0 0 100%; }
+  .dg-program h2 { font-size: 20px; }
+}

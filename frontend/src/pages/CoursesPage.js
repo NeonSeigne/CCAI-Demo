@@ -1,6 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState,
+} from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, Search, X } from 'lucide-react';
+import DragIndicatorRounded from '@mui/icons-material/DragIndicatorRounded';
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import SaveButton from '../components/SaveButton';
 import {
@@ -15,9 +18,16 @@ import { getCatalogCourse, getCatalogStarters, searchCatalog } from '../api/camp
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
+import { usePlanner } from '../contexts/PlannerContext';
+import { useOpenCourse } from '../utils/openCourse';
+import { useDraggableItem } from '../components/dnd';
+import DegreeBoard from '../components/planner/degree/DegreeBoard';
 import '../styles/CoursesPage.css';
 
+const SemesterView = lazy(() => import('../components/planner/semester/SemesterView'));
+
 const SEARCH_LIMIT = 20;
+const MODES = ['browse', 'degree', 'semester'];
 const SECTION_ROWS = 6;
 const isAbort = (error) => error?.name === 'AbortError';
 const isPhone = () => typeof window !== 'undefined'
@@ -123,7 +133,9 @@ function SectionsBlock({ data, school }) {
   );
 }
 
-function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
+function CoursePreview({
+  data, school, onSelectCourse, onAsk, onDetails, headingRef,
+}) {
   const caps = data.capabilities || {};
   const source = data.source;
   const code = data.identifier;
@@ -144,6 +156,10 @@ function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
         </div>
         <div className="cc-preview-actions">
           <SaveButton item={{ kind: 'course', key: code, display_name: title ? `${code} ${title}` : code }} />
+          <button type="button" className="cc-btn" onClick={() => onDetails(code)}>
+            Details
+            <span className="sr-only"> {code}</span>
+          </button>
           <button type="button" className="cc-btn cc-btn-primary" onClick={() => onAsk(code, title)}>
             <MessageSquare size={16} aria-hidden="true" /> Ask about it
             <span className="sr-only"> {code}</span>
@@ -204,6 +220,69 @@ function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
   );
 }
 
+/**
+ * A Browse row: a draggable course source (D4). The grip is the keyboard
+ * handle; a pointer drag can start anywhere on the row.
+ */
+export function BrowseRow({
+  course, isTicked, isSelected, full, onTick, onOpen,
+}) {
+  const rowId = `cc-row-${safeId(course.identifier)}`;
+  const drag = useDraggableItem({
+    type: 'course',
+    id: course.identifier,
+    title: course.title ? `${course.identifier} ${course.title}` : course.identifier,
+    extra: { from: 'browse', credits: course.credits || null },
+  });
+  const { onPointerDown, onTouchStart } = drag.handleProps;
+  return (
+    <li
+      ref={drag.ref}
+      className={`cc-row ${isSelected ? 'is-selected' : ''} ${drag.className}`}
+      onPointerDown={onPointerDown}
+      onTouchStart={onTouchStart}
+    >
+      <label className="cc-row-check">
+        <input
+          type="checkbox"
+          checked={isTicked}
+          disabled={!isTicked && full}
+          onChange={() => onTick(course)}
+          aria-labelledby={`cc-tick-word ${rowId}`}
+          aria-describedby={!isTicked && full ? 'cc-cap-note' : undefined}
+        />
+      </label>
+      <button
+        type="button"
+        className="cc-row-main"
+        aria-current={isSelected ? 'true' : undefined}
+        onClick={() => onOpen(course.identifier)}
+      >
+        <span id={rowId} className="cc-row-name">
+          <span className="cc-code">{course.identifier}</span>
+          {course.title && <span className="cc-row-title"> {course.title}</span>}
+        </span>
+        {course.gpa != null && (
+          <span className="cc-row-gpa">
+            {formatGpa(course.gpa)}
+            <small>GPA</small>
+          </span>
+        )}
+      </button>
+      <button
+        type="button"
+        ref={drag.gripRef}
+        {...drag.handleProps}
+        className="cc-row-grip"
+        aria-label={`Drag ${course.identifier}`}
+        title="Drag"
+      >
+        <DragIndicatorRounded fontSize="small" aria-hidden="true" />
+      </button>
+    </li>
+  );
+}
+
 function PreviewPlaceholder() {
   return (
     <div className="cc-preview-body" aria-hidden="true">
@@ -218,9 +297,9 @@ function PreviewPlaceholder() {
   );
 }
 
-export default function CoursesPage() {
+function BrowseView({ tabs }) {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
   const { config } = useAppConfig();
   const saved = useSaved();
@@ -375,6 +454,12 @@ export default function CoursesPage() {
 
   const openPreview = (id) => {
     setSelectedId(id);
+    // The inline preview follows the row; the URL keeps it without a history entry.
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('selected', id);
+      return next;
+    }, { replace: true });
     if (isPhone()) {
       listScroll.current = window.scrollY;
       setPhoneView('preview');
@@ -382,6 +467,9 @@ export default function CoursesPage() {
       setTimeout(() => headingRef.current?.focus(), 0);
     }
   };
+
+  /** The full course pop-up (app-wide host, `?course=`), as a new history entry. */
+  const openDetails = useOpenCourse();
 
   const backToResults = () => {
     setPhoneView('list');
@@ -444,42 +532,17 @@ export default function CoursesPage() {
   } else {
     listBody = (
       <ul className="cc-rows">
-        {rows.map((course) => {
-          const rowId = `cc-row-${safeId(course.identifier)}`;
-          const isTicked = tickedIds.includes(course.identifier);
-          const isSelected = course.identifier === selectedId;
-          return (
-            <li key={course.identifier} className={`cc-row ${isSelected ? 'is-selected' : ''}`}>
-              <label className="cc-row-check">
-                <input
-                  type="checkbox"
-                  checked={isTicked}
-                  disabled={!isTicked && full}
-                  onChange={() => toggleTick(course)}
-                  aria-labelledby={`cc-tick-word ${rowId}`}
-                  aria-describedby={!isTicked && full ? 'cc-cap-note' : undefined}
-                />
-              </label>
-              <button
-                type="button"
-                className="cc-row-main"
-                aria-current={isSelected ? 'true' : undefined}
-                onClick={() => openPreview(course.identifier)}
-              >
-                <span id={rowId} className="cc-row-name">
-                  <span className="cc-code">{course.identifier}</span>
-                  {course.title && <span className="cc-row-title"> {course.title}</span>}
-                </span>
-                {course.gpa != null && (
-                  <span className="cc-row-gpa">
-                    {formatGpa(course.gpa)}
-                    <small>GPA</small>
-                  </span>
-                )}
-              </button>
-            </li>
-          );
-        })}
+        {rows.map((course) => (
+          <BrowseRow
+            key={course.identifier}
+            course={course}
+            isTicked={tickedIds.includes(course.identifier)}
+            isSelected={course.identifier === selectedId}
+            full={full}
+            onTick={toggleTick}
+            onOpen={openPreview}
+          />
+        ))}
       </ul>
     );
   }
@@ -504,6 +567,7 @@ export default function CoursesPage() {
         headingRef={headingRef}
         onSelectCourse={(id) => setSelectedId(id)}
         onAsk={ask}
+        onDetails={openDetails}
       />
     );
   } else {
@@ -518,7 +582,7 @@ export default function CoursesPage() {
             <p className="cc-kicker">{school}</p>
             <h1>Courses</h1>
           </div>
-          <CoursesTabs active="browse" count={ticked.length} onCompare={goCompare} />
+          {tabs({ count: ticked.length, onCompare: goCompare })}
         </header>
 
         <div className="cc-browse">
@@ -623,6 +687,76 @@ export default function CoursesPage() {
           </section>
         </div>
       </div>
+    </CampusPageShell>
+  );
+}
+
+/**
+ * Courses: Browse | My degree (design D5), and the semester view at
+ * `?view=semester&term=<Term>`. An explicit `?view=` wins; otherwise
+ * Browse while the plan is empty and My degree once it holds a course,
+ * decided once per visit so the page doesn't flip under the student.
+ */
+export default function CoursesPage() {
+  const planner = usePlanner();
+  const { authToken } = useAuth();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const explicit = params.get('view');
+  const ensureLoaded = planner?.ensureLoaded;
+  const decided = useRef(null);
+
+  useEffect(() => { ensureLoaded?.(); }, [ensureLoaded]);
+
+  let mode = MODES.includes(explicit) ? explicit : null;
+  // Links into Browse (a course to preview, a search) land in Browse.
+  if (!mode && (params.has('selected') || params.has('q'))) mode = 'browse';
+  if (!mode) {
+    if (!planner || !authToken) decided.current = decided.current || 'browse';
+    else if (!decided.current && (planner.status === 'ready' || planner.status === 'error')) {
+      decided.current = planner.view?.plan?.courses?.length ? 'degree' : 'browse';
+    }
+    mode = decided.current;
+  }
+
+  const show = (next) => setParams({ view: next });
+  const tabs = ({ count, onCompare }) => (
+    <CoursesTabs
+      active={mode === 'semester' ? 'degree' : mode}
+      count={count}
+      onBrowse={() => show('browse')}
+      onDegree={planner ? () => show('degree') : undefined}
+      onCompare={onCompare}
+    />
+  );
+
+  if (mode === 'browse') return <BrowseView tabs={tabs} />;
+
+  const ticked = readTicked();
+  const goCompare = () => navigate(compareUrl(ticked.map((course) => course.identifier)));
+  const head = (
+    <>
+      <h1 className="sr-only">Courses</h1>
+      {tabs({ count: ticked.length, onCompare: goCompare })}
+    </>
+  );
+
+  let body = null;
+  if (mode === 'degree') body = <DegreeBoard head={head} />;
+  else if (mode === 'semester') {
+    body = (
+      <>
+        <div className="dg-toolbar">{head}</div>
+        <Suspense fallback={null}>
+          <SemesterView term={params.get('term')} />
+        </Suspense>
+      </>
+    );
+  }
+
+  return (
+    <CampusPageShell className={`cc-courses is-${mode || 'loading'}`}>
+      <div className="cc-page cc-page-wide">{body}</div>
     </CampusPageShell>
   );
 }

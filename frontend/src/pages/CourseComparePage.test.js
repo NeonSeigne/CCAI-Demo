@@ -90,7 +90,7 @@ test('rows read "Not available" where a school lacks the data and name the snaps
 test('with fewer than 2 courses it asks for more and links back to Browse', async () => {
   renderPage('COMP SCI 300');
   expect(screen.getByText('Tick at least 2 courses to compare.')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'Back to Browse' })).toHaveAttribute('href', '/courses');
+  expect(screen.getByRole('link', { name: 'Back to Browse' })).toHaveAttribute('href', '/courses?view=browse');
   expect(screen.queryByRole('table')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Ask Campus Companion/ })).not.toBeInTheDocument();
   expect(await screen.findByRole('button', { name: 'Add COMP SCI 400 to compare' })).toBeInTheDocument();
@@ -148,9 +148,17 @@ test('the footer Ask opens a new chat with the compare prompt, not sent', async 
   });
 });
 
-test('the Browse tab goes back to the Courses page', async () => {
+test('the Browse tab goes back to Browse, and My degree is a tab too', async () => {
   renderPage('COMP SCI 300,COMP SCI 400');
   await screen.findByText('3.42');
+  expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Browse', 'My degree', expect.stringMatching(/^Compare/)]);
   fireEvent.click(screen.getByRole('tab', { name: 'Browse' }));
-  expect(screen.getByTestId('location')).toHaveTextContent(/^\/courses$/);
+  expect(screen.getByTestId('location')).toHaveTextContent(/^\/courses\?view=browse$/);
+});
+
+test('the My degree tab opens the degree board', async () => {
+  renderPage('COMP SCI 300,COMP SCI 400');
+  await screen.findByText('3.42');
+  fireEvent.click(screen.getByRole('tab', { name: 'My degree' }));
+  expect(screen.getByTestId('location')).toHaveTextContent(/^\/courses\?view=degree$/);
 });
