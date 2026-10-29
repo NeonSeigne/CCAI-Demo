@@ -676,20 +676,7 @@
   text-decoration: none;
 }
 
-.vc-icon-btn {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: var(--r-full);
-  background: transparent;
-  color: var(--muted);
-  text-decoration: none;
-  cursor: pointer;
-}
 
-.vc-icon-btn:hover { background: var(--raised); color: var(--ink); }
 
 .vc-evt-more {
   display: flex;
