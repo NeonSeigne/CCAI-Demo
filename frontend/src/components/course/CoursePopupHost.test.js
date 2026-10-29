@@ -161,3 +161,31 @@ it('loads the plan once per course, not on every planner change', async () => {
   rerender(tree(planner()));
   expect(ensureLoaded).toHaveBeenCalledTimes(1);
 });
+
+describe('Add from the course pop-up', () => {
+  const planWith = (courses) => ({
+    ensureLoaded: jest.fn(),
+    edit: jest.fn(() => Promise.resolve()),
+    programs: [],
+    view: { plan: { term: 'Fall 2026', revision: 3, courses } },
+  });
+  const renderWith = (planner) => render(
+    <MemoryRouter initialEntries={['/courses?course=COMP+SCI+400']}>
+      <PlannerContext.Provider value={planner}><CoursePopupHost /></PlannerContext.Provider>
+    </MemoryRouter>,
+  );
+
+  it('offers Add for a course not in the plan', async () => {
+    renderWith(planWith([{ id: 'MATH 222', term: 'Fall 2026' }]));
+    await screen.findByRole('dialog', { name: 'Programming III' });
+    expect(screen.getByRole('button', { name: /add to fall 2026/i })).toBeInTheDocument();
+  });
+
+  it('offers no Add and asks for no preview when the course is already planned', async () => {
+    renderWith(planWith([{ id: 'comp sci  400', term: 'Spring 2027' }]));
+    await screen.findByRole('dialog', { name: 'Programming III' });
+    expect(screen.queryByRole('button', { name: /add to/i })).not.toBeInTheDocument();
+    const urls = global.fetch.mock.calls.map(([url]) => String(url));
+    expect(urls.some((url) => url.includes('/api/planner/preview'))).toBe(false);
+  });
+});

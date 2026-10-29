@@ -5,6 +5,7 @@ import CoursePopup from './CoursePopup';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { usePopupContainer } from '../shell/PageColumnContext';
 import { useToast } from '../Toast';
+import { normalizeCourseId } from '../planner/completedCourses';
 import usePopupAsk from '../../hooks/usePopupAsk';
 import {
   COURSE_PARAM, useCloseCourse, useCloseOnce, useOpenCourse,
@@ -54,7 +55,10 @@ export default function CoursePopupHost() {
 
   if (!courseId || !ready) return null;
 
-  const onAdd = planner && term ? (id) => {
+  // A course already in the plan can't be added again, so it gets no Add and no Fits.
+  const planned = (plan?.courses || []).some((c) => normalizeCourseId(c.id) === normalizeCourseId(courseId));
+
+  const onAdd = planner && term && !planned ? (id) => {
     planner.edit([{ op: 'add', course: id }])
       .then(() => toast?.show?.({ message: `Added to ${term}` }))
       .catch(() => toast?.show?.({
@@ -76,7 +80,7 @@ export default function CoursePopupHost() {
       <CoursePopup
         courseId={courseId}
         term={term}
-        plan={plan ? { revision: plan.revision } : null}
+        plan={plan && !planned ? { revision: plan.revision } : null}
         requirements={requirements}
         onAdd={onAdd}
         onAsk={ask}
