@@ -107,6 +107,20 @@ def canonical_term(
     return match
 
 
+def known_term_ops(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """``ops`` with each ``set_term`` term in the plan's spelling (setup-dialog
+    R1): it must be a term ``canonical_term`` knows, else ``EditError
+    ("unknown_term")``. The set_term ops themselves don't count as known terms."""
+    others = [op for op in ops if not (isinstance(op, dict) and op.get("op") == "set_term")]
+    checked = []
+    for op in ops:
+        if isinstance(op, dict) and op.get("op") == "set_term" and isinstance(op.get("term"), str) \
+                and op["term"].strip():
+            op = dict(op, term=canonical_term(plan, op["term"], others))
+        checked.append(op)
+    return checked
+
+
 def _uncovered(fact: CourseFacts, term: str) -> CourseFacts:
     """A course in a term past the data's coverage: what it is, but not when it runs."""
     if fact.known != "yes":
@@ -215,6 +229,7 @@ async def _validated_diff(
     Each op is checked against the facts of the term it lands in (R13); the
     reports' facts and every destination term's facts load in one batch.
     """
+    ops = known_term_ops(plan, ops)
     edits.check_applies(plan, ops)
     after = edits.apply_ops(plan, ops)
     shown = term or plan["term"]
@@ -239,6 +254,7 @@ async def apply_edit(
     if not store.seen_key(plan, idempotency_key):
         if plan["revision"] != expected_revision:
             raise store.RevisionConflict(plan["revision"])
+        ops = known_term_ops(plan, ops)
         by_term = await _facts_by_term(edits.verify_by_term(plan, ops), school)
         notes = edits.validate_ops(plan, ops, by_term=by_term)
     plan, _ = await store.commit_edit(
@@ -283,6 +299,7 @@ async def propose(
     if plan["revision"] != expected_revision:
         raise store.RevisionConflict(plan["revision"])
     term = canonical_term(plan, term, ops)
+    ops = known_term_ops(plan, ops)
     diff = await _validated_diff(plan, ops, school, asked=asked, term=term)
     proposal = await store.put_proposal(db, str(user_id), school, ops, base_revision=expected_revision, diff=diff,
                                         term=term)
@@ -338,6 +355,7 @@ async def redo(user_id: str, school: str, *, expected_revision: int) -> Dict[str
     await _plan(db, user_id, school)
 
     async def validate(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> None:
+        known_term_ops(plan, ops)
         edits.validate_ops(plan, ops, by_term=await _facts_by_term(edits.verify_by_term(plan, ops), school))
 
     plan = await store.redo(db, str(user_id), school, expected_revision=expected_revision, validate=validate)

@@ -174,7 +174,8 @@ Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
 `{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the
 course's sections unless it names new ones), `{"op":"swap","out":id,"in":id}`,
 `{"op":"pick_section","course":id,"sections":[ids]}`,
-`{"op":"set_profile", ...profile fields}`.
+`{"op":"set_profile", ...profile fields}`, `{"op":"set_term","term":term}` (sets `plan.term`; the term
+must be one `canonical_term` knows, else `unknown_term`; undo restores the old one).
 Errors: `unknown_course`, `couldnt_verify_course`, `unknown_term`, `revision_conflict`.
 
 A client `term` (`GET /plan?term=`, `/preview`, `/proposals`) is matched case-

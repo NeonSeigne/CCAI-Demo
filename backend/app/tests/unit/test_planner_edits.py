@@ -89,6 +89,45 @@ class ApplyAndInverseTests(unittest.TestCase):
         self.assertEqual(edits.heading([{"op": "swap", "out": "ECON 3010", "in": "ECON 3020"}]), "Swap ECON 3010 for ECON 3020")
 
 
+class SetTermTests(unittest.TestCase):
+    """set_term (setup-dialog R1): sets the plan's term; undo restores the old one."""
+
+    def test_apply_and_inverse(self):
+        start = plan(["ECON 2010"])
+        ops = [{"op": "set_term", "term": "Fall 2027"}]
+        edits.check_applies(start, ops)
+        after = edits.apply_ops(start, ops)
+        self.assertEqual((after["term"], start["term"]), ("Fall 2027", "Spring 2027"))
+        self.assertEqual(after["courses"], start["courses"])
+        self.assertEqual(edits.inverse_ops(start, ops), [{"op": "set_term", "term": "Spring 2027"}])
+        self.assertEqual(edits.apply_ops(after, edits.inverse_ops(start, ops))["term"], "Spring 2027")
+        self.assertEqual(edits.undo_label(ops), "Undo: set your term to Fall 2027")
+
+    def test_later_adds_land_in_the_new_term(self):
+        ops = [{"op": "set_term", "term": "Fall 2027"}, {"op": "add", "course": "ECON 3010"}]
+        self.assertEqual(edits.apply_ops(plan(), ops)["courses"][0]["term"], "Fall 2027")
+        self.assertEqual(edits.destination_terms(plan(), ops), ["Spring 2027", "Fall 2027"])
+
+    def test_shape(self):
+        for op in ({"op": "set_term"}, {"op": "set_term", "term": ""}, {"op": "set_term", "term": 2027}):
+            with self.subTest(op=op):
+                with self.assertRaises(EditError) as ctx:
+                    edits.check_applies(plan(), [op])
+                self.assertEqual(ctx.exception.code, "bad_op")
+
+    def test_unknown_term_is_refused(self):
+        from unittest.mock import patch
+
+        from app.planner import service
+
+        with patch.object(service, "covered_terms", return_value=["Spring 2027", "Fall 2027"]):
+            self.assertEqual(service.known_term_ops(plan(), [{"op": "set_term", "term": "fall  2027"}]),
+                             [{"op": "set_term", "term": "Fall 2027"}])
+            with self.assertRaises(EditError) as ctx:
+                service.known_term_ops(plan(), [{"op": "set_term", "term": "Fall 2031"}])
+        self.assertEqual(ctx.exception.code, "unknown_term")
+
+
 class DiffTests(unittest.TestCase):
     def setUp(self):
         self.ids = ["ECON 3010", "ECON 3020", "ECON 3300", "ECON 4010", "ECON 4020"]

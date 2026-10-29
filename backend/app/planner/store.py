@@ -147,6 +147,15 @@ async def _write(db, plan: Dict[str, Any], fields: Dict[str, Any], *, bump: bool
 # ---------------------------------------------------------------------------
 
 
+def _content(plan: Dict[str, Any], after: Dict[str, Any]) -> Dict[str, Any]:
+    """The plan content an edit writes: courses and profile, plus ``term``
+    when the ops changed it (``set_term``, setup-dialog R7)."""
+    fields = {"courses": after["courses"], "profile": after["profile"]}
+    if after.get("term") != plan.get("term"):
+        fields["term"] = after["term"]
+    return fields
+
+
 def seen_key(plan: Dict[str, Any], key: Optional[str]) -> bool:
     return bool(key) and any(entry.get("key") == key for entry in plan.get("idempotency") or [])
 
@@ -201,7 +210,7 @@ async def commit_edit(
     keys = plan.get("idempotency") or []
     if idempotency_key:
         keys = (keys + [{"key": idempotency_key, "revision": plan["revision"] + 1}])[-IDEMPOTENCY_KEEP:]
-    fields = {"courses": after["courses"], "profile": after["profile"],
+    fields = {**_content(plan, after),
               "undo": {"stack": stack, "pointer": len(stack)}, "idempotency": keys, **(extra_fields or {})}
     try:
         return await _write(db, plan, fields), False
@@ -229,8 +238,7 @@ async def undo(db, user_id: str, school: str, *, expected_revision: int) -> Dict
     except edits.EditError as exc:
         raise Refused(f"Can't undo that: {exc.message}") from exc
     after = edits.apply_ops(plan, entry["inverse"], keep_sections_on_move=_legacy(entry))
-    fields = {"courses": after["courses"], "profile": after["profile"],
-              "undo": {"stack": undo_state["stack"], "pointer": pointer - 1}}
+    fields = {**_content(plan, after), "undo": {"stack": undo_state["stack"], "pointer": pointer - 1}}
     return await _write(db, plan, fields)
 
 
@@ -259,8 +267,7 @@ async def redo(
         raise Refused(f"Can't redo that: {exc.message}") from exc
     after = edits.apply_ops(plan, ops, keep_sections_on_move=_legacy(stack[pointer]))
     stack[pointer] = dict(stack[pointer], inverse=edits.inverse_ops(plan, ops), revision=plan["revision"] + 1)
-    fields = {"courses": after["courses"], "profile": after["profile"],
-              "undo": {"stack": stack, "pointer": pointer + 1}}
+    fields = {**_content(plan, after), "undo": {"stack": stack, "pointer": pointer + 1}}
     return await _write(db, plan, fields)
 
 
