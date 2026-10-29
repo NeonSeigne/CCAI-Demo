@@ -723,7 +723,7 @@ function ListedThrough({ date }) {
 const EventsPage = () => {
   const navigate = useNavigate();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const [params, setParams] = useSearchParams();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const phone = usePhone();
@@ -1057,7 +1057,6 @@ const EventsPage = () => {
             authToken={authToken}
             onUserUpdate={handleUserUpdate}
             onSignOut={handleSignOutClick}
-            advisors={advisors}
             onClose={() => setIsSettingsOpen(false)}
           />
         )}

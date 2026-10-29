@@ -360,7 +360,7 @@ const CampusMapPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
@@ -762,7 +762,6 @@ const CampusMapPage = () => {
           authToken={authToken}
           onUserUpdate={handleUserUpdate}
           onSignOut={handleSignOutClick}
-          advisors={advisors}
           onClose={() => setIsSettingsOpen(false)}
         />
       )}

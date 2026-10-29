@@ -4,8 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Reply, Copy, Check, Maximize2, Volume2, VolumeX, Search, X, Loader2, iconFor } from './icons';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import { Copy, Check, Volume2, VolumeX, Search, X, Loader2 } from './icons';
 import VisualBlock from './visuals/VisualBlock';
 import CourseChip from './visuals/CourseChip';
 import AnswerSources from './visuals/AnswerSources';
@@ -27,19 +26,11 @@ const stripMarkdown = (md) => {
 };
 
 const MessageBubble = ({ 
-  message, 
-  onReply, 
-  onCopy, 
-  onExpand,
-  onSearchReferences,
-  showReplyButton = false,
-  inlineAvatar = false,
-  userAvatarId,
-  userAvatarOptions,
+  message,
+  onCopy,
   onCourseSelect,
   onAsk
 }) => {
-  const { allPersonas: advisors, getAllPersonaColors: getAdvisorColors } = useAppConfig();
   // The "Checked" line leads the answer; every other visual follows the text.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
@@ -105,10 +96,6 @@ const MessageBubble = ({
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
-  };
-
-  const handleExpand = (messageId, persona_id) => {
-    if (onExpand) onExpand(messageId, persona_id);
   };
 
   const handleSearch = async () => {
@@ -393,149 +380,26 @@ const MessageBubble = ({
 
   // USER MESSAGE
   if (message.type === 'user') {
-    const uAvatar = userAvatarOptions?.find(a => a.id === userAvatarId);
-    const UserIcon = uAvatar
-      ? iconFor(uAvatar.icon)
-      : null;
-
     return (
       <div className="user-message-container">
         <div className="user-message vc-ubub">
-          {message.replyTo && (
-            <div className="reply-indicator">
-              <Reply size={14} />
-              <span>to {message.replyTo.advisorName}</span>
-            </div>
-          )}
           <p>{message.content}</p>
         </div>
-        {UserIcon && (
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%', flexShrink: 0, marginLeft: 8,
-            backgroundColor: uAvatar.bg, color: uAvatar.color,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <UserIcon size={16} />
-          </div>
-        )}
       </div>
     );
   }
 
-  // ADVISOR MESSAGE
+  // ANSWER: one voice, plain text and cards.
   if (message.type === 'advisor') {
-    const personaId =
-      message?.persona_id ||
-      message?.personaId ||
-      message?.advisor_id ||
-      message?.advisorId ||
-      (typeof message?.advisor === 'string' ? message.advisor : undefined) ||
-      'methodologist';
-
-    const advisor = advisors[personaId] || advisors[message.persona_id] || {};
-    const Icon = advisor.icon;
-    const colors = getAdvisorColors(personaId);
     const isCopied = copiedStates[message.id];
-    // Campus Companion and combined answers speak with one voice: plain text
-    // and cards, no advisor box. Named advisors in a panel keep their header.
-    const plain = personaId === 'orchestrator' || message.is_aggregated;
-
-    const avatarElement = (size = 40) => (
-      advisor.avatarUrl ? (
-        <img 
-          src={advisor.avatarUrl} 
-          alt={advisor.name || 'Advisor'} 
-          style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
-        />
-      ) : Icon ? (
-        <div
-          style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--canvas)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden'
-          }}
-        >
-          <Icon style={{ color: 'var(--ink)', width: size * 0.5, height: size * 0.5 }} />
-        </div>
-      ) : (
-        <div
-          style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--canvas)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            color: 'var(--ink)', fontWeight: 600, fontSize: size * 0.4
-          }}
-        >
-          {advisor.name ? advisor.name.charAt(0) : 'A'}
-        </div>
-      )
-    );
 
     return (
-      <div className={`advisor-message-container ${inlineAvatar ? 'inline-avatar-mode' : ''} ${plain ? 'is-plain' : ''}`}>
-        {!inlineAvatar && !plain && (
-          <div
-            className="advisor-avatar"
-            style={{ backgroundColor: 'var(--canvas)', overflow: 'hidden' }}
-          >
-            {advisor.avatarUrl ? (
-              <img
-                src={advisor.avatarUrl}
-                alt={advisor.name || 'Advisor'}
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-              />
-            ) : Icon ? (
-              <Icon style={{ color: 'var(--ink)', width: 20, height: 20 }} />
-            ) : (
-              <span style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 16 }}>
-                {(advisor.name || message.advisorName || 'A').charAt(0)}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div 
-          className={plain ? 'answer' : 'advisor-message-bubble surface-card'}
-          style={plain ? undefined : { 
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--line)',
-            position: 'relative'
-          }}
-        >
-          {!plain && (
-          <div className="advisor-message-header">
-            {inlineAvatar && avatarElement(32)}
-            <h4 
-              className="advisor-message-name" 
-              style={{ color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              <span
-                className="accent-dot"
-                style={{ backgroundColor: colors.dotColor || colors.color }}
-              />
-              {advisor.name || message.advisorName || 'Advisor'}
-              {message.isReply && <span className="reply-badge">↳ Reply</span>}
-              {message.isExpansion && <span className="expansion-badge">⤴ Expanded</span>}
-            </h4>
-            <span 
-              className="message-time"
-              style={{ 
-                color: 'var(--ink)',
-                opacity: 0.7 
-              }}
-            >
-              {message.timestamp?.toLocaleTimeString
-                ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                : ''}
-            </span>
-          </div>
-          )}
-          
+      <div className="advisor-message-container is-plain">
+        <div className="answer">
           {/* Enhanced markdown rendering with preprocessing */}
-          <div 
-            className="advisor-message-text"
-            style={{ color: colors.textColor || ('var(--ink)') }}
-          >
+          <div className="advisor-message-text" style={{ color: 'var(--ink)' }}>
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
-            <ReactMarkdown 
+            <ReactMarkdown
               components={markdownComponents}
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeKatex]}
@@ -551,7 +415,7 @@ const MessageBubble = ({
           </div>
 
           {cardVisuals.length > 0 && (
-            <div className={`advisor-message-visuals ${plain ? 'answer-cards' : ''}`}>
+            <div className="advisor-message-visuals answer-cards">
               {cardVisuals.map((visual, idx) => (
                 <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} onAsk={onAsk} />
               ))}
@@ -559,116 +423,74 @@ const MessageBubble = ({
           )}
 
           {checkedVisual && (
-            <div className={plain ? 'answer-checked' : undefined}>
+            <div className="answer-checked">
               <VisualBlock visual={checkedVisual} />
             </div>
           )}
 
-          {plain && <AnswerSources visuals={cardVisuals} />}
-          
-          {showReplyButton && (
-            <div className="message-actions">
-              <div className="message-action-buttons">
-                {!message.is_aggregated && (
-                <div className="tooltip-container">
-                  <button 
-                    className="message-action-button"
-                    onClick={() => onReply && onReply(message)}
-                    onMouseEnter={() => showTooltipWithDelay('reply')}
-                    onMouseLeave={hideTooltip}
-                    style={{ 
-                      color: 'var(--ink)',
-                      borderColor: 'var(--line)'
-                    }}
-                  >
-                    <Reply size={14} stroke="currentColor" fill="none" />
-                  </button>
-                  {showTooltip === 'reply' && (
-                    <div className="tooltip">Reply to this message</div>
-                  )}
-                </div>
+          <AnswerSources visuals={cardVisuals} />
+
+          <div className="message-actions">
+            <div className="message-action-buttons">
+              <div className="tooltip-container">
+                <button 
+                  className="message-action-button"
+                  onClick={() => handleCopy(message.id, message?.compact_markdown || message?.content || '')}
+                  onMouseEnter={() => showTooltipWithDelay('copy')}
+                  onMouseLeave={hideTooltip}
+                  style={{ 
+                    color: isCopied ? 'var(--good)' : 'var(--muted)',
+                    borderColor: isCopied ? 'var(--good)' : 'var(--line)'
+                  }}
+                >
+                  {isCopied ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+                {showTooltip === 'copy' && (
+                  <div className="tooltip">
+                    {isCopied ? 'Copied!' : 'Copy to clipboard'}
+                  </div>
                 )}
-
-                <div className="tooltip-container">
-                  <button 
-                    className="message-action-button"
-                    onClick={() => handleCopy(message.id, message?.compact_markdown || message?.content || '')}
-                    onMouseEnter={() => showTooltipWithDelay('copy')}
-                    onMouseLeave={hideTooltip}
-                    style={{ 
-                      color: isCopied ? 'var(--good)' : 'var(--muted)',
-                      borderColor: isCopied ? 'var(--good)' : 'var(--line)'
-                    }}
-                  >
-                    {isCopied ? <Check size={14} /> : <Copy size={14} />}
-                  </button>
-                  {showTooltip === 'copy' && (
-                    <div className="tooltip">
-                      {isCopied ? 'Copied!' : 'Copy to clipboard'}
-                    </div>
-                  )}
-                </div>
-
-                {!message.is_aggregated && (
-                <div className="tooltip-container">
-                  <button 
-                    className="message-action-button"
-                    onClick={() => handleExpand(message.id, personaId)}
-                    onMouseEnter={() => showTooltipWithDelay('expand')}
-                    onMouseLeave={hideTooltip}
-                    style={{ 
-                      color: 'var(--ink)',
-                      borderColor: 'var(--line)'
-                    }}
-                  >
-                    <Maximize2 size={14} />
-                  </button>
-                  {showTooltip === 'expand' && (
-                    <div className="tooltip">More</div>
-                  )}
-                </div>
-                )}
-
-                <div className="tooltip-container">
-                  <button 
-                    className="message-action-button"
-                    onClick={() => handleSpeak(message?.compact_markdown || message?.content || '')}
-                    onMouseEnter={() => showTooltipWithDelay('speak')}
-                    onMouseLeave={hideTooltip}
-                    style={{ 
-                      color: isLoadingTTS ? (colors.color || 'var(--muted)') : isSpeaking ? 'var(--error)' : (colors.color || 'var(--muted)'),
-                      borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : (colors.color ? colors.color + '40' : 'var(--line)'),
-                      opacity: isLoadingTTS ? 0.7 : 1,
-                    }}
-                  >
-                    {isLoadingTTS ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  </button>
-                  {showTooltip === 'speak' && (
-                    <div className="tooltip">{isLoadingTTS ? 'Loading audio...' : isSpeaking ? 'Stop speaking' : 'Speak it'}</div>
-                  )}
-                </div>
-
-                <div className="tooltip-container">
-                  <button 
-                    className="message-action-button"
-                    onClick={handleSearch}
-                    onMouseEnter={() => showTooltipWithDelay('search')}
-                    onMouseLeave={hideTooltip}
-                    style={{ 
-                      color: 'var(--ink)',
-                      borderColor: 'var(--line)'
-                    }}
-                  >
-                    <Search size={14} />
-                  </button>
-                  {showTooltip === 'search' && (
-                    <div className="tooltip">Search for references</div>
-                  )}
-                </div>
-
               </div>
+
+              <div className="tooltip-container">
+                <button 
+                  className="message-action-button"
+                  onClick={() => handleSpeak(message?.compact_markdown || message?.content || '')}
+                  onMouseEnter={() => showTooltipWithDelay('speak')}
+                  onMouseLeave={hideTooltip}
+                  style={{ 
+                    color: isSpeaking ? 'var(--error)' : 'var(--muted)',
+                    borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : 'var(--line)',
+                    opacity: isLoadingTTS ? 0.7 : 1,
+                  }}
+                >
+                  {isLoadingTTS ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                </button>
+                {showTooltip === 'speak' && (
+                  <div className="tooltip">{isLoadingTTS ? 'Loading audio...' : isSpeaking ? 'Stop speaking' : 'Speak it'}</div>
+                )}
+              </div>
+
+              <div className="tooltip-container">
+                <button 
+                  className="message-action-button"
+                  onClick={handleSearch}
+                  onMouseEnter={() => showTooltipWithDelay('search')}
+                  onMouseLeave={hideTooltip}
+                  style={{ 
+                    color: 'var(--ink)',
+                    borderColor: 'var(--line)'
+                  }}
+                >
+                  <Search size={14} />
+                </button>
+                {showTooltip === 'search' && (
+                  <div className="tooltip">Search for references</div>
+                )}
+              </div>
+
             </div>
-          )}
+          </div>
 
           {searchPopover && (
             <div style={{

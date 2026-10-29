@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CampusRail from '../CampusRail';
 import SettingsModal from '../SettingsModal';
-import { useAppConfig } from '../../contexts/AppConfigContext';
 import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/CampusHome.css';
 
@@ -13,7 +12,6 @@ import '../../styles/CampusHome.css';
 export default function CampusPageShell({ className = '', children }) {
   const navigate = useNavigate();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { advisors } = useAppConfig();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const signOut = () => {
@@ -39,7 +37,6 @@ export default function CampusPageShell({ className = '', children }) {
           authToken={authToken}
           onUserUpdate={handleUserUpdate}
           onSignOut={signOut}
-          advisors={advisors}
           onClose={() => setSettingsOpen(false)}
         />
       )}

@@ -33,7 +33,6 @@ jest.mock('../contexts/AppConfigContext', () => ({
       app: { title: 'Advisory' },
       chat_page: { placeholder: 'Ask anything', examples: [] },
     },
-    advisors: {},
   }),
 }));
 jest.mock('../components/CampusRail', () => (props) => (
@@ -45,18 +44,7 @@ jest.mock('../components/CampusRail', () => (props) => (
 jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
 jest.mock('../components/ExportButton', () => () => null);
 jest.mock('../components/SettingsModal', () => () => null);
-jest.mock('../components/AdvisorCarousel', () => (props) => (
-  <div>
-    {props.messages.map((message) => (
-      <div key={message.id}>
-        <p>{message.content}</p>
-        <button type="button" onClick={() => props.onReply(message)}>Reply to {message.advisorName}</button>
-      </div>
-    ))}
-  </div>
-));
-jest.mock('../components/MessageBubble', () => () => null);
-jest.mock('../components/ThinkingIndicator', () => () => null);
+jest.mock('../components/MessageBubble', () => (props) => <p>{props.message.content}</p>);
 jest.mock('../components/EnhancedChatInput', () => (props) => (
   <button type="button" onClick={() => props.onSendMessage('Plan my semester')}>
     Send test message
@@ -196,26 +184,6 @@ describe('chat flow (characterization)', () => {
     expect(await screen.findByText('Where is the library?', { selector: '.user-message p' })).toBeInTheDocument();
     await waitFor(() => expect(callsTo('/api/chat-sessions/saved-1')).toHaveLength(1));
     expect(JSON.parse(callsTo('/switch-chat')[0][1].body)).toEqual({ chat_session_id: 'saved-1' });
-  });
-
-  test('a reply to an advisor posts to /reply-to-advisor', async () => {
-    routeFetch({
-      '/reply-to-advisor': () => json({ type: 'advisor_reply', persona_id: 'guide', persona: 'Guide', response: 'Yes, in the fall.' }),
-    });
-    render(<ChatPage />);
-    sendTestMessage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Reply to Guide' }));
-    expect(screen.getByText('Replying to')).toBeInTheDocument();
-
-    sendTestMessage();
-    expect(await screen.findByText('Yes, in the fall.')).toBeInTheDocument();
-    const [[, request]] = callsTo('/reply-to-advisor');
-    expect(JSON.parse(request.body)).toMatchObject({
-      user_input: 'Plan my semester',
-      advisor_id: 'guide',
-      chat_session_id: 'session-1',
-    });
-    expect(callsTo('/chat-stream')).toHaveLength(1);
   });
 });
 

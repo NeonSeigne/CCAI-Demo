@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContex
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 
-import { Menu, MessageCircle, Reply, X, Sparkles, FileText } from '../components/icons';
+import { Menu, MessageCircle, Sparkles, FileText } from '../components/icons';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
@@ -20,7 +20,6 @@ import { useOpenCourse } from '../utils/openCourse';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
-import AdvisorCarousel from '../components/AdvisorCarousel';
 import muiTheme from '../theme/muiTheme';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 
@@ -34,7 +33,7 @@ const ChatPageView = () => {
   const openCourse = useOpenCourse();
   const location = useLocation();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const chat = useChat();
   const {
@@ -50,18 +49,8 @@ const ChatPageView = () => {
     groupViews,
     synthesizingGroups,
   } = chat;
-  const [replyingTo, setReplyingTo] = useState(null);
-  const [llmConfig, setLlmConfig] = useState({
-    mode: 'uniform',
-    default_backend: null,
-    orchestrator_backend: null,
-    persona_backends: null,
-  });
-  const [availableBackends, setAvailableBackends] = useState([]);
-  const [isProviderSwitching, setIsProviderSwitching] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [composerMessage, setComposerMessage] = useState('');
-  const [selectedAdvisorIds, setSelectedAdvisorIds] = useState(null);
   // Coming back to a conversation in progress opens it active.
   const [chatPhase, setChatPhase] = useState(() => (messages.some(isConversation) ? 'active' : 'landing'));
   const messagesEndRef = useRef(null);
@@ -95,82 +84,6 @@ const ChatPageView = () => {
     if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    if (authToken) fetchCurrentProvider();
-  }, [authToken]);
-
-  const fetchCurrentProvider = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/current-provider`, {
-        headers: { 'Authorization': `Bearer ${authToken}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.llm_config) setLlmConfig(data.llm_config);
-        if (Array.isArray(data.available_backends)) setAvailableBackends(data.available_backends);
-      }
-    } catch (error) {
-      console.error('Error fetching current provider:', error);
-    }
-  };
-
-  
-
-  const submitProviderConfig = async (payload, label) => {
-    setIsProviderSwitching(true);
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/switch-provider`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.llm_config) {
-          setLlmConfig(data.llm_config);
-        } else {
-          setLlmConfig(payload);
-        }
-
-        chat.appendMessage({
-          type: 'system',
-          content: `✨ Switched to ${label}. Your advisors are now ready with the new configuration.`,
-        });
-        return true;
-      }
-
-      const error = await response.json().catch(() => ({}));
-      console.error('Failed to switch provider:', error);
-      chat.appendMessage({
-        type: 'error',
-        content: `Failed to switch to ${label}: ${error.detail || 'Unknown error'}`,
-      });
-      return false;
-    } catch (error) {
-      console.error('Error switching provider:', error);
-      chat.appendMessage({
-        type: 'error',
-        content: `Error switching to ${label}. Please try again.`,
-      });
-      return false;
-    } finally {
-      setIsProviderSwitching(false);
-    }
-  };
-
-  const handleHybridSubmit = async (hybridConfig) => {
-    const ok = await submitProviderConfig(
-      { mode: 'hybrid', ...hybridConfig },
-      'Hybrid configuration'
-    );
-    if (ok) setIsSettingsOpen(false);
-    return ok;
-  };
-
   // newChat / openSession replaced the conversation: reset the composer and
   // land or stay active to match what was loaded. Before paint, so the
   // welcome state never flashes over loaded messages.
@@ -178,8 +91,6 @@ const ChatPageView = () => {
     if (seenEpochRef.current === sessionEpoch) return;
     seenEpochRef.current = sessionEpoch;
     setComposerMessage('');
-    setSelectedAdvisorIds(null);
-    setReplyingTo(null);
     setChatPhase(messages.some(isConversation) ? 'active' : 'landing');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionEpoch]);
@@ -218,7 +129,7 @@ const ChatPageView = () => {
           // conversation. Sending creates a session titled after the
           // question, so a separate new-chat step would only leave an empty
           // session behind.
-          await handleSendMessage(intent.pendingPrompt, null, { fresh: true });
+          await handleSendMessage(intent.pendingPrompt, { fresh: true });
           return;
         }
         if (intent.sessionId) {
@@ -258,7 +169,7 @@ const ChatPageView = () => {
     openCourse(course);
   };
 
-  const handleSendMessage = async (inputMessage, activeAdvisorIds = null, options) => {
+  const handleSendMessage = async (inputMessage, options) => {
     if (!inputMessage.trim()) return;
 
     if (!hasConversationMessages) {
@@ -267,61 +178,10 @@ const ChatPageView = () => {
       phaseTimerRef.current = window.setTimeout(() => setChatPhase('active'), 280);
     }
 
-    await chat.send(inputMessage, activeAdvisorIds, options);
-  };
-
-  const handleReplyToAdvisor = (inputMessage, replyContext) => chat.replyToAdvisor(inputMessage, replyContext);
-
-  const handleCopyMessage = (messageId, content) => {
-    // Optional: Show a toast notification or add to message history
-    console.log(`Copied message ${messageId}: ${content.substring(0, 50)}...`);
-  };
-
-  const handleExpandMessage = async (messageId, advisorId) => {
-    const advisor = advisors[advisorId];
-    if (!advisor) return;
-    await chat.expand(messageId, advisorId, advisor.name);
-  };
-
-  const handleReplyToMessage = (message) => {
-    const advisor = advisors[message.persona_id];
-    setReplyingTo({
-      advisorId: message.persona_id,
-      messageId: message.id,
-      advisorName: advisor?.name || message.advisorName || 'Advisor',
-      persona_id: message.persona_id
-    });
-  };
-
-  const handleMessageClick = (message) => {
-    if (message.type === 'advisor') {
-      const advisor = advisors[message.persona_id];
-      setReplyingTo({
-        advisorId: message.persona_id,
-        messageId: message.id,
-        advisorName: advisor?.name || message.advisorName || 'Advisor',
-        persona_id: message.persona_id
-      });
-    }
+    await chat.send(inputMessage, null, options);
   };
 
   const messageGroups = useMemo(() => groupMessages(messages), [messages]);
-
-  const handleInputSubmit = async (inputMessage) => {
-  if (replyingTo) {
-    // This is a reply to a specific message
-    await handleReplyToAdvisor(inputMessage, replyingTo);
-  } else {
-    // This is a regular message
-    const advisorIdsForMessage = selectedAdvisorIds;
-    setSelectedAdvisorIds(null);
-    await handleSendMessage(inputMessage, advisorIdsForMessage);
-  }
-};
-
-  const cancelReply = () => {
-    setReplyingTo(null);
-  };
 
   // Dialogs center over the conversation, right of the 260px rail.
   const dialogInset = isMobile ? 0 : 260;
@@ -441,17 +301,15 @@ const ChatPageView = () => {
                                 <span>Combining advisor responses into one answer…</span>
                               </div>
                             )}
-                            {shown.length > 0 && (
-                              <AdvisorCarousel
-                                key={shown.map(m => m.id).join('-')}
-                                messages={shown}
-                                onReply={handleReplyToMessage}
-                                onExpand={handleExpandMessage}
-                                onClick={handleMessageClick}
-                                onCourseSelect={handleCourseSelect}
-                                onAsk={(text) => handleSendMessage(text)}
-                              />
-                            )}
+                            {shown.map((message) => (
+                              <div key={message.id} className="single-response-wide">
+                                <MessageBubble
+                                  message={message}
+                                  onCourseSelect={handleCourseSelect}
+                                  onAsk={(text) => handleSendMessage(text)}
+                                />
+                              </div>
+                            ))}
                           </div>
                         );
                       })() : (
@@ -459,12 +317,6 @@ const ChatPageView = () => {
                         {group.message.type === 'user' && (
                           <div className="user-message-container">
                             <div className="user-message">
-                              {group.message.replyTo && (
-                                <div className="reply-indicator">
-                                  <Reply size={12} />
-                                  <span>Reply to {group.message.replyTo.advisorName}</span>
-                                </div>
-                              )}
                               <p>{group.message.content}</p>
                             </div>
                           </div>
@@ -537,19 +389,7 @@ const ChatPageView = () => {
           </div>
 
           <div className={`floating-input-area phase-${chatPhase}`}>
-            {replyingTo && (
-              <div className="reply-banner">
-                <div className="reply-info">
-                  <Reply size={16} />
-                  <span>Replying to <strong>{replyingTo.advisorName}</strong></span>
-                </div>
-                <button onClick={cancelReply} className="cancel-reply">
-                  <X size={16} />
-                </button>
-              </div>
-            )}
-            
-            {suggestions.length > 0 && !replyingTo && (
+            {suggestions.length > 0 && (
               <div className="chat-suggestions" aria-label="Suggested questions">
                 {suggestions.map((suggestion) => (
                   <button
@@ -572,7 +412,7 @@ const ChatPageView = () => {
 
             <EnhancedChatInput
               compact
-              onSendMessage={handleInputSubmit}
+              onSendMessage={(text) => handleSendMessage(text)}
               onFileUploaded={handleFileUploaded}
               uploadedDocuments={uploadedDocuments}
               isLoading={isLoading}
@@ -580,16 +420,10 @@ const ChatPageView = () => {
               authToken={authToken}
               messageValue={composerMessage}
               onMessageChange={setComposerMessage}
-              selectedAdvisorIds={selectedAdvisorIds}
-              onSelectedAdvisorIdsChange={setSelectedAdvisorIds}
-              attachments={replyingTo ? [] : chat.attachments}
+              attachments={chat.attachments}
               onRemoveAttachment={chat.removeAttachment}
               isLanding={chatPhase !== 'active'}
-              placeholder={
-                replyingTo
-                  ? `Reply to ${replyingTo.advisorName}...`
-                  : chatPlaceholder(config)
-              }
+              placeholder={chatPlaceholder(config)}
             />
           </div>
         </div>
@@ -611,11 +445,6 @@ const ChatPageView = () => {
             handleSignOut();
             navigate('/', { replace: true });
           }}
-          advisors={advisors}
-          availableBackends={availableBackends}
-          llmConfig={llmConfig}
-          isSaving={isProviderSwitching}
-          onSubmitConfig={handleHybridSubmit}
           onClose={() => setIsSettingsOpen(false)}
           leftInset={dialogInset}
         />

@@ -14,7 +14,7 @@ jest.mock('./contexts/AuthContext', () => ({
   AuthProvider: ({ children }) => children,
 }));
 jest.mock('./contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: { institution: 'UVA' }, school: { timezone: 'UTC' } }, advisors: [] }),
+  useAppConfig: () => ({ config: { app: { institution: 'UVA' }, school: { timezone: 'UTC' } } }),
   AppConfigProvider: ({ children }) => children,
 }));
 jest.mock('./pages/ChatPage', () => () => <div>Chat page</div>);

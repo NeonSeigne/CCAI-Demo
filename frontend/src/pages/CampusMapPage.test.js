@@ -41,7 +41,6 @@ jest.mock('../contexts/AuthContext', () => ({
 jest.mock('../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({
     config: { app: { institution: 'UW–Madison' }, school: { timezone: 'America/Chicago' } },
-    advisors: [],
   }),
 }));
 jest.mock('../components/CampusRail', () => () => <nav aria-label="Main" />);

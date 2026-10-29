@@ -21,25 +21,13 @@ jest.mock('../contexts/AppConfigContext', () => ({
       app: { title: 'Advisory' },
       chat_page: { placeholder: 'Ask anything', examples: [] },
     },
-    advisors: {},
   }),
 }));
 jest.mock('../components/CampusRail', () => () => <nav />);
 jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
 jest.mock('../components/ExportButton', () => () => null);
 jest.mock('../components/SettingsModal', () => () => null);
-jest.mock('../components/AdvisorCarousel', () => (props) => (
-  <div>
-    {props.messages.map((message) => (
-      <div key={message.id}>
-        <p>{message.content}</p>
-        <button type="button" onClick={() => props.onReply(message)}>Reply to {message.advisorName}</button>
-      </div>
-    ))}
-  </div>
-));
-jest.mock('../components/MessageBubble', () => () => null);
-jest.mock('../components/ThinkingIndicator', () => () => null);
+jest.mock('../components/MessageBubble', () => (props) => <p>{props.message.content}</p>);
 jest.mock('../components/EnhancedChatInput', () => (props) => (
   <div>
     <ul aria-label="Composer chips">
@@ -100,7 +88,6 @@ beforeEach(() => {
         data: { persona_id: 'guide', persona_name: 'Guide', content: 'Take ECON 1010 first.', is_aggregated: true },
       }));
     }
-    if (path === '/reply-to-advisor') return json({ type: 'advisor_reply', persona_id: 'guide', persona: 'Guide', response: 'Yes.' });
     return new Promise(() => {});
   });
 });
@@ -119,22 +106,4 @@ test('the conversation is still there after leaving the chat page and coming bac
   expect(screen.getByText('Plan my semester', { selector: '.user-message p' })).toBeInTheDocument();
   expect(container.querySelector('.welcome-state')).not.toBeInTheDocument();
   expect(container.querySelector('.floating-input-area')).toHaveClass('phase-active');
-});
-
-test('chips are hidden while replying to an advisor and not sent with the reply', async () => {
-  const { container } = renderApp();
-  fireEvent.click(screen.getByRole('button', { name: 'Send test message' }));
-  fireEvent.click(await screen.findByRole('button', { name: 'Reply to Guide' }));
-
-  fireEvent.click(screen.getByRole('button', { name: 'Attach course' }));
-  const chips = screen.getByRole('list', { name: 'Composer chips' });
-  expect(chips).toBeEmptyDOMElement();
-
-  fireEvent.click(screen.getByRole('button', { name: 'Send test message' }));
-  expect(await screen.findByText('Yes.')).toBeInTheDocument();
-  const [, request] = global.fetch.mock.calls.find(([url]) => url.endsWith('/reply-to-advisor'));
-  expect(JSON.parse(request.body).user_input).toBe('Plan my semester');
-  // Out of reply mode, the chip shows again for the next send.
-  fireEvent.click(container.querySelector('.cancel-reply'));
-  expect(chips).toHaveTextContent('Intermediate Macroeconomics');
 });

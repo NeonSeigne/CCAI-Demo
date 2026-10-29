@@ -13,7 +13,7 @@ import AppDialog from './AppDialog';
 import '../styles/UserGuide.css';
 
 const UserGuide = ({ leftInset = 0 }) => {
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [activeInset, setActiveInset] = useState(leftInset);
   const [activeId, setActiveId] = useState(userGuideTopics[0].id);
@@ -40,11 +40,6 @@ const UserGuide = ({ leftInset = 0 }) => {
   }, []);
 
   const appName = config?.app?.title || 'the app';
-  const advisorEntries = Object.values(advisors || {});
-  const advisorCount = advisorEntries.length;
-  const advisorList = advisorEntries
-    .map((a) => `- **${a.name}:** ${a.description || a.role || ''}`.trimEnd())
-    .join('\n');
   const q = search.toLowerCase().trim();
   const filteredTopics = q
     ? userGuideTopics.filter(t =>
@@ -123,9 +118,7 @@ const UserGuide = ({ leftInset = 0 }) => {
           <main className="ug-content" key={activeTopic.id}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {activeTopic.content
-                .replace(/\{\{appName\}\}/g, appName)
-                .replace(/\{\{advisorCount\}\}/g, String(advisorCount))
-                .replace(/\{\{advisorList\}\}/g, advisorList)}
+                .replace(/\{\{appName\}\}/g, appName)}
             </ReactMarkdown>
           </main>
       </DialogContent>

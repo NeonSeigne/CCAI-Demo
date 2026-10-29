@@ -1,30 +1,22 @@
 import React from 'react';
 import { MessageCircle } from '../icons';
-import ThinkingIndicator from '../ThinkingIndicator';
 
-/** "Thinking…" while the answer streams, plus one indicator per advisor still working. */
+/** "Thinking…" while the answer streams. */
 export default function ChatThinking({ thinkingAdvisors = [] }) {
+  if (thinkingAdvisors.length === 0) return null;
   return (
-    <>
-      {thinkingAdvisors.includes('system') && (
-        <div className="orchestrator-thinking">
-          <div className="thinking-bubble">
-            <MessageCircle size={20} />
-          </div>
-          <div className="thinking-content">
-            <span className="thinking-label">Thinking…</span>
-            <div className="thinking-animation">
-              <div className="dot"></div>
-              <div className="dot"></div>
-              <div className="dot"></div>
-            </div>
-          </div>
+    <div className="orchestrator-thinking">
+      <div className="thinking-bubble">
+        <MessageCircle size={20} />
+      </div>
+      <div className="thinking-content">
+        <span className="thinking-label">Thinking…</span>
+        <div className="thinking-animation">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
         </div>
-      )}
-
-      {thinkingAdvisors.filter((id) => id !== 'system').map((advisorId) => (
-        <ThinkingIndicator key={advisorId} advisorId={advisorId} />
-      ))}
-    </>
+      </div>
+    </div>
   );
 }

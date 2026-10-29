@@ -1,16 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Button,
-  DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   IconButton,
 } from '@mui/material';
-import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from './icons';
-import Toggle from './Toggle';
-import { useAppConfig } from '../contexts/AppConfigContext';
-import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
+import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Layers } from './icons';
 import AppDialog from './AppDialog';
 
 const tabRow = {
@@ -47,42 +41,15 @@ const dangerBtn = {
   cursor: 'pointer', fontSize: 14, fontWeight: 500,
 };
 
-const miniBtn = {
-  background: 'transparent',
-  border: '1px solid var(--line)',
-  color: 'var(--muted)',
-  fontSize: 12,
-  padding: '5px 10px',
-  borderRadius: 6,
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-};
-
 const SettingsModal = ({
   user,
   authToken,
   onUserUpdate,
   onSignOut,
   onClose,
-  advisors,
-  availableBackends,
-  llmConfig,
-  isSaving,
-  onSubmitConfig,
   leftInset = 0,
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
-  const {
-    isAdvisorEnabled,
-    setAdvisorEnabled,
-    setAllAdvisorsEnabled,
-    hydrateAdvisorPreferences,
-  } = useAppConfig();
-
-  useEffect(() => {
-    hydrateAdvisorPreferences();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -97,20 +64,28 @@ const SettingsModal = ({
   const [message, setMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const personaIds = useMemo(() => Object.keys(advisors || {}), [advisors]);
-  const [modelDraft, setModelDraft] = useState(() => {
-    const fallback = llmConfig?.default_backend || availableBackends?.[0];
-    const seed = llmConfig?.persona_backends || {};
-    const personas = {};
-    for (const id of personaIds) personas[id] = seed[id] || DEFAULT_BACKEND;
-    return {
-      default_backend: fallback,
-      orchestrator_backend: llmConfig?.orchestrator_backend || DEFAULT_BACKEND,
-      persona_backends: personas,
-    };
-  });
+  const [llmConfig, setLlmConfig] = useState(null);
+  const [availableBackends, setAvailableBackends] = useState([]);
+  const [modelDraft, setModelDraft] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const apiUrl = process.env.REACT_APP_API_URL;
+
+  useEffect(() => {
+    if (!authToken) return undefined;
+    let cancelled = false;
+    fetch(`${apiUrl}/current-provider`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        const backends = Array.isArray(data.available_backends) ? data.available_backends : [];
+        setAvailableBackends(backends);
+        setLlmConfig(data.llm_config || null);
+        setModelDraft(data.llm_config?.default_backend || backends[0] || '');
+      })
+      .catch((error) => console.error('Error fetching current provider:', error));
+    return () => { cancelled = true; };
+  }, [apiUrl, authToken]);
 
   const extractError = (data, fallback) => {
     if (!data) return fallback;
@@ -230,9 +205,31 @@ const SettingsModal = ({
     }
   };
 
+  // Only the default backend changes; the rest of the saved config is kept.
   const handleModelSave = async () => {
-    if (!onSubmitConfig) return;
-    await onSubmitConfig(stripDefaultBackends(modelDraft));
+    setMessage(null);
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${apiUrl}/switch-provider`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ mode: 'uniform', ...llmConfig, default_backend: modelDraft }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setMessage({ type: 'error', text: extractError(data, 'Could not change the model.') });
+        return;
+      }
+      setLlmConfig(data?.llm_config || { ...llmConfig, default_backend: modelDraft });
+      onClose?.();
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const messageStyle = (type) => ({
@@ -255,34 +252,6 @@ const SettingsModal = ({
           : 'var(--line)'
     }`,
   });
-
-  const advisorEntries = Object.entries(advisors || {});
-  const enabledCount = advisorEntries.filter(([id]) => isAdvisorEnabled(id)).length;
-  const setAll = (enabled) => setAllAdvisorsEnabled(enabled);
-
-  const [pendingDisable, setPendingDisable] = useState(null);
-
-  const handleDisableAllClick = () => {
-    if (enabledCount === 0) return;
-    setPendingDisable({ type: 'all' });
-  };
-
-  const handleAdvisorToggle = (id, next) => {
-    if (!next && enabledCount === 1 && isAdvisorEnabled(id)) {
-      setPendingDisable({ type: 'single', id });
-      return;
-    }
-    setAdvisorEnabled(id, next);
-  };
-
-  const confirmPendingDisable = () => {
-    if (pendingDisable?.type === 'all') {
-      setAll(false);
-    } else if (pendingDisable?.type === 'single') {
-      setAdvisorEnabled(pendingDisable.id, false);
-    }
-    setPendingDisable(null);
-  };
 
   return (
     <AppDialog
@@ -316,9 +285,6 @@ const SettingsModal = ({
           </button>
           <button style={tabBtn(activeTab === 'password')} onClick={() => { setActiveTab('password'); setMessage(null); }}>
             <Lock size={15} /> Password
-          </button>
-          <button style={tabBtn(activeTab === 'advisors')} onClick={() => { setActiveTab('advisors'); setMessage(null); }}>
-            <Users size={15} /> Advisors
           </button>
           <button style={tabBtn(activeTab === 'model')} onClick={() => { setActiveTab('model'); setMessage(null); }}>
             <Layers size={15} /> Model
@@ -373,86 +339,17 @@ const SettingsModal = ({
             </form>
           )}
 
-          {activeTab === 'advisors' && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
-                    Active advisors
-                  </div>
-                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>
-                    {enabledCount} of {advisorEntries.length} active · turn an advisor off to keep them out of your conversations
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => setAll(true)} style={miniBtn}>Enable all</button>
-                  <button onClick={handleDisableAllClick} style={miniBtn}>Disable all</button>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {advisorEntries.length === 0 && (
-                  <div style={{ padding: 24, textAlign: 'center', color: 'var(--faint)', fontSize: 13 }}>
-                    No advisors configured.
-                  </div>
-                )}
-                {advisorEntries.map(([id, advisor]) => {
-                  const IconComponent = advisor.icon;
-                  const enabled = isAdvisorEnabled(id);
-                  return (
-                    <div
-                      key={id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '12px 4px',
-                        borderTop: '1px solid var(--line)',
-                        opacity: enabled ? 1 : 0.55,
-                        transition: 'opacity .15s ease',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 36, height: 36, borderRadius: 8,
-                          background: advisor.bgColor, color: advisor.color,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0, overflow: 'hidden',
-                        }}
-                      >
-                        {advisor.avatarUrl
-                          ? <img src={advisor.avatarUrl} alt={advisor.name} style={{ width: 36, height: 36, objectFit: 'cover' }}/>
-                          : <IconComponent size={18}/>}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
-                          {advisor.name}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {advisor.description || advisor.role || ''}
-                        </div>
-                      </div>
-                      <Toggle
-                        checked={enabled}
-                        onChange={(next) => handleAdvisorToggle(id, next)}
-                        label={`Toggle ${advisor.name}`}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
           {activeTab === 'model' && (
             <>
-              <AdvisorConfigPanel
-                advisors={advisors || {}}
-                availableBackends={availableBackends || []}
+              <label style={label} htmlFor="settings-model">Model</label>
+              <select
+                id="settings-model"
+                style={{ ...input, colorScheme: 'light dark' }}
                 value={modelDraft}
-                onChange={setModelDraft}
-                description="Pick a backend for the orchestrator and each advisor. The default backend is used as a fallback."
-              />
+                onChange={(e) => setModelDraft(e.target.value)}
+              >
+                {availableBackends.map((backend) => <option key={backend} value={backend}>{backend}</option>)}
+              </select>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
                 <button
                   type="button"
@@ -468,7 +365,7 @@ const SettingsModal = ({
                 <button
                   type="button"
                   onClick={handleModelSave}
-                  disabled={isSaving}
+                  disabled={isSaving || !modelDraft}
                   style={{
                     ...primaryBtn,
                     padding: '8px 14px', fontSize: 13.5, fontWeight: 600,
@@ -508,33 +405,6 @@ const SettingsModal = ({
           )}
         </DialogContent>
 
-        <AppDialog
-          open={Boolean(pendingDisable)}
-          onClose={() => setPendingDisable(null)}
-          leftInset={leftInset}
-          maxWidth="xs"
-          aria-labelledby="disable-advisors-title"
-        >
-          <DialogTitle id="disable-advisors-title">
-            {pendingDisable?.type === 'single'
-              ? 'Disable your final advisor?'
-              : 'Disable all advisors?'}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Disabling all advisors means chat will not work. You will need to
-              re-enable at least one advisor before starting another conversation.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button variant="outlined" onClick={() => setPendingDisable(null)}>
-              Go back
-            </Button>
-            <Button variant="contained" color="error" onClick={confirmPendingDisable}>
-              Continue
-            </Button>
-          </DialogActions>
-        </AppDialog>
     </AppDialog>
   );
 };

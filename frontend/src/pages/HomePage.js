@@ -185,7 +185,7 @@ function SavedRow({ item, onOpenCourse }) {
 const HomePage = () => {
   const navigate = useNavigate();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const saved = useSaved();
   const openCourse = useOpenCourse();
   const [question, setQuestion] = useState('');
@@ -348,7 +348,6 @@ const HomePage = () => {
           authToken={authToken}
           onUserUpdate={handleUserUpdate}
           onSignOut={handleSignOutClick}
-          advisors={advisors}
           onClose={() => setIsSettingsOpen(false)}
         />
       )}

@@ -22,7 +22,7 @@ jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { name: 'Pierce' }, authToken: 'token', handleSignOut: jest.fn(), handleUserUpdate: jest.fn() }),
 }));
 let mockConfig;
-jest.mock('../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: mockConfig, advisors: {} }) }));
+jest.mock('../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: mockConfig }) }));
 jest.mock('../components/CampusRail', () => ({
   __esModule: true,
   default: () => <nav aria-label="Rail" />,

@@ -296,7 +296,7 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { config } = useAppConfig();
   const savedContext = useSaved();
   const toast = useToast();
 
@@ -787,7 +787,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
           authToken={authToken}
           onUserUpdate={handleUserUpdate}
           onSignOut={handleSignOutClick}
-          advisors={advisors}
           onClose={() => setIsSettingsOpen(false)}
         />
       )}

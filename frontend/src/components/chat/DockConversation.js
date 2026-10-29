@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText } from '../icons';
-import AdvisorCarousel from '../AdvisorCarousel';
+import MessageBubble from '../MessageBubble';
 import ChatThinking from './ChatThinking';
 import { useChat } from '../../contexts/ChatContext';
 import groupMessages from '../../utils/messageGroups';
@@ -37,12 +37,11 @@ export default function DockConversation() {
           if (!shown.length) return null;
           return (
             <div key={group.responseGroupId} className="response-group">
-              <AdvisorCarousel
-                key={shown.map((m) => m.id).join('-')}
-                messages={shown}
-                onCourseSelect={openCourse}
-                onAsk={(text) => send(text)}
-              />
+              {shown.map((message) => (
+                <div key={message.id} className="single-response-wide">
+                  <MessageBubble message={message} onCourseSelect={openCourse} onAsk={(text) => send(text)} />
+                </div>
+              ))}
             </div>
           );
         }
