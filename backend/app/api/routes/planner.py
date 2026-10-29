@@ -12,7 +12,7 @@ plan id is ever taken from the client. The work happens in
   undo uses the same ``refused`` shape.
 """
 
-from typing import Any, Awaitable, Dict, Optional
+from typing import Annotated, Any, Awaitable, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
@@ -49,9 +49,15 @@ async def _run(call: Awaitable[Any]) -> Any:
 
 
 @router.get("/plan")
-async def get_plan(current_user: User = Depends(get_current_active_user)) -> Dict[str, Any]:
-    """The student's plan, its check report, the pending proposal and the undo label."""
-    return await _run(service.view(str(current_user.id), _school()))
+async def get_plan(
+    current_user: User = Depends(get_current_active_user),
+    term: Annotated[Optional[str], Query(max_length=40)] = None,
+) -> Dict[str, Any]:
+    """The student's plan, its check report, the pending proposal and the undo label.
+
+    ``term`` checks the plan for that term (the semester view of any term).
+    """
+    return await _run(service.view(str(current_user.id), _school(), term))
 
 
 @router.get("/programs")
@@ -114,7 +120,7 @@ async def post_undo(body: UndoRequest, current_user: User = Depends(get_current_
 @router.get("/suggestions")
 async def get_suggestions(
     q: str = Query("", max_length=300),
-    term: Optional[str] = Query(None, max_length=40),
+    term: Annotated[Optional[str], Query(max_length=40)] = None,
     current_user: User = Depends(get_current_active_user),
 ):
     """Up to five courses matching ``q`` (or the profile's interests), labelled by the checker."""

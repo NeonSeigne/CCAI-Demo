@@ -107,7 +107,7 @@ diff = {
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET | `/api/planner/plan` | | `{plan, report, proposal: {…, diff}|null, undo_label}` |
+| GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
 | POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
@@ -117,10 +117,18 @@ diff = {
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
-`{"op":"move","course":id,"to_term":term}`, `{"op":"swap","out":id,"in":id}`,
+`{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the
+course's sections unless it names new ones), `{"op":"swap","out":id,"in":id}`,
 `{"op":"pick_section","course":id,"sections":[ids]}`,
 `{"op":"set_profile", ...profile fields}`.
 Errors: `unknown_course`, `couldnt_verify_course`, `revision_conflict`.
+
+Every op is validated against the facts of the term it lands in (eng review
+R13): `add.term`, `move.to_term`, the current term of the course a `swap` or
+`pick_section` changes, otherwise `plan.term`. All terms an edit touches load
+in one bounded batch (`facts.load_facts_by_term`). A course added or moved
+into a term where it is not offered is kept, with the note
+"ECON 3010 isn't offered in Fall 2027" (edit `notes`, diff `unknowns`).
 
 ## Chat (lane D)
 

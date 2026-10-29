@@ -1,4 +1,4 @@
-"""Course facts the checker needs, for one term.
+"""Course facts the checker needs, per term.
 
 Providers (``sources/academics.course_facts``) build these; the planner never
 imports a provider's internals. Every field that a school may not publish has
@@ -6,7 +6,8 @@ an explicit unknown value (``None`` or ``"unknown"``), so the checker can say
 "unknown" instead of guessing.
 
 ``load_facts`` fetches facts for a whole plan in one bounded batch (eng review
-R8): at most ``concurrency`` provider calls in flight, and one deadline for
+R8), and ``load_facts_by_term`` does the same for several terms at once (R12):
+at most ``concurrency`` provider calls in flight, and one deadline for
 the batch. A course that misses the deadline, or whose call fails, comes back
 ``known="unavailable"`` with a reason, so the check still runs and reads
 "unknown" for that course (R4); an add of such a course is refused with
@@ -18,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Dict, Iterable, List, Literal, Optional, Tuple
+from typing import Awaitable, Callable, Dict, Iterable, List, Literal, Mapping, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -104,39 +105,59 @@ async def load_facts(
     ``chunk_size``; one chunk per call keeps a slow course from holding the
     others past the deadline.
     """
-    unique = list(dict.fromkeys(i for i in ids if i))
-    if not unique:
-        return {}
+    found = await load_facts_by_term(
+        {term: ids}, provider=provider, concurrency=concurrency, budget_s=budget_s, chunk_size=chunk_size,
+    )
+    return found.get(term, {})
+
+
+async def load_facts_by_term(
+    wanted: Mapping[str, Iterable[str]],
+    *,
+    provider: Optional[Provider] = None,
+    concurrency: int = 8,
+    budget_s: float = 6.0,
+    chunk_size: int = 1,
+) -> Dict[str, Dict[str, CourseFacts]]:
+    """Facts for ``{term: ids}``, every term in ONE bounded batch: one gate of
+    ``concurrency`` calls and one ``budget_s`` deadline shared by all terms
+    (eng review R12, R13). Returns ``{term: {id: facts}}``; a term with no ids
+    maps to ``{}``.
+    """
+    unique = {term: list(dict.fromkeys(i for i in ids if i)) for term, ids in wanted.items()}
+    if not any(unique.values()):
+        return {term: {} for term in unique}
     if provider is None:
         from app.sources import academics
 
         provider = academics.course_facts
 
     gate = asyncio.Semaphore(max(1, concurrency))
-    chunks = [unique[i:i + max(1, chunk_size)] for i in range(0, len(unique), max(1, chunk_size))]
+    size = max(1, chunk_size)
+    chunks = [(term, ids[i:i + size]) for term, ids in unique.items() for i in range(0, len(ids), size)]
 
-    async def fetch(chunk: List[str]) -> Dict[str, CourseFacts]:
+    async def fetch(term: str, chunk: List[str]) -> Dict[str, CourseFacts]:
         async with gate:
             return await provider(chunk, term)
 
-    tasks = {asyncio.ensure_future(fetch(chunk)): chunk for chunk in chunks}
+    tasks = {asyncio.ensure_future(fetch(term, chunk)): (term, chunk) for term, chunk in chunks}
     done, pending = await asyncio.wait(tasks, timeout=budget_s)
     for task in pending:
         task.cancel()
 
-    result: Dict[str, CourseFacts] = {}
-    for task, chunk in tasks.items():
+    result: Dict[str, Dict[str, CourseFacts]] = {term: {} for term in unique}
+    for task, (term, chunk) in tasks.items():
         if task in pending:
             for identifier in chunk:
-                result[identifier] = unavailable(identifier, TOO_SLOW)
+                result[term][identifier] = unavailable(identifier, TOO_SLOW)
             continue
         try:
             answered = task.result() or {}
         except Exception as exc:  # a provider should not raise; never let one course sink the check
-            logger.warning("course_facts failed for %s: %s", chunk, exc)
+            logger.warning("course_facts failed for %s (%s): %s", chunk, term, exc)
             answered = {}
         for identifier in chunk:
-            result[identifier] = answered.get(identifier) or unavailable(identifier, NO_ANSWER)
+            result[term][identifier] = answered.get(identifier) or unavailable(identifier, NO_ANSWER)
     if pending:
         await asyncio.gather(*pending, return_exceptions=True)
-    return {identifier: result[identifier] for identifier in unique}
+    return {term: {i: result[term][i] for i in ids} for term, ids in unique.items()}

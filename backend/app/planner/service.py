@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.core.database import get_database
 from app.planner import checker, edits, store
-from app.planner.facts import CourseFacts, Provider, load_facts
+from app.planner.facts import CourseFacts, Provider, load_facts_by_term
 from app.planner.suggest import suggest
 
 logger = logging.getLogger(__name__)
@@ -74,8 +74,13 @@ def programs_for(school: str, program_ids: Sequence[str]) -> List[Any]:
 # ---------------------------------------------------------------------------
 
 
-async def _facts(ids: Sequence[str], term: str) -> Dict[str, CourseFacts]:
-    return await load_facts(list(ids), term, provider=facts_provider)
+async def _facts_by_term(wanted: Dict[str, Sequence[str]], school: str) -> Dict[str, Dict[str, CourseFacts]]:
+    """``{term: {id: facts}}`` for ``{term: ids}``, all terms in one bounded batch (R12, R13)."""
+    return await load_facts_by_term({t: list(ids) for t, ids in wanted.items()}, provider=facts_provider)
+
+
+async def _facts(ids: Sequence[str], term: str, school: str) -> Dict[str, CourseFacts]:
+    return (await _facts_by_term({term: ids}, school))[term]
 
 
 def _report(plan: Dict[str, Any], facts: Dict[str, CourseFacts], school: str) -> Dict[str, Any]:
@@ -83,26 +88,33 @@ def _report(plan: Dict[str, Any], facts: Dict[str, CourseFacts], school: str) ->
     return checker.check(plan, facts, programs, credit_limits=credit_limits())
 
 
-async def report_for(plan: Dict[str, Any], school: str) -> Dict[str, Any]:
-    return _report(plan, await _facts(checker.facts_needed(plan), plan["term"]), school)
+def _in_term(plan: Dict[str, Any], term: Optional[str]) -> Dict[str, Any]:
+    """The plan as checked for ``term`` (the semester view of any term, R13)."""
+    return dict(plan, term=term) if term else plan
+
+
+async def report_for(plan: Dict[str, Any], school: str, term: Optional[str] = None) -> Dict[str, Any]:
+    shown = _in_term(plan, term)
+    return _report(shown, await _facts(checker.facts_needed(shown), shown["term"], school), school)
 
 
 async def _plan(db, user_id: str, school: str) -> Dict[str, Any]:
     return await store.get_or_create(db, str(user_id), school, term=default_term())
 
 
-async def _view(plan: Dict[str, Any], school: str) -> Dict[str, Any]:
+async def _view(plan: Dict[str, Any], school: str, term: Optional[str] = None) -> Dict[str, Any]:
     return {
         "plan": store.public_plan(plan),
-        "report": await report_for(plan, school),
+        "report": await report_for(plan, school, term),
         "proposal": store.public_proposal(store.pending_proposal(plan)),
         "undo_label": store.current_undo_label(plan),
     }
 
 
-async def view(user_id: str, school: str) -> Dict[str, Any]:
-    """``{plan, report, proposal, undo_label}`` for the plan panel and page."""
-    return await _view(await _plan(get_database(), user_id, school), school)
+async def view(user_id: str, school: str, term: Optional[str] = None) -> Dict[str, Any]:
+    """``{plan, report, proposal, undo_label}`` for the plan panel and page;
+    ``term`` checks the plan as the semester view of that term (R13)."""
+    return await _view(await _plan(get_database(), user_id, school), school, term)
 
 
 # ---------------------------------------------------------------------------
@@ -111,15 +123,31 @@ async def view(user_id: str, school: str) -> Dict[str, Any]:
 
 
 async def _validated_diff(
-    plan: Dict[str, Any], ops: List[Dict[str, Any]], school: str, *, asked: Optional[str] = None
+    plan: Dict[str, Any],
+    ops: List[Dict[str, Any]],
+    school: str,
+    *,
+    asked: Optional[str] = None,
+    term: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Validate ``ops`` against ``plan`` and return their diff (raises ``EditError``)."""
+    """Validate ``ops`` against ``plan`` and return their diff as seen in
+    ``term`` (default the plan's term); raises ``EditError``.
+
+    Each op is checked against the facts of the term it lands in (R13); the
+    reports' facts and every destination term's facts load in one batch.
+    """
     edits.check_applies(plan, ops)
     after = edits.apply_ops(plan, ops)
-    ids = edits.courses_to_verify(ops) + checker.facts_needed(plan) + checker.facts_needed(after)
-    facts = await _facts(ids, plan["term"])
-    notes = edits.validate_ops(plan, ops, facts)
-    return edits.diff(_report(plan, facts, school), _report(after, facts, school), ops, asked=asked, notes=notes)
+    shown = term or plan["term"]
+    wanted = {shown: checker.facts_needed(plan) + checker.facts_needed(after)}
+    for dest, ids in edits.verify_by_term(plan, ops).items():
+        wanted[dest] = wanted.get(dest, []) + ids
+    by_term = await _facts_by_term(wanted, school)
+    notes = edits.validate_ops(plan, ops, by_term=by_term)
+    facts = by_term[shown]
+    before_report = _report(_in_term(plan, shown), facts, school)
+    after_report = _report(_in_term(after, shown), facts, school)
+    return edits.diff(before_report, after_report, ops, asked=asked, notes=notes)
 
 
 async def apply_edit(
@@ -132,8 +160,8 @@ async def apply_edit(
     if not store.seen_key(plan, idempotency_key):
         if plan["revision"] != expected_revision:
             raise store.RevisionConflict(plan["revision"])
-        facts = await _facts(edits.courses_to_verify(ops), plan["term"])
-        notes = edits.validate_ops(plan, ops, facts)
+        by_term = await _facts_by_term(edits.verify_by_term(plan, ops), school)
+        notes = edits.validate_ops(plan, ops, by_term=by_term)
     plan, _ = await store.commit_edit(
         db, str(user_id), school, ops, expected_revision=expected_revision, idempotency_key=idempotency_key
     )
