@@ -1302,23 +1302,88 @@ These amend the eng tasks E1–E6.
   +====================================================================+
 ```
 
+
+## Eng Re-review of the CEO delta (plan-eng-review, 2026-10-29)
+
+**Scope:** C1, C3, C4, C5 and O1–O3. R1–R16 and structure D1 are reused unchanged. Prior learning applied: course-detail-catchall-route.
+
+### Corrections (no behaviour change)
+
+- **N1, C4 route (main review, 9/10).** `catalog.py:96` `@router.get("/{course_identifier:path}")` would swallow `/{id}/ratings`. The ratings route becomes `GET /api/catalog/ratings/{course_identifier:path}`, declared before line 96. Regression test: the ratings route is reached, and `/api/catalog/COMP SCI 400` still resolves.
+- **N2c, C1 file list (Outside review #3, verified).**
+  - `ProposalCard.js:4` and `CourseShortlistCard.js:6` import `PlanPanel.css`, and `ProposalCard.test.js:5` renders PlanPanel.
+  - **Before the delete:** move the card styles to `styles/PlanCards.css` and point both imports at it. Migrate the `ProposalCard.test.js` integration (`withPanel`) to the semester view.
+  - **Then delete** `PlanPanel.js`, `PlanSheet.js` and the panel-only rules.
+
+### Delta decision ledger
+
+| ID | Finding | Current | Proposed | Status | Exact approval and scope |
+|---|---|---|---|---|---|
+| N2 | Outside review #1, High, verified: shortlist Choose proposes `add` with no term (`CourseShortlistCard.js:59`); `edits.py:172` defaults to `plan.term`; `plan_edit` ignores `active_term` (`plan_edit.py:127`) | adds land in the stored term | A) when no term is given, chat proposals and shortlist adds use the ToolContext / ChatProvider `active_term`; the shortlist card carries the term it was suggested for; B) keep; C) investigate; D) defer | approved | D22, user answer A, 2026-10-29. `plan_edit` fills a missing `term` on `add` ops from `context.active_term`, and the shortlist visual includes a `term` that its Choose button sends. Test: with Fall 2027 open, choosing a suggestion and accepting puts the course in Fall 2027, including after navigating away. |
+| N3 | Outside review #2, High, verified: `apply_edit` commits before building the response (`service.py:137`); a lost response leaves the edit saved while C3 reverts it | revert on any error | A) on a network error or timeout the queue retries the same request with the same idempotency key (deduped, `store.py:169`) until it gets a definite answer; only a definite 4xx reverts; B) keep; C) investigate; D) defer | approved | D23, user answer A, 2026-10-29.
+
+- **Edits:** on a network error or timeout, the queue retries `/edits` with the same idempotency key (backoff 0.5s, 1s, 2s, then holds with "Saving…" and Retry). Only a definite 4xx reverts that edit (D8).
+- **Undo, redo and accept** carry no key. On an uncertain outcome the queue refetches the view, and a revision that advanced past the request's `expected_revision` counts as applied. This is the same "definite answer" rule; there is no blind retry.
+- **Tests:** commit succeeds but the response is lost, and the next queued edit still lands; a 4xx reverts only its own edit. |
+| N4 | Outside review #4, Medium, verified: `load()` installs any view (`PlannerContext.js:88`); `receiveProposal` triggers a background load (`:143`) | latest-arriving read wins | A) ignore any view whose revision is older than the newest known; replay pending queued optimistic ops on top of a newer view; B) keep; C) investigate; D) defer | approved | D24, user answer A, 2026-10-29. `commitView` keeps the newest known `plan.revision` and drops any view with a lower revision. Pending queued optimistic ops are re-applied on top of every accepted view until their request settles. Test: a delayed `load()` resolving between two queued writes doesn't erase either card, and the final view has the newest revision. |
+| N5 | Outside review #5, Medium, verified: the RMP lookup matches by name, up to 20 candidates, filtered only by school (`rate_my_professor.py:170`, `:204`) | first candidate | A) cache a rating only on an unambiguous match (one candidate whose normalized full name matches; a department check when available); otherwise omit it and cache the miss; test same-school namesakes; B) keep; C) investigate; D) defer | approved | D25, user answer A, 2026-10-29.
+
+- **Match rule:** a rating is used only when exactly one candidate's normalized full name (case- and accent-folded, middle initials ignored) equals the instructor's name. When the catalog gives the course's subject, the candidate's department must also match.
+- **Otherwise:** no rating, and the miss is cached with the same TTL.
+- **Tests:** two same-school namesakes give no rating; one exact match gives a rating; an accent or case variant still matches. |
+
+
+**Approval readiness (re-review): PASS.** N2 (D22), N3 (D23), N4 (D24), N5 (D25); corrections N1 and N2c (no behaviour change); R1–R16 and D1 carried forward.
+
+### Re-review tasks
+
+These amend C-T1, C-T3, C-T4 and C-T6.
+
+- [ ] **N-T1 (P1, human: ~2h / CC: ~10min)**: Catalog route. `GET /api/catalog/ratings/{id:path}` declared before the catch-all.
+  - Surfaced by: N1.
+  - Files: `backend/app/api/routes/catalog.py`.
+  - Verify: pytest for both routes.
+- [ ] **N-T2 (P1, human: ~2h / CC: ~10min)**: Chat cards. Move the card styles to `PlanCards.css` and migrate the ProposalCard integration test before C-T1's deletes.
+  - Surfaced by: N2c.
+  - Files: `frontend/src/components/visuals/ProposalCard.js`, `CourseShortlistCard.js`, `ProposalCard.test.js`, `frontend/src/styles/`.
+  - Verify: `npm test` and `npm run build`.
+- [ ] **N-T3 (P1, human: ~3h / CC: ~20min)**: Term-less adds use `active_term`.
+  - Surfaced by: N2.
+  - Files: `backend/app/tools/plan_edit.py`, `backend/app/tools/plan_suggest.py`, `frontend/src/components/visuals/CourseShortlistCard.js`.
+  - Verify: choosing a suggestion with Fall 2027 open lands it in Fall 2027.
+- [ ] **N-T4 (P1, human: ~1d / CC: ~45min)**: PlannerContext. Same-key retries, definite-answer rule for undo / redo / accept, monotonic views, replay of pending ops.
+  - Surfaced by: N3, N4.
+  - Files: `frontend/src/contexts/PlannerContext.js`.
+  - Verify: Jest for a lost response, a delayed read, and a 4xx revert.
+- [ ] **N-T5 (P2, human: ~2h / CC: ~15min)**: Ratings. Unambiguous-match rule.
+  - Surfaced by: N5.
+  - Files: `backend/app/tools/rate_my_professor.py`, the catalog ratings route.
+  - Verify: pytest with namesake fixtures.
+
+**Re-review summary:**
+- **Scope:** the CEO delta, accepted as-is (FULL_REVIEW).
+- **Issues:** 2 corrections and 4 decisions (all approved).
+- **Critical gaps:** 0.
+- **Outside voice:** Outside review completed with 5 findings: 4 decisions plus 1 correction.
+- **Lake Score:** 4/4.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | clean | mode: HOLD_SCOPE, 0 critical gaps (7 decisions: C1, C3–C5, O1–O3) |
-| Outside Review | Outside review `outside review exec` (plan-review ×2, design ×1) | Independent 2nd opinion | 3 | completed | CEO pass: 3 findings, 3 resolved, 0 unresolved; eng pass: 5 findings, 5 resolved; design pass: 11 findings, folded into D3–D24 |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 27 issues, 0 critical gaps (16 decisions resolved; mapped work E1–E6) |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | clean | mode: HOLD_SCOPE, 0 critical gaps |
+| Outside Review | Outside review `outside review exec` (plan-review ×3, design ×1) | Independent 2nd opinion | 4 | completed | eng delta pass: 5 findings, 5 resolved (4 decisions N2–N5, 1 correction N2c); CEO pass: 3 resolved; eng pass: 5 resolved; design pass: 11 folded in |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 2 | issues_open | 6 issues (2 corrections, 4 decisions), 0 critical gaps, 0 unresolved; mapped work E1–E6, C-T1–C-T7, N-T1–N-T5 |
 | Design Review | `/plan-design-review` | UI/UX gaps | 1 | clean | score: 3/10 → 8/10, 22 decisions |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
 - **OUTSIDE COVERAGE:**
-  - **CEO plan-review:** Outside review completed with 3 findings: chat's active term (O1), the Completed-course editor (O2) and the rollout order (O3). All were verified against `service.py:233`, `plan_suggest.py:56`, `PlanPanel.js:125`, `Dockerfile:31` and `places.py:123`, and resolved.
-  - **Eng plan-review and design phases:** completed, as recorded above.
+  - **Eng delta pass:** Outside review completed with 5 findings. All were verified (`CourseShortlistCard.js:59`, `service.py:137`, `ProposalCard.js:4`, `PlannerContext.js:88`, `rate_my_professor.py:204`) and resolved.
+  - **Earlier passes:** completed, as recorded in their sections above.
 - **CROSS-MODEL:**
-  - The main review's CEO sections found C1 (the old panel), C3 (rapid-drag 409s), C4 (live RMP) and C5 (silent timeouts).
-  - Outside review found three integration gaps that neither earlier pass caught (O1–O3). The O2 gap arose from C1, The main review's own removal decision.
-  - There were no disagreements once O2's investigation confirmed that no transcript path exists.
-- **VERDICT:** CEO + DESIGN CLEARED. Eng review is issues_open only for mapped implementation work (E1–E6 plus C-T1–C-T7), with 0 unresolved decisions. Ready to implement; eng review required to show CLEAR after implementation.
+  - main review found the catalog catch-all collision (N1, a prior learning).
+  - Outside review found the term-less adds, the lost-response handling, stale reads, the C1 CSS dependency and RMP identity.
+  - There were no disagreements.
+- **VERDICT:** CEO + DESIGN CLEARED. Eng review: every decision is resolved and there are 0 critical gaps. The status is issues_open only because of mapped implementation work. Ready to implement.
 
 NO UNRESOLVED DECISIONS
