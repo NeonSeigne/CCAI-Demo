@@ -3,7 +3,8 @@ import { act, render, waitFor } from '@testing-library/react';
 import { PlannerProvider, applyOps, previewKey, usePlanner } from './PlannerContext';
 import { plan, proposal, report } from '../components/planner/plannerFixtures';
 
-jest.mock('./AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
+let mockToken = 'token';
+jest.mock('./AuthContext', () => ({ useAuth: () => ({ authToken: mockToken }) }));
 
 const deferred = () => {
   let resolve;
@@ -11,11 +12,14 @@ const deferred = () => {
   return { promise, resolve };
 };
 
+const abortError = () => Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' });
+
 /**
  * A planner backend behind `fetch`: one plan with a revision, idempotency
- * keys, an undo stack and the 409 / 422 answers. `server.intercept` holds
- * one-shot hooks `(req, next) => response` that can delay an answer, lose it
- * after the write (`await next(); throw ...`), or fail before it.
+ * keys, an undo stack, one proposal and the 409 / 422 answers.
+ * `server.once(match, run)` adds a one-shot hook `(req, next) => answer` that
+ * can delay an answer, lose it after the write (`await next(); throw ...`),
+ * fail before it, or never answer (the request's AbortSignal still ends it).
  */
 function fakeServer() {
   const s = {
@@ -65,12 +69,15 @@ function fakeServer() {
     });
   };
   const invert = (ops) => ops.map((op) => (op.op === 'add' ? { op: 'remove', course: op.course } : { op: 'add', course: op.course }));
-
-  /** Another tab's edit. */
-  s.otherTab = (ops) => {
+  const commit = (ops) => {
     applyOpsHere(ops);
     s.revision += 1;
+    s.stack = [...s.stack.slice(0, s.pointer), { ops, label: label(ops), revision: s.revision }];
+    s.pointer = s.stack.length;
   };
+
+  /** Another tab's edit. */
+  s.otherTab = (ops) => commit(ops);
 
   s.handle = ({ path, method, body, query }) => {
     if (method === 'GET' && path === '/api/planner/plan') return { status: 200, body: viewBody(query.get('term') || undefined) };
@@ -83,10 +90,7 @@ function fakeServer() {
       if (bad) {
         return { status: 422, body: { detail: { code: 'unknown_course', message: `${bad.course} isn't in the catalog`, course: bad.course } } };
       }
-      applyOpsHere(body.ops);
-      s.revision += 1;
-      s.stack = [...s.stack.slice(0, s.pointer), { ops: body.ops, label: label(body.ops), revision: s.revision }];
-      s.pointer = s.stack.length;
+      commit(body.ops);
       s.keys.set(body.idempotency_key, s.revision);
       return { status: 200, body: { ...viewBody(), notes: [] } };
     }
@@ -100,6 +104,21 @@ function fakeServer() {
       s.revision += 1;
       return { status: 200, body: viewBody() };
     }
+    const accept = path.match(/^\/api\/planner\/proposals\/(.+)\/accept$/);
+    if (accept) {
+      if (!s.proposal || s.proposal.id !== decodeURIComponent(accept[1])) {
+        return { status: 409, body: { detail: { status: 'refused', reason: 'Gone' } } };
+      }
+      commit(s.proposal.ops);
+      s.proposal = null;
+      const { plan: p, report: r } = viewBody();
+      return { status: 200, body: { plan: p, report: r } };
+    }
+    if (/\/discard$/.test(path)) {
+      const gone = { ...s.proposal, status: 'discarded' };
+      s.proposal = null;
+      return { status: 200, body: { proposal: gone } };
+    }
     if (path === '/api/planner/preview') {
       if (body.expected_revision !== s.revision) return conflict();
       return { status: 200, body: { diff: { heading: `Preview for ${body.term || 'Spring 2027'}` }, revision: s.revision } };
@@ -109,11 +128,24 @@ function fakeServer() {
 
   s.fetch = jest.fn(async (url, init = {}) => {
     const [path, search = ''] = url.split('?');
-    const req = { path, method: init.method || 'GET', body: init.body ? JSON.parse(init.body) : null, query: new URLSearchParams(search) };
+    const req = {
+      path,
+      method: init.method || 'GET',
+      body: init.body ? JSON.parse(init.body) : null,
+      query: new URLSearchParams(search),
+      auth: init.headers?.Authorization || null,
+      signal: init.signal || null,
+    };
     s.calls.push(req);
     const index = s.intercept.findIndex((hook) => hook.match(req));
     const next = async () => s.handle(req);
-    const answer = index >= 0 ? await s.intercept.splice(index, 1)[0].run(req, next) : await next();
+    const answering = index >= 0 ? s.intercept.splice(index, 1)[0].run(req, next) : next();
+    const aborted = new Promise((_, reject) => {
+      if (!req.signal) return;
+      if (req.signal.aborted) reject(abortError());
+      req.signal.addEventListener('abort', () => reject(abortError()));
+    });
+    const answer = await Promise.race([answering, aborted]);
     return {
       ok: answer.status >= 200 && answer.status < 300,
       status: answer.status,
@@ -124,11 +156,15 @@ function fakeServer() {
   /** Requests to `path` (and `method`), in order. */
   s.sent = (path, method = 'POST') => s.calls.filter((c) => c.path === path && c.method === method);
   s.once = (match, run) => s.intercept.push({ match, run });
+  s.times = (n, match, run) => { for (let i = 0; i < n; i += 1) s.once(match, run); };
   return s;
 }
 
 const isEdit = (req) => req.path === '/api/planner/edits';
+const isRead = (req) => req.method === 'GET' && req.path === '/api/planner/plan';
 const lost = () => { throw new TypeError('Failed to fetch'); };
+const down = () => ({ status: 503, body: { detail: 'down' } });
+const never = () => new Promise(() => {});
 const ids = (view) => (view?.report?.courses || []).map((c) => c.id);
 
 let server;
@@ -139,14 +175,18 @@ function Probe() {
   return null;
 }
 
+const tree = (props) => <PlannerProvider retryDelays={[0, 0, 0]} {...props}><Probe /></PlannerProvider>;
+
 async function mountLoaded(props = {}) {
-  render(<PlannerProvider retryDelays={[0, 0, 0]} {...props}><Probe /></PlannerProvider>);
+  const utils = render(tree(props));
   await act(async () => { await planner.load(); });
   await waitFor(() => expect(planner.view?.plan?.revision).toBe(server.revision));
+  return utils;
 }
 
 const originalFetch = global.fetch;
 beforeEach(() => {
+  mockToken = 'token';
   server = fakeServer();
   global.fetch = server.fetch;
 });
@@ -205,22 +245,55 @@ test('a committed edit whose response is lost is resent with the same key, kept,
   expect(planner.queueState).toBe('idle');
 });
 
-test('with no answer after three retries the queue holds as saving until retry()', async () => {
+test('a 5xx through every retry holds: the caller hears at once, the edit stays, retry() saves it', async () => {
   await mountLoaded();
-  for (let i = 0; i < 4; i += 1) server.once(isEdit, async () => lost());
+  server.times(4, isEdit, async () => down());
   let pending;
   act(() => { pending = planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
-  await waitFor(() => expect(planner.queueHeld).toBe(true));
+  await act(async () => {
+    await expect(pending).rejects.toMatchObject({ held: true, status: 503 });
+  });
   expect(server.sent('/api/planner/edits')).toHaveLength(4);
-  expect(planner.queueState).toBe('saving');
+  expect(planner.queueHeld).toBe(true);
+  expect(planner.queueState).toBe('error');
+  expect(planner.saveError).toMatchObject({ held: true, kind: 'edit' });
   expect(ids(planner.view)).toContain('ECON 3300');
 
-  act(() => { planner.retry(); });
-  await act(async () => { await pending; });
+  await act(async () => { planner.retry(); });
+  await waitFor(() => expect(planner.queueState).toBe('idle'));
   const keys = new Set(server.sent('/api/planner/edits').map((c) => c.body.idempotency_key));
   expect(keys.size).toBe(1);
-  expect(planner.queueState).toBe('idle');
+  expect(planner.queueHeld).toBe(false);
   expect(planner.view.plan.revision).toBe(5);
+  expect(ids(planner.view)).toContain('ECON 3300');
+});
+
+test('a timeout aborts the request and retries; held after the last, it resumes when the browser is back online', async () => {
+  await mountLoaded({ timeoutMs: 20 });
+  server.times(4, isEdit, never);
+  let pending;
+  act(() => { pending = planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
+  await act(async () => { await expect(pending).rejects.toMatchObject({ held: true, timeout: true }); });
+  const tries = server.sent('/api/planner/edits');
+  expect(tries).toHaveLength(4);
+  expect(tries.every((c) => c.signal.aborted)).toBe(true);
+  expect(planner.queueState).toBe('error');
+
+  await act(async () => { window.dispatchEvent(new Event('online')); });
+  await waitFor(() => expect(planner.queueState).toBe('idle'));
+  expect(planner.view.plan.revision).toBe(5);
+  expect(server.sent('/api/planner/edits')).toHaveLength(5);
+});
+
+test('a held queue resumes on its own after resumeAfterMs', async () => {
+  await mountLoaded({ resumeAfterMs: 30 });
+  server.times(4, isEdit, async () => lost());
+  let pending;
+  act(() => { pending = planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
+  await act(async () => { await expect(pending).rejects.toMatchObject({ held: true }); });
+  await waitFor(() => expect(planner.view.plan.revision).toBe(5));
+  expect(server.sent('/api/planner/edits')).toHaveLength(5);
+  expect(planner.queueState).toBe('idle');
 });
 
 test('a 4xx reverts only its own edit and the queue continues; retry() sends it again', async () => {
@@ -268,7 +341,7 @@ test('a delayed load resolving between two queued writes erases neither card; th
   const slowLoad = deferred();
   const slowEdit = deferred();
   // The read is answered with revision 4 but arrives late.
-  server.once((req) => req.method === 'GET' && req.path === '/api/planner/plan', async (req, next) => {
+  server.once(isRead, async (req, next) => {
     const answer = await next();
     await slowLoad.promise;
     return answer;
@@ -299,27 +372,28 @@ test('a delayed load resolving between two queued writes erases neither card; th
   expect(ids(planner.view)).toEqual(['CHEM 2410', 'ECON 3720', 'ECON 3300', 'ECON 4400']);
 });
 
-test('undo and redo with no answer refetch: a revision past the one sent is applied, otherwise not', async () => {
+test('undo and redo with no answer poll the plan: applied when the pointer took the step, otherwise not', async () => {
   await mountLoaded();
   await act(async () => { await planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
 
-  // Undo is applied but its answer is lost: the refetch shows revision 6.
+  // Undo is applied but its answer is lost: the first poll shows the step.
   server.once((req) => req.path === '/api/planner/undo', async (req, next) => { await next(); lost(); });
-  const reads = server.sent('/api/planner/plan', 'GET').length;
+  let reads = server.sent('/api/planner/plan', 'GET').length;
   await act(async () => { await planner.undo(); });
   expect(server.sent('/api/planner/undo')).toHaveLength(1);
   expect(server.sent('/api/planner/plan', 'GET').length).toBe(reads + 1);
   expect(planner.view.plan.revision).toBe(6);
   expect(ids(planner.view)).not.toContain('ECON 3300');
-  expect(planner.canRedo).toBe(true);
   expect(planner.redoLabel).toBe('Redo: added ECON 3300');
 
-  // Redo never reaches the server: the refetch shows the same revision, so it failed.
+  // Redo never reaches the server: three polls show it didn't apply.
   server.once((req) => req.path === '/api/planner/redo', async () => lost());
+  reads = server.sent('/api/planner/plan', 'GET').length;
   let redo;
   act(() => { redo = planner.redo(); });
   await act(async () => { await expect(redo).rejects.toMatchObject({ network: true }); });
   expect(server.sent('/api/planner/redo')).toHaveLength(1);
+  expect(server.sent('/api/planner/plan', 'GET').length).toBe(reads + 3);
   expect(planner.view.plan.revision).toBe(6);
   expect(planner.queueState).toBe('idle');
 
@@ -328,12 +402,116 @@ test('undo and redo with no answer refetch: a revision past the one sent is appl
   expect(ids(planner.view)).toContain('ECON 3300');
 });
 
+test('an uncertain undo is not counted as applied just because another tab moved the revision', async () => {
+  await mountLoaded();
+  await act(async () => { await planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
+  server.once((req) => req.path === '/api/planner/undo', async () => {
+    server.otherTab([{ op: 'add', course: 'HIST 1010' }]);
+    lost();
+  });
+  let undo;
+  act(() => { undo = planner.undo(); });
+  await act(async () => { await expect(undo).rejects.toMatchObject({ network: true }); });
+  expect(planner.view.plan.revision).toBe(6);
+  expect(ids(planner.view)).toEqual(expect.arrayContaining(['ECON 3300', 'HIST 1010']));
+});
+
+test('accept with no answer: applied only once the plan moved and the proposal is no longer pending', async () => {
+  server.proposal = proposal({ id: 'p1', base_revision: 4, ops: [{ op: 'add', course: 'ECON 3300' }] });
+  await mountLoaded();
+
+  // Another tab moves the plan while the accept is lost on the way: the
+  // proposal is still pending, so it did not apply.
+  server.once((req) => /accept$/.test(req.path), async () => {
+    server.otherTab([{ op: 'add', course: 'HIST 1010' }]);
+    lost();
+  });
+  await act(async () => { await planner.accept(server.proposal); });
+  expect(planner.proposalState('p1')).toMatchObject({ status: 'ready', error: "Couldn't reach the planner. Try again." });
+  expect(server.proposal).not.toBeNull();
+
+  // This time it lands and the answer is lost.
+  server.once((req) => /accept$/.test(req.path), async (req, next) => { await next(); lost(); });
+  await act(async () => { await planner.accept(planner.pendingProposal); });
+  expect(planner.proposalState('p1')).toMatchObject({ status: 'applied', revision: 6 });
+  expect(planner.pendingProposal).toBeNull();
+  expect(ids(planner.view)).toContain('ECON 3300');
+});
+
+test('an accept held with no answer at all shows as held, and Retry sends it again once it is known not applied', async () => {
+  server.proposal = proposal({ id: 'p1', base_revision: 4, ops: [{ op: 'add', course: 'ECON 3300' }] });
+  await mountLoaded();
+  server.once((req) => /accept$/.test(req.path), async () => lost());
+  server.times(3, isRead, async () => lost());
+  let accepting;
+  act(() => { accepting = planner.accept(server.proposal); });
+  await act(async () => { expect(await accepting).toBeNull(); });
+  expect(planner.proposalState('p1')).toMatchObject({ status: 'ready', held: true });
+  expect(planner.queueState).toBe('error');
+
+  await act(async () => { planner.retry(); });
+  await waitFor(() => expect(planner.proposalState('p1')).toMatchObject({ status: 'applied', held: false }));
+  expect(server.sent('/api/planner/proposals/p1/accept')).toHaveLength(2);
+  expect(planner.queueState).toBe('idle');
+});
+
+test('a token change drops the queue: a held edit from one student is never sent with the next one\'s token', async () => {
+  const { rerender } = await mountLoaded();
+  server.times(4, isEdit, async () => lost());
+  let held;
+  let queued;
+  act(() => {
+    held = planner.edit([{ op: 'add', course: 'ECON 3300' }]);
+    queued = planner.edit([{ op: 'add', course: 'ECON 4400' }]);
+  });
+  await act(async () => { await expect(held).rejects.toMatchObject({ held: true }); });
+  expect(planner.queueHeld).toBe(true);
+
+  mockToken = 'other-token';
+  rerender(tree());
+  await act(async () => { await expect(queued).rejects.toMatchObject({ code: 'session_ended' }); });
+  expect(planner.queueState).toBe('idle');
+  expect(planner.queueHeld).toBe(false);
+  expect(planner.view).toBeNull();
+  await act(async () => {
+    window.dispatchEvent(new Event('online'));
+    planner.retry();
+  });
+  await act(async () => { await planner.load(); });
+  const edits = server.sent('/api/planner/edits');
+  expect(edits).toHaveLength(4);
+  expect(edits.every((c) => c.auth === 'Bearer token')).toBe(true);
+  expect(ids(planner.view)).not.toContain('ECON 3300');
+
+  // The new session's queue works.
+  await act(async () => { await planner.edit([{ op: 'add', course: 'ECON 5500' }]); });
+  expect(server.sent('/api/planner/edits').pop().auth).toBe('Bearer other-token');
+});
+
 test('a direct edit after the proposal was made marks it stale', async () => {
   server.proposal = proposal({ base_revision: 4 });
   await mountLoaded();
   expect(planner.pendingProposal).toMatchObject({ id: server.proposal.id, stale: false });
   await act(async () => { await planner.edit([{ op: 'remove', course: 'ECON 3720' }]); });
   expect(planner.pendingProposal).toMatchObject({ id: server.proposal.id, stale: true });
+});
+
+test('a read started before a local discard does not bring the discarded proposal back', async () => {
+  server.proposal = proposal({ id: 'p1', base_revision: 4 });
+  await mountLoaded();
+  const slow = deferred();
+  server.once(isRead, async (req, next) => {
+    const answer = await next();
+    await slow.promise;
+    return answer;
+  });
+  let reading;
+  act(() => { reading = planner.load({ fresh: true }); });
+  await act(async () => { await planner.discard(planner.pendingProposal); });
+  expect(planner.pendingProposal).toBeNull();
+  await act(async () => { slow.resolve(); await reading; });
+  expect(planner.pendingProposal).toBeNull();
+  expect(planner.view.proposal).toBeNull();
 });
 
 test('the preview cache key tells terms and sections apart', async () => {
@@ -368,6 +546,8 @@ test('the preview cache key tells terms and sections apart', async () => {
   expect(server.sent('/api/planner/preview')).toHaveLength(4);
 });
 
+const termReads = (term) => server.calls.filter((c) => c.method === 'GET' && c.query.get('term') === term);
+
 test('viewFor fetches a term once per revision; degree is cached until the plan moves', async () => {
   server.courses.push({ id: 'ECON 3010', term: 'Fall 2027', sections: null });
   await mountLoaded();
@@ -377,8 +557,7 @@ test('viewFor fetches a term once per revision; degree is cached until the plan 
   expect(fall).toBeNull();
   await waitFor(() => expect(planner.viewFor('Fall 2027')?.report?.term).toBe('Fall 2027'));
   expect(ids(planner.viewFor('fall 2027'))).toEqual(['ECON 3010']);
-  const termReads = () => server.calls.filter((c) => c.method === 'GET' && c.query.get('term') === 'Fall 2027');
-  expect(termReads()).toHaveLength(1);
+  expect(termReads('Fall 2027')).toHaveLength(1);
 
   await act(async () => { await planner.refreshDegree(); });
   await act(async () => { await planner.refreshDegree(); });
@@ -387,6 +566,45 @@ test('viewFor fetches a term once per revision; degree is cached until the plan 
   await act(async () => { await planner.edit([{ op: 'add', course: 'ECON 3300' }]); });
   await act(async () => { await planner.refreshDegree(); });
   expect(planner.degree).toMatchObject({ revision: 5 });
+});
+
+test('viewFor keeps a landed edit on a term view until that term\'s refetch catches up', async () => {
+  await mountLoaded();
+  act(() => { planner.viewFor('Fall 2027'); });
+  await waitFor(() => expect(planner.viewFor('Fall 2027')?.report?.term).toBe('Fall 2027'));
+  expect(ids(planner.viewFor('Fall 2027'))).toEqual([]);
+
+  const slow = deferred();
+  server.once((req) => isRead(req) && req.query.get('term') === 'Fall 2027', async (req, next) => {
+    await slow.promise;
+    return next();
+  });
+  await act(async () => { await planner.edit([{ op: 'add', course: 'ECON 3010', term: 'Fall 2027' }]); });
+  // The term view is still revision 4, but the landed add shows on it.
+  let fall;
+  act(() => { fall = planner.viewFor('Fall 2027'); });
+  expect(ids(fall)).toEqual(['ECON 3010']);
+  expect(planner.queueState).toBe('idle');
+
+  await act(async () => { slow.resolve(); });
+  await waitFor(() => expect(planner.viewFor('Fall 2027')?.report?.courses?.[0]?.title).toBe('Course ECON 3010'));
+  expect(ids(planner.viewFor('Fall 2027'))).toEqual(['ECON 3010']);
+});
+
+test('a failed term fetch is reported, not cached and not refetched in a loop; reloadTerm tries again', async () => {
+  await mountLoaded();
+  server.once((req) => isRead(req) && req.query.get('term') === 'Fall 2027', async () => down());
+  act(() => { planner.viewFor('Fall 2027'); });
+  await waitFor(() => expect(planner.termError('Fall 2027')).toMatchObject({ status: 503 }));
+  expect(planner.viewFor('Fall 2027')).toBeNull();
+  // Give a refetch loop time to show itself.
+  await act(() => new Promise((resolve) => { setTimeout(resolve, 30); }));
+  expect(termReads('Fall 2027')).toHaveLength(1);
+
+  await act(async () => { await planner.reloadTerm('Fall 2027'); });
+  expect(planner.termError('Fall 2027')).toBeNull();
+  expect(planner.viewFor('Fall 2027')?.report?.term).toBe('Fall 2027');
+  expect(termReads('Fall 2027')).toHaveLength(2);
 });
 
 test('applyOps is idempotent, so replaying a landed edit changes nothing', () => {

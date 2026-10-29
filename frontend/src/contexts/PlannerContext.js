@@ -28,13 +28,19 @@ import {
  *   sends the revision the one before it returned, so this tab never
  *   conflicts with itself. An edit's ops show at once (optimistic) and stay
  *   applied on top of every newer view until its request settles.
- * - An edit that fails without a definite answer (network, timeout, 5xx) is
- *   resent with the same idempotency key after 0.5s, 1s and 2s, then the
- *   queue holds (`queueState: 'saving'`) until `retry()`. Only a 4xx reverts
- *   it; a 422 leaves `queueState: 'error'` with `retry()` sending it again.
+ * - An edit that fails without a definite answer (network, 5xx, or a
+ *   timeout, which aborts the request) is resent with the same idempotency
+ *   key after 0.5s, 1s and 2s. Then the queue holds: the caller's promise
+ *   rejects with a held `saveError` (`queueState: 'error'`, "Couldn't save ·
+ *   Retry") while the edit stays queued and shown, until `retry()`, the
+ *   browser's `online` event or 30s. Only a 4xx reverts an edit; `retry()`
+ *   sends a 422'd edit again.
  * - Undo, redo and accept carry no key. Without a definite answer the queue
- *   refetches the plan; a revision past the one the request sent counts as
- *   applied.
+ *   reads the plan up to three times (0.5s, 1s, 2s apart): undo / redo count
+ *   as applied when the undo pointer took the step, accept when the plan
+ *   moved and the proposal is no longer pending.
+ * - Signing out or switching account drops the queue; nothing queued is
+ *   sent with another account's token.
  * - A 409 revision conflict comes from another tab: refetch and raise the
  *   "Updated from another window" notice (10A).
  * - A view older than the newest known revision is dropped.
@@ -43,6 +49,7 @@ export const PlannerContext = createContext(null);
 
 const RETRY_DELAYS = [500, 1000, 2000];
 const REQUEST_TIMEOUT_MS = 15000;
+const RESUME_AFTER_MS = 30000;
 
 /** "Undo: removed ECON 3010", read from the plan's undo stack. */
 export function undoLabelOf(plan) {
@@ -160,19 +167,35 @@ function landingTerm(ops, plan) {
 /** A 4xx is a definite answer; anything else might have been applied. */
 const isDefinite = (error) => !!error && error.status >= 400 && error.status < 500;
 
-const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-
 const withLabels = (data) => ({
   ...data,
   undo_label: data.undo_label ?? undoLabelOf(data.plan),
   redo_label: data.redo_label ?? redoLabelOf(data.plan),
 });
 
-export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutMs = REQUEST_TIMEOUT_MS }) {
+/** A queued write dropped because the student signed out or switched account. */
+const sessionEnded = () => Object.assign(new Error('Signed out'), { code: 'session_ended' });
+
+const timeoutError = () => Object.assign(new Error('Request timed out'), { timeout: true });
+
+/** Accept applied: the plan moved AND this proposal is no longer the pending one. */
+const acceptLanded = (id, expected) => (fresh) => (fresh.plan?.revision ?? -1) > expected
+  && !(fresh.proposal?.id === id && isPending(fresh.proposal));
+
+const swapPrefix = (label, from, to) => (label && label.startsWith(from) ? `${to}${label.slice(from.length)}` : null);
+
+export function PlannerProvider({
+  children,
+  retryDelays = RETRY_DELAYS,
+  timeoutMs = REQUEST_TIMEOUT_MS,
+  resumeAfterMs = RESUME_AFTER_MS,
+}) {
   const { authToken } = useAuth();
   // The newest view the server sent; `view` is it plus the queued edits.
   const [confirmed, setConfirmed] = useState(null);
   const [pending, setPending] = useState([]);
+  // Edits that landed, with the revision each produced, for term views that lag (viewFor).
+  const [landed, setLanded] = useState([]);
   const [queued, setQueued] = useState(0);
   const [held, setHeld] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -184,6 +207,7 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
   // The proposal just applied, so its rows can turn from ghost to solid (13A).
   const [lastApplied, setLastApplied] = useState(null);
   const [termViews, setTermViews] = useState({});
+  const [termErrors, setTermErrors] = useState({});
   const [degree, setDegree] = useState(null);
 
   const confirmedRef = useRef(confirmed);
@@ -196,19 +220,29 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
   delaysRef.current = retryDelays;
   const timeoutRef = useRef(timeoutMs);
   timeoutRef.current = timeoutMs;
+  const resumeAfterRef = useRef(resumeAfterMs);
+  resumeAfterRef.current = resumeAfterMs;
+  // Bumped on every sign-in change; work from an older session is ignored.
+  const genRef = useRef(0);
   const loadingRef = useRef(null);
   const programsRef = useRef(false);
   const queueRef = useRef([]);
-  const runningRef = useRef(false);
+  const runningGenRef = useRef(null);
   const holdRef = useRef(null);
+  const holdTimerRef = useRef(null);
+  const timersRef = useRef(new Set());
+  const controllersRef = useRef(new Set());
   const saveErrorRef = useRef(null);
   saveErrorRef.current = saveError;
   const seqRef = useRef(0);
+  // Counts local proposal writes, so a read started before one keeps its result (eng review 7).
+  const proposalWritesRef = useRef(0);
   const previewsRef = useRef(new Map());
   const termLoadsRef = useRef(new Map());
   const degreeRef = useRef(null);
   const degreeLoadRef = useRef(null);
   const runRef = useRef(null);
+  const resumeRef = useRef(null);
 
   const setOutcome = useCallback((id, outcome) => {
     if (!id) return;
@@ -238,6 +272,12 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     return true;
   }, [setOutcome]);
 
+  /** A local proposal write (create, discard, accept): commit it and count it. */
+  const commitProposalWrite = useCallback((next) => {
+    proposalWritesRef.current += 1;
+    return commitView(next);
+  }, [commitView]);
+
   /** A write's response as a view; the pending proposal stays. */
   const viewOf = (data) => withLabels({
     plan: data.plan,
@@ -249,24 +289,33 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
 
   /** Fetch the plan; `fresh` skips joining a fetch already in flight. */
   const load = useCallback(async ({ fresh = false } = {}) => {
-    if (!tokenRef.current) return null;
+    const token = tokenRef.current;
+    if (!token) return null;
     if (loadingRef.current && !fresh) return loadingRef.current;
+    const gen = genRef.current;
+    const writes = proposalWritesRef.current;
     // Program names for the header and the first-visit chips, once.
     if (!programsRef.current) {
       programsRef.current = true;
-      listPrograms(tokenRef.current)
-        .then(setPrograms)
-        .catch(() => { programsRef.current = false; });
+      listPrograms(token)
+        .then((list) => { if (gen === genRef.current) setPrograms(list); })
+        .catch(() => { if (gen === genRef.current) programsRef.current = false; });
     }
     setStatus((current) => (current === 'ready' ? current : 'loading'));
-    const run = getPlan(tokenRef.current)
+    const run = getPlan(token)
       .then((data) => {
-        commitView(withLabels(data));
+        if (gen !== genRef.current) return data;
+        let next = withLabels(data);
+        // A proposal written here after this read started is newer than the read's.
+        if (proposalWritesRef.current !== writes && confirmedRef.current) {
+          next = { ...next, proposal: confirmedRef.current.proposal };
+        }
+        commitView(next);
         setStatus('ready');
         return data;
       })
       .catch((error) => {
-        if (statusRef.current !== 'ready') setStatus('error');
+        if (gen === genRef.current && statusRef.current !== 'ready') setStatus('error');
         throw error;
       })
       .finally(() => { if (loadingRef.current === run) loadingRef.current = null; });
@@ -278,26 +327,62 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     if (statusRef.current === 'idle' || statusRef.current === 'error') load().catch(() => {});
   }, [load]);
 
-  // A different sign-in starts from nothing.
+  // A different sign-in starts from nothing: queued writes are dropped, never
+  // sent with the new token.
   const seenToken = useRef(authToken);
   useEffect(() => {
     if (seenToken.current === authToken) return;
     seenToken.current = authToken;
+    genRef.current += 1;
+    const dropped = queueRef.current;
+    queueRef.current = [];
+    dropped.forEach((entry) => (entry.kind === 'accept' ? entry.resolve(null) : entry.reject(sessionEnded())));
+    controllersRef.current.forEach((controller) => controller.abort());
+    controllersRef.current.clear();
+    clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = null;
+    const hold = holdRef.current;
+    holdRef.current = null;
+    if (hold) hold.resume();
     confirmedRef.current = null;
     newestRef.current = null;
+    loadingRef.current = null;
+    degreeLoadRef.current = null;
+    degreeRef.current = null;
     programsRef.current = false;
     previewsRef.current.clear();
     termLoadsRef.current.clear();
-    degreeRef.current = null;
     setConfirmed(null);
     setPending([]);
+    setLanded([]);
+    setQueued(0);
+    setHeld(false);
     setSaveError(null);
     setStatus('idle');
     setPrograms([]);
     setOutcomes({});
+    setLastApplied(null);
+    setNotice(null);
     setTermViews({});
+    setTermErrors({});
     setDegree(null);
   }, [authToken]);
+
+  // Timers and requests stop with the provider.
+  useEffect(() => {
+    const timers = timersRef.current;
+    const controllers = controllersRef.current;
+    const onOnline = () => resumeRef.current?.();
+    window.addEventListener('online', onOnline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+      controllers.forEach((controller) => controller.abort());
+      controllers.clear();
+      clearTimeout(holdTimerRef.current);
+    };
+  }, []);
 
   /** After a 409 from another tab: refetch and say so once. */
   const recover = useCallback(async () => {
@@ -315,51 +400,118 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     return newestRef.current ?? data?.plan?.revision ?? 0;
   }, [load]);
 
-  const timed = useCallback((promise) => {
+  const wait = useCallback((ms) => new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      timersRef.current.delete(timer);
+      resolve();
+    }, ms);
+    timersRef.current.add(timer);
+  }), []);
+
+  /** `send(signal)` with the request timeout; a timeout aborts the request. */
+  const timed = useCallback((send) => {
+    const controller = new AbortController();
+    controllersRef.current.add(controller);
     let timer;
     const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(Object.assign(new Error('Request timed out'), { timeout: true })), timeoutRef.current);
+      timer = setTimeout(() => {
+        reject(timeoutError());
+        controller.abort();
+      }, timeoutRef.current);
     });
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    return Promise.race([send(controller.signal), timeout]).finally(() => {
+      clearTimeout(timer);
+      controllersRef.current.delete(controller);
+    });
   }, []);
 
-  /** Hold the queue until `retry()`. */
-  const hold = useCallback(() => new Promise((resume) => {
-    holdRef.current = resume;
+  /** Throws once `entry`'s session has ended. */
+  const live = (entry) => {
+    if (entry.gen !== genRef.current) throw sessionEnded();
+  };
+
+  /** Resume a held queue; false when nothing is held. */
+  const resume = useCallback(() => {
+    const current = holdRef.current;
+    if (!current) return false;
+    holdRef.current = null;
+    clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = null;
+    setHeld(false);
+    setSaveError((error) => (error?.held ? null : error));
+    current.entry.resumed = true;
+    current.entry.onResume?.();
+    current.resume();
+    return true;
+  }, []);
+  resumeRef.current = resume;
+
+  /**
+   * Hold the queue on `entry` after its retries ran out. The caller hears
+   * now (a held `saveError`) so nothing waits on it; the entry stays first
+   * and resumes on `retry()`, the browser coming back online, or after
+   * `resumeAfterMs`.
+   */
+  const hold = useCallback((entry, error) => new Promise((release) => {
+    if (entry.gen !== genRef.current) {
+      release();
+      return;
+    }
+    const failure = Object.assign(error instanceof Error ? error : new Error("Couldn't save"), { held: true });
+    holdRef.current = { resume: release, entry };
     setHeld(true);
+    setSaveError({ held: true, kind: entry.kind, ops: entry.ops || null, message: null, error: failure });
+    if (entry.onHold) entry.onHold(failure);
+    else entry.reject(failure);
+    clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = setTimeout(() => resumeRef.current?.(), resumeAfterRef.current);
   }), []);
 
   /** Wait out retry `attempt` (0.5s, 1s, 2s), then hold; returns the next attempt. */
-  const backoff = useCallback(async (attempt) => {
+  const backoff = async (entry, attempt, error) => {
     const delays = delaysRef.current;
     if (attempt < delays.length) {
       await wait(delays[attempt]);
+      live(entry);
       return attempt + 1;
     }
-    await hold();
+    await hold(entry, error);
+    live(entry);
     return 0;
-  }, [hold]);
+  };
 
   /**
-   * A write without a definite answer: refetch until the plan is known. The
-   * fresh view when its revision passed `expected` (the write applied), else null.
+   * After a write with no definite answer: read the plan up to three times,
+   * 0.5s, 1s and 2s apart. The fresh view once `applied(view)`; null when the
+   * reads show it didn't apply; with no read answered, hold and read again.
    */
-  const settleUncertain = useCallback(async (expected) => {
-    let fresh = null;
-    let attempt = 0;
-    while (!fresh) {
-      try {
+  const poll = async (entry, applied, error) => {
+    for (;;) {
+      let seen = false;
+      let failure = error;
+      for (const ms of delaysRef.current) {
         // eslint-disable-next-line no-await-in-loop
-        fresh = await timed(getPlan(tokenRef.current));
-      } catch {
-        // eslint-disable-next-line no-await-in-loop
-        attempt = await backoff(attempt);
+        await wait(ms);
+        live(entry);
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const fresh = withLabels(await timed((signal) => getPlan(entry.token, {}, { signal })));
+          live(entry);
+          commitView(fresh);
+          setStatus('ready');
+          seen = true;
+          if (applied(fresh)) return fresh;
+        } catch (readError) {
+          live(entry);
+          failure = readError;
+        }
       }
+      if (seen) return null;
+      // eslint-disable-next-line no-await-in-loop
+      await hold(entry, failure);
+      live(entry);
     }
-    commitView(withLabels(fresh));
-    setStatus('ready');
-    return (fresh.plan?.revision ?? -1) > expected ? withLabels(fresh) : null;
-  }, [backoff, commitView, timed]);
+  };
 
   const runEdit = async (entry) => {
     const { ops, key } = entry;
@@ -370,25 +522,34 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
       try {
         // eslint-disable-next-line no-await-in-loop
         if (expected == null) expected = await revisionNow();
+        live(entry);
+        const body = { ops, expected_revision: expected, idempotency_key: key };
         // eslint-disable-next-line no-await-in-loop
-        data = await timed(postEdits(tokenRef.current, { ops, expected_revision: expected, idempotency_key: key }));
+        data = await timed((signal) => postEdits(entry.token, body, { signal }));
+        live(entry);
         break;
       } catch (error) {
+        live(entry);
         if (isDefinite(error)) {
           const info = plannerError(error);
           if (info.kind === 'conflict') {
             // eslint-disable-next-line no-await-in-loop
             await recover();
           } else {
-            setSaveError({ ops, onSaved: entry.onSaved, message: info.message || null, error });
+            setSaveError({ held: false, kind: 'edit', ops, onSaved: entry.onSaved, message: info.message || null, error });
           }
           throw error;
         }
+        // Same key again: the server answers a repeat with the first result (N3).
         // eslint-disable-next-line no-await-in-loop
-        attempt = await backoff(attempt);
+        attempt = await backoff(entry, attempt, error);
       }
     }
-    if (data?.plan) commitView(viewOf(data));
+    if (data?.plan) {
+      commitView(viewOf(data));
+      const revision = data.plan.revision;
+      setLanded((list) => [...list.slice(-49), { ops, revision }]);
+    }
     setStatus('ready');
     try {
       entry.onSaved?.({ ops, data, term: landingTerm(ops, data?.plan) });
@@ -399,62 +560,110 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
   };
 
   const runStep = async (entry) => {
-    const send = entry.kind === 'redo' ? redoEdit : undoEdit;
-    const expected = await revisionNow();
-    let data;
-    try {
-      data = await timed(send(tokenRef.current, { expected_revision: expected }));
-      if (data?.plan) commitView(viewOf(data));
-    } catch (error) {
-      if (isDefinite(error)) {
-        if (plannerError(error).kind === 'conflict') await recover();
-        throw error;
-      }
-      data = await settleUncertain(expected);
-      if (!data) throw error;
-    }
-    setLastApplied(null);
-    return data;
-  };
-
-  const runAccept = async ({ proposal }) => {
-    const id = proposal.id;
-    const expected = await revisionNow().catch(() => newestRef.current ?? 0);
-    const applied = (next) => {
-      setStatus('ready');
-      setOutcome(id, { status: 'applied', revision: next.plan?.revision ?? null });
-      setLastApplied({ id, added: proposal.diff?.courses?.added || [] });
-    };
-    try {
-      const data = await timed(acceptProposal(tokenRef.current, id));
-      commitView(withLabels({ plan: data.plan, report: data.report, proposal: null, undo_label: data.undo_label, redo_label: data.redo_label }));
-      applied(data);
-      return data;
-    } catch (error) {
-      if (!isDefinite(error)) {
-        const fresh = await settleUncertain(expected);
+    const isRedo = entry.kind === 'redo';
+    const send = isRedo ? redoEdit : undoEdit;
+    for (;;) {
+      // eslint-disable-next-line no-await-in-loop
+      const expected = await revisionNow();
+      live(entry);
+      const before = confirmedRef.current;
+      const pointer = before?.plan?.undo?.pointer;
+      const wantPointer = pointer == null ? null : pointer + (isRedo ? 1 : -1);
+      const wantLabel = isRedo
+        ? swapPrefix(before?.redo_label, 'Redo: ', 'Undo: ')
+        : swapPrefix(before?.undo_label, 'Undo: ', 'Redo: ');
+      // Applied when the revision moved and the undo pointer took this step.
+      const applied = (fresh) => {
+        if ((fresh.plan?.revision ?? -1) <= expected) return false;
+        const now = fresh.plan?.undo?.pointer;
+        if (wantPointer != null && now != null) return now === wantPointer;
+        return (isRedo ? fresh.undo_label : fresh.redo_label) === wantLabel;
+      };
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const data = await timed((signal) => send(entry.token, { expected_revision: expected }, { signal }));
+        live(entry);
+        if (data?.plan) commitView(viewOf(data));
+        setLastApplied(null);
+        return data;
+      } catch (error) {
+        live(entry);
+        if (isDefinite(error)) {
+          // eslint-disable-next-line no-await-in-loop
+          if (plannerError(error).kind === 'conflict') await recover();
+          throw error;
+        }
+        entry.resumed = false;
+        // eslint-disable-next-line no-await-in-loop
+        const fresh = await poll(entry, applied, error);
         if (fresh) {
-          applied(fresh);
+          setLastApplied(null);
           return fresh;
         }
-        setOutcome(id, { status: 'ready', error: "Couldn't reach the planner. Try again." });
+        // Known not applied. Send it again only when the student asked (Retry).
+        if (!entry.resumed) throw error;
+      }
+    }
+  };
+
+  const runAccept = async (entry) => {
+    const { proposal } = entry;
+    const id = proposal.id;
+    entry.onHold = () => {
+      setOutcome(id, { status: 'ready', held: true, error: null });
+      entry.resolve(null);
+    };
+    entry.onResume = () => setOutcome(id, { status: 'applying', held: false, error: null });
+    const markApplied = (next) => {
+      setStatus('ready');
+      setOutcome(id, { status: 'applied', held: false, revision: next.plan?.revision ?? null });
+      setLastApplied({ id, added: proposal.diff?.courses?.added || [] });
+    };
+    for (;;) {
+      // eslint-disable-next-line no-await-in-loop
+      const expected = await revisionNow().catch(() => newestRef.current ?? 0);
+      live(entry);
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const data = await timed((signal) => acceptProposal(entry.token, id, { signal }));
+        live(entry);
+        commitProposalWrite(withLabels({
+          plan: data.plan, report: data.report, proposal: null, undo_label: data.undo_label, redo_label: data.redo_label,
+        }));
+        markApplied(data);
+        return data;
+      } catch (error) {
+        live(entry);
+        if (!isDefinite(error)) {
+          entry.resumed = false;
+          // eslint-disable-next-line no-await-in-loop
+          const fresh = await poll(entry, acceptLanded(id, expected), error);
+          if (fresh) {
+            proposalWritesRef.current += 1;
+            markApplied(fresh);
+            return fresh;
+          }
+          if (entry.resumed) continue; // eslint-disable-line no-continue
+          setOutcome(id, { status: 'ready', held: false, error: "Couldn't reach the planner. Try again." });
+          return null;
+        }
+        const info = plannerError(error);
+        if (info.kind === 'needs_review') {
+          setOutcome(id, { status: 'needs_review', proposal: info.proposal });
+          const current = confirmedRef.current;
+          if (current && info.proposal) commitProposalWrite({ ...current, proposal: info.proposal });
+          load({ fresh: true }).catch(() => {});
+        } else if (info.kind === 'refused') {
+          setOutcome(id, { status: 'refused', reason: info.reason });
+        } else if (info.kind === 'conflict') {
+          setOutcome(id, { status: 'needs_review', proposal: null });
+          // eslint-disable-next-line no-await-in-loop
+          await recover();
+        } else {
+          setOutcome(id, { status: 'ready', error: "Couldn't apply this change." });
+        }
         return null;
       }
-      const info = plannerError(error);
-      if (info.kind === 'needs_review') {
-        setOutcome(id, { status: 'needs_review', proposal: info.proposal });
-        const current = confirmedRef.current;
-        if (current && info.proposal) commitView({ ...current, proposal: info.proposal });
-        load().catch(() => {});
-      } else if (info.kind === 'refused') {
-        setOutcome(id, { status: 'refused', reason: info.reason });
-      } else if (info.kind === 'conflict') {
-        setOutcome(id, { status: 'needs_review', proposal: null });
-        await recover();
-      } else {
-        setOutcome(id, { status: 'ready', error: "Couldn't apply this change." });
-      }
-      return null;
     }
   };
 
@@ -465,9 +674,10 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
   };
 
   const pump = useCallback(async () => {
-    if (runningRef.current) return;
-    runningRef.current = true;
-    while (queueRef.current.length) {
+    const gen = genRef.current;
+    if (runningGenRef.current === gen) return;
+    runningGenRef.current = gen;
+    while (genRef.current === gen && queueRef.current.length) {
       const entry = queueRef.current[0];
       let result;
       let failure;
@@ -479,19 +689,33 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
         failed = true;
         failure = error;
       }
+      if (genRef.current !== gen) break;
       queueRef.current.shift();
       if (entry.kind === 'edit') setPending((list) => list.filter((item) => item.id !== entry.id));
       setQueued(queueRef.current.length);
       if (failed) entry.reject(failure);
       else entry.resolve(result);
     }
-    runningRef.current = false;
+    if (runningGenRef.current === gen) runningGenRef.current = null;
   }, []);
 
   const enqueue = useCallback((entry) => {
     let settle;
     const promise = new Promise((resolve, reject) => { settle = { resolve, reject }; });
-    queueRef.current.push({ ...entry, ...settle, done: promise.then(() => {}, () => {}) });
+    let settled = false;
+    const once = (fn) => (value) => {
+      if (settled) return;
+      settled = true;
+      fn(value);
+    };
+    queueRef.current.push({
+      ...entry,
+      gen: genRef.current,
+      token: tokenRef.current,
+      resolve: once(settle.resolve),
+      reject: once(settle.reject),
+      done: promise.then(() => {}, () => {}),
+    });
     setQueued(queueRef.current.length);
     pump();
     return promise;
@@ -506,8 +730,9 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
 
   /**
    * The student's own edit: shows at once, resolves to the server's answer,
-   * or throws on a 4xx (the edit is reverted). `onSaved({ops, data, term})`
-   * runs when it lands, for the "Added to <term>" toast (D8).
+   * or throws on a 4xx (the edit is reverted) or when the queue holds (the
+   * edit stays and is saved on retry). `onSaved({ops, data, term})` runs
+   * when it lands, for the "Added to <term>" toast (D8).
    */
   const edit = useCallback((ops, { onSaved } = {}) => {
     seqRef.current += 1;
@@ -521,26 +746,20 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
 
   const accept = useCallback((proposal) => {
     if (!proposal?.id) return Promise.resolve(null);
-    setOutcome(proposal.id, { status: 'applying', error: null });
+    setOutcome(proposal.id, { status: 'applying', held: false, error: null });
     return enqueue({ kind: 'accept', proposal });
   }, [enqueue, setOutcome]);
 
   /** Resume a held queue, or send the edit a 4xx turned down again. */
   const retry = useCallback(() => {
-    const resume = holdRef.current;
-    if (resume) {
-      holdRef.current = null;
-      setHeld(false);
-      resume();
-      return;
-    }
+    if (resume()) return;
     const failed = saveErrorRef.current;
-    if (failed) {
+    if (failed && !failed.held && failed.kind === 'edit') {
       saveErrorRef.current = null;
       setSaveError(null);
       edit(failed.ops, { onSaved: failed.onSaved }).catch(() => {});
     }
-  }, [edit]);
+  }, [edit, resume]);
 
   /** A proposal that arrived in chat: show it in the panel as the pending one. */
   const receiveProposal = useCallback((proposal) => {
@@ -575,11 +794,12 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
       proposal = await attempt();
     }
     const current = confirmedRef.current;
-    if (current) commitView({ ...current, proposal });
+    if (current) commitProposalWrite({ ...current, proposal });
+    else proposalWritesRef.current += 1;
     setLastApplied(null);
     announce(proposal);
     return proposal;
-  }, [announce, commitView, queueSettled, recover, revisionNow]);
+  }, [announce, commitProposalWrite, queueSettled, recover, revisionNow]);
 
   const discard = useCallback(async (proposal) => {
     const id = proposal?.id;
@@ -589,13 +809,14 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
       await discardProposal(tokenRef.current, id);
       setOutcome(id, { status: 'discarded' });
       const current = confirmedRef.current;
-      if (current?.proposal?.id === id) commitView({ ...current, proposal: null });
+      if (current?.proposal?.id === id) commitProposalWrite({ ...current, proposal: null });
+      else proposalWritesRef.current += 1;
       return true;
     } catch (error) {
       setOutcome(id, { status: 'ready', error: "Couldn't discard this change." });
       return false;
     }
-  }, [commitView, setOutcome]);
+  }, [commitProposalWrite, setOutcome]);
 
   /**
    * The diff `ops` would make, seen in `term` (R2); writes nothing. Cached by
@@ -606,7 +827,8 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     const key = previewKey(ops, newestRef.current, term);
     if (cache.has(key)) return cache.get(key);
     if (cache.size > 50) cache.clear();
-    const send = (expected) => requestPreview(tokenRef.current, { ops, expected_revision: expected, term });
+    const token = tokenRef.current;
+    const send = (expected) => requestPreview(token, { ops, expected_revision: expected, term });
     const run = (async () => {
       const expected = await revisionNow();
       try {
@@ -625,21 +847,35 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
   /** Fetch the plan checked for `term`; one request per term and revision. */
   const loadTerm = useCallback((term, { force = false } = {}) => {
     const norm = termKey(term);
-    const loadKey = `${norm}|${newestRef.current ?? ''}`;
+    const revision = newestRef.current;
+    const loadKey = `${norm}|${revision ?? ''}`;
     const loads = termLoadsRef.current;
     if (!force && loads.has(loadKey)) return loads.get(loadKey);
+    const gen = genRef.current;
     const run = getPlan(tokenRef.current, { term })
       .then((data) => {
-        const revision = data?.plan?.revision;
-        if (revision != null && newestRef.current != null && revision > newestRef.current) {
+        if (gen !== genRef.current) return data;
+        const got = data?.plan?.revision;
+        if (got != null && newestRef.current != null && got > newestRef.current) {
           load({ fresh: true }).catch(() => {});
         }
         setTermViews((current) => {
           const before = current[norm];
-          if (before && (before.plan?.revision ?? -1) > (revision ?? -1)) return current;
+          if (before && (before.plan?.revision ?? -1) > (got ?? -1)) return current;
           return { ...current, [norm]: withLabels(data) };
         });
+        setTermErrors((current) => {
+          if (!current[norm]) return current;
+          const { [norm]: _gone, ...rest } = current;
+          return rest;
+        });
         return data;
+      }, (error) => {
+        if (gen === genRef.current) {
+          if (loads.get(loadKey) === run) loads.delete(loadKey);
+          setTermErrors((current) => ({ ...current, [norm]: { error, revision } }));
+        }
+        throw error;
       });
     run.catch(() => {});
     loads.set(loadKey, run);
@@ -648,10 +884,28 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
 
   const view = useMemo(() => (confirmed ? replay(confirmed, pending) : null), [confirmed, pending]);
 
+  /** The last failed fetch of `term` at the current revision, or null. */
+  const termError = useCallback((term) => {
+    const failed = termErrors[termKey(term)];
+    if (!failed || failed.revision !== (confirmed?.plan?.revision ?? null)) return null;
+    return failed.error;
+  }, [confirmed, termErrors]);
+
+  /** Fetch `term` again after a failure. */
+  const reloadTerm = useCallback((term) => {
+    const norm = termKey(term);
+    setTermErrors((current) => {
+      const { [norm]: _gone, ...rest } = current;
+      return rest;
+    });
+    return loadTerm(term, { force: true });
+  }, [loadTerm]);
+
   /**
    * The plan as seen in `term`: the shared plan with that term's report,
-   * queued edits applied. Null until the term's first fetch lands; a fetch
-   * starts whenever the cached one is older than the plan.
+   * landed and queued edits applied. Null until the term's first fetch
+   * lands (see `termError`); a fetch starts whenever the cached one is
+   * older than the plan, unless it just failed at this revision.
    */
   const viewFor = useCallback((term) => {
     if (!term) return view;
@@ -660,16 +914,20 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     if (termKey(confirmed.report?.term || confirmed.plan?.term) === norm) return view;
     const entry = termViews[norm];
     const revision = confirmed.plan?.revision;
-    if (tokenRef.current && (!entry || entry.plan?.revision !== revision)) loadTerm(term);
+    const failed = termErrors[norm];
+    const blocked = failed && failed.revision === revision;
+    if (tokenRef.current && !blocked && (!entry || entry.plan?.revision !== revision)) loadTerm(term);
     if (!entry) return null;
-    return replay({
+    const since = entry.plan?.revision ?? -1;
+    const base = {
       ...entry,
       plan: confirmed.plan,
       proposal: confirmed.proposal,
       undo_label: confirmed.undo_label,
       redo_label: confirmed.redo_label,
-    }, pending);
-  }, [confirmed, loadTerm, pending, termViews, view]);
+    };
+    return replay(replay(base, landed.filter((item) => item.revision > since)), pending);
+  }, [confirmed, landed, loadTerm, pending, termErrors, termViews, view]);
 
   /** The degree board, fetched again only when the plan moved past it (or `force`). */
   const refreshDegree = useCallback(({ force = false } = {}) => {
@@ -679,15 +937,17 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     if (!force && cached && newestRef.current != null && cached.revision >= newestRef.current) {
       return Promise.resolve(cached);
     }
+    const gen = genRef.current;
     const run = getDegree(tokenRef.current)
       .then((data) => {
+        if (gen !== genRef.current) return data;
         const before = degreeRef.current;
         if (before && (before.revision ?? -1) > (data?.revision ?? -1)) return before;
         degreeRef.current = data;
         setDegree(data);
         return data;
       })
-      .finally(() => { degreeLoadRef.current = null; });
+      .finally(() => { if (degreeLoadRef.current === run) degreeLoadRef.current = null; });
     degreeLoadRef.current = run;
     return run;
   }, []);
@@ -740,13 +1000,16 @@ export function PlannerProvider({ children, retryDelays = RETRY_DELAYS, timeoutM
     degree,
     refreshDegree,
     viewFor,
+    termError,
+    reloadTerm,
     preview,
     pendingProposal,
     proposalState,
     dismissNotice,
   }), [view, status, programs, notice, lastApplied, load, ensureLoaded, receiveProposal, propose,
     accept, discard, edit, undo, redo, retry, queueState, held, saveError, dismissSaveError, undoLabel,
-    redoLabel, degree, refreshDegree, viewFor, preview, pendingProposal, proposalState, dismissNotice]);
+    redoLabel, degree, refreshDegree, viewFor, termError, reloadTerm, preview, pendingProposal, proposalState,
+    dismissNotice]);
 
   return (
     <PlannerContext.Provider value={value}>
