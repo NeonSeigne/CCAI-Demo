@@ -10,12 +10,14 @@ A rating is used only on an unambiguous match (eng re-review N5): exactly one
 candidate whose normalized full name (case- and accent-folded, middle
 initials ignored) equals the instructor's, and whose department fits the
 course's subject. Anything else is no rating, and since the candidates are
-cached the miss is too. A failed or timed-out lookup is not cached and
-simply gives no rating; no error text reaches the page.
+cached the miss is too. A failed or timed-out lookup gives no rating and is
+cached as a miss for ``FAILURE_TTL_S`` (an hour), so a down RMP is not asked
+again on every pop-up; no error text reaches the page.
 
-    names ─► cached candidates? ─┬► yes ─────────────► match rule ─► rating / none
-                                 └► no ─► RMP (2s) ─┬► ok ─► cache ─┘
-                                                    └► fail/timeout ─► none
+    names ─► cached entry? ─┬► candidates (7d) ──────────────► match rule ─► rating / none
+                            ├► failure marker (1h) ───────────────────────► none
+                            └► no ─► RMP (2s) ─┬► ok ─► cache candidates ─┘
+                                               └► fail/timeout ─► cache marker ─► none
 """
 
 from __future__ import annotations
@@ -36,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 MAX_INSTRUCTORS = 4
 TTL_DAYS = 7
+FAILURE_TTL_S = 3600
 LOOKUP_TIMEOUT_S = 2.0
 RMP_SOURCE = {"name": "RateMyProfessors", "url": "https://www.ratemyprofessors.com"}
 COURSEMAP_SOURCE = {"name": "UW Course Map", "url": "https://uwcourses.com"}
@@ -93,12 +96,18 @@ def _cache_key(school_id: str, name: str) -> str:
 
 
 def _cached_candidates(key: str) -> Optional[List[Dict[str, Any]]]:
+    """Cached candidates; ``[]`` for a failure marker under an hour old;
+    None when there is no fresh entry."""
     entry = cache.read_entry(key)
-    if not entry or time.time() - entry[1] > TTL_DAYS * 86400:
+    if not entry:
         return None
     try:
-        return list(json.loads(entry[0])["candidates"])
-    except (ValueError, KeyError, TypeError):
+        body = json.loads(entry[0])
+        age = time.time() - entry[1]
+        if body.get("failed"):
+            return [] if age <= FAILURE_TTL_S else None
+        return list(body["candidates"]) if age <= TTL_DAYS * 86400 else None
+    except (ValueError, KeyError, TypeError, AttributeError):
         return None
 
 
@@ -114,9 +123,10 @@ async def _candidates(school_id: str, name: str) -> Optional[List[Dict[str, Any]
         result = await asyncio.wait_for(rate_my_professor.execute(professor_name=name), LOOKUP_TIMEOUT_S)
     except Exception as exc:  # noqa: BLE001 — timeouts included; the rating is just omitted
         logger.info("RMP lookup for %s gave no answer: %s", name, exc or type(exc).__name__)
-        return None
+        result = {"error": type(exc).__name__}
     if result.get("error"):
         logger.info("RMP lookup for %s failed: %s", name, result["error"])
+        await asyncio.to_thread(cache.write_entry, key, json.dumps({"failed": True}))
         return None
     candidates = result.get("professors") or []
     await asyncio.to_thread(cache.write_entry, key, json.dumps({"candidates": candidates}))

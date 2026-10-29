@@ -125,7 +125,7 @@ class TestLookups(RatingsTestCase):
             await self.ratings_for(instructors=["Briana Morrison"])
         self.assertEqual(self.rmp.await_count, 2)
 
-    async def test_a_timeout_omits_the_rating_and_is_not_cached(self):
+    async def test_a_timeout_omits_the_rating_and_is_cached_for_an_hour(self):
         async def slow(*, professor_name):
             await asyncio.sleep(5)
 
@@ -134,9 +134,17 @@ class TestLookups(RatingsTestCase):
             body = await self.ratings_for(instructors=["Briana Morrison"])
         self.assertEqual(body["ratings"], [])
         self.assertNotIn("error", body)
+        # Within the hour the miss is served from the cache: RMP isn't asked.
         self.rmp.side_effect = self.lookup
         self.found = {"Briana Morrison": [prof("Briana Morrison")]}
-        self.assertEqual(len((await self.ratings_for(instructors=["Briana Morrison"]))["ratings"]), 1)
+        self.assertEqual((await self.ratings_for(instructors=["Briana Morrison"]))["ratings"], [])
+        self.assertEqual(self.rmp.await_count, 1)
+        # After it, the instructor is looked up again.
+        later = ratings.time.time() + ratings.FAILURE_TTL_S + 60
+        with patch.object(ratings.time, "time", return_value=later):
+            body = await self.ratings_for(instructors=["Briana Morrison"])
+        self.assertEqual(len(body["ratings"]), 1)
+        self.assertEqual(self.rmp.await_count, 2)
 
     async def test_a_failed_lookup_omits_the_rating(self):
         self.rmp.side_effect = None
@@ -144,6 +152,8 @@ class TestLookups(RatingsTestCase):
         body = await self.ratings_for(instructors=["Briana Morrison"])
         self.assertEqual(body["ratings"], [])
         self.assertNotIn("error", body)
+        await self.ratings_for(instructors=["Briana Morrison"])
+        self.assertEqual(self.rmp.await_count, 1)  # the failure is cached as a miss too
 
     async def test_never_more_than_four_lookups_current_instructors_first(self):
         current = ["Ann One", "Bob Two", "Cat Three"]
