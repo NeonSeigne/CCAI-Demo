@@ -268,6 +268,9 @@ class PlannerApiTests(unittest.IsolatedAsyncioTestCase):
         (program,) = await routes.list_programs(self.alice)
         self.assertEqual((program["id"], program["name"], program["type"]), ("econ-ba", "Economics B.A.", "major"))
         self.assertTrue(all({"id", "title", "courses"} <= set(r) for r in program["rules"]))
+        # The setup dialog shows the file's catalog year and degree total (R11).
+        self.assertEqual(program["catalog_year"], 2026)
+        self.assertIn("total_credits", program)
 
     async def test_chat_entry_points(self):
         await self.edit(self.alice, [{"op": "set_profile", "program_ids": ["econ-ba"], "completed": [{"id": "ECON 2010", "grade": "B+"}]},

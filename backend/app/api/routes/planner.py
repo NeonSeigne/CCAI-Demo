@@ -111,6 +111,8 @@ async def list_programs(current_user: User = Depends(get_current_active_user)):
     return [
         {
             "id": p.id, "name": p.name, "type": p.type,
+            # The setup dialog shows the file's catalog year and degree total (R11).
+            "catalog_year": p.catalog_year, "total_credits": p.total_credits,
             # Course lists for the "Tick off courses" checklist (8A); level rules
             # name subjects, not courses, so they have none.
             "rules": [
