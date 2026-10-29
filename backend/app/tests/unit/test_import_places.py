@@ -4,8 +4,11 @@ fixtures through an httpx MockTransport; nothing reaches the network, and no
 school's places.geojson is touched."""
 
 import importlib.util
+import io
 import json
+import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 import httpx
@@ -116,6 +119,35 @@ class TestPhotos(unittest.TestCase):
         self.assertEqual(import_places.photos_by_file(response), {
             "File:greenberrys cafe.jpg": {"url": "https://upload.wikimedia.org/x/640px-g.jpg", "license": "CC0"},
         })
+
+    def test_commons_429_still_writes_the_file_without_photos(self):
+        def handler(request):
+            if request.url.host == "www.wikidata.org":
+                return httpx.Response(200, json=fixture("wbgetentities.json"))
+            return httpx.Response(429, text="Too Many Requests")
+
+        elements = fixture("overpass_elements.json")["elements"]
+        with tempfile.TemporaryDirectory() as tmp, \
+                httpx.Client(transport=httpx.MockTransport(handler)) as client, \
+                redirect_stderr(io.StringIO()) as err:
+            path, counts, with_photos = import_places.write_places(
+                Path(tmp), {"type": "relation", "id": 1}, elements, {}, client)
+            written = json.loads(path.read_text())
+        self.assertEqual(with_photos, 0)
+        self.assertEqual(len(written["features"]), 3)
+        self.assertFalse(any("photo" in f["properties"] for f in written["features"]))
+        self.assertIn("429", err.getvalue())
+        self.assertIn("2 of 2 wikidata places got no photo", err.getvalue())
+
+    def test_api_error_body_skips_only_that_batch(self):
+        def handler(request):
+            if request.url.host == "www.wikidata.org":
+                return httpx.Response(200, json={"error": {"code": "maxlag", "info": "lagged"}})
+            raise AssertionError("no titles to ask Commons for")
+
+        found = features()
+        with httpx.Client(transport=httpx.MockTransport(handler)) as client, redirect_stderr(io.StringIO()):
+            self.assertEqual(import_places.add_photos(list(found.values()), client), 0)
 
     def test_places_without_wikidata_ask_nothing(self):
         wiki = FakeWikimedia()

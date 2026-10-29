@@ -226,14 +226,31 @@ def photos_by_file(response):
     return out
 
 
+def _warn(message):
+    print(f"warning: {message}", file=sys.stderr)
+
+
 def _get_json(client, url, params):
-    response = client.get(url, params={**params, "format": "json"}, headers={"User-Agent": USER_AGENT})
-    response.raise_for_status()
-    return response.json()
+    """One Wikimedia API answer, or None (logged) when the request fails or
+    the API answers with an ``error`` body: a failed batch only loses photos."""
+    try:
+        response = client.get(url, params={**params, "format": "json"}, headers={"User-Agent": USER_AGENT})
+        response.raise_for_status()
+        body = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        _warn(f"{url} failed: {exc}")
+        return None
+    if isinstance(body, dict) and body.get("error"):
+        _warn(f"{url} answered with an error: {body['error']}")
+        return None
+    return body
 
 
 def fetch_photos(client, qids):
-    """{Q-id: photo} for the Wikidata items that have a licensed P18 image."""
+    """{Q-id: photo} for the Wikidata items that have a licensed P18 image.
+
+    A failed Wikidata or Commons batch is logged and skipped; its items get
+    no photo. Ends with a count of the items left without one."""
     qids = sorted(set(qids))
     files = {}
     for i in range(0, len(qids), WIKI_BATCH):
@@ -248,7 +265,12 @@ def fetch_photos(client, qids):
             "iiprop": "url|extmetadata", "iiurlwidth": PHOTO_WIDTH,
             "iiextmetadatafilter": "Artist|LicenseShortName",
         })))
-    return {qid: photos[title] for qid, title in files.items() if title in photos}
+    found = {qid: photos[title] for qid, title in files.items() if title in photos}
+    skipped = len(qids) - len(found)
+    if skipped:
+        print(f"{skipped} of {len(qids)} wikidata places got no photo "
+              "(no image, no licence, or a failed request)", file=sys.stderr)
+    return found
 
 
 def add_photos(features, client):
@@ -287,9 +309,17 @@ def main():
     response.raise_for_status()
     elements = response.json().get("elements") or []
 
+    with httpx.Client(timeout=60, follow_redirects=True) as client:
+        out_path, counts, with_photos = write_places(pack_dir, area, elements, curated or {}, client)
+    print(f"Wrote {sum(counts.values())} places ({with_photos} with photos) to {out_path.relative_to(REPO)}: {counts}")
+
+
+def write_places(pack_dir, area, elements, curated, client):
+    """Build and write ``places.geojson`` from Overpass elements; Wikimedia
+    goes through *client*. Returns (path, counts by category, photo count)."""
     features, seen = [], set()
     for element in elements:
-        feature = to_feature(element, curated or {})
+        feature = to_feature(element, curated)
         if not feature:
             continue
         key = (feature["properties"]["name"].lower(), feature["properties"]["category"])
@@ -298,8 +328,7 @@ def main():
         seen.add(key)
         features.append(feature)
     features.sort(key=lambda f: (f["properties"]["category"], f["properties"]["name"]))
-    with httpx.Client(timeout=60, follow_redirects=True) as client:
-        with_photos = add_photos(features, client)
+    with_photos = add_photos(features, client)
 
     out = {
         "type": "FeatureCollection",
@@ -312,7 +341,7 @@ def main():
     counts = {}
     for f in features:
         counts[f["properties"]["category"]] = counts.get(f["properties"]["category"], 0) + 1
-    print(f"Wrote {len(features)} places ({with_photos} with photos) to {out_path.relative_to(REPO)}: {counts}")
+    return out_path, counts, with_photos
 
 
 if __name__ == "__main__":
