@@ -624,6 +624,24 @@ describe('Setup: Completed step', () => {
     expect(sent).not.toContain('CS 1110');
   });
 
+  test('Skip with unsaved changes asks first; Discard moves on without saving', async () => {
+    const { planner } = renderBoard();
+    let dialog = await openEditor();
+    fireEvent.change(within(dialog).getByLabelText('Grade for ECON 2020'), { target: { value: 'B' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
+    expect(await screen.findByText('Discard changes?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+    dialog = await screen.findByRole('dialog', { name: 'Completed' });
+    expect(within(dialog).getByLabelText('Grade for ECON 2020')).toHaveValue('B');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Discard' }));
+    dialog = await screen.findByRole('dialog', { name: 'First term' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+    dialog = await screen.findByRole('dialog', { name: 'Completed' });
+    expect(within(dialog).getByLabelText('Grade for ECON 2020')).toHaveValue('');
+    expect(planner.edit).not.toHaveBeenCalled();
+  });
+
   test('an unreadable transcript says so and keeps the list', async () => {
     uploadTranscript.mockRejectedValue(Object.assign(new Error('422'), { status: 422 }));
     renderBoard();

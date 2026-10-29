@@ -75,7 +75,8 @@ export default function SetupDialog({
   const [term, setTerm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  // What a confirmed "Discard changes?" does: 'close' the dialog or 'skip' this step.
+  const [confirming, setConfirming] = useState(null);
   // Bumped on every open, so an edit landing after a close never moves a new session on.
   const session = useRef(0);
   // The ops of this dialog's last failed save, so only its own error is cleared.
@@ -98,7 +99,7 @@ export default function SetupDialog({
     setTerm(plan.term || null);
     setSaving(false);
     setFailed(false);
-    setConfirming(false);
+    setConfirming(null);
   }, [open, initialStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -261,10 +262,40 @@ export default function SetupDialog({
     }
   };
 
+  /** Put the step back to what's saved, after its changes are discarded. */
+  const resetStep = () => {
+    if (step === 0) {
+      setProgramId(savedProgramId);
+      setClassYear(profile.class_year ? String(profile.class_year) : null);
+    } else if (step === 1) {
+      setRows(new Map(completed.map((c) => [c.id, entryOf(c)])));
+      setExtra([]);
+      setFound({});
+      setUpload({ status: 'idle', name: null, count: 0 });
+    }
+  };
+
   /** Close at once when nothing changed on this step; otherwise confirm discarding. */
   const requestClose = () => {
-    if (dirty && !saving) setConfirming(true);
+    if (dirty && !saving) setConfirming('close');
     else onClose();
+  };
+
+  /** Skip moves on without saving; with changes on the step, it asks first. */
+  const requestSkip = () => {
+    if (dirty) setConfirming('skip');
+    else next();
+  };
+
+  const discard = () => {
+    const action = confirming;
+    setConfirming(null);
+    if (action === 'skip') {
+      resetStep();
+      next();
+    } else {
+      onClose();
+    }
   };
 
   const catalogYear = program?.catalog_year || (programId === savedProgramId ? profile.catalog_year : null);
@@ -502,7 +533,7 @@ export default function SetupDialog({
             <button type="button" className="cc-btn" disabled={busy} onClick={() => setStep(step - 1)}>Back</button>
           ) : <span />}
           <div className="su-foot-end">
-            {!last && <button type="button" className="cc-btn" disabled={busy} onClick={next}>Skip</button>}
+            {!last && <button type="button" className="cc-btn" disabled={busy} onClick={requestSkip}>Skip</button>}
             <button type="button" className="cc-btn cc-btn-primary" disabled={busy} onClick={onNext}>
               {last ? 'Done' : 'Next'}
             </button>
@@ -510,13 +541,13 @@ export default function SetupDialog({
         </footer>
       </AppDialog>
       <ConfirmDialog
-        isOpen={confirming}
+        isOpen={Boolean(confirming)}
         title="Discard changes?"
         confirmLabel="Discard"
         cancelLabel="Keep editing"
         tone="danger"
-        onConfirm={() => { setConfirming(false); onClose(); }}
-        onCancel={() => setConfirming(false)}
+        onConfirm={discard}
+        onCancel={() => setConfirming(null)}
       />
     </>
   );
