@@ -77,6 +77,10 @@ export const preview = (token, { ops, expected_revision, term }, options) =>
     body: withTerm({ ops, expected_revision }, term),
   });
 
+/** The diff `ops` would make, with nothing saved: resolves to `{diff, revision}`. */
+export const previewEdits = (token, { ops, expected_revision }, options) =>
+  request(token, '/api/planner/preview', { ...options, method: 'POST', body: { ops, expected_revision } });
+
 /** Apply a pending proposal: resolves to `{plan, report}`. */
 export const acceptProposal = (token, id, options) =>
   request(token, `/api/planner/proposals/${path(id)}/accept`, { ...options, method: 'POST', body: {} });

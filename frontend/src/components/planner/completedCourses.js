@@ -1,21 +1,7 @@
 /**
- * Completed-course helpers shared by the plan panel's checklist and the
- * degree board's Completed editor (CEO review O2).
+ * Grade helpers for the degree board's Completed editor (CEO review O2).
+ * The checklist itself lives in `../checklist.js`.
  */
-
-/** Courses the checklist can offer: program rule lists when the API sends them, else what the checker named. */
-export function checklistCourses(programIds, programs, report, completed) {
-  const ids = [];
-  (programs || [])
-    .filter((p) => (programIds || []).includes(p.id))
-    .forEach((p) => (p.rules || []).forEach((rule) => (rule.courses || []).forEach((id) => ids.push(id))));
-  (report?.rules || []).forEach((rule) => {
-    (rule.completed_courses || []).forEach((id) => ids.push(id));
-    (rule.planned_courses || []).forEach((id) => ids.push(id));
-  });
-  (completed || []).forEach((c) => ids.push(c.id));
-  return [...new Set(ids.filter(Boolean))];
-}
 
 /** Letter grades a student can record; null is "no grade". */
 export const GRADES = ['A+', 'A', 'A-', 'AB', 'B+', 'B', 'B-', 'BC', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F', 'P', 'CR'];

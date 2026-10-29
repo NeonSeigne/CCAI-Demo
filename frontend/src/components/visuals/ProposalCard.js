@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { changedRowKeys, consequenceRows, literalOps } from '../planner/proposalDiff';
+import useAcceptProposal from '../planner/useAcceptProposal';
 import '../../styles/PlanCards.css';
 
 /**
@@ -84,8 +85,13 @@ export default function ProposalCard({ visual }) {
   const [literalBusy, setLiteralBusy] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [undone, setUndone] = useState(false);
+  const acceptProposal = useAcceptProposal();
 
-  useEffect(() => { planner?.ensureLoaded(); }, [planner]);
+  // Once per card: the planner object changes with every view and status, and
+  // a failed load would otherwise retry on each change.
+  const plannerRef = useRef(planner);
+  plannerRef.current = planner;
+  useEffect(() => { plannerRef.current?.ensureLoaded(); }, []);
 
   const state = stateOf(visual || {}, original, outcome, planner);
   const reviewed = state === 'needs_review' ? (outcome?.proposal || original) : original;
@@ -152,6 +158,8 @@ export default function ProposalCard({ visual }) {
   const held = !!outcome?.held;
   const busy = applying || discarding || literalBusy;
   const canAct = !!planner && state !== 'refused';
+  // A direct edit landed after this proposal was made: Discard only (D9).
+  const stale = !!planner?.pendingProposal?.stale && planner.pendingProposal.id === reviewed?.id;
 
   const dropInstead = async () => {
     setLiteralBusy(true);
@@ -198,21 +206,23 @@ export default function ProposalCard({ visual }) {
       )}
       {canAct && (
         <div className="pc-actions">
-          <button
-            type="button"
-            className="pp-btn is-primary"
-            disabled={busy || held}
-            onClick={() => planner.accept(reviewed)}
-          >
-            {applying && <span className="pc-spinner" aria-hidden="true" />}
-            {applying ? 'Applying…' : 'Accept'}
-          </button>
-          {state !== 'needs_review' && (
+          {!stale && (
+            <button
+              type="button"
+              className="pp-btn is-primary"
+              disabled={busy || held}
+              onClick={() => acceptProposal(reviewed)}
+            >
+              {applying && <span className="pc-spinner" aria-hidden="true" />}
+              {applying ? 'Applying…' : 'Accept'}
+            </button>
+          )}
+          {(state !== 'needs_review' || stale) && (
             <button type="button" className="pp-btn" disabled={busy} onClick={() => planner.discard(reviewed)}>
               Discard
             </button>
           )}
-          {diff?.literal_differs && state !== 'needs_review' && (
+          {diff?.literal_differs && state !== 'needs_review' && !stale && (
             <button type="button" className="pp-btn" disabled={busy} onClick={dropInstead}>
               Drop it instead
             </button>

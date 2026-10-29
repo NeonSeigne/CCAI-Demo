@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import app.config
-from app.api.routes import catalog, courses
+from app.api.routes import catalog
 from app.api.routes import router as api_router
 from app.config import AppSettings
 from app.core.auth import get_current_active_user
@@ -112,7 +112,7 @@ class CatalogTestCase(unittest.TestCase):
 
 
 class TestRouteOrder(CatalogTestCase):
-    """R1: catalog routes live under their own prefix, clear of the detail catch-all."""
+    """R1: catalog routes live under their own prefix."""
 
     def test_search_and_summary_reach_their_handlers(self):
         with patch.object(academics, "search_catalog", new=AsyncMock(return_value={
@@ -123,11 +123,9 @@ class TestRouteOrder(CatalogTestCase):
         self.assertEqual(search.await_args.args[0], "comp sci")
         summary.assert_awaited_once_with("COMP SCI 300")
 
-    def test_course_detail_route_still_reaches_detail_handler(self):
-        with patch.object(courses, "_build_course_payload", new=AsyncMock(return_value={"detail": 1})) as build:
-            response = self.client.get("/api/courses/COMP SCI 300")
-        self.assertEqual(response.json(), {"detail": 1})
-        build.assert_awaited_once_with("COMPSCI_300", None)
+    def test_old_course_detail_route_is_gone(self):
+        # eng R6: the course pop-up reads /api/catalog/{id} at every school.
+        self.assertEqual(self.client.get("/api/courses/COMP SCI 300").status_code, 404)
 
 
 class TestUWSearch(CatalogTestCase):

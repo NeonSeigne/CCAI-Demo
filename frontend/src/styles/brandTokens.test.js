@@ -39,6 +39,10 @@ describe('brand tokens', () => {
     expect(contrast(tokens['band-text'], tokens['band-bg'])).toBeGreaterThanOrEqual(4.5);
   });
 
+  test.each(['easier', 'typical', 'harder', 'a', 'df'])('band %s text passes AA on the band', (name) => {
+    expect(contrast(tokens[`band-${name}-text`], tokens['band-bg'])).toBeGreaterThanOrEqual(4.5);
+  });
+
   test('gauge tokens exist', () => {
     expect(tokens['gauge-track']).toBeDefined();
     expect(tokens['gauge-band']).toBeDefined();

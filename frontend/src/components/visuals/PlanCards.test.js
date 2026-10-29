@@ -11,14 +11,12 @@ test.each(['ProposalCard.js', 'CourseShortlistCard.js'])('%s imports PlanCards.c
   expect(source).not.toContain('PlanPanel.css');
 });
 
-test('PlanCards.css holds the card rules and the controls they use; PlanPanel.css keeps only its own', () => {
+test('PlanCards.css holds the card rules and the controls they use; the plan panel is gone (C1)', () => {
   const cards = read('..', '..', 'styles', 'PlanCards.css');
-  const panel = read('..', '..', 'styles', 'PlanPanel.css');
   ['.proposal-card {', '.pc-row {', '.pc-actions', '.shortlist-card', '.sl-row {', '.pp-btn {', '.pp-link {', '.pp-chip {', '.pp-skel {']
-    .forEach((rule) => {
-      expect(cards).toContain(rule);
-      expect(panel).not.toContain(rule);
-    });
-  expect(panel).toContain('.plan-panel {');
+    .forEach((rule) => expect(cards).toContain(rule));
   expect(cards).not.toContain('.plan-panel');
+  ['styles/PlanPanel.css', 'components/planner/PlanPanel.js', 'components/planner/PlanSheet.js'].forEach((file) => {
+    expect(fs.existsSync(path.join(__dirname, '..', '..', file))).toBe(false);
+  });
 });

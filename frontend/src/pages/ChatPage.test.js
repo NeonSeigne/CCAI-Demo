@@ -11,9 +11,11 @@ jest.mock('../api/planner', () => ({
   listPrograms: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+let mockLocation = { pathname: '/chat', search: '', state: null };
 jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
-  useLocation: () => ({ state: null }),
+  useNavigate: () => mockNavigate,
+  useLocation: () => mockLocation,
 }));
 
 jest.mock('../contexts/AuthContext', () => ({
@@ -64,6 +66,7 @@ jest.mock('../components/EnhancedChatInput', () => (props) => (
 ));
 
 beforeEach(() => {
+  mockLocation = { pathname: '/chat', search: '', state: null };
   jest.useFakeTimers();
   Element.prototype.scrollIntoView = jest.fn();
   global.fetch = jest.fn(() => new Promise(() => {}));
@@ -89,60 +92,26 @@ test('moves the landing composer into the active chat on first submit', () => {
   expect(container.querySelector('.welcome-state')).not.toBeInTheDocument();
 });
 
-describe('Plan toggle', () => {
-  const width = window.innerWidth;
-
+// C1: the plan lives in Courses now; chat has no Plan toggle, panel or sheet.
+describe('no plan in chat', () => {
   beforeEach(() => {
     plannerApi.getPlan.mockResolvedValue(view());
     plannerApi.listPrograms.mockResolvedValue([]);
   });
 
-  afterEach(() => {
+  test.each([1440, 1000, 390])('at %ipx there is no Plan toggle, panel or peek', (innerWidth) => {
+    const width = window.innerWidth;
+    window.innerWidth = innerWidth;
+    render(
+      <PlannerProvider>
+        <ChatPage />
+      </PlannerProvider>,
+    );
+    expect(screen.queryByRole('button', { name: 'Plan' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Your plan' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Open plan/ })).not.toBeInTheDocument();
+    expect(document.querySelector('.plan-slot, .plan-drawer, .plan-sheet')).not.toBeInTheDocument();
     window.innerWidth = width;
-  });
-
-  const renderWithPlanner = () => render(
-    <PlannerProvider>
-      <ChatPage />
-    </PlannerProvider>,
-  );
-
-  test('opens the plan in the right-panel slot on desktop and closes it again', async () => {
-    window.innerWidth = 1440;
-    renderWithPlanner();
-    expect(screen.queryByRole('region', { name: 'Your plan' })).not.toBeInTheDocument();
-
-    const toggle = screen.getByRole('button', { name: 'Plan' });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('region', { name: 'Your plan' })).toBeInTheDocument();
-    expect(screen.getByRole('complementary', { name: 'Plan' })).toHaveClass('plan-slot');
-    expect(await screen.findByRole('heading', { name: 'Spring 2027' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close plan' }));
-    expect(screen.queryByRole('region', { name: 'Your plan' })).not.toBeInTheDocument();
-  });
-
-  test('opens a drawer over the chat on tablets', async () => {
-    window.innerWidth = 1000;
-    renderWithPlanner();
-    fireEvent.click(screen.getByRole('button', { name: 'Plan' }));
-    expect(screen.getByRole('complementary', { name: 'Plan' })).toHaveClass('plan-drawer');
-    expect(await screen.findByRole('heading', { name: 'Spring 2027' })).toBeInTheDocument();
-  });
-
-  test('on phones opens a bottom sheet that Esc closes, with a peek bar after', async () => {
-    window.innerWidth = 390;
-    renderWithPlanner();
-    fireEvent.click(screen.getByRole('button', { name: 'Plan' }));
-    const sheet = screen.getByRole('dialog', { name: 'Your plan' });
-    expect(await screen.findByRole('heading', { name: 'Spring 2027' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Expand plan' }));
-    expect(sheet).toHaveClass('is-full');
-    fireEvent.keyDown(sheet, { key: 'Escape' });
-    expect(screen.queryByRole('dialog', { name: 'Your plan' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open plan: Spring 27 · 17 cr' })).toBeInTheDocument();
   });
 });
 
@@ -249,5 +218,24 @@ describe('chat flow (characterization)', () => {
       chat_session_id: 'session-1',
     });
     expect(callsTo('/chat-stream')).toHaveLength(1);
+  });
+});
+
+describe('navigation intent', () => {
+  test('a pop-up history marker is not an intent: the query and state stay', async () => {
+    mockLocation = { pathname: '/chat', search: '?course=COMP+SCI+400', state: { ccPopup: 'course' } };
+    render(<ChatPage />);
+    await act(async () => { await Promise.resolve(); });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  test('clearing a handled intent keeps ?course=', async () => {
+    mockLocation = { pathname: '/chat', search: '?course=COMP+SCI+400', state: { pendingPrompt: 'Is ECON 2010 hard?' } };
+    render(<ChatPage />);
+    await act(async () => { await Promise.resolve(); });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      { pathname: '/chat', search: '?course=COMP+SCI+400' },
+      { replace: true, state: null },
+    );
   });
 });

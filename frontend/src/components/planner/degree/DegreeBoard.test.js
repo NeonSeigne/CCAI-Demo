@@ -2,7 +2,7 @@ import React from 'react';
 import {
   act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 import DegreeBoard, { boardTerms, dropAction } from './DegreeBoard';
 import { PlannerContext } from '../../../contexts/PlannerContext';
 import { DndProvider } from '../../dnd';
@@ -119,7 +119,13 @@ function makePlanner(overrides = {}) {
 
 function LocationProbe() {
   const location = useLocation();
-  return <output data-testid="location">{`${location.pathname}${location.search}`}</output>;
+  const type = useNavigationType();
+  return (
+    <>
+      <output data-testid="location">{`${location.pathname}${location.search}`}</output>
+      <output data-testid="nav-type">{type}</output>
+    </>
+  );
 }
 
 const STAT = { identifier: 'STAT 3120', title: 'Intro Statistics', credits: [3, 3] };
@@ -447,6 +453,7 @@ describe('moving and adding', () => {
     renderBoard();
     fireEvent.click(screen.getByRole('button', { name: 'ECON 3020' }));
     expect(screen.getByTestId('location')).toHaveTextContent('course=ECON+3020');
+    expect(screen.getByTestId('nav-type')).toHaveTextContent('PUSH');
   });
 });
 

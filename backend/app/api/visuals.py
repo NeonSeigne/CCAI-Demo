@@ -3,8 +3,7 @@
 Course tools return structured data that the LLM otherwise flattens into prose.
 ``build_visuals`` emits small declarative specs the frontend renders with
 pre-built components. New ``course_*`` refs carry only a course identifier
-(and optional term); the client hydrates full UW Course Map data from
-``/api/courses``. Legacy ``gpa_chart`` / ``prereq_tree`` shapes remain
+(and optional term); the client hydrates them from ``/api/catalog/{id}``. Legacy ``gpa_chart`` / ``prereq_tree`` shapes remain
 renderable for older persisted messages.
 """
 

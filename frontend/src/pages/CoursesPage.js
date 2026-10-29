@@ -19,6 +19,7 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
 import { usePlanner } from '../contexts/PlannerContext';
+import { useOpenCourse } from '../utils/openCourse';
 import { useDraggableItem } from '../components/dnd';
 import DegreeBoard from '../components/planner/degree/DegreeBoard';
 import '../styles/CoursesPage.css';
@@ -468,13 +469,7 @@ function BrowseView({ tabs }) {
   };
 
   /** The full course pop-up (app-wide host, `?course=`), as a new history entry. */
-  const openDetails = (id) => {
-    setParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('course', id);
-      return next;
-    });
-  };
+  const openDetails = useOpenCourse();
 
   const backToResults = () => {
     setPhoneView('list');

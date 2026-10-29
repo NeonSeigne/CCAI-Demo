@@ -8,7 +8,8 @@ import { usePageColumn } from '../../shell/PageColumnContext';
 import { InlineError, useDebounced } from '../../catalog/CatalogParts';
 import { searchCatalog } from '../../../api/campus';
 import { useAuth } from '../../../contexts/AuthContext';
-import { GRADES, checklistCourses, normalizeCourseId } from '../completedCourses';
+import { GRADES, normalizeCourseId } from '../completedCourses';
+import { checklistCourses } from '../checklist';
 
 const SEARCH_LIMIT = 8;
 

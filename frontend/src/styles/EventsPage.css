@@ -346,6 +346,16 @@
 
 .ev-title { color: var(--ink); font-weight: 600; text-decoration: none; }
 a.ev-title:hover { text-decoration: underline; }
+.ev-title-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ev-title-btn:hover { text-decoration: underline; }
+button.ev-block { display: block; font-family: inherit; text-align: left; cursor: pointer; }
 
 /* ---- Rows ------------------------------------------------------------------- */
 .ev-day { display: flex; flex-direction: column; gap: 8px; }

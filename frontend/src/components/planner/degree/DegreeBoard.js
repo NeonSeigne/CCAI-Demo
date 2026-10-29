@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import UndoRounded from '@mui/icons-material/UndoRounded';
 import RedoRounded from '@mui/icons-material/RedoRounded';
 import { usePlanner } from '../../../contexts/PlannerContext';
+import { useOpenCourse } from '../../../utils/openCourse';
 import { useDropToast } from '../../dnd';
 import { InlineError } from '../../catalog/CatalogParts';
 import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
@@ -219,13 +220,7 @@ export default function DegreeBoard({ head = null }) {
     else if (action === 'spring') pulse(item.id);
   }, [planCourses, completedIds, pulse, move, add]);
 
-  const openCourse = useCallback((id) => {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('course', id);
-      return next;
-    });
-  }, [setSearchParams]);
+  const openCourse = useOpenCourse();
 
   const openSemester = useCallback((term) => {
     setSearchParams({ view: 'semester', term });
