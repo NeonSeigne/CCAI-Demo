@@ -109,31 +109,33 @@ export default function DegreeSummary({ name, waffle, completed }) {
         })}
       </ul>
 
-      <table className="sr-only">
-        <caption>{name ? `${name} credits` : 'Degree credits'}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Group</th>
-            <th scope="col">Earned</th>
-            <th scope="col">Planned</th>
-            <th scope="col">Open</th>
-            <th scope="col">Without a grade</th>
-            <th scope="col">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groups.map((group, index) => (
-            <tr key={group.rule_id || `other-${index}`}>
-              <th scope="row">{group.title}</th>
-              <td>{Math.round(group.earned || 0)}</td>
-              <td>{Math.round(group.planned || 0)}</td>
-              <td>{Math.round(group.open || 0)}</td>
-              <td>{group.unknown_grade || 0}</td>
-              <td>{Math.round(group.size || 0)}</td>
+      <div className="sr-only">
+        <table>
+          <caption>{name ? `${name} credits` : 'Degree credits'}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Group</th>
+              <th scope="col">Earned</th>
+              <th scope="col">Planned</th>
+              <th scope="col">Open</th>
+              <th scope="col">Without a grade</th>
+              <th scope="col">Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {groups.map((group, index) => (
+              <tr key={group.rule_id || `other-${index}`}>
+                <th scope="row">{group.title}</th>
+                <td>{Math.round(group.earned || 0)}</td>
+                <td>{Math.round(group.planned || 0)}</td>
+                <td>{Math.round(group.open || 0)}</td>
+                <td>{group.unknown_grade || 0}</td>
+                <td>{Math.round(group.size || 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

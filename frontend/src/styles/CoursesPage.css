@@ -632,5 +632,7 @@
 
 .cc-row-grip:hover { color: var(--ink); }
 
+.cc-tab { white-space: nowrap; }
+
 /* My degree and the semester view use the full column width. */
 .cc-page.cc-page-wide { max-width: none; }

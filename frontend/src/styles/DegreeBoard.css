@@ -68,6 +68,8 @@
 /* ---- Summary: Finish / open count, totals, waffle, key -------------------- */
 .dg-summary {
   --dg-square: 16px;
+  position: relative;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(150px, 180px) auto minmax(220px, 1fr);
   gap: 24px 32px;
@@ -227,6 +229,7 @@
 
 /* ---- Term columns ------------------------------------------------------- */
 .dg-terms {
+  position: relative; /* keeps visually hidden text inside the scroller */
   display: flex;
   align-items: stretch;
   gap: 12px;
