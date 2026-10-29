@@ -135,9 +135,12 @@ degree = {
     "complete": bool,                              # every program file says complete: true
     "groups": [{"program_id", "rule_id", "title", "status",   # one per encoded rule, file order
                 "size", "earned", "planned", "open",          # credits; earned + planned + open == size
-                "unknown_grade": n}],                         # completed courses with no grade on record
+                "unknown_grade": n,                           # completed courses with no grade on record
+                "courses": [ids],                             # what the rule took (status follows these)
+                "counted_elsewhere": [ids]}],                 # taken, but credits counted by an earlier group
                 # last: {"program_id": null, "rule_id": null, "title": "Other credit", "status": null, ...}
-                # sized total_credits - sum(rule groups); only when total_credits is known
+                # sized total_credits - (distinct rule credits + rules' open credits), never
+                # negative; only when total_credits is known. Sizes sum to total_credits.
     "finish": "Fall 2028"|null,                    # only when complete AND nothing is open AND every rule is met
   },
 }
@@ -146,8 +149,9 @@ degree = {
 Waffle groups (eng review R14) claim only what the program file encodes; there
 is no gen-ed group. A credits rule is sized by its `credits`; a course-count
 rule by the credits of the courses it took plus 3 per course still needed (a
-course with unknown credits counts 3). A group is never smaller than what it
-already holds.
+course with unknown credits counts 3). Each course's credits count once across
+the waffle: a course a `double_count` rule reuses is listed in that group but
+adds no credits there, so the earned sum is the distinct earned credits.
 
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 

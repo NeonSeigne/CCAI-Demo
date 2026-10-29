@@ -49,6 +49,27 @@ class WaffleTests(unittest.TestCase):
         self.assertEqual([g["title"] for g in result["groups"]][-1], "Upper-level electives")
         self.assertIsNone(result["total_credits"])
 
+    def test_double_counted_courses_add_credits_once(self):
+        program = Program("econ-ba", "Economics B.A.", total_credits=18, complete=True, rules=(
+            Rule("intro", "Introductory economics", "all_of", courses=("ECON 3010", "ECON 3020")),
+            Rule("upper", "Upper-level electives", "level", subjects=("ECON",), min_level=3000, n=2,
+                 double_count=True),
+        ))
+        short = plan(courses=["ECON 3010", "ECON 3020"], completed=["HIST 1001", "HIST 1002", "HIST 1003"])
+        result = waffle(short, program)
+        intro, upper, other = result["groups"]
+        self.assertEqual((upper["courses"], upper["counted_elsewhere"]), (["ECON 3010", "ECON 3020"],
+                                                                          ["ECON 3010", "ECON 3020"]))
+        self.assertEqual((upper["size"], upper["planned"], upper["status"]), (0.0, 0.0, "met"))
+        self.assertEqual(sum(g["size"] for g in result["groups"]), 18)
+        self.assertEqual(sum(g["earned"] for g in result["groups"]), 9.0)  # three distinct 3-credit courses
+        self.assertEqual(sum(g["planned"] for g in result["groups"]), 6.0)
+        self.assertEqual(other["open"], 3.0)  # 15 distinct credits of 18
+        self.assertIsNone(result["finish"])
+        # One more distinct course closes the gap.
+        short["profile"]["completed"].append({"id": "HIST 1004", "grade": "A", "term": None})
+        self.assertEqual(waffle(short, program)["finish"], "Spring 2027")
+
     def test_finish_only_when_complete_and_everything_planned(self):
         full = plan(courses=[("ECON 3010", "Spring 2027"), ("ECON 3020", FALL), ("MATH 1310", FALL)],
                     completed=["ECON 2010", "ECON 2020"])
