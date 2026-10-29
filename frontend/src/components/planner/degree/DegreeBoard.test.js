@@ -3,7 +3,8 @@ import {
   act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
-import DegreeBoard, { boardTerms, dropAction } from './DegreeBoard';
+import DegreeBoard, { VIEW_KEY, boardTerms, dropAction } from './DegreeBoard';
+import { degree as ROUTE_DEGREE } from './routeFixture';
 import { PlannerContext } from '../../../contexts/PlannerContext';
 import { DndProvider } from '../../dnd';
 import { BrowseRow } from '../../../pages/CoursesPage';
@@ -287,7 +288,13 @@ describe('waffle and top bar', () => {
     fireEvent.click(within(dialog).getByRole('radio', { name: String(new Date().getFullYear() + 2) }));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(planner.edit).toHaveBeenCalledWith(
-      [{ op: 'set_profile', program_ids: ['econ-ba'], class_year: String(new Date().getFullYear() + 2) }],
+      [{
+        op: 'set_profile',
+        program_ids: ['econ-ba'],
+        class_year: String(new Date().getFullYear() + 2),
+        // The start term follows the class year until one is picked (R10).
+        start_term: `Fall ${new Date().getFullYear() - 2}`,
+      }],
       expect.objectContaining({ onHold: expect.any(Function) }),
     ));
     expect(await screen.findByRole('dialog', { name: 'Completed' })).toBeInTheDocument();
@@ -718,3 +725,31 @@ async function openEditorFromPast() {
   fireEvent.click(screen.getByRole('button', { name: 'Completed' }));
   return screen.findByRole('dialog', { name: 'Completed' });
 }
+
+describe('Map and Semesters (Phase 2 P.3)', () => {
+  const withRoute = () => makePlanner({ degree: { ...DEGREE, route: ROUTE_DEGREE.route, rules: ROUTE_DEGREE.rules } });
+  beforeEach(() => window.localStorage.removeItem(VIEW_KEY));
+
+  test('Map is the default on a first visit', () => {
+    renderBoard(withRoute());
+    expect(screen.getByRole('button', { name: 'Map' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('region', { name: 'Route map' })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Terms' })).not.toBeInTheDocument();
+  });
+
+  test('Semesters shows the board and is remembered', () => {
+    const { unmount } = renderBoard(withRoute());
+    fireEvent.click(screen.getByRole('button', { name: 'Semesters' }));
+    expect(screen.getByRole('region', { name: 'Terms' })).toBeInTheDocument();
+    expect(window.localStorage.getItem(VIEW_KEY)).toBe('semesters');
+    unmount();
+    renderBoard(withRoute());
+    expect(screen.getByRole('button', { name: 'Semesters' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('without route data there is no switch and the board shows', () => {
+    renderBoard();
+    expect(screen.queryByRole('button', { name: 'Map' })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Terms' })).toBeInTheDocument();
+  });
+});

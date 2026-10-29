@@ -55,6 +55,9 @@
 
 .dg-catalog { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
 
+.dg-view-switch { margin-left: auto; }
+.dg-view-switch + .dg-history { margin-left: 0; }
+
 .dg-history {
   display: flex;
   gap: 8px;
@@ -621,6 +624,16 @@
 .su-side { display: flex; flex-direction: column; gap: 14px; }
 .su-field { display: flex; flex-direction: column; gap: 6px; }
 .su-catalog { font-size: 15px; font-weight: 700; }
+.su-select {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
 .su-years { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .su-terms { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .su-chip {

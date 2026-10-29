@@ -26,6 +26,18 @@ export function classYears(today = new Date()) {
   return [first, first + 1, first + 2, first + 3].map(String);
 }
 
+/** Start terms a student can pick (R10): Fall and Spring, from five years back to this year. */
+export function startTerms(today = new Date()) {
+  const year = today.getFullYear();
+  const out = [];
+  for (let y = year - 5; y <= year; y += 1) out.push(`Spring ${y}`, `Fall ${y}`);
+  return out;
+}
+
+/** The saved start term, else Fall four years before the class year (R10). */
+export const defaultStartTerm = (startTerm, classYear) => (
+  startTerm || (classYear ? `Fall ${Number(classYear) - 4}` : null));
+
 /** Programs in two groups, graduate programs last (eng review D2). */
 export function programGroups(programs) {
   const sorted = [...(programs || [])].sort((a, b) => a.name.localeCompare(b.name));
@@ -64,6 +76,7 @@ export default function SetupDialog({
   const [step, setStep] = useState(initialStep);
   const [programId, setProgramId] = useState(null);
   const [classYear, setClassYear] = useState(null);
+  const [startTerm, setStartTerm] = useState(null);
   const [rows, setRows] = useState(() => new Map());
   const [extra, setExtra] = useState([]);
   const [names, setNames] = useState({});
@@ -91,6 +104,7 @@ export default function SetupDialog({
     setStep(initialStep);
     setProgramId((profile.program_ids || [])[0] || null);
     setClassYear(profile.class_year ? String(profile.class_year) : null);
+    setStartTerm(profile.start_term || null);
     setRows(new Map(completed.map((c) => [c.id, entryOf(c)])));
     setExtra([]);
     setFound({});
@@ -122,7 +136,8 @@ export default function SetupDialog({
   const program = programs.find((p) => p.id === programId) || null;
   const savedProgramId = (profile.program_ids || [])[0] || null;
   const programDirty = programId !== savedProgramId
-    || (classYear || null) !== (profile.class_year ? String(profile.class_year) : null);
+    || (classYear || null) !== (profile.class_year ? String(profile.class_year) : null)
+    || (startTerm || null) !== (profile.start_term || null);
 
   const saved = useMemo(() => new Map(completed.map((c) => [c.id, entryOf(c)])), [completed]);
   const completedDirty = rows.size !== saved.size
@@ -251,6 +266,7 @@ export default function SetupDialog({
       const op = { op: 'set_profile', program_ids: programId ? [programId] : [] };
       if (program?.catalog_year) op.catalog_year = program.catalog_year;
       op.class_year = classYear || null;
+      op.start_term = startTerm || null;
       save([op], next);
     } else if (step === 1) {
       if (!completedDirty) { next(); return; }
@@ -267,6 +283,7 @@ export default function SetupDialog({
     if (step === 0) {
       setProgramId(savedProgramId);
       setClassYear(profile.class_year ? String(profile.class_year) : null);
+      setStartTerm(profile.start_term || null);
     } else if (step === 1) {
       setRows(new Map(completed.map((c) => [c.id, entryOf(c)])));
       setExtra([]);
@@ -360,12 +377,31 @@ export default function SetupDialog({
                 role="radio"
                 aria-checked={classYear === year}
                 className={`su-chip ${classYear === year ? 'is-on' : ''}`.trim()}
-                onClick={() => setClassYear(classYear === year ? null : year)}
+                onClick={() => {
+                  const picked = classYear === year ? null : year;
+                  // Follow the class year until a start term is picked by hand.
+                  if (startTerm === defaultStartTerm(null, classYear)) setStartTerm(defaultStartTerm(null, picked));
+                  setClassYear(picked);
+                }}
               >
                 {year}
               </button>
             ))}
           </div>
+        </div>
+        <div className="su-field">
+          <label className="dg-label" htmlFor="su-start-term">Start term</label>
+          <select
+            id="su-start-term"
+            className="su-select"
+            value={startTerm || ''}
+            onChange={(event) => setStartTerm(event.target.value || null)}
+          >
+            <option value="" />
+            {[...new Set([...startTerms(), ...(startTerm ? [startTerm] : [])])].map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </div>
       </div>
     </div>,
