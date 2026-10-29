@@ -92,6 +92,132 @@ export const meetingsOf = (row) => {
   return out;
 };
 
+// ---------------------------------------------------------------------------
+// Dates (R12): "today" for the Ask home and the prerequisite graph.
+
+const SEASON_MONTHS = {
+  winter: [1, 1], january: [1, 1], spring: [1, 5], summer: [5, 8], fall: [8, 12], autumn: [8, 12],
+};
+
+/** Today in the school's time zone, as YYYY-MM-DD. */
+export function dateIn(timezone, now = new Date()) {
+  try {
+    return now.toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : {});
+  } catch {
+    return now.toLocaleDateString('en-CA');
+  }
+}
+
+const parseTerm = (label) => {
+  const match = /^([a-z]+)\s+(\d{4})$/i.exec(String(label || '').trim());
+  const months = match && SEASON_MONTHS[match[1].toLowerCase()];
+  return months ? { year: Number(match[2]), months } : null;
+};
+
+/** "Fall 2026" -> a number that orders terms; null for a label that isn't a season and year. */
+export function termRank(label) {
+  const term = parseTerm(label);
+  return term ? term.year * 12 + term.months[0] : null;
+}
+
+/** Does "Fall 2026" (August to December 2026) take in `date`? False for unreadable labels. */
+export function termSpans(label, date) {
+  const term = parseTerm(label);
+  const match = /^(\d{4})-(\d{2})/.exec(String(date || ''));
+  if (!term || !match) return false;
+  const month = Number(match[2]);
+  return Number(match[1]) === term.year && month >= term.months[0] && month <= term.months[1];
+}
+
+/** "(01/20/2027 - 05/04/2027)" in a meeting string -> {from: '2027-01-20', to: '2027-05-04'}; null without full dates. */
+export function meetingDates(text) {
+  const match = /\((\d{2})\/(\d{2})\/(\d{4})\s*-\s*(\d{2})\/(\d{2})\/(\d{4})\)/.exec(String(text || ''));
+  if (!match) return null;
+  const [, m1, d1, y1, m2, d2, y2] = match;
+  return { from: `${y1}-${m1}-${d1}`, to: `${y2}-${m2}-${d2}` };
+}
+
+const DAY_KEYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+/**
+ * A section row's meetings on `date` (YYYY-MM-DD): [] when it doesn't meet
+ * that day, null when any of its times or date ranges is missing or can't be
+ * read (the Ask home then shows nothing rather than guess).
+ */
+export function meetingsOnDate(row, date) {
+  const texts = (row?.meetings || []).filter((text) => typeof text === 'string' && text.trim());
+  if (!texts.length) return null;
+  const [y, m, d] = String(date).split('-').map(Number);
+  const day = DAY_KEYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  const out = [];
+  for (const text of texts) {
+    const meetings = parseMeeting(text);
+    const dates = meetingDates(text);
+    if (!meetings.length || !dates) return null;
+    if (date >= dates.from && date <= dates.to) out.push(...meetings.filter((meeting) => meeting.day === day));
+  }
+  return out;
+}
+
+/** The plan's courses in the term that takes in `date`, with chosen sections. */
+export function coursesOnDate(plan, date) {
+  return (plan?.courses || []).filter((c) => c?.id && c.sections?.length && termSpans(c.term, date));
+}
+
+/**
+ * "Your classes today" (R12): the chosen sections of `coursesOnDate` that
+ * meet on `date`, earliest first, from `summaries` (id -> /api/catalog/{id}).
+ * Null when anything needed is unknown: no such courses, a summary missing or
+ * for another term, a chosen section not listed, or a time or date range
+ * that can't be read.
+ */
+export function classesOn(plan, summaries, date) {
+  const courses = coursesOnDate(plan, date);
+  if (!courses.length) return null;
+  const out = [];
+  for (const course of courses) {
+    const summary = summaries?.get(course.id);
+    const sections = summary?.sections;
+    if (!sections || String(sections.term || '').trim().toLowerCase() !== String(course.term).trim().toLowerCase()) return null;
+    const rows = (sections.rows || []).filter((row) => sectionMatches(row, course.sections));
+    if (!rows.length) return null;
+    for (const row of rows) {
+      const meetings = meetingsOnDate(row, date);
+      if (!meetings) return null;
+      meetings.forEach((meeting) => out.push({
+        id: course.id,
+        title: summary.title,
+        part: partLabel(row),
+        start: meeting.start,
+        end: meeting.end,
+        place: row.bldg || null,
+      }));
+    }
+  }
+  return out.sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/**
+ * {id: 'done' | 'now'} for the prerequisite graph: completed courses and
+ * courses planned in earlier terms are done; courses in the term that takes
+ * in `date` are this term's.
+ */
+export function prereqStates(plan, date) {
+  const states = {};
+  (plan?.profile?.completed || []).forEach((entry) => {
+    const id = typeof entry === 'string' ? entry : entry?.id;
+    if (id) states[id] = 'done';
+  });
+  const now = (plan?.courses || []).find((c) => termSpans(c.term, date))?.term;
+  const nowRank = termRank(now);
+  (plan?.courses || []).forEach((c) => {
+    if (!c?.id || states[c.id]) return;
+    if (now && c.term === now) states[c.id] = 'now';
+    else if (nowRank != null && termRank(c.term) != null && termRank(c.term) < nowRank) states[c.id] = 'done';
+  });
+  return states;
+}
+
 /**
  * The id the planner knows a catalog section by: `id` (or `class_number`)
  * when the catalog sends one, else the section number.
