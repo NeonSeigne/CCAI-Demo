@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review for undergrad-advisory-panel (frontend)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .seam { stroke-dasharray: 4 4; }
+      .leak { stroke: #dc2626; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .schem { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+      .dash { border-style: dashed; }
+      pre.mermaid { background: transparent; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+      <header class="space-y-4">
+        <h1 class="font-serif text-4xl">undergrad-advisory-panel: frontend</h1>
+        <p class="text-sm text-slate-500 font-mono">frontend/src · 29 Oct 2026 · direction: Home Colors alignment, phases 1 to 9</p>
+        <div class="flex flex-wrap gap-6 text-xs text-slate-600 items-center">
+          <span class="flex items-center gap-2"><span class="inline-block w-5 h-4 border border-slate-400 bg-white"></span>module</span>
+          <span class="flex items-center gap-2"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke="#475569" stroke-width="2" class="seam"/></svg>seam</span>
+          <span class="flex items-center gap-2"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke-width="2" class="leak"/></svg>leakage</span>
+          <span class="flex items-center gap-2"><span class="inline-block w-5 h-4 deep rounded-sm"></span>deep module</span>
+          <span class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span><span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Worth exploring</span><span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">Speculative</span></span>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-10">
+
+        <!-- 1 COURSE FACTS -->
+        <article id="c1" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">1. Deepen the course facts module</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 1, 2, 5, 6, 7, 8</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>components/course/popupFormat.js</li>
+            <li>components/catalog/catalogFormat.js</li>
+            <li>components/planner/degree/degreeFormat.js</li>
+            <li>components/planner/planFormat.js</li>
+            <li>components/planner/semester/semesterData.js</li>
+            <li>components/course/CoursePopup.js (775)</li>
+            <li>components/visuals/CourseAnswerCard.js (345)</li>
+            <li>components/visuals/CourseVisualCard.js (176)</li>
+            <li>components/catalog/CatalogParts.js</li>
+            <li>components/course/CourseVisuals.js</li>
+            <li>pages/CoursesPage.js · pages/SavedPage.js</li>
+            <li>styles/Popups.css · styles/CourseVisuals.css</li>
+          </ul>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">Before: one rule, many copies</p>
+              <div class="relative h-72">
+                <div class="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                  <div class="border border-slate-300 rounded p-1">popupFormat<br>difficultyOf 3.4/3.0</div>
+                  <div class="border border-slate-300 rounded p-1">degreeFormat<br>difficultyKey 3.4/3.0</div>
+                  <div class="border border-slate-300 rounded p-1">semesterData<br>difficultyOf 3.4/3.0</div>
+                  <div class="border border-slate-300 rounded p-1">gpaText</div>
+                  <div class="border border-slate-300 rounded p-1">formatGpa</div>
+                  <div class="border border-slate-300 rounded p-1">formatGpa</div>
+                  <div class="border border-slate-300 rounded p-1">seatsText<br>"4 left"</div>
+                  <div class="border border-slate-300 rounded p-1">seatsOf<br>"12 of 90 left"</div>
+                  <div class="border border-slate-300 rounded p-1">termShort · shortTerm · pastTermLabel</div>
+                </div>
+                <div class="mt-3 grid grid-cols-5 gap-1 text-[9px] font-mono text-center">
+                  <div class="border border-slate-300 rounded p-1">Popup<br>Grade&shy;Distribution</div>
+                  <div class="border border-slate-300 rounded p-1">Answer<br>GradeBars</div>
+                  <div class="border border-slate-300 rounded p-1">Catalog<br>GradesBar</div>
+                  <div class="border border-slate-300 rounded p-1">Course<br>Visuals</div>
+                  <div class="border border-slate-300 rounded p-1">Saved<br>gradeLine</div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between text-[10px] font-mono">
+                  <span class="border border-slate-400 rounded px-2 py-1">CourseVisualCard (chat)</span>
+                  <svg width="90" height="14"><line x1="0" y1="7" x2="82" y2="7" stroke-width="2" class="leak"/><polygon points="82,2 90,7 82,12" fill="#dc2626"/></svg>
+                  <span class="border border-red-400 rounded px-2 py-1">CoursePopup.js internals</span>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After: one deep module, two kinds of caller</p>
+              <div class="h-72 flex flex-col justify-between">
+                <div class="flex gap-2 text-[10px] font-mono justify-center">
+                  <span class="border border-slate-300 rounded px-2 py-1">Course pop-up</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">Chat course card</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">Courses · Semester</span>
+                </div>
+                <svg class="mx-auto" width="220" height="16"><line x1="0" y1="8" x2="220" y2="8" stroke="#475569" stroke-width="2" class="seam"/></svg>
+                <div class="deep rounded-lg p-4 text-slate-100">
+                  <p class="schem text-slate-300">course facts</p>
+                  <p class="font-mono text-xs mt-1">courseFacts(payload, school) · &lt;GradeBars size&gt; · &lt;SectionRows&gt; · &lt;PrereqTags&gt; · &lt;CourseTiles&gt;</p>
+                  <div class="grid grid-cols-3 gap-1 mt-3 text-[10px] font-mono text-slate-400">
+                    <span class="border border-slate-600 rounded p-1">difficulty from school</span>
+                    <span class="border border-slate-600 rounded p-1">six buckets, D/F merged</span>
+                    <span class="border border-slate-600 rounded p-1">"84 seats" / "4 waiting"</span>
+                    <span class="border border-slate-600 rounded p-1">GPA, %, term short</span>
+                    <span class="border border-slate-600 rounded p-1">tile left out when no data</span>
+                    <span class="border border-slate-600 rounded p-1">prereq done / this term</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p><b>Problem.</b> How a course reads (difficulty, grades, seats, terms) is spread over five format modules and five grade-bar renderers, and the chat card reaches into the pop-up's internals, so lanes C and D both edit CoursePopup.js.</p>
+          <p><b>Solution.</b> One course facts module turns a catalog payload plus the school into tiles, buckets, section rows and prerequisite tags, with small render pieces sized by the caller.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Locality: D/F merge and thresholds in one place</li>
+            <li>Leverage: one interface, four surfaces</li>
+            <li>School's harder_below_gpa finally applies</li>
+            <li>Phase 2 fields land once</li>
+            <li>Lanes C and D stop sharing CoursePopup.js</li>
+            <li>Tests hit courseFacts with three schools</li>
+          </ul>
+        </article>
+
+        <!-- 2 SHELL -->
+        <article id="c2" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">2. Let the app shell own the rail, account menu and Settings</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 1.9, 3.1, 3.2, 3.5, 8.4</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>components/shell/AppShell.js (51)</li>
+            <li>components/CampusRail.js (337)</li>
+            <li>components/catalog/CampusPageShell.js</li>
+            <li>components/SettingsModal.js</li>
+            <li>pages/HomePage.js · ChatPage.js</li>
+            <li>pages/EventsPage.js · CampusMapPage.js · SavedPage.js</li>
+            <li>styles/CampusHome.css (imported by 4 pages)</li>
+            <li>7 page tests that mock CampusRail and SettingsModal</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">Before</p>
+              <pre class="mermaid">
+flowchart LR
+  H[HomePage] --> R[CampusRail x6]
+  C[ChatPage] --> R
+  E[EventsPage] --> R
+  M[CampusMapPage] --> R
+  S[SavedPage] --> R
+  P[CampusPageShell] --> R
+  H --> SM[SettingsModal x6]
+  C --> SM
+  E --> SM
+  M --> SM
+  S --> SM
+  P --> SM
+  R -.portal.-> A[AppShell rail slot]
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class R,SM leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="h-64 flex flex-col gap-3">
+                <div class="deep rounded-lg p-4 text-slate-100 flex-1">
+                  <p class="schem text-slate-300">app shell</p>
+                  <div class="grid grid-cols-3 gap-2 mt-3 text-[10px] font-mono text-slate-400">
+                    <span class="border border-slate-600 rounded p-1">rail + Recent</span>
+                    <span class="border border-slate-600 rounded p-1">phone header + tab bar</span>
+                    <span class="border border-slate-600 rounded p-1">account menu</span>
+                    <span class="border border-slate-600 rounded p-1">Settings</span>
+                    <span class="border border-slate-600 rounded p-1">sign out</span>
+                    <span class="border border-slate-600 rounded p-1">dock + pop-up host</span>
+                  </div>
+                </div>
+                <svg width="100%" height="10"><line x1="0" y1="5" x2="100%" y2="5" stroke="#475569" stroke-width="2" class="seam"/></svg>
+                <div class="flex gap-2 text-[10px] font-mono">
+                  <span class="border border-slate-300 rounded px-2 py-1">Home main</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">Chat main</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">Events main</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">Map main</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> Six page modules each wire the rail's five handlers, a Settings flag, a sign-out and a SettingsModal, so every rail or account change in Phase 3 edits the pages lanes B, C and E also own.</p>
+          <p><b>Solution.</b> The shell renders the rail, phone chrome, account menu and Settings itself; pages render only their main region.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Delete ~150 lines of repeated wiring</li>
+            <li>Locality: account menu lives once</li>
+            <li>Lane A stops touching lane pages</li>
+            <li>Page tests drop two mocks</li>
+            <li>RAIL_IN_PAGE special case goes</li>
+          </ul>
+        </article>
+
+        <!-- 3 TIME -->
+        <article id="c3" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">3. One campus time and walk wording module</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 3.3, 4.1, 4.3, 5.1, 5.3, 6.3, 6.4, 9</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>components/visuals/EventListCard.js (formatEventTime, formatEventRange)</li>
+            <li>components/events/EventPopup.js (spanText, countdown, :300-304)</li>
+            <li>pages/EventsPage.js (soonTag, featureWhen, WalkTime)</li>
+            <li>pages/HomePage.js (timeOf) · pages/SavedPage.js (clockTime, Walk)</li>
+            <li>pages/CampusMapPage.js (hoursLine, formatDistance, :687)</li>
+            <li>components/map/PlaceSheet.js (timeIn) · visuals/PlaceCard.js</li>
+            <li>utils/eventWindows.js · utils/osmHours.js</li>
+            <li>planner/planFormat.js (clockText) · semesterData.js (timeRange)</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">Before: the walk minutes, seven ways</p>
+              <div class="space-y-1 text-xs font-mono">
+                <div class="h-8 border-l-4 border-slate-300 pl-2 flex items-center justify-between"><span>EventsPage WalkTime</span><span>"9 min"</span></div>
+                <div class="h-8 border-l-4 border-slate-300 pl-2 flex items-center justify-between"><span>HomePage ah-walk</span><span>"9 min"</span></div>
+                <div class="h-8 border-l-4 border-red-400 pl-2 flex items-center justify-between"><span>SavedPage Walk</span><span>"9 min walk" / "Your starting place"</span></div>
+                <div class="h-8 border-l-4 border-red-400 pl-2 flex items-center justify-between"><span>CampusMapPage row</span><span>"7 min" + "560 m walk"</span></div>
+                <div class="h-8 border-l-4 border-red-400 pl-2 flex items-center justify-between"><span>PlaceSheet tile</span><span>"7 min" + "560 m"</span></div>
+                <div class="h-8 border-l-4 border-slate-300 pl-2 flex items-center justify-between"><span>EventPopup Stat</span><span>"9 min"</span></div>
+                <div class="h-8 border-l-4 border-red-400 pl-2 flex items-center justify-between"><span>chat PlaceCard</span><span>"~9 min"</span></div>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-2">Six toLocaleTimeString wrappers with the same timezone try/catch; two different functions named clockText.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="deep rounded-lg p-5 text-slate-100 h-64 flex flex-col justify-between">
+                <div>
+                  <p class="schem text-slate-300">campus time</p>
+                  <p class="font-mono text-xs mt-2">eventWhen(event, tz, now)</p>
+                  <p class="font-mono text-xs">walkText(minutes)</p>
+                  <p class="font-mono text-xs">openUntil(place, tz) · weekHours(place)</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400">
+                  <span class="border border-slate-600 rounded p-1">"12:00" / "to 1:00 PM"</span>
+                  <span class="border border-slate-600 rounded p-1">"2 h 40 m" · "Now"</span>
+                  <span class="border border-slate-600 rounded p-1">"Here" · "7 min" · null</span>
+                  <span class="border border-slate-600 rounded p-1">"Friday" · "7 AM – 11 PM"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> The mockups change the time and walk wording on every screen, and each screen formats them itself; the one place with the "12:00 to 1:00 PM" rule gets it by splitting another function's output on its dash.</p>
+          <p><b>Solution.</b> A single module turns events, places and minutes into the mockup's words, with a fixed clock injected so tests and the Phase 9 pixel check share one date.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Locality: one wording change, every screen</li>
+            <li>Leverage: ~12 call sites, one interface</li>
+            <li>Pure tests with fixed now and zones</li>
+            <li>Chat card stops exporting page helpers</li>
+          </ul>
+        </article>
+
+        <!-- 4 POPUP HOST -->
+        <article id="c4" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">4. One pop-up host and one band sheet</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 3.5, 4.3, 5.3, 5.4, 6.4, D3</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>components/AppDialog.js (104)</li>
+            <li>components/course/CoursePopupHost.js</li>
+            <li>pages/EventsPage.js:844-1084 (event host)</li>
+            <li>pages/CampusMapPage.js (place sheet host)</li>
+            <li>components/popup/PopupParts.js (46)</li>
+            <li>events/EventPopup.js · course/CoursePopup.js · map/PlaceSheet.js</li>
+            <li>planner/degree/SetupDialog.js (su-band)</li>
+            <li>styles/Popups.css (1091: pop-, cp-, ep-, ps-)</li>
+            <li>utils/openCourse.js</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">Before</p>
+              <pre class="mermaid">
+flowchart TB
+  App[App.js shell] --> CH[CoursePopupHost] --> AD1[AppDialog] --> CP[CoursePopup Band]
+  EV[EventsPage only] --> AD2[AppDialog] --> EP[EventPopup Stat]
+  MP[CampusMapPage only] --> PS[PlaceSheet Tiles]
+  SD[SetupDialog] --> AD3[AppDialog] --> SB[su-band]
+  CV[chat course card] -.imports.-> CP
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class EV,MP,CV leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">After</p>
+              <pre class="mermaid">
+flowchart TB
+  Shell[app shell] --> PH[PopupHost: ?course ?event ?place]
+  PH --> BS[BandSheet: band, tiles, actions, scrim, phone sheet, states]
+  BS --> B1[course body]
+  BS --> B2[event body]
+  BS --> B3[place body]
+  SD[SetupDialog] --> BS
+  classDef deep fill:#0f172a,color:#f1f5f9,stroke:#0f172a,stroke-width:3px;
+  class PH,BS deep
+              </pre>
+            </div>
+          </div>
+          <p><b>Problem.</b> The course pop-up opens anywhere but the event pop-up only on /events and the place card only on /map, and the band, tiles and close row are built four ways, so mockup changes to the band or scrim repeat per pop-up.</p>
+          <p><b>Solution.</b> The shell hosts all three pop-ups by URL, and a band sheet module owns band, tile grid, footer actions, scrim, phone sheet and loading or error states; each pop-up supplies only its body and tiles.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Event and place open from chat</li>
+            <li>Scrim-over-rail is one change</li>
+            <li>Popups.css splits along the seam</li>
+            <li>Tile model shared with chat cards</li>
+            <li>One test opens all three by URL</li>
+          </ul>
+          <p class="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">Design An earlier design decision (AppDialog.js:53, "design D3") keeps the scrim off the rail and the dock; the mockups cover it (3:G13, 4:5.2). Settle that before the band sheet's interface is fixed.</p>
+        </article>
+
+        <!-- 5 THREAD -->
+        <article id="c5" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">5. One conversation thread for the chat page and the dock</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 3.4, 3.6, 6, D4, D8</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>pages/ChatPage.js (633; thread at :420-530)</li>
+            <li>components/chat/DockConversation.js (84)</li>
+            <li>components/AdvisorCarousel.js (123)</li>
+            <li>components/MessageBubble.js (735)</li>
+            <li>components/AnswerPanel.js · utils/messageGroups.js</li>
+            <li>components/visuals/VisualBlock.js</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">Before</p>
+              <pre class="mermaid">
+flowchart TB
+  CP[ChatPage] --> G[groupMessages + groupViews]
+  DC[DockConversation] --> G
+  G --> AC[AdvisorCarousel] --> MB[MessageBubble: persona, TTS, reply, search, plain answer]
+  CP --> U1[user / error / system / clarification]
+  DC --> U2[user / error / system copy]
+  DC -.navigate /courses/ID.-> X[legacy redirect]
+  CP --> PO[course pop-up]
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class U2,X leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="h-64 flex flex-col gap-3">
+                <div class="flex gap-2 text-[10px] font-mono justify-center">
+                  <span class="border border-slate-300 rounded px-2 py-1">ChatPage</span>
+                  <span class="border border-slate-300 rounded px-2 py-1">ChatDock</span>
+                </div>
+                <svg width="100%" height="10"><line x1="0" y1="5" x2="100%" y2="5" stroke="#475569" stroke-width="2" class="seam"/></svg>
+                <div class="deep rounded-lg p-4 text-slate-100 flex-1">
+                  <p class="schem text-slate-300">thread</p>
+                  <p class="font-mono text-xs mt-1">&lt;Thread variant="page|dock" /&gt;</p>
+                  <div class="grid grid-cols-2 gap-2 mt-3 text-[10px] font-mono text-slate-400">
+                    <span class="border border-slate-600 rounded p-1">grouping and view</span>
+                    <span class="border border-slate-600 rounded p-1">answer: text, cards, Checked</span>
+                    <span class="border border-slate-600 rounded p-1">action row: copy, thumbs</span>
+                    <span class="border border-slate-600 rounded p-1">course opens the pop-up</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> The chat page and dock each render the thread, already drifting (the dock opens courses through the old /courses/ID redirect and drops clarifications), and MessageBubble wraps the plain answer in the advisor-panel era's avatars, TTS and reply code.</p>
+          <p><b>Solution.</b> One thread module over useChat() renders every message kind and the answer with its cards, Checked chips and action row; the page and the dock pick a variant.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Thumbs feedback lands once</li>
+            <li>D8 deletes advisor branches, not pages</li>
+            <li>ChatPage.test drops seven mocks</li>
+            <li>Answer look is finally tested</li>
+          </ul>
+        </article>
+
+        <!-- 6 COMPOSER -->
+        <article id="c6" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">6. One composer bound to the chat</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Strong</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 3.3, 3.4, 3.6, 4, D3</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>components/EnhancedChatInput.js (577, 31 props)</li>
+            <li>pages/HomePage.js:256-276 (own form)</li>
+            <li>components/ChatDock.js:193-207</li>
+            <li>pages/ChatPage.js:573-593</li>
+            <li>hooks/useAsk.js (querySelector focus)</li>
+            <li>styles/EnhancedChatInput.css (708) · ChatFrame.css · ChatDock.css · CampusHome.css</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">Before: interface as wide as the job</p>
+              <div class="flex items-end gap-6 h-64 justify-center">
+                <div class="flex flex-col items-center gap-1">
+                  <div class="w-24 bg-red-100 border border-red-300 rounded-t" style="height:150px"><p class="schem text-red-700 p-1">31 props</p></div>
+                  <div class="w-24 bg-slate-200 border border-slate-300 rounded-b" style="height:80px"><p class="schem text-slate-600 p-1">implementation</p></div>
+                  <p class="text-[10px] font-mono">EnhancedChatInput</p>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <div class="w-16 bg-slate-100 border border-slate-300 rounded" style="height:60px"><p class="schem text-slate-600 p-1">own form</p></div>
+                  <p class="text-[10px] font-mono">Home</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="flex items-end gap-6 h-64 justify-center">
+                <div class="flex flex-col items-center gap-1">
+                  <div class="w-32 bg-emerald-100 border border-emerald-300 rounded-t" style="height:28px"><p class="schem text-emerald-800 p-1">surface</p></div>
+                  <div class="w-32 deep rounded-b text-slate-200" style="height:200px"><p class="schem p-2">draft · attachments · upload · mic · scope chip · focus request · placeholder per surface</p></div>
+                  <p class="text-[10px] font-mono">&lt;Composer surface="home|chat|dock"/&gt;</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> Two callers pass 12 to 15 props that mirror useChat(), the Home page builds its own form without + or mic, advisor-era props still shape the module, its look is split over four stylesheets, and useAsk focuses it by a CSS selector.</p>
+          <p><b>Solution.</b> A composer module reads the chat and dock state itself and takes only the surface; the surface decides mic, scope chip and placeholder.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Interface shrinks to one prop</li>
+            <li>Home gets + and mic free</li>
+            <li>One stylesheet, no specificity fight</li>
+            <li>Focus through the dock, not selectors</li>
+          </ul>
+        </article>
+
+        <!-- 7 SCHOOL -->
+        <article id="c7" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">7. A school module in front of the raw config</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Worth exploring</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 1.9, 3.3, 4, 6.3, D8</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>contexts/AppConfigContext.js (341)</li>
+            <li>planner/planFormat.js (SCHOOL_SHORT)</li>
+            <li>CampusRail.js schoolMark (:70-75)</li>
+            <li>8 pages: config?.app?.institution || ...</li>
+            <li>6 files: config?.school?.timezone</li>
+            <li>utils/eventWindows.js zoneName</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">Before</p>
+              <div class="h-56 relative">
+                <div class="absolute left-0 top-0 w-40 border border-slate-300 rounded p-2 text-[10px] font-mono">AppConfig value: 17 keys, 14 advisor or persona</div>
+                <div class="absolute right-0 top-0 space-y-1 text-[10px] font-mono">
+                  <div class="border border-slate-300 rounded px-2 py-1">HomePage</div>
+                  <div class="border border-slate-300 rounded px-2 py-1">EventsPage</div>
+                  <div class="border border-slate-300 rounded px-2 py-1">CampusMapPage</div>
+                  <div class="border border-slate-300 rounded px-2 py-1">SavedPage</div>
+                  <div class="border border-slate-300 rounded px-2 py-1">CoursesPage, Compare</div>
+                  <div class="border border-slate-300 rounded px-2 py-1">CampusRail, planFormat</div>
+                </div>
+                <svg class="absolute left-40 top-6" width="80" height="150"><line x1="0" y1="5" x2="75" y2="10" stroke-width="2" class="leak"/><line x1="0" y1="5" x2="75" y2="40" stroke-width="2" class="leak"/><line x1="0" y1="5" x2="75" y2="70" stroke-width="2" class="leak"/><line x1="0" y1="5" x2="75" y2="100" stroke-width="2" class="leak"/><line x1="0" y1="5" x2="75" y2="130" stroke-width="2" class="leak"/></svg>
+                <p class="absolute bottom-0 left-0 text-[11px] text-slate-500">Raw config paths and fallbacks copied into each caller.</p>
+              </div>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="deep rounded-lg p-5 text-slate-100 h-56">
+                <p class="schem text-slate-300">school</p>
+                <p class="font-mono text-xs mt-2">useSchool() → { name, shortName, mark, timezone, zoneLabel, difficulty }</p>
+                <p class="text-[11px] text-slate-400 mt-4">Fallbacks, slug parsing and the harder_below_gpa threshold live here; course facts and campus time read it.</p>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> Callers read raw config paths with their own fallbacks, the short name is a hard-coded map, and the school's difficulty threshold never reaches the frontend.</p>
+          <p><b>Solution.</b> A school module answers name, short name, mark, timezone label and difficulty thresholds from config.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>short_name lands in one place</li>
+            <li>Feeds candidates 1 and 3</li>
+            <li>Page tests mock one hook</li>
+          </ul>
+        </article>
+
+        <!-- 8 CATALOG -->
+        <article id="c8" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">8. Put catalog reads behind one cached module</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Worth exploring</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">ports &amp; adapters</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 2, 3.3, 5.4, 6.1, 7</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>hooks/useCourseDetail.js (cache 1)</li>
+            <li>hooks/useCampusDetail.js (useCourseDetail, useCourseRatings)</li>
+            <li>planner/semester/useCourseDetails.js (caches 2, 3)</li>
+            <li>pages/HomePage.js:105 · CoursesPage.js:386</li>
+            <li>pages/CourseComparePage.js:214 · SavedPage.js:36</li>
+            <li>api/campus.js</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">Before</p>
+              <pre class="mermaid">
+flowchart LR
+  A[chat cards] --> C1[(cache 1)]
+  P[pop-up] --> N1[no cache]
+  S[semester view] --> C2[(cache 2 + 3)]
+  H[Home] --> N2[Promise.all]
+  B[Courses] --> N3[own fetch]
+  K[Compare] --> N4[own fetch]
+  V[Saved] --> N5[own fetch]
+  C1 & N1 & C2 & N2 & N3 & N4 & N5 --> API[GET /api/catalog/id]
+  classDef leak stroke:#dc2626,stroke-width:2px;
+  class N1,N2,N3,N4,N5 leak
+              </pre>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-1">After</p>
+              <pre class="mermaid">
+flowchart LR
+  A[chat cards] & P[pop-up] & S[semester] & H[Home] & B[Courses] & K[Compare] & V[Saved] --> CAT[catalog: useCourse, useRatings, loadCourse]
+  CAT -.adapter.-> API[api/campus HTTP]
+  CAT -.adapter.-> MEM[in-memory in tests]
+  classDef deep fill:#0f172a,color:#f1f5f9,stroke:#0f172a,stroke-width:3px;
+  class CAT deep
+              </pre>
+            </div>
+          </div>
+          <p><b>Problem.</b> Seven call paths fetch the same course summary through three caches and two hooks both named useCourseDetail with different interfaces, so the pop-up and the chat card for one course fetch it twice.</p>
+          <p><b>Solution.</b> One catalog module owns fetch, cache, abort, retry and sign-out clearing for summaries and ratings.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>New Phase 2 fields read once</li>
+            <li>One cache, cleared on sign-out</li>
+            <li>Two adapters: HTTP and in-memory</li>
+          </ul>
+        </article>
+
+        <!-- 9 VIEWPORT + CSS -->
+        <article id="c9" class="rounded-xl border border-slate-200 bg-white p-6 space-y-5">
+          <h2 class="font-serif text-2xl">9. A viewport module and stylesheet ownership</h2>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Worth exploring</span>
+            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono">in-process</span>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">Phases 1.1, 1.8, then every lane</span>
+          </div>
+          <ul class="font-mono text-sm text-slate-700 grid sm:grid-cols-2 gap-x-6">
+            <li>contexts/ChatDockContext.js:17-18 (1280, 768)</li>
+            <li>pages/EventsPage.js:44 usePhone (copy of useMediaMatch)</li>
+            <li>pages/CoursesPage.js:32 isPhone · dnd/useSavedDropTarget.js:29</li>
+            <li>pages/ChatPage.js:38 MUI breakpoints.down('md')</li>
+            <li>styles/*.css (13 distinct widths)</li>
+            <li>styles/components.css (1759, App-wide)</li>
+          </ul>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">Before: @media widths in styles/</p>
+              <div class="space-y-1 text-[11px] font-mono">
+                <div class="flex items-center gap-2"><span class="w-12">767</span><div class="h-3 bg-red-300" style="width:184px"></div><span>23</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">640</span><div class="h-3 bg-slate-300" style="width:32px"></div><span>4</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">768</span><div class="h-3 bg-slate-300" style="width:24px"></div><span>3</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">1100</span><div class="h-3 bg-emerald-400" style="width:24px"></div><span>3</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">1023</span><div class="h-3 bg-slate-300" style="width:16px"></div><span>2</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">480</span><div class="h-3 bg-slate-300" style="width:16px"></div><span>2</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">+7 more</span><div class="h-3 bg-slate-300" style="width:56px"></div><span>1 each</span></div>
+                <div class="flex items-center gap-2"><span class="w-12">700</span><div class="h-3 bg-emerald-400" style="width:0px"></div><span>0 (DESIGN.md phone)</span></div>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-3">Same class in several files: .error-message, .input-container (3), .cc-btn (3), .user-message (5), .main-textarea (3), .cc-dialog (2).</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-4">
+              <p class="schem text-slate-500 mb-3">After</p>
+              <div class="deep rounded-lg p-5 text-slate-100 h-56">
+                <p class="schem text-slate-300">viewport</p>
+                <p class="font-mono text-xs mt-2">useViewport() → 'phone' | 'tablet' | 'desktop'</p>
+                <p class="font-mono text-xs">PHONE_MAX 700 · DESKTOP_MIN 1100</p>
+                <p class="text-[11px] text-slate-400 mt-4">The token test fails on other widths and on a class prefix defined outside its owning stylesheet.</p>
+              </div>
+            </div>
+          </div>
+          <p><b>Problem.</b> Breakpoints and class names are global facts restated per file, so a stylesheet can restyle another feature by accident and the phone width is 767 nearly everywhere.</p>
+          <p><b>Solution.</b> One viewport module for JS, matching custom properties for CSS, and a test that pins each class prefix to one stylesheet.</p>
+          <ul class="list-disc pl-5 text-sm space-y-1">
+            <li>Phase 1.1 becomes a test, not a sweep</li>
+            <li>Lanes cannot collide through selectors</li>
+            <li>Dock modes read the same widths</li>
+          </ul>
+        </article>
+
+      </section>
+
+      <section id="top-recommendation" class="rounded-xl deep text-slate-100 p-8 space-y-3">
+        <p class="schem text-slate-300">Top recommendation</p>
+        <h2 class="font-serif text-3xl"><a href="#c1" class="underline decoration-slate-500 hover:decoration-slate-200">Deepen the course facts module</a></h2>
+        <p class="text-slate-300">It is the only friction that breaks the plan's own lane split: lanes C and D both edit CoursePopup.js and Popups.css today, and Phases 2, 5, 6 and 7 all restate the same D/F, seats and difficulty rules that now live in five copies.</p>
+      </section>
+
+    </main>
+  </body>
+</html>

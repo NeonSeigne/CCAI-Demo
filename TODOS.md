@@ -32,6 +32,22 @@
 **Priority:** P3
 **Depends on:** R14 (the encoded-groups waffle) shipped
 
+### Hide "Your classes today" on in-term breaks
+
+**What:** Add each school's in-term breaks (for example Thanksgiving week) to `schools/*/school.yaml` beside the term's first and last day of classes, and hide the Ask home's "Your classes today" card on those days.
+
+**Why:** After the alignment plan's R12, the card lists classes on every weekday inside the term, including breaks when no classes meet.
+
+**Pros:** One short list per term per school, in the same file and test pattern as the term dates.
+
+**Cons:** More calendar data to look up and keep current each term.
+
+**Context:** Decided in the eng review of docs/designs/home-colors-alignment.md (D13). Start from the term-date check R12 adds in Phase 3.
+
+**Depends on / blocked by:** R12's term dates (alignment plan, Phase 3).
+
+**Priority:** P3
+
 ## QA follow-ups (from /qa on undergrad-experimental, 2026-10-27)
 
 Report: .gstack/qa-reports/run-20261027T211619Z/qa-report-localhost-2026-10-27.md
