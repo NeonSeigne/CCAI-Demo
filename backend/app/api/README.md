@@ -197,3 +197,13 @@ Every event row also carries, always present and `null` when the feed doesn't sa
 | `place_name` | str \| null | Name of the campus place the venue matched (the same match as `place_id`); null when no place matched |
 
 The chat `events_search` result rows and the `event_list` card rows carry `kind` and `place_name` too (card rows: `title, start, end, all_day, location, url, calendar, ongoing, kind, place_name, id`). The card groups rows by date client-side from `start` in the card's `timezone` (design Q10).
+
+### `GET /api/places/{id}`
+
+| Field | Shape | Notes |
+|---|---|---|
+| `type` | str \| null | Place card label from the OSM tag behind the category ("Library", "Academic building", "Residence hall", "Bus stop"; `places.TYPE_LABELS`). Needs `osm_tag`, which `scripts/import_places.py` now writes; the shipped `places.geojson` files predate it, so `type` is null at every school until they are re-imported. Never guessed from `category` |
+| `floors` | int \| null | OSM `building:levels` (same value as `building_levels`) |
+| `access` | `"yes"` \| `"limited"` \| `"no"` \| null | OSM `wheelchair` ("designated" reads as "yes") |
+
+The same three keys are in `places.public()` (the `find_place` chat tool rows).

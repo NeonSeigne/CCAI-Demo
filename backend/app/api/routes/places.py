@@ -136,4 +136,6 @@ async def get_place(
     row["map_url"] = places.public(place)["map_url"]
     # OSM details and the photo credit, only those the place has.
     row.update({k: place[k] for k in places.DETAIL_FIELDS if k in place})
+    # The place card's type label, floors and access; null when OSM doesn't say.
+    row.update(places.card_fields(place))
     return {"place": row}

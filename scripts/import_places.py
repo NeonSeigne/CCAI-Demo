@@ -5,7 +5,8 @@ Reads the school pack's ``campus.osm_area`` ({type: way|relation, id}) and asks
 the Overpass API for named buildings, libraries, dining, health, recreation,
 landmarks (lawns, quads, monuments, museums) and bus stops inside it. Each
 place becomes a GeoJSON Point with ``name``, ``aliases``, ``category``, the
-OSM ``type/id`` and, when OSM has them, ``hours``, ``website``, ``phone``,
+OSM ``type/id``, the tag behind the category (``osm_tag``,
+"amenity=library") and, when OSM has them, ``hours``, ``website``, ``phone``,
 ``wheelchair``, ``cuisine``, ``building_levels``, ``address`` (addr:*
 street address), ``operator``, ``description``, ``wikidata`` and
 ``wikipedia``. Aliases come from OSM
@@ -72,6 +73,19 @@ def category(tags):
     if "library" in tags.get("name", "").lower():
         return "library"
     return "academic" if tags.get("building") else "other"
+
+
+def osm_tag(tags):
+    """The tag behind the category, as ``key=value`` ("amenity=library"), else
+    a specific ``building`` value; None for ``building=yes`` or nothing. The
+    backend turns it into the place card's type label."""
+    for key, values, _ in CATEGORY_BY_TAG:
+        if tags.get(key) in values:
+            return f"{key}={tags[key]}"
+    building = tags.get("building", "").strip()
+    if building and building != "yes" and re.fullmatch(r"[a-z_]+", building):
+        return f"building={building}"
+    return None
 
 
 def overpass_query(area_type, area_id):
@@ -180,6 +194,8 @@ def to_feature(element, curated):
         "category": category(tags),
         "osm": f"{element['type']}/{element['id']}",
     }
+    if osm_tag(tags):
+        props["osm_tag"] = osm_tag(tags)
     if tags.get("opening_hours"):
         props["hours"] = tags["opening_hours"]
     props.update(details(tags))
