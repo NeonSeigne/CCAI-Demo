@@ -5,6 +5,7 @@ import App from './App';
 // has focused tests of its own; this file only verifies top-level routing.
 jest.mock('./pages/ChatPage', () => () => <div>Chat page</div>);
 jest.mock('./components/UserGuide', () => () => null);
+jest.mock('./components/ChatDock', () => () => null);
 
 test('boots the application configuration', () => {
   render(<App />);

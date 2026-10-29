@@ -1,0 +1,31 @@
+/* Signed-in layout (eng R15): rail | page column | chat dock. var() only. */
+.cc-shell {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: var(--paper-sunken);
+}
+
+/* CampusRail portals here; it stays put while the page scrolls. */
+.cc-shell-rail {
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  display: flex;
+  height: 100vh;
+}
+
+.cc-shell-rail .campus-rail {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.cc-shell-page {
+  flex: 1 1 0;
+  align-self: stretch;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .cc-shell-rail { height: auto; }
+}
