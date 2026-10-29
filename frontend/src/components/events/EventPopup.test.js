@@ -103,6 +103,20 @@ it("shows \"Couldn't load · Retry\" when the event request fails", async () => 
   expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load · Retry");
 });
 
+it('shows a not-found state with no Retry for a 404', async () => {
+  global.fetch = routeFetch([['/api/events/', { status: 404, body: { detail: 'Event not found.' } }]]);
+  renderPopup({ eventId: 'gone' });
+  expect(await screen.findByText('Event not found')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+});
+
+it('links the event page and makes the header a drag source', async () => {
+  serve({ ...uwEvent, url: 'https://today.wisc.edu/events/1' });
+  renderPopup({ eventId: uwEvent.id });
+  expect(await screen.findByRole('link', { name: /Open/ })).toHaveAttribute('href', 'https://today.wisc.edu/events/1');
+  expect(screen.getByRole('button', { name: `Drag ${uwEvent.title}` })).toBeInTheDocument();
+});
+
 it('counts down, then up to the end, and stops for all-day events', () => {
   const event = { start: '2026-10-28T22:00:00Z', end: '2026-10-28T23:00:00Z' };
   expect(countdown(event, NOW)).toEqual({ label: 'Starts in', value: '35 min', live: false });

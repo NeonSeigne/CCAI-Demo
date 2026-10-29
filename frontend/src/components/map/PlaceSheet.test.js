@@ -96,6 +96,11 @@ it('reads simple opening_hours and gives up on the rest', () => {
   expect(weeklyHours('Mo-Fr 08:00-17:00; Sa,Su off')[5].text).toBe('Closed');
   expect(weeklyHours('Mo-Fr 08:00-12:00,13:00-17:00')[0].text).toBe('8 am – 12 pm, 1 pm – 5 pm');
   expect(weeklyHours('Mo-Fr 08:00-17:00; PH off')).toBeNull();
+  expect(weeklyHours('Mo-Su 00:00-24:00')[3].text).toBe('Open 24 hours');
+  expect(weeklyHours('Mo 07:30-02:00')[0].text).toBe('7:30 am – 2 am');
+  // Outside the backend's pattern: no guessing.
+  expect(weeklyHours('Mo 24:00-26:00')).toBeNull();
+  expect(weeklyHours('Mo 07:30-26:00')).toBeNull();
   const rows = groupedHours(weeklyHours('Mo-Su 09:00-17:00'), 2);
   expect(rows.map((r) => r.label)).toEqual(['Mon–Tue', 'Wed', 'Thu–Sun']);
 });

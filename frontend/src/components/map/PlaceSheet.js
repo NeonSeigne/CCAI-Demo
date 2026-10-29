@@ -4,7 +4,7 @@ import {
   Accessibility, Bookmark, ChevronLeft, ChevronRight, Footprints, Globe, MapPin, MessageSquare, Phone,
 } from 'lucide-react';
 import SaveButton from '../SaveButton';
-import { CouldntLoad } from '../course/CoursePopup';
+import { CouldntLoad, DragGrip, usePopupDrag } from '../popup/PopupParts';
 import { useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
 import { groupedHours, weekdayIndex, weeklyHours } from '../../utils/osmHours';
 import '../../styles/Popups.css';
@@ -226,6 +226,8 @@ export default function PlaceSheet({
     .filter((event) => event.place_id && event.place_id === place?.id)
     .sort((a, b) => new Date(a.start) - new Date(b.start));
 
+  const drag = usePopupDrag({ type: 'place', id: place?.id, title: place?.name });
+
   const back = onClose && (
     <button type="button" className="ps-back" aria-label="Close" title="Close" onClick={onClose}>
       <ChevronLeft size={18} aria-hidden="true" />
@@ -267,7 +269,10 @@ export default function PlaceSheet({
           <Photo photo={photo} />
         </div>
         <div className="ps-content">
-          <h2 id={titleId} className="ps-name">{place.name}</h2>
+          <div ref={drag.ref} className={`ps-title ${drag.className}`}>
+            <DragGrip drag={drag} label={`Drag ${place.name}`} className="pop-grip--light" />
+            <h2 id={titleId} className="ps-name">{place.name}</h2>
+          </div>
           {(category || place.operator) && (
             <p className="ps-kind">
               {category && <span className={`ps-chip ps-chip--${place.category}`}>{category}</span>}

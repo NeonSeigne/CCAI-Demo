@@ -1,7 +1,7 @@
 /**
  * Weekly hours from an OpenStreetMap `opening_hours` string, for the place
  * sheet. Reads the same simple forms the backend parser does
- * (`backend/app/sources/hours.py`): "24/7", "Mo-Fr 07:30-26:00; Sa 10:00-21:00",
+ * (`backend/app/sources/hours.py`): "24/7", "Mo-Fr 07:30-02:00; Sa 10:00-21:00",
  * "off". Anything else (holidays, months, week numbers) returns null, so the
  * sheet leaves the hours out rather than guessing.
  */
@@ -9,7 +9,9 @@
 export const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_RE = /^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/;
-const TIME_RE = /^([01]\d|2[0-9]):([0-5]\d)\s*-\s*([0-4]\d):([0-5]\d)$/;
+// The backend's time pattern (hours.py `_TIME`): 00:00 to 24:00. An end at or
+// before the start runs past midnight ("07:30-02:00").
+const TIME_RE = /^([01]\d|2[0-4]):([0-5]\d)\s*-\s*([01]\d|2[0-4]):([0-5]\d)$/;
 const SELECTOR_RE = /^(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?(?:,(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?)*$/;
 
 function days(selector) {
@@ -24,7 +26,7 @@ function days(selector) {
   return out;
 }
 
-/** "07:30" -> "7:30 am", "26:00" -> "2 am", "12:00" -> "12 pm". */
+/** "07:30" -> "7:30 am", "24:00" -> "12 am", "12:00" -> "12 pm". */
 export function clockText(hours, minutes) {
   const h = Number(hours) % 24;
   const suffix = h < 12 ? 'am' : 'pm';
@@ -38,7 +40,11 @@ function times(text) {
   for (const part of text.split(',')) {
     const match = TIME_RE.exec(part.trim());
     if (!match) return null;
-    out.push(`${clockText(match[1], match[2])} – ${clockText(match[3], match[4])}`);
+    const start = Number(match[1]) * 60 + Number(match[2]);
+    const end = Number(match[3]) * 60 + Number(match[4]);
+    if (start >= 24 * 60 || end > 24 * 60) return null;
+    if (start === 0 && end === 24 * 60) out.push('Open 24 hours');
+    else out.push(`${clockText(match[1], match[2])} – ${clockText(match[3], match[4])}`);
   }
   return out;
 }

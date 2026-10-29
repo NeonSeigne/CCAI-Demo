@@ -4,7 +4,9 @@ import {
   Bookmark, CalendarPlus, ChevronRight, ExternalLink, Footprints, MessageSquare, Navigation, X,
 } from 'lucide-react';
 import SaveButton from '../SaveButton';
-import { CouldntLoad } from '../course/CoursePopup';
+import {
+  CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
+} from '../popup/PopupParts';
 import MiniMap from '../map/MiniMap';
 import { formatEventRange, hasPhysicalLocation } from '../visuals/EventListCard';
 import { useEventDetail, useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
@@ -109,8 +111,8 @@ function About({ text }) {
   );
 }
 
-function Details({ details }) {
-  if (!details) return null;
+function Details({ details: given, url }) {
+  const details = given || {};
   const rows = [];
   if (details.event_type) rows.push(['Event type', details.event_type]);
   const host = details.hosted_by || details.sponsor;
@@ -120,6 +122,13 @@ function Details({ details }) {
     rows.push(['Registration', (
       <a href={details.registration_url} target="_blank" rel="noopener noreferrer">
         Register <ExternalLink size={13} aria-hidden="true" />
+      </a>
+    )]);
+  }
+  if (url) {
+    rows.push(['Event page', (
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        Open <ExternalLink size={13} aria-hidden="true" />
       </a>
     )]);
   }
@@ -247,6 +256,8 @@ export default function EventPopup({
     [event, list.data, now],
   );
 
+  const drag = usePopupDrag({ type: 'event', id: event?.id, title: event?.title });
+
   const closeButton = onClose && (
     <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
       <X size={18} aria-hidden="true" />
@@ -262,7 +273,11 @@ export default function EventPopup({
             <div className="pop-actions">{closeButton}</div>
           </div>
         </header>
-        <div className="pop-body"><CouldntLoad onRetry={detail.retry} /></div>
+        <div className="pop-body">
+          {isNotFound(detail.error)
+            ? <NotFound>Event not found</NotFound>
+            : <CouldntLoad onRetry={detail.retry} />}
+        </div>
       </article>
     );
   }
@@ -306,8 +321,9 @@ export default function EventPopup({
 
   return (
     <article className="pop ep" aria-labelledby={titleId}>
-      <header className="pop-band">
+      <header ref={drag.ref} className={`pop-band ${drag.className}`}>
         <div className="pop-band-top">
+          {event.id && <DragGrip drag={drag} label={`Drag ${event.title}`} />}
           <DateBlock event={event} timezone={timezone} />
           <div className="pop-band-text">
             <p className="pop-eyebrow">
@@ -359,7 +375,7 @@ export default function EventPopup({
             </figure>
           )}
           <About text={event.description} />
-          <Details details={details} />
+          <Details details={details} url={event.url} />
           <MapTile event={event} place={place.data?.place} />
         </div>
         {(related.atVenue.length > 0 || related.inCategory.length > 0) && (

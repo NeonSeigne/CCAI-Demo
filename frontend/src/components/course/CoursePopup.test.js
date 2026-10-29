@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  fireEvent, render, screen, waitFor, within,
+  act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
 import CoursePopup from './CoursePopup';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
@@ -135,12 +135,59 @@ it('shows no empty tiles, tabs or numbers for a CU course', async () => {
   container.querySelectorAll('.pop-tile').forEach((tile) => expect(tile.textContent.trim()).not.toBe(''));
 });
 
-it('hides the Fits tile when the preview endpoint is missing', async () => {
-  serve(uwPopupCourse(), { preview: { status: 404, body: { detail: 'Not Found' } } });
+/** Waits until every fetch so far has answered and React has applied the results. */
+async function settle() {
+  await act(async () => {
+    await Promise.all(global.fetch.mock.results.map((r) => Promise.resolve(r.value).catch(() => {})));
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+  });
+}
+
+const previewCalled = () => global.fetch.mock.calls.some(([url]) => String(url).includes('/api/planner/preview'));
+
+async function renderWithPreview(preview) {
+  serve(uwPopupCourse(), { preview });
   render(<CoursePopup courseId="COMP SCI 400" term="Spring 2027" plan={{ revision: 3 }} />);
   expect(await screen.findByRole('heading', { name: 'Programming III' })).toBeInTheDocument();
-  await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/planner/preview'), expect.anything()));
-  expect(screen.queryByText(/^Fits/)).not.toBeInTheDocument();
+  await waitFor(() => expect(previewCalled()).toBe(true));
+  await settle();
+}
+
+it.each([404, 409, 422])('hides the Fits tile when the preview answers %i', async (status) => {
+  await renderWithPreview({ status, body: { detail: 'nope' } });
+  expect(screen.queryByRole('heading', { name: /^Fits/ })).not.toBeInTheDocument();
+});
+
+it.each([
+  ['a server error', { status: 502, body: { detail: 'down' } }],
+  ['a network failure', new TypeError('Failed to fetch')],
+])('shows "Couldn\'t load · Retry" in the Fits tile on %s', async (_, preview) => {
+  // The same wait as the hidden cases, so a tile that renders on error is caught there.
+  await renderWithPreview(preview);
+  const tile = screen.getByRole('heading', { name: 'Fits Spring 2027' }).closest('section');
+  expect(within(tile).getByRole('alert')).toHaveTextContent("Couldn't load · Retry");
+});
+
+it('shows a not-found state with no Retry for a 404', async () => {
+  global.fetch = routeFetch([['/api/catalog/', { status: 404, body: { detail: 'Course not found' } }]]);
+  render(<CoursePopup courseId="NOPE 999" />);
+  expect(await screen.findByText('Course not found')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+});
+
+it('shows the Unlocks web when a course has no prerequisite tree', async () => {
+  serve({ ...uwPopupCourse(), prereq_tree: undefined });
+  render(<CoursePopup courseId="COMP SCI 400" onOpenCourse={jest.fn()} />);
+  expect(await screen.findByRole('heading', { name: 'Unlocks' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'COMP SCI 537' })).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Prerequisites' })).not.toBeInTheDocument();
+});
+
+it('makes the header a drag source with a labelled grip', async () => {
+  serve(uwPopupCourse());
+  render(<CoursePopup courseId="COMP SCI 400" />);
+  await screen.findByRole('heading', { name: 'Programming III' });
+  expect(screen.getByRole('button', { name: 'Drag COMP SCI 400' })).toHaveAttribute('title', 'Drag');
 });
 
 it('shows "Couldn\'t load · Retry" when the course request fails, and retries', async () => {

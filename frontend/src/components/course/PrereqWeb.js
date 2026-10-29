@@ -73,6 +73,8 @@ function graphStyle() {
   const inkSoft = readToken('--ink-soft', '#6B6B70');
   const paper = readToken('--paper', '#FFFFFF');
   const campus = readToken('--domain-campus', '#1F9D55');
+  // White labels sit only on ink-dark fills (D14): 6.6:1, where the bright green is 3.5:1.
+  const campusInk = readToken('--domain-campus-ink', '#156B3A');
   const academics = readToken('--domain-academics', '#2E7CF6');
   const academicsTint = readToken('--domain-academics-tint', '#E8F0FE');
   const academicsInk = readToken('--domain-academics-ink', '#1A4FB0');
@@ -81,7 +83,7 @@ function graphStyle() {
     {
       selector: 'node',
       style: {
-        'background-color': campus,
+        'background-color': campusInk,
         color: paper,
         label: 'data(label)',
         'font-family': font,
@@ -186,8 +188,12 @@ export default function PrereqWeb({
     <div className={`cp-web cp-web--${size}`}>
       <div ref={containerRef} className="cp-web-graph" aria-hidden="true" data-testid="prereq-web-graph" />
       <div className="cp-web-list">
-        <p>Prerequisites</p>
-        {tree ? <PrereqList tree={tree} self={course} onOpenCourse={onOpenCourse} /> : null}
+        {tree && (
+          <>
+            <p>Prerequisites</p>
+            <PrereqList tree={tree} self={course} onOpenCourse={onOpenCourse} />
+          </>
+        )}
         {unlockIds.length > 0 && (
           <>
             <p>Unlocks</p>

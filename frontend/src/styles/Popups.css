@@ -1,24 +1,9 @@
 /* Course and event pop-up bodies and the map's place sheet (tab-workspaces
-   r5-course, r1-event, r1-place). Colours come from tokens; the fallbacks
-   stand in until brand-tokens.css gains --band-* and --difficulty-* (D15). */
+   r5-course, r1-event, r1-place). Colours come from brand-tokens.css (D15):
+   --difficulty-* for graphics, their -ink on white, --band-*-text on the band. */
 
 .pop,
 .pop-sheet {
-  --pop-band-bg: var(--band-bg, #111114);
-  --pop-band-ink: var(--band-ink, #FFFFFF);
-  --pop-band-soft: var(--band-ink-soft, rgba(255, 255, 255, 0.7));
-  --pop-band-line: var(--band-line, rgba(255, 255, 255, 0.14));
-  --pop-band-raised: var(--band-raised, rgba(255, 255, 255, 0.1));
-  /* Graphics and text on the dark band. */
-  --pop-easier: var(--difficulty-easier, #1F9D55);
-  --pop-typical: var(--difficulty-typical, #E8730C);
-  --pop-harder: var(--difficulty-harder, #D92D20);
-  /* Text on white (D14). */
-  --pop-easier-ink: var(--difficulty-easier-ink, var(--domain-campus-ink, #156B3A));
-  --pop-typical-ink: var(--difficulty-typical-ink, var(--domain-student-life-ink, #8A4206));
-  --pop-harder-ink: var(--difficulty-harder-ink, var(--error-ink, #B42318));
-  --pop-easier-tint: var(--difficulty-easier-tint, var(--domain-campus-tint, #E3F4EA));
-  --pop-harder-tint: var(--difficulty-harder-tint, var(--error-tint, #FDECEA));
   font-family: var(--font-app);
   color: var(--ink);
 }
@@ -40,8 +25,8 @@
 /* ---- Band -------------------------------------------------------------- */
 
 .pop-band {
-  background: var(--pop-band-bg);
-  color: var(--pop-band-ink);
+  background: var(--band-bg);
+  color: var(--band-text);
   padding: 20px 24px 0;
 }
 
@@ -60,7 +45,7 @@
   align-items: center;
   gap: 10px;
   font-size: 0.82rem;
-  color: var(--pop-band-soft);
+  color: var(--band-text-soft);
 }
 
 .pop-title {
@@ -72,7 +57,7 @@
 }
 
 .pop-desc { margin-top: 8px; max-width: 62ch; }
-.pop-desc .pop-clamp { color: var(--pop-band-soft); }
+.pop-desc .pop-clamp { color: var(--band-text-soft); }
 
 .pop-clamp {
   margin: 0;
@@ -94,7 +79,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--pop-band-ink);
+  color: var(--band-text);
   font: inherit;
   font-size: 0.85rem;
   font-weight: 700;
@@ -117,8 +102,8 @@
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 600;
-  background: var(--pop-band-raised);
-  color: var(--pop-band-ink);
+  background: var(--band-raised);
+  color: var(--band-text);
 }
 
 .pop-chip--req { background: var(--domain-academics-ink); }
@@ -140,10 +125,10 @@
   gap: 6px;
   height: 36px;
   padding: 0 14px;
-  border: 1px solid var(--pop-band-line);
+  border: 1px solid var(--band-line);
   border-radius: 10px;
   background: transparent;
-  color: var(--pop-band-ink);
+  color: var(--band-text);
   font: inherit;
   font-size: 0.88rem;
   font-weight: 600;
@@ -153,7 +138,7 @@
 
 .pop-btn:hover,
 .pop-icon-btn:hover,
-.pop-band .pop-save:hover { background: var(--pop-band-raised); color: var(--pop-band-ink); }
+.pop-band .pop-save:hover { background: var(--band-raised); color: var(--band-text); }
 
 .pop-btn--primary {
   background: var(--paper);
@@ -168,14 +153,14 @@
 
 .pop-band .pop-save.is-saved svg { fill: currentColor; }
 
-.pop-band :focus-visible { outline: 2px solid var(--pop-band-ink); outline-offset: 2px; }
+.pop-band :focus-visible { outline: 2px solid var(--band-text); outline-offset: 2px; }
 
 .pop-numbers {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   margin-top: 18px;
-  border-top: 1px solid var(--pop-band-line);
+  border-top: 1px solid var(--band-line);
 }
 
 .pop-number {
@@ -186,9 +171,9 @@
   min-width: 0;
 }
 
-.pop-number + .pop-number { padding-left: 18px; border-left: 1px solid var(--pop-band-line); }
+.pop-number + .pop-number { padding-left: 18px; border-left: 1px solid var(--band-line); }
 
-.pop-number-label { font-size: 0.8rem; color: var(--pop-band-soft); }
+.pop-number-label { font-size: 0.8rem; color: var(--band-text-soft); }
 
 .pop-number-value {
   font-family: var(--font-mono);
@@ -200,18 +185,41 @@
 
 .pop-number-value small { font-family: var(--font-app); font-size: 0.85rem; font-weight: 600; }
 
-.pop-number-value.is-easier { color: var(--pop-easier); }
-.pop-number-value.is-typical { color: var(--pop-typical); }
-.pop-number-value.is-harder { color: var(--pop-harder); }
-.pop-number-value.is-a { color: color-mix(in srgb, var(--domain-academics) 55%, var(--paper)); }
-.pop-number-value.is-df { color: color-mix(in srgb, var(--accent-red) 80%, var(--paper)); }
+.pop-number-value.is-easier { color: var(--band-easier-text); }
+.pop-number-value.is-typical { color: var(--band-typical-text); }
+.pop-number-value.is-harder { color: var(--band-harder-text); }
+.pop-number-value.is-a { color: var(--band-a-text); }
+.pop-number-value.is-df { color: var(--band-df-text); }
+
+/* Drag handle on a pop-up header (D4, D19: always visible). */
+.pop-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 36px;
+  padding: 0;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--band-text-soft);
+  cursor: grab;
+  touch-action: none;
+}
+
+.pop-grip:hover { color: var(--band-text); background: var(--band-raised); }
+.pop-grip--light { color: var(--ink-soft); margin-left: -6px; }
+.pop-grip--light:hover { color: var(--ink); background: var(--paper-sunken); }
+.ps-title { display: flex; align-items: center; gap: 4px; }
 
 /* ---- Skeletons (band, numbers, default tab only; D7) ---------------------- */
 
 .pop-skel {
   display: block;
   border-radius: 6px;
-  background: var(--pop-band-raised);
+  background: var(--band-raised);
 }
 
 .pop-body .pop-skel,
@@ -371,28 +379,28 @@
 }
 
 .cp-legend li { color: var(--ink-soft); }
-.cp-legend li.is-easier::before { background: var(--pop-easier); }
-.cp-legend li.is-typical::before { background: var(--pop-typical); }
-.cp-legend li.is-harder::before { background: var(--pop-harder); }
+.cp-legend li.is-easier::before { background: var(--difficulty-easier); }
+.cp-legend li.is-typical::before { background: var(--difficulty-typical); }
+.cp-legend li.is-harder::before { background: var(--difficulty-harder); }
 
 .cp-gpa-svg { display: block; width: 100%; height: auto; }
 
-.cp-zone.is-easier { fill: var(--pop-easier-tint); opacity: 0.7; }
-.cp-zone.is-harder { fill: var(--pop-harder-tint); opacity: 0.7; }
+.cp-zone.is-easier { fill: var(--difficulty-easier-tint); opacity: 0.7; }
+.cp-zone.is-harder { fill: var(--difficulty-harder-tint); opacity: 0.7; }
 .cp-grid { stroke: var(--line); }
 .cp-axis { fill: var(--ink-soft); font-size: 11px; font-family: var(--font-app); }
 .cp-axis--soft { opacity: 0.75; }
 
 .cp-seg { stroke-width: 2.5; stroke-linecap: round; }
-.cp-seg.is-easier, .cp-dot.is-easier { stroke: var(--pop-easier); fill: var(--pop-easier); }
-.cp-seg.is-typical, .cp-dot.is-typical { stroke: var(--pop-typical); fill: var(--pop-typical); }
-.cp-seg.is-harder, .cp-dot.is-harder { stroke: var(--pop-harder); fill: var(--pop-harder); }
+.cp-seg.is-easier, .cp-dot.is-easier { stroke: var(--difficulty-easier); fill: var(--difficulty-easier); }
+.cp-seg.is-typical, .cp-dot.is-typical { stroke: var(--difficulty-typical); fill: var(--difficulty-typical); }
+.cp-seg.is-harder, .cp-dot.is-harder { stroke: var(--difficulty-harder); fill: var(--difficulty-harder); }
 .cp-dot { stroke: var(--paper) !important; stroke-width: 2; }
 
 .cp-value { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
-.cp-value.is-easier { fill: var(--pop-easier-ink); }
-.cp-value.is-typical { fill: var(--pop-typical-ink); }
-.cp-value.is-harder { fill: var(--pop-harder-ink); }
+.cp-value.is-easier { fill: var(--difficulty-easier-ink); }
+.cp-value.is-typical { fill: var(--difficulty-typical-ink); }
+.cp-value.is-harder { fill: var(--difficulty-harder-ink); }
 
 .cp-bars {
   list-style: none;
@@ -423,7 +431,7 @@
   background: var(--domain-academics);
 }
 
-.cp-bar.is-df .cp-bar-fill { background: var(--pop-harder); }
+.cp-bar.is-df .cp-bar-fill { background: var(--difficulty-harder); }
 .cp-bar-label { font-size: 0.72rem; color: var(--ink-soft); }
 
 .cp-instructors,
@@ -460,9 +468,9 @@
   text-align: right;
 }
 
-.cp-instructor-gpa.is-easier { color: var(--pop-easier-ink); }
-.cp-instructor-gpa.is-typical { color: var(--pop-typical-ink); }
-.cp-instructor-gpa.is-harder { color: var(--pop-harder-ink); }
+.cp-instructor-gpa.is-easier { color: var(--difficulty-easier-ink); }
+.cp-instructor-gpa.is-typical { color: var(--difficulty-typical-ink); }
+.cp-instructor-gpa.is-harder { color: var(--difficulty-harder-ink); }
 
 .cp-section { padding: 12px 0; border-bottom: 1px solid var(--line); }
 .cp-section:last-child { border-bottom: 0; }
@@ -522,8 +530,8 @@
   font-size: 0.88rem;
 }
 
-.cp-fit-row .is-easier { color: var(--pop-easier-ink); }
-.cp-fit-row .is-harder { color: var(--pop-harder-ink); }
+.cp-fit-row .is-easier { color: var(--difficulty-easier-ink); }
+.cp-fit-row .is-harder { color: var(--difficulty-harder-ink); }
 
 .cp-web { position: relative; }
 .cp-web-graph { width: 100%; height: 240px; }
@@ -552,6 +560,15 @@
 .cp-web-list p { margin: 6px 0 2px; font-weight: 700; }
 .cp-web-list button { border: 0; background: none; padding: 0; font: inherit; color: var(--domain-academics-ink); text-decoration: underline; cursor: pointer; }
 
+/* Chat course cards built from pop-up pieces. */
+.cc-metric { display: flex; flex-direction: column; gap: 4px; }
+.cc-metric-label { font-size: 0.8rem; color: var(--ink-soft); }
+.cc-metric-value { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; }
+.cc-metric-value.is-easier { color: var(--difficulty-easier-ink); }
+.cc-metric-value.is-typical { color: var(--difficulty-typical-ink); }
+.cc-metric-value.is-harder { color: var(--difficulty-harder-ink); }
+.course-visual-status { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+
 /* ---- Event -------------------------------------------------------------- */
 
 .ep-date {
@@ -561,14 +578,14 @@
   justify-content: center;
   min-width: 92px;
   padding: 10px 8px;
-  border: 1px solid var(--pop-band-line);
+  border: 1px solid var(--band-line);
   border-radius: 14px;
   line-height: 1;
 }
 
 .ep-date-month { font-size: 0.78rem; font-weight: 700; color: var(--domain-student-life); letter-spacing: 0.06em; }
 .ep-date-day { font-family: var(--font-mono); font-size: 2.6rem; font-weight: 700; margin: 4px 0; }
-.ep-date-week { font-size: 0.72rem; font-weight: 700; color: var(--pop-band-soft); letter-spacing: 0.06em; }
+.ep-date-week { font-size: 0.72rem; font-weight: 700; color: var(--band-text-soft); letter-spacing: 0.06em; }
 
 .ep-date--small {
   min-width: 44px;

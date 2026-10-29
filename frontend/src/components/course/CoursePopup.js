@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect, useId, useMemo, useState,
+} from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import SaveButton from '../SaveButton';
 import {
@@ -8,6 +10,9 @@ import {
   gradeSegments, primarySections, sectionName, seatsText,
 } from '../catalog/catalogFormat';
 import PrereqWeb from './PrereqWeb';
+import {
+  CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
+} from '../popup/PopupParts';
 import {
   creditsHigh, creditsText, difficultyOf, DIFFICULTY_LABEL, gpaText, nameKey, pctText,
   prereqCourses, termShort,
@@ -38,13 +43,9 @@ const BAND_LOW = 12;
 const BAND_HIGH = 18;
 const SCALE_MAX = 24;
 
-export function CouldntLoad({ onRetry, className = '' }) {
-  return (
-    <p className={`pop-error ${className}`.trim()} role="alert">
-      Couldn&apos;t load · <button type="button" className="pop-link-btn" onClick={onRetry}>Retry</button>
-    </p>
-  );
-}
+export { CouldntLoad };
+
+const NONE = [];
 
 function Clamp({ text, lines = 2, className = '' }) {
   const [open, setOpen] = useState(false);
@@ -128,10 +129,12 @@ function Band({
     ...(data?.gen_ed || []).map((label) => ({ label, kind: 'gen' })),
   ];
   const numbers = data ? bigNumbers(data) : null;
+  const drag = usePopupDrag(item);
 
   return (
-    <header className="pop-band">
+    <header ref={drag.ref} className={`pop-band ${drag.className}`}>
       <div className="pop-band-top">
+        <DragGrip drag={drag} label={`Drag ${id}`} />
         <div className="pop-band-text">
           <p className="pop-eyebrow">{eyebrow}</p>
           {data ? (
@@ -192,6 +195,7 @@ function Band({
 
 /** Average GPA by term, each point and the segment into it coloured by difficulty. */
 export function GpaByTerm({ history }) {
+  const titleId = useId();
   const points = (history || []).filter((row) => row && row.gpa != null);
   if (!points.length) return null;
   const width = 600;
@@ -209,9 +213,9 @@ export function GpaByTerm({ history }) {
   const right = width - pad.right;
 
   return (
-    <section className="pop-tile cp-gpa" aria-labelledby="cp-gpa-title">
+    <section className="pop-tile cp-gpa" aria-labelledby={titleId}>
       <div className="pop-tile-head">
-        <h3 id="cp-gpa-title" className="pop-tile-title">Average GPA by term</h3>
+        <h3 id={titleId} className="pop-tile-title">Average GPA by term</h3>
         <ul className="cp-legend" aria-hidden="true">
           <li className="is-easier">Easier</li>
           <li className="is-typical">Typical</li>
@@ -263,6 +267,7 @@ const DF_KEYS = new Set(['d', 'f', 'dfw', 'd+', 'd-', 'w']);
 
 /** The grade distribution with a term picker (latest term, all terms). */
 export function GradeDistribution({ grades, cumulative }) {
+  const titleId = useId();
   const options = [];
   if (grades?.distribution && gradeSegments(grades.distribution).length) {
     options.push({ id: 'term', label: grades.term ? termShort(grades.term) : 'Latest', distribution: grades.distribution });
@@ -277,9 +282,9 @@ export function GradeDistribution({ grades, cumulative }) {
   const top = Math.max(...segments.map((s) => s.pct));
 
   return (
-    <section className="pop-tile cp-dist" aria-labelledby="cp-dist-title">
+    <section className="pop-tile cp-dist" aria-labelledby={titleId}>
       <div className="pop-tile-head">
-        <h3 id="cp-dist-title" className="pop-tile-title">Grades</h3>
+        <h3 id={titleId} className="pop-tile-title">Grades</h3>
         {options.length > 1 && (
           <div className="pop-seg" role="group" aria-label="Term">
             {options.map((o) => (
@@ -321,7 +326,7 @@ function GradesSkeleton() {
 // ---------------------------------------------------------------------------
 // Instructors tab
 
-function instructorRows(gradesRows, ratings) {
+export function instructorRows(gradesRows, ratings) {
   const rows = (gradesRows || []).map((row) => ({ name: row.name, gpa: row.gpa, students: row.students }));
   const byKey = new Map(rows.map((row) => [nameKey(row.name), row]));
   (ratings || []).forEach((rating) => {
@@ -337,7 +342,7 @@ function instructorRows(gradesRows, ratings) {
   return rows;
 }
 
-function InstructorsTab({ rows }) {
+export function InstructorsTab({ rows }) {
   const top = Math.max(1, ...rows.map((r) => Number(r.students) || 0));
   return (
     <section className="pop-tile" aria-label="Instructors">
@@ -376,7 +381,7 @@ function InstructorsTab({ rows }) {
 // ---------------------------------------------------------------------------
 // Sections tab
 
-function SectionsTab({ sections }) {
+export function SectionsTab({ sections }) {
   const historical = sections.historical;
   return (
     <section className="pop-tile" aria-label="Sections">
@@ -416,7 +421,20 @@ function SectionsTab({ sections }) {
 const LOAD_TONE = { Heavy: 'harder', Light: 'easier' };
 const fmtCredits = (value) => creditsText(value);
 
-export function FitsTile({ diff, courseId, term }) {
+/** A failed preview: shown for a server or network failure, hidden for 404 / 409 / 422. */
+export const previewFailed = (error) => Boolean(error) && (error.network || error.status >= 500);
+
+export function FitsTile({
+  diff, courseId, term, error, onRetry,
+}) {
+  if (!diff && previewFailed(error)) {
+    return (
+      <section className="pop-tile cp-fits" aria-labelledby="cp-fits-title">
+        <h3 id="cp-fits-title" className="pop-tile-title">{term ? `Fits ${term}` : 'Fits'}</h3>
+        <CouldntLoad onRetry={onRetry} />
+      </section>
+    );
+  }
   if (!diff) return null;
   const before = diff.credits?.before;
   const after = diff.credits?.after;
@@ -502,16 +520,18 @@ export function FitsTile({ diff, courseId, term }) {
   );
 }
 
-function WebTile({ course, tree, onOpenCourse, onExpand }) {
+function WebTile({
+  course, tree, unlocks, onOpenCourse, onExpand,
+}) {
   return (
     <section className="pop-tile cp-web-tile" aria-labelledby="cp-web-title">
       <div className="pop-tile-head">
-        <h3 id="cp-web-title" className="pop-tile-title">Prerequisites</h3>
+        <h3 id="cp-web-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
         <button type="button" className="pop-chevron" aria-label="Open the full prerequisite graph" title="Full graph" onClick={onExpand}>
           <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
-      <PrereqWeb course={course} tree={tree} onOpenCourse={onOpenCourse} />
+      <PrereqWeb course={course} tree={tree} unlocks={tree ? NONE : unlocks} onOpenCourse={onOpenCourse} />
     </section>
   );
 }
@@ -548,17 +568,15 @@ export default function CoursePopup({
 
   useEffect(() => { setFullGraph(false); }, [courseId]);
 
-  const ratingRows = ratings.data?.ratings || [];
   const instructors = useMemo(
-    () => instructorRows(data?.instructor_grades, ratingRows),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => instructorRows(data?.instructor_grades, ratings.data?.ratings),
     [data, ratings.data],
   );
   const history = (data?.grade_history || []).filter((row) => row?.gpa != null);
   const hasGrades = Boolean(history.length || (data?.grades && gradeSegments(data.grades.distribution).length));
   const sectionRows = data?.sections?.rows || [];
   const tree = data?.prereq_tree && prereqCourses(data.prereq_tree).length ? data.prereq_tree : null;
-  const unlocks = data?.next_courses || [];
+  const unlocks = data?.next_courses?.length ? data.next_courses : NONE;
 
   const available = [];
   if (hasGrades) available.push('grades');
@@ -583,6 +601,7 @@ export default function CoursePopup({
   );
 
   if (detail.error) {
+    const missing = isNotFound(detail.error);
     return (
       <article className="pop cp" aria-labelledby={titleId}>
         <header className="pop-band">
@@ -600,7 +619,9 @@ export default function CoursePopup({
             </div>
           </div>
         </header>
-        <div className="pop-body"><CouldntLoad onRetry={detail.retry} /></div>
+        <div className="pop-body">
+          {missing ? <NotFound>Course not found</NotFound> : <CouldntLoad onRetry={detail.retry} />}
+        </div>
       </article>
     );
   }
@@ -620,17 +641,17 @@ export default function CoursePopup({
   }
 
   const diff = preview.data?.diff || null;
-  const showFits = Boolean(diff);
-  const showWeb = Boolean(tree);
+  const showFits = Boolean(diff) || previewFailed(preview.error);
+  const showWeb = Boolean(tree || unlocks.length);
   let main;
-  if (fullGraph && (tree || unlocks.length)) {
+  if (fullGraph && showWeb) {
     main = (
       <section className="pop-tile cp-fullgraph" aria-labelledby="cp-fullgraph-title">
         <div className="pop-tile-head">
           <button type="button" className="pop-chevron" aria-label="Back" title="Back" onClick={() => setFullGraph(false)}>
             <ChevronLeft size={18} aria-hidden="true" />
           </button>
-          <h3 id="cp-fullgraph-title" className="pop-tile-title">Prerequisites</h3>
+          <h3 id="cp-fullgraph-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
         </div>
         <PrereqWeb course={id} tree={tree} unlocks={unlocks} onOpenCourse={onOpenCourse} size="full" />
       </section>
@@ -679,11 +700,14 @@ export default function CoursePopup({
           {main && <div className="cp-main">{main}</div>}
           {(showFits || showWeb) && (
             <aside className="cp-side">
-              {showFits && <FitsTile diff={diff} courseId={id} term={term} />}
+              {showFits && (
+                <FitsTile diff={diff} courseId={id} term={term} error={preview.error} onRetry={preview.retry} />
+              )}
               {showWeb && (
                 <WebTile
                   course={id}
                   tree={tree}
+                  unlocks={unlocks}
                   onOpenCourse={onOpenCourse}
                   onExpand={() => setFullGraph(true)}
                 />

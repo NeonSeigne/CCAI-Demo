@@ -88,7 +88,7 @@ export const richPlace = {
   category: 'library',
   lat: 38.0364,
   lon: -78.5051,
-  hours: 'Mo-Th 07:30-26:00; Fr 07:30-21:00; Sa 10:00-21:00; Su 10:00-26:00',
+  hours: 'Mo-Th 07:30-02:00; Fr 07:30-21:00; Sa 10:00-21:00; Su 10:00-02:00',
   open_now: true,
   open_until: '2026-10-29T06:00:00Z',
   walk_minutes: 6,
