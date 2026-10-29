@@ -106,6 +106,7 @@ def _node_to_professor(node: Dict[str, Any]) -> Dict[str, Any]:
         "would_take_again_pct": node.get("wouldTakeAgainPercent", -1),
         "num_ratings": node.get("numRatings", 0),
         "rmp_id": node.get("id", ""),
+        "legacy_id": node.get("legacyId"),
     }
 
 

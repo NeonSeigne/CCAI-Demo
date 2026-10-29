@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.core.auth import get_current_active_user
 from app.models.user import User
 from app.sources import academics
+from app.sources import ratings as ratings_source
 
 logger = logging.getLogger(__name__)
 
@@ -93,14 +94,38 @@ async def starters(_current_user: User = Depends(get_current_active_user)) -> Di
     }
 
 
+def _identifier(course_identifier: str) -> str:
+    identifier = " ".join(course_identifier.replace("_", " ").split())
+    if not _IDENTIFIER_RE.fullmatch(identifier):
+        raise HTTPException(status_code=400, detail="Invalid course identifier")
+    return identifier
+
+
+# Declared before the summary's ``{course_identifier:path}`` catch-all, which
+# would otherwise read "ratings/CS 2100" as a course (eng re-review N1).
+@router.get("/ratings/{course_identifier:path}")
+async def ratings(
+    course_identifier: str,
+    _current_user: User = Depends(get_current_active_user),
+) -> Dict[str, Any]:
+    """Ratings for up to 4 of the course's instructors; an instructor with no
+    usable rating is left out, and a failed lookup is never an error."""
+    identifier = _identifier(course_identifier)
+    try:
+        return await ratings_source.course_ratings(identifier)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Course not found") from exc
+    except RuntimeError as exc:
+        logger.info("ratings source failed: %s", exc)
+        return {"identifier": identifier, "ratings": [], "source": None}
+
+
 @router.get("/{course_identifier:path}")
 async def summary(
     course_identifier: str,
     _current_user: User = Depends(get_current_active_user),
 ) -> Dict[str, Any]:
-    identifier = " ".join(course_identifier.replace("_", " ").split())
-    if not _IDENTIFIER_RE.fullmatch(identifier):
-        raise HTTPException(status_code=400, detail="Invalid course identifier")
+    identifier = _identifier(course_identifier)
     try:
         return await academics.course_summary(identifier)
     except FileNotFoundError as exc:

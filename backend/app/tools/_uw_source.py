@@ -432,6 +432,26 @@ async def _sections_coursemap(
     return display, rows, instructors
 
 
+async def instructor_ratings(identifier: str) -> List[Dict[str, Any]]:
+    """Course Map's ratings for the course's instructors, in its order:
+    ``[{name, rating, difficulty, num_ratings}]``. Instructors without a
+    rating are left out. Raises like ``lookup_course``."""
+    data = await _get_course(normalize_identifier(identifier))
+    out = []
+    for instructor in data["course"].get("instructors") or []:
+        ratings = instructor.get("ratings") or {}
+        quality, count = ratings.get("quality"), ratings.get("review_count")
+        if not instructor.get("name") or not isinstance(quality, (int, float)) or not count:
+            continue
+        out.append({
+            "name": _title_case(instructor["name"]),
+            "rating": quality,
+            "difficulty": ratings.get("difficulty") if isinstance(ratings.get("difficulty"), (int, float)) else None,
+            "num_ratings": count,
+        })
+    return out
+
+
 def _to_section(row: Dict[str, Any]) -> Dict[str, Any]:
     enrolled = row.get("current_enrolled") or 0
     capacity = row.get("capacity") or 0
