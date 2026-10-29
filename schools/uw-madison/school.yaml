@@ -91,6 +91,8 @@ student_life:
     - url: "https://today.wisc.edu/events.ics?limit=200"
       name: "UW–Madison Today"
       pages: 2
+  # No event_kinds: the feed carries no category, host or cost fields, so
+  # those stay null.
 
 tools:
   find_place:

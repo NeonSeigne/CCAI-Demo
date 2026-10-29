@@ -184,3 +184,16 @@ Phase 3). Planner payloads are in `app/planner/CONTRACTS.md`.
 |---|---|---|
 | `app.short_name` | str | "UVA", "CU Boulder", "UW–Madison" (rail and phone header); `""` when a pack sets none |
 | `school.term_dates` | `{term: {first_day, last_day}}` | ISO dates of the first and last day of classes, from the school's official academic calendar (cited in `school.yaml`). Either may be `null` when it couldn't be verified; a term with no dates is absent. "Your classes today" shows only on weekdays inside both dates and hides when either is missing (R12) |
+
+### `GET /api/events`, `GET /api/events/{id}`
+
+Every event row also carries, always present and `null` when the feed doesn't say (nothing is read from the description):
+
+| Field | Shape | Notes |
+|---|---|---|
+| `kind` | `"academic"` \| `"campus_life"` \| `"arts"` \| `"athletics"` \| `"career"` \| null | From the pack's `student_life.event_kinds` map of feed values (UVA: Trumba "Event Type", then calendar categories; CU: `CATEGORIES`). When values map to several kinds the more specific wins: athletics, arts, career, academic, campus_life. UW's feed has no categories, so UW is always null |
+| `host` | str \| null | UVA "Hosted by", else "Sponsor" (multi-values comma-spaced). CU and UW: null |
+| `cost` | str \| null | UVA "Cost" text as the feed writes it ("Free", "$15 General / $5 Students"). CU and UW: null |
+| `place_name` | str \| null | Name of the campus place the venue matched (the same match as `place_id`); null when no place matched |
+
+The chat `events_search` result rows and the `event_list` card rows carry `kind` and `place_name` too (card rows: `title, start, end, all_day, location, url, calendar, ongoing, kind, place_name, id`). The card groups rows by date client-side from `start` in the card's `timezone` (design Q10).

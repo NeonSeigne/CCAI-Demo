@@ -235,8 +235,13 @@ class TestListEndpoint(EventsApiTestCase):
         body = await self.list_events(at(27, 9), window="today")
         jazz = next(e for e in body["events"] if e["title"] == "Jazz Concert")
         self.assertEqual(set(jazz), {"id", "title", "start", "end", "all_day", "location", "url", "description", "calendar",
-                                     "ongoing", "place_id"})
+                                     "ongoing", "place_id", "place_name", "kind", "host", "cost"})
         self.assertEqual(jazz["place_id"], "macky-auditorium")
+        self.assertEqual(jazz["place_name"], "Macky Auditorium")
+        self.assertEqual((jazz["kind"], jazz["host"], jazz["cost"]), (None, None, None))
+        coding = next(e for e in body["events"] if e["title"] == "Coding Club")
+        self.assertIsNone(coding["place_name"])
+        self.assertNotIn("place_id", coding)
 
     async def test_walk_minutes_only_for_matched_venues_with_one_table_call(self):
         body = await self.list_events(at(27, 9), window="today", from_="norlin-library")

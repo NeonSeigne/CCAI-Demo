@@ -144,7 +144,9 @@ def _with_id(item: Dict[str, Any], source: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
-    """An event list card built from the events_search result itself."""
+    """An event list card built from the events_search result itself. Rows
+    carry ``kind`` and ``place_name`` (null when unknown); the card groups
+    them by date from ``start`` in ``timezone`` (design Q10)."""
     events = [e for e in result.get("events") or [] if e.get("title")]
     if not events:
         return []
@@ -154,7 +156,8 @@ def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
         "events": [
             _with_id({
                 key: e.get(key)
-                for key in ("title", "start", "end", "all_day", "location", "url", "calendar", "ongoing")
+                for key in ("title", "start", "end", "all_day", "location", "url", "calendar", "ongoing",
+                            "kind", "place_name")
             }, e)
             for e in events[:EVENT_CARD_LIMIT]
         ],

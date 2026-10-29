@@ -25,7 +25,11 @@ from app.sources import ical_events, places, routing
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-EVENT_FIELDS = ("id", "title", "start", "end", "all_day", "location", "url", "description", "calendar", "ongoing")
+# kind, host and cost are always sent, null when the feed doesn't say.
+EVENT_FIELDS = (
+    "id", "title", "start", "end", "all_day", "location", "url", "description", "calendar", "ongoing",
+    "kind", "host", "cost",
+)
 # Sent only when the feed has them (UVA: image, details; CU: geo).
 OPTIONAL_FIELDS = ("image_url", "categories", "geo", "details")
 
@@ -54,7 +58,8 @@ async def _walk_minutes(origin: Dict[str, Any], targets: List[Dict[str, Any]]) -
 
 async def _decorate(events: List[Dict[str, Any]], origin: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Public fields (optional ones only when present) plus ``place_id``
-    (matched venue) and ``walk_minutes``."""
+    (matched venue), ``place_name`` (that place's name, ``None`` when the
+    venue matches no place) and ``walk_minutes``."""
     venue_cache: Dict[str, Optional[Dict[str, Any]]] = {}
     out = []
     for event in events:
@@ -64,6 +69,7 @@ async def _decorate(events: List[Dict[str, Any]], origin: Optional[Dict[str, Any
         item = {k: event.get(k) for k in EVENT_FIELDS}
         item.update({k: event[k] for k in OPTIONAL_FIELDS if event.get(k)})
         item["_place"] = venue_cache[location]
+        item["place_name"] = item["_place"]["name"] if item["_place"] else None
         if item["_place"]:
             item["place_id"] = item["_place"]["id"]
         out.append(item)

@@ -116,6 +116,24 @@ student_life:
   event_feeds:
     - url: "https://www.trumba.com/calendars/university-of-virginia-events.ics"
       name: "UVA Events Calendar"
+  # Event kind from the feed's Trumba "Event Type" values, then its calendar
+  # categories. Values left out (Admissions, Special Event, Meeting,
+  # Workshop, Webinar, Information Session, unit calendars) give no kind.
+  event_kinds:
+    "Athletics": athletics
+    "Performance": arts
+    "Exhibit": arts
+    "Screening": arts
+    "Arts": arts
+    "Music Department": arts
+    "Drama Department": arts
+    "Fralin": arts
+    "kluge-ruhe": arts
+    "Academic": academic
+    "Lectures & Seminars": academic
+    "Conference": academic
+    "Student Activity": campus_life
+    "Student Life": campus_life
 
 tools:
   find_place:

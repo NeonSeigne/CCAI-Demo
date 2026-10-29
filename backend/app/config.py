@@ -433,10 +433,16 @@ class EventFeedConfig(BaseModel):
     pages: int = Field(default=1, ge=1, le=10)
 
 
+EventKind = Literal["academic", "campus_life", "arts", "athletics", "career"]
+
+
 class StudentLifeConfig(BaseModel):
     """Campus event calendars (iCal) for the events tools."""
     event_feeds: List[EventFeedConfig] = []
     refresh_minutes: int = 15
+    # Feed category values (CATEGORIES, Trumba "Event Type") -> event kind,
+    # matched without case. An event none of whose values is listed has no kind.
+    event_kinds: Dict[str, EventKind] = {}
 
 
 class CampusConfig(BaseModel):

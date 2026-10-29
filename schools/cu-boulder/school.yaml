@@ -81,6 +81,27 @@ student_life:
   event_feeds:
     - url: "https://calendar.colorado.edu/calendar.ics"
       name: "CU Boulder Events Calendar"
+  # Event kind from the feed's CATEGORIES. Values left out (Meeting/Conference,
+  # Information Session, Virtual, Live streams) give no kind. The feed has no
+  # host or cost field.
+  event_kinds:
+    "Sporting Event": athletics
+    "Concert/Show": arts
+    "Exhibit": arts
+    "Film": arts
+    "Lecture/Presentation": academic
+    "Colloquium/Seminar": academic
+    "Brown Bag": academic
+    "Workshop/Training": academic
+    "Advising session": academic
+    "Dates/Deadlines": academic
+    "Social": campus_life
+    "Student Club": campus_life
+    "Festival": campus_life
+    "Competition": campus_life
+    "Tour": campus_life
+    "Community Engagement": campus_life
+    "Outreach": campus_life
 
 tools:
   find_place:
