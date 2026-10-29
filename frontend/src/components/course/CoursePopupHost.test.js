@@ -16,12 +16,6 @@ import { routeFetch } from '../../pages/__fixtures__/routeFetch';
 import { uwPopupCourse } from '../../pages/__fixtures__/popups';
 
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
-jest.mock('cytoscape', () => {
-  const cytoscape = jest.fn(() => ({ on: jest.fn(), destroy: jest.fn() }));
-  cytoscape.use = jest.fn();
-  return { __esModule: true, default: cytoscape };
-});
-jest.mock('cytoscape-fcose', () => ({ __esModule: true, default: {} }));
 
 const realFetch = global.fetch;
 beforeEach(() => {
