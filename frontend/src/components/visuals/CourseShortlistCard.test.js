@@ -69,6 +69,26 @@ test('Choose posts a proposal that adds the course and shows its card', async ()
   expect(screen.getByRole('button', { name: 'Accept' })).toBeInTheDocument();
 });
 
+test('Choose sends the term the shortlist was checked for', async () => {
+  api.createProposal.mockResolvedValue({
+    proposal: proposal({
+      id: 'p10',
+      ops: [{ op: 'add', course: 'ECON 3300', term: 'Fall 2027' }],
+      term: 'Fall 2027',
+      diff: diff({ heading: 'Add ECON 3300 to Fall 2027', courses: { added: ['ECON 3300'], removed: [], moved: [] } }),
+    }),
+  });
+  render(<PlannerProvider><VisualBlock visual={{ ...shortlist([item('ECON 3300')]), term: 'Fall 2027' }} /></PlannerProvider>);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Choose ECON 3300' }));
+  await waitFor(() => expect(api.createProposal).toHaveBeenCalledWith('token', {
+    ops: [{ op: 'add', course: 'ECON 3300', term: 'Fall 2027' }],
+    expected_revision: 4,
+    term: 'Fall 2027',
+  }));
+  expect(await screen.findByRole('heading', { name: 'Add ECON 3300 to Fall 2027' })).toBeInTheDocument();
+});
+
 test('an empty shortlist says so and offers example prompts', () => {
   const onAsk = jest.fn();
   render(<CourseShortlistCard visual={shortlist([])} onAsk={onAsk} />);
