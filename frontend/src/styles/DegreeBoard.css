@@ -347,8 +347,8 @@
   border-radius: 999px;
 }
 
-.dg-band-fill { background: var(--domain-academics); }
-.dg-band-ghost { border: 1.5px dashed var(--domain-academics); box-sizing: border-box; }
+.dg-band-fill { background: var(--academics); }
+.dg-band-ghost { border: 1.5px dashed var(--academics); box-sizing: border-box; }
 
 .dg-band-tick {
   position: absolute;
@@ -387,13 +387,13 @@
 .dg-card.is-pulsing { animation: dg-pulse 700ms ease-out; }
 
 @keyframes dg-pulse {
-  0% { box-shadow: 0 0 0 0 var(--domain-academics); }
+  0% { box-shadow: 0 0 0 0 var(--academics); }
   30% { box-shadow: 0 0 0 4px var(--domain-academics-tint); transform: scale(1.02); }
   100% { box-shadow: 0 0 0 0 var(--domain-academics-tint); transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dg-card.is-pulsing { animation: none; outline: 2px solid var(--domain-academics); }
+  .dg-card.is-pulsing { animation: none; outline: 2px solid var(--academics); }
 }
 
 .dg-card-top { display: flex; align-items: center; gap: 8px; }

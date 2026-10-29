@@ -48,7 +48,7 @@ export function CourseGradeDistribution({
             <CartesianGrid vertical={false} stroke="var(--line)" />
             <XAxis dataKey="grade" tickLine={false} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} width={42} />
-            <Tooltip cursor={{ fill: 'var(--paper-sunken)' }} />
+            <Tooltip cursor={{ fill: 'var(--canvas)' }} />
             <Bar dataKey="students" fill="var(--ink)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

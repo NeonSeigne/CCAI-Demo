@@ -96,3 +96,40 @@ test('no raw colours outside the token files', () => {
     .map(([rel, n, line]) => `${rel}:${n}: ${line.trim()}`);
   expect(offenders).toEqual([]);
 });
+
+// R5: the old token names are gone; components use the roles.
+const OLD_NAMES = [
+  'paper', 'paper-sunken', 'ink-soft', 'selection', 'error-ink', 'accent-red', 'accent-blue', 'accent-green',
+  'domain-academics', 'domain-student-life', 'domain-campus', 'gauge-needle', 'band-bg', 'shadow-soft',
+  'shadow-soft-md', 'bg-primary', 'bg-secondary', 'bg-tertiary', 'bg-quaternary', 'bg-gradient', 'card-bg',
+  'text-primary', 'text-secondary', 'text-tertiary', 'text-accent', 'border-primary', 'border-secondary',
+  'border-tertiary', 'border-color', 'border-muted', 'accent-primary', 'accent-secondary', 'accent-gradient',
+  'accent-color', 'shadow-sm', 'shadow-md', 'shadow-lg', 'shadow-xl', 'feature-bg', 'feature-icon-color',
+  'error-bg', 'error-border', 'error-text', 'input-bg', 'input-border', 'input-focus', 'input-focus-shadow',
+];
+
+const allSources = () => {
+  const root = path.join(__dirname, '..');
+  return sourceFiles(root).map((file) => [path.relative(root, file), fs.readFileSync(file, 'utf8')]);
+};
+
+test('no old token names are left', () => {
+  const old = new RegExp(`--(${OLD_NAMES.join('|')})(?![a-z0-9-])`, 'g');
+  const found = allSources().flatMap(([rel, text]) => [...text.matchAll(old)].map((m) => `${rel}: --${m[1]}`));
+  expect(found).toEqual([]);
+});
+
+test('every var() names a defined token', () => {
+  const sources = allSources();
+  const roles = Object.keys({ ...SHARED.light, ...NEUTRAL_SCHOOL.light }).map((k) => k.replace(/_/g, '-'));
+  const defined = new Set([
+    ...roles,
+    ...sources.flatMap(([, text]) => [...text.matchAll(/--([a-zA-Z0-9-]+)\s*:/g)].map((m) => m[1])),
+    ...sources.flatMap(([, text]) => [...text.matchAll(/['"`]--([a-zA-Z0-9-]+)['"`]/g)].map((m) => m[1])),
+  ]);
+  // Names built at runtime, e.g. var(--course-${n}), end in "-" here and are skipped.
+  const missing = sources.flatMap(([rel, text]) => [...text.matchAll(/var\(\s*--([a-zA-Z0-9-]+)(?![\w$-])/g)]
+    .filter((m) => !defined.has(m[1]))
+    .map((m) => `${rel}: --${m[1]}`));
+  expect([...new Set(missing)]).toEqual([]);
+});

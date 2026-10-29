@@ -62,7 +62,7 @@ const AdvisorAvatarButton = ({
             sx={{
               width: collapsed ? 34 : 38,
               height: collapsed ? 34 : 38,
-              bgcolor: 'var(--paper-sunken)',
+              bgcolor: 'var(--canvas)',
               color: 'var(--ink)',
             }}
           >
@@ -97,8 +97,8 @@ const AdvisorAvatarButton = ({
               height: 15,
               borderRadius: '50%',
               bgcolor: 'var(--ink)',
-              color: 'var(--paper)',
-              border: '2px solid var(--paper)',
+              color: 'var(--surface)',
+              border: '2px solid var(--surface)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -120,8 +120,8 @@ const AdvisorAvatarButton = ({
               width: 8,
               height: 8,
               borderRadius: '50%',
-              bgcolor: 'var(--accent-blue)',
-              border: '2px solid var(--paper)',
+              bgcolor: 'var(--academics)',
+              border: '2px solid var(--surface)',
               pointerEvents: 'none',
             }}
           />
@@ -194,7 +194,7 @@ const AdvisorSidebarPicker = ({
           >
             <Typography
               variant="overline"
-              sx={{ color: 'var(--ink-soft)', lineHeight: 1.2 }}
+              sx={{ color: 'var(--muted)', lineHeight: 1.2 }}
             >
               Advisor panel
             </Typography>

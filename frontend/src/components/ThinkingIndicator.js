@@ -14,14 +14,14 @@ const ThinkingIndicator = ({ advisorId }) => {
     <div className="thinking-container">
       <div
         className="advisor-avatar"
-        style={{ backgroundColor: 'var(--paper-sunken)' }}
+        style={{ backgroundColor: 'var(--canvas)' }}
       >
         {Icon ? <Icon style={{ color: 'var(--ink)' }} /> : null}
       </div>
       <div
         className="thinking-bubble surface-card"
         style={{
-          backgroundColor: 'var(--paper)',
+          backgroundColor: 'var(--surface)',
           borderColor: 'var(--line)',
         }}
       >
@@ -35,11 +35,11 @@ const ThinkingIndicator = ({ advisorId }) => {
           </h4>
         </div>
         <div className="thinking-dots">
-          <div className="thinking-dot" style={{ backgroundColor: 'var(--ink-soft)', animationDelay: '0ms' }} />
-          <div className="thinking-dot" style={{ backgroundColor: 'var(--ink-soft)', animationDelay: '150ms' }} />
-          <div className="thinking-dot" style={{ backgroundColor: 'var(--ink-soft)', animationDelay: '300ms' }} />
+          <div className="thinking-dot" style={{ backgroundColor: 'var(--muted)', animationDelay: '0ms' }} />
+          <div className="thinking-dot" style={{ backgroundColor: 'var(--muted)', animationDelay: '150ms' }} />
+          <div className="thinking-dot" style={{ backgroundColor: 'var(--muted)', animationDelay: '300ms' }} />
         </div>
-        <p className="thinking-text" style={{ color: 'var(--ink-soft)' }}>
+        <p className="thinking-text" style={{ color: 'var(--muted)' }}>
           thinking...
         </p>
       </div>

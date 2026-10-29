@@ -435,7 +435,7 @@ const ChatPageView = () => {
                             {isSynth && (
                               <div style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
-                                color: 'var(--text-secondary)', fontSize: 13, padding: '8px 4px',
+                                color: 'var(--muted)', fontSize: 13, padding: '8px 4px',
                               }}>
                                 <Sparkles size={16} />
                                 <span>Combining advisor responses into one answer…</span>
@@ -561,7 +561,7 @@ const ChatPageView = () => {
                   >
                     <span
                       className="chat-suggestion-dot"
-                      style={{ background: DOMAIN_COLORS[suggestion.domain] || 'var(--ink-soft)' }}
+                      style={{ background: DOMAIN_COLORS[suggestion.domain] || 'var(--muted)' }}
                       aria-hidden="true"
                     />
                     {suggestion.text}

@@ -455,7 +455,7 @@ const Sidebar = ({
                 justifyContent: 'center',
                 gap: 1,
                 py: 4,
-                color: 'var(--ink-soft)',
+                color: 'var(--muted)',
               }}
             >
               <CircularProgress size={20} color="inherit" />
@@ -658,7 +658,7 @@ const Sidebar = ({
             setAccountMenuAnchor(null);
             onSignOut();
           }}
-          sx={{ color: 'var(--accent-red)', gap: 1 }}
+          sx={{ color: 'var(--harder)', gap: 1 }}
         >
           <LogoutIcon fontSize="small" />
           Sign out

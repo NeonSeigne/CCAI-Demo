@@ -6,7 +6,7 @@
 }
 
 .ev-page ::selection {
-  background: var(--selection);
+  background: var(--tint);
   color: var(--ink);
 }
 
@@ -162,7 +162,7 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 120ms var(--ease, ease-out);
+  transition: transform 120ms ease-out;
 }
 
 .ev-chip-btn:active { transform: scale(0.95); }
@@ -279,7 +279,7 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: transform 120ms var(--ease, ease-out);
+  transition: transform 120ms ease-out;
 }
 
 .ev-soft-btn:active,
@@ -299,7 +299,7 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  transition: transform 120ms var(--ease, ease-out);
+  transition: transform 120ms ease-out;
 }
 
 .ev-icon-btn:hover { background: var(--raised); color: var(--ink); }

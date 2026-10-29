@@ -11,7 +11,7 @@ body {
   margin: 0;
   font-family: var(--font-app);
   color: var(--ink);
-  background: var(--paper-sunken);
+  background: var(--canvas);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

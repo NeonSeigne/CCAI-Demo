@@ -35,11 +35,6 @@ const CoursePopupHost = lazy(() => import('./components/course/CoursePopupHost')
 
 const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
 
-// Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
-// tour to run on every page load. Leave unset in production — tour will only
-// show once per user (localStorage).
-export const TESTING_ONBOARDING = process.env.REACT_APP_TESTING_ONBOARDING === 'true';
-
 // Set REACT_APP_ENABLE_DEV_LOGIN=true to show the homepage "Developer mode"
 // button (auto-login as the seeded developer user). Requires ENABLE_DEV_LOGIN=true
 // on the backend. Leave unset/false in real deployments.

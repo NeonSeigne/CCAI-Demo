@@ -22,7 +22,7 @@ const AdvisorCard = ({ advisor, advisorId }) => {
         </div>
         <div
           className="advisor-card-icon"
-          style={{ backgroundColor: 'var(--paper-sunken)', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+          style={{ backgroundColor: 'var(--canvas)', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           onClick={() => setPickerOpen(true)}

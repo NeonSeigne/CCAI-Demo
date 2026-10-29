@@ -3,7 +3,7 @@
    Layout shell (.campus-home, .campus-main, .campus-kicker) comes from
    CampusHome.css. Tokens only, no hex. */
 
-.map-page ::selection { background: var(--selection); color: var(--ink); }
+.map-page ::selection { background: var(--tint); color: var(--ink); }
 .map-page :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
 
 .map-main { padding: 0; }

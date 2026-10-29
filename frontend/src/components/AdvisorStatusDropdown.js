@@ -89,11 +89,11 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
             <div className="disable-all-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <AlertTriangle size={18} style={{ color: 'var(--error)' }} />
-                <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: 16 }}>Disable all advisors?</h3>
+                <h3 style={{ margin: 0, color: 'var(--ink)', fontSize: 16 }}>Disable all advisors?</h3>
               </div>
               <button
                 onClick={() => setPendingDisableId(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4, display: 'flex' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 4, display: 'flex' }}
                 aria-label="Close"
               >
                 <X size={20} />
@@ -123,7 +123,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
                 <div
                   key={id}
                   className={`advisor-item ${isThinking ? 'thinking' : ''} ${enabled ? '' : 'disabled'}`}
-                  style={{ '--advisor-color': 'var(--ink)', '--advisor-bg': 'var(--paper-sunken)' }}
+                  style={{ '--advisor-color': 'var(--ink)', '--advisor-bg': 'var(--canvas)' }}
                 >
                   <div
                     className="advisor-icon"
@@ -179,27 +179,27 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           align-items: center;
           gap: 8px;
           padding: 8px 12px;
-          background: var(--paper);
-          border: 1px solid var(--border-primary);
+          background: var(--surface);
+          border: 1px solid var(--line);
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.2s ease;
           font-size: 13px;
           min-width: 140px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-          color: var(--text-primary);
+          color: var(--ink);
         }
         
         .advisor-status-button:hover {
-          background: var(--bg-secondary);
-          border-color: var(--accent-primary);
+          background: var(--surface);
+          border-color: var(--ink);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .advisor-status-button.open {
-          background: var(--bg-secondary);
-          border-color: var(--accent-primary);
+          background: var(--surface);
+          border-color: var(--ink);
         }
         
         .advisor-status-info {
@@ -211,11 +211,11 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         
         .advisor-count {
           font-weight: 600;
-          color: var(--text-primary);
+          color: var(--ink);
         }
         
         .thinking-badge {
-          background: var(--accent-primary);
+          background: var(--ink);
           color: white;
           padding: 2px 6px;
           border-radius: 8px;
@@ -225,7 +225,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
         
         .dropdown-arrow {
-          color: var(--text-secondary);
+          color: var(--muted);
           transition: transform 0.2s ease;
         }
         
@@ -239,8 +239,8 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           right: 0;
           min-width: 280px;
           max-width: 320px;
-          background: var(--paper);
-          border: 1px solid var(--border-primary);
+          background: var(--surface);
+          border: 1px solid var(--line);
           border-radius: 12px;
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
           z-index: 1000;
@@ -255,7 +255,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           max-height: 300px;
           overflow-y: auto;
           scrollbar-width: thin;
-          scrollbar-color: var(--border-primary) transparent;
+          scrollbar-color: var(--line) transparent;
         }
         
         .advisor-list::-webkit-scrollbar {
@@ -267,7 +267,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
         
         .advisor-list::-webkit-scrollbar-thumb {
-          background: var(--border-primary);
+          background: var(--line);
           border-radius: 3px;
         }
         
@@ -276,7 +276,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           align-items: center;
           gap: 12px;
           padding: 12px 16px;
-          border-bottom: 1px solid var(--border-primary);
+          border-bottom: 1px solid var(--line);
           transition: background-color 0.2s ease;
         }
         
@@ -285,7 +285,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
         
         .advisor-item:hover {
-          background: var(--bg-secondary);
+          background: var(--surface);
         }
         
         .advisor-item.thinking {
@@ -302,7 +302,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
 
         .advisor-off-label {
-          color: var(--text-tertiary);
+          color: var(--faint);
           font-style: italic;
         }
 
@@ -331,14 +331,14 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         
         .advisor-name {
           font-weight: 600;
-          color: var(--text-primary);
+          color: var(--ink);
           font-size: 13px;
           margin-bottom: 2px;
         }
         
         .advisor-description {
           font-size: 11px;
-          color: var(--text-secondary);
+          color: var(--muted);
           line-height: 1.3;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -374,7 +374,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         
         .status-ready {
           font-size: 11px;
-          color: var(--text-tertiary);
+          color: var(--faint);
           font-weight: 500;
         }
         
@@ -399,11 +399,11 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
 
         .disable-all-modal {
-          background: var(--paper);
+          background: var(--surface);
           border-radius: 16px;
           width: 420px;
           max-width: 95vw;
-          box-shadow: var(--shadow-xl, 0 24px 48px rgba(0,0,0,0.25));
+          box-shadow: var(--shadow-float);
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -414,13 +414,13 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           justify-content: space-between;
           align-items: center;
           padding: 16px 20px;
-          border-bottom: 1px solid var(--border-primary);
+          border-bottom: 1px solid var(--line);
         }
 
         .disable-all-body {
           padding: 20px;
           font-size: 14px;
-          color: var(--text-primary);
+          color: var(--ink);
           line-height: 1.5;
         }
 
@@ -433,8 +433,8 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
 
         .disable-all-secondary {
           background: transparent;
-          border: 1px solid var(--border-primary);
-          color: var(--text-secondary);
+          border: 1px solid var(--line);
+          color: var(--muted);
           font-size: 13px;
           padding: 8px 14px;
           border-radius: 8px;

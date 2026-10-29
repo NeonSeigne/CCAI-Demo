@@ -35,20 +35,20 @@ export const stripDefaultBackends = (config) => {
 
 const rowStyle = {
   display: 'grid', gridTemplateColumns: '1fr 180px', alignItems: 'center',
-  gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border-primary)',
+  gap: 12, padding: '10px 0', borderBottom: '1px solid var(--line)',
 };
 
 const selectStyle = {
-  padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border-primary)',
-  background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13.5,
+  padding: '8px 10px', borderRadius: 8, border: '1px solid var(--line)',
+  background: 'var(--surface)', color: 'var(--ink)', fontSize: 13.5,
   width: '100%', colorScheme: 'light dark',
 };
 
 // Native dropdown option list ignores the <select> colors in several browsers,
 // so set the themed background/text explicitly on each <option>.
-const optionStyle = { background: 'var(--bg-secondary)', color: 'var(--text-primary)' };
+const optionStyle = { background: 'var(--surface)', color: 'var(--ink)' };
 
-const titleStyle = { fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' };
+const titleStyle = { fontWeight: 600, fontSize: 14, color: 'var(--ink)' };
 
 const buildInitial = (initialConfig, personaIds, availableBackends) => {
   const fallback = initialConfig?.default_backend || availableBackends[0];
@@ -113,7 +113,7 @@ const AdvisorConfigPanel = ({
   return (
     <div>
       {description && (
-        <p style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: 13.5 }}>
+        <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: 13.5 }}>
           {description}
         </p>
       )}
@@ -122,7 +122,7 @@ const AdvisorConfigPanel = ({
         <div style={rowStyle}>
           <div>
             <div style={titleStyle}>Default backend</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               Used when no specific override is set.
             </div>
           </div>
@@ -140,7 +140,7 @@ const AdvisorConfigPanel = ({
         <div style={rowStyle}>
           <div>
             <div style={titleStyle}>Orchestrator</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               Routes user input across advisors.
             </div>
           </div>
@@ -165,7 +165,7 @@ const AdvisorConfigPanel = ({
           <div style={rowStyle} key={id}>
             <div>
               <div style={titleStyle}>{advisor?.name || id}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
                 {advisor?.role || id}{locked ? ' · backend locked' : ''}
               </div>
             </div>

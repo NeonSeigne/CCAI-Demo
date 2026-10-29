@@ -175,7 +175,7 @@ const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken 
               width: 340,
               maxWidth: 'calc(100vw - 24px)',
               border: '1px solid var(--line)',
-              boxShadow: 'var(--shadow-soft-md)',
+              boxShadow: 'var(--shadow-float)',
             },
           },
         }}

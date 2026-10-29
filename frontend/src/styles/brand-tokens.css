@@ -50,7 +50,7 @@
   --band-text-soft: rgba(255, 255, 255, 0.66);
   --band-line: rgba(255, 255, 255, 0.12);
   --band-raised: rgba(255, 255, 255, 0.1);
-  /* Coloured text on the band (4.5:1 on --band-bg). */
+  /* Coloured text on the band (4.5:1 on --band). */
   --band-easier-text: #3DD07A;
   --band-typical-text: #F59E4C;
   --band-harder-text: #F97066;
@@ -81,62 +81,14 @@ html[data-theme="dark"] {
   --gauge-track: #2B3039; --gauge-band: #2D5A40; --gauge-band-tint: #143323;
 }
 
-/* Older names, pointing at the roles. Phase 3 (R5) migrates callers and deletes these. */
+/* Focus ring, shared by every interactive element. */
 :root {
-  --paper: var(--surface);
-  --paper-sunken: var(--canvas);
-  --ink-soft: var(--muted);
-  --selection: var(--tint);
   --focus-ring: 2px solid var(--ink);
   --focus-ring-offset: 2px;
-  --error-ink: var(--error);
-
-  --accent-red: var(--harder);
-  --accent-blue: var(--academics);
-  --accent-green: var(--good);
-
-  --domain-academics: var(--academics);
-  --domain-student-life: var(--life);
-  --domain-campus: var(--campus);
-
-  --gauge-needle: var(--ink);
-  --band-bg: var(--band);
-
-  --shadow-soft: var(--shadow-rest);
-  --shadow-soft-md: var(--shadow-float);
-
-  --bg-primary: var(--canvas);
-  --bg-secondary: var(--surface);
-  --bg-tertiary: var(--raised);
-  --bg-gradient: var(--canvas);
-  --card-bg: var(--surface);
-  --text-primary: var(--ink);
-  --text-secondary: var(--muted);
-  --text-tertiary: var(--faint);
-  --text-accent: var(--ink);
-  --border-primary: var(--line);
-  --border-secondary: var(--control);
-  --border-tertiary: var(--rule);
-  --accent-primary: var(--ink);
-  --accent-secondary: var(--muted);
-  --accent-gradient: var(--ink);
-  --shadow-sm: var(--shadow-rest);
-  --shadow-md: var(--shadow-float);
-  --shadow-lg: var(--shadow-float);
-  --shadow-xl: var(--shadow-float);
-  --feature-bg: var(--surface);
-  --feature-icon-color: var(--ink);
-  --error-bg: var(--error-tint);
-  --error-border: var(--error-tint);
-  --error-text: var(--error);
-  --input-bg: var(--surface);
-  --input-border: var(--control);
-  --input-focus: var(--ink);
-  --input-focus-shadow: 0 0 0 3px var(--tint);
 }
 
 ::selection {
-  background: var(--selection);
+  background: var(--tint);
   color: var(--ink);
 }
 
@@ -170,7 +122,7 @@ html[data-theme="dark"] {
   padding: 10px 16px;
   border-radius: 10px;
   background: var(--ink);
-  color: var(--paper);
+  color: var(--surface);
   font-family: var(--font-app);
   font-weight: 600;
   text-decoration: none;

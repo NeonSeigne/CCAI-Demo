@@ -595,7 +595,7 @@
 }
 
 .cp-band-ok { position: absolute; top: 0; bottom: 0; background: var(--domain-academics-tint); }
-.cp-band-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-full); background: var(--domain-academics); }
+.cp-band-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-full); background: var(--academics); }
 
 .cp-fit-row {
   display: flex;

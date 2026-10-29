@@ -116,7 +116,7 @@ const OnboardingPage = () => {
                   <div className="landing-domain-head">
                     <span
                       className="campus-domain-dot"
-                      style={{ background: DOMAIN_COLORS[group.domain] || 'var(--ink-soft)' }}
+                      style={{ background: DOMAIN_COLORS[group.domain] || 'var(--muted)' }}
                       aria-hidden="true"
                     />
                     <strong>{group.title}</strong>

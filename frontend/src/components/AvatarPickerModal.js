@@ -51,7 +51,7 @@ const AvatarPickerModal = ({
       <DialogContent>
         <Typography
           variant="caption"
-          sx={{ display: 'block', mb: 1.25, color: 'var(--ink-soft)', fontWeight: 600 }}
+          sx={{ display: 'block', mb: 1.25, color: 'var(--muted)', fontWeight: 600 }}
         >
           Pre-made Avatars
         </Typography>

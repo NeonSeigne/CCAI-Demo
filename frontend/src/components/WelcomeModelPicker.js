@@ -15,8 +15,8 @@ const PROVIDER_META = {
 };
 
 const card = {
-  background: 'var(--bg-primary)', border: '1px solid var(--border-primary)',
-  borderRadius: 16, padding: 20, boxShadow: 'var(--shadow-md)',
+  background: 'var(--canvas)', border: '1px solid var(--line)',
+  borderRadius: 16, padding: 20, boxShadow: 'var(--shadow-float)',
   width: 'min(720px, 100%)', margin: '24px auto',
 };
 
@@ -28,9 +28,9 @@ const optionGrid = {
 const optionStyle = (selected, disabled) => ({
   display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
   padding: '14px 14px', borderRadius: 12,
-  border: `1px solid ${selected ? 'var(--accent-primary)' : 'var(--border-primary)'}`,
-  background: selected ? 'var(--feature-bg, var(--bg-secondary))' : 'var(--bg-secondary)',
-  color: 'var(--text-primary)', textAlign: 'left',
+  border: `1px solid ${selected ? 'var(--ink)' : 'var(--line)'}`,
+  background: selected ? 'var(--surface)' : 'var(--surface)',
+  color: 'var(--ink)', textAlign: 'left',
   cursor: disabled ? 'not-allowed' : 'pointer',
   opacity: disabled ? 0.55 : 1,
   transition: 'border-color 0.15s ease, background 0.15s ease',
@@ -39,8 +39,8 @@ const optionStyle = (selected, disabled) => ({
 const advancedHeader = {
   display: 'flex', alignItems: 'center', gap: 8, marginTop: 20,
   padding: '10px 12px', borderRadius: 10,
-  background: 'transparent', border: '1px dashed var(--border-primary)',
-  color: 'var(--text-secondary)', cursor: 'pointer', width: '100%',
+  background: 'transparent', border: '1px dashed var(--line)',
+  color: 'var(--muted)', cursor: 'pointer', width: '100%',
   fontSize: 13.5, fontWeight: 500,
 };
 
@@ -70,12 +70,12 @@ const WelcomeModelPicker = ({
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <h3 style={{ margin: 0, fontSize: 18, color: 'var(--text-primary)' }}>Choose your model</h3>
-        <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
+        <h3 style={{ margin: 0, fontSize: 18, color: 'var(--ink)' }}>Choose your model</h3>
+        <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>
           {isHybrid ? 'Hybrid configuration active' : `Active: ${PROVIDER_META[activeUniform]?.label || activeUniform || '—'}`}
         </span>
       </div>
-      <p style={{ margin: '6px 0 0', color: 'var(--text-secondary)', fontSize: 13.5 }}>
+      <p style={{ margin: '6px 0 0', color: 'var(--muted)', fontSize: 13.5 }}>
         Pick the backend that powers every advisor by default. You can mix and match in Advanced.
       </p>
 
@@ -98,14 +98,14 @@ const WelcomeModelPicker = ({
                 <span
                   style={{
                     marginLeft: 'auto', fontSize: 11, padding: '2px 8px', borderRadius: 999,
-                    background: 'var(--bg-tertiary, var(--bg-primary))',
-                    color: 'var(--text-secondary)',
+                    background: 'var(--raised)',
+                    color: 'var(--muted)',
                   }}
                 >
                   {meta.badge}
                 </span>
               </div>
-              <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>{meta.description}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{meta.description}</span>
             </button>
           );
         })}
@@ -146,7 +146,7 @@ const WelcomeModelPicker = ({
               disabled={isSwitching}
               style={{
                 padding: '8px 14px', borderRadius: 8, border: 'none',
-                background: 'var(--accent-primary)', color: 'var(--surface)',
+                background: 'var(--ink)', color: 'var(--surface)',
                 cursor: isSwitching ? 'wait' : 'pointer', fontSize: 13.5, fontWeight: 600,
               }}
             >

@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2, iconFor } from './icons';
+import { Reply, Copy, Check, Maximize2, Volume2, VolumeX, Search, X, Loader2, iconFor } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import VisualBlock from './visuals/VisualBlock';
 import CourseChip from './visuals/CourseChip';
@@ -207,7 +207,7 @@ const MessageBubble = ({
     em: ({ children }) => (
       <em style={{ 
         fontStyle: 'italic',
-        color: 'var(--ink-soft)',
+        color: 'var(--muted)',
         fontWeight: '500'
       }}>
         {children}
@@ -277,7 +277,7 @@ const MessageBubble = ({
         return <CourseChip identifier={identifier || text} size="sm" onSelect={onCourseSelect} />;
       }
       return (
-        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'underline' }}>
+        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink)', textDecoration: 'underline' }}>
           {children}
         </a>
       );
@@ -303,7 +303,7 @@ const MessageBubble = ({
     ),
 
     h4: ({ children }) => (
-      <h4 style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, color: 'var(--ink-soft)', margin: '0.9rem 0 0.45rem' }}>
+      <h4 style={{ fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.4, color: 'var(--muted)', margin: '0.9rem 0 0.45rem' }}>
         {children}
       </h4>
     ),
@@ -320,7 +320,7 @@ const MessageBubble = ({
     th: ({ children }) => (
       <th style={{
         border: '1px solid var(--line)',
-        backgroundColor: 'var(--paper-sunken)',
+        backgroundColor: 'var(--canvas)',
         padding: '0.45rem 0.65rem',
         textAlign: 'left',
         fontWeight: 600,
@@ -341,7 +341,7 @@ const MessageBubble = ({
         borderLeft: '3px solid var(--line)',
         paddingLeft: '0.85rem',
         margin: '0.75rem 0',
-        color: 'var(--ink-soft)'
+        color: 'var(--muted)'
       }}>
         {children}
       </blockquote>
@@ -450,7 +450,7 @@ const MessageBubble = ({
       ) : Icon ? (
         <div
           style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--paper-sunken)',
+            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--canvas)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden'
           }}
         >
@@ -459,7 +459,7 @@ const MessageBubble = ({
       ) : (
         <div
           style={{
-            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--paper-sunken)',
+            width: size, height: size, borderRadius: '50%', backgroundColor: 'var(--canvas)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             color: 'var(--ink)', fontWeight: 600, fontSize: size * 0.4
           }}
@@ -474,7 +474,7 @@ const MessageBubble = ({
         {!inlineAvatar && !plain && (
           <div
             className="advisor-avatar"
-            style={{ backgroundColor: 'var(--paper-sunken)', overflow: 'hidden' }}
+            style={{ backgroundColor: 'var(--canvas)', overflow: 'hidden' }}
           >
             {advisor.avatarUrl ? (
               <img
@@ -495,7 +495,7 @@ const MessageBubble = ({
         <div 
           className={plain ? 'answer' : 'advisor-message-bubble surface-card'}
           style={plain ? undefined : { 
-            backgroundColor: 'var(--paper)',
+            backgroundColor: 'var(--surface)',
             borderColor: 'var(--line)',
             position: 'relative'
           }}
@@ -596,8 +596,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('copy')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: isCopied ? 'var(--accent-green)' : 'var(--ink-soft)',
-                      borderColor: isCopied ? 'var(--accent-green)' : 'var(--line)'
+                      color: isCopied ? 'var(--good)' : 'var(--muted)',
+                      borderColor: isCopied ? 'var(--good)' : 'var(--line)'
                     }}
                   >
                     {isCopied ? <Check size={14} /> : <Copy size={14} />}
@@ -636,8 +636,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('speak')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: isLoadingTTS ? (colors.color || 'var(--text-secondary)') : isSpeaking ? 'var(--error)' : (colors.color || 'var(--text-secondary)'),
-                      borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : (colors.color ? colors.color + '40' : 'var(--border-muted)'),
+                      color: isLoadingTTS ? (colors.color || 'var(--muted)') : isSpeaking ? 'var(--error)' : (colors.color || 'var(--muted)'),
+                      borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : (colors.color ? colors.color + '40' : 'var(--line)'),
                       opacity: isLoadingTTS ? 0.7 : 1,
                     }}
                   >
@@ -672,28 +672,28 @@ const MessageBubble = ({
 
           {searchPopover && (
             <div style={{
-              marginTop: 8, background: 'var(--bg-primary)',
-              border: '1px solid var(--border-primary)', borderRadius: 12,
+              marginTop: 8, background: 'var(--canvas)',
+              border: '1px solid var(--line)', borderRadius: 12,
               padding: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>Search for References</span>
-                <button onClick={() => setSearchPopover(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>Search for References</span>
+                <button onClick={() => setSearchPopover(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}>
                   <X size={14} />
                 </button>
               </div>
               {searchLoading ? (
-                <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>Generating search query...</div>
+                <div style={{ color: 'var(--muted)', fontSize: 12 }}>Generating search query...</div>
               ) : (
                 <>
                   <div style={{
-                    background: 'var(--bg-secondary)', borderRadius: 8, padding: '8px 10px',
-                    fontSize: 12, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.4,
+                    background: 'var(--surface)', borderRadius: 8, padding: '8px 10px',
+                    fontSize: 12, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.4,
                   }}>{searchQuery}</div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => window.open(`https://www.perplexity.ai/?q=${encodeURIComponent(searchQuery)}`, '_blank')} style={{
                       padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: 'var(--accent-primary)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
+                      background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
                     }}>Open in Perplexity</button>
                     <button onClick={() => {
                       navigator.clipboard.writeText(searchQuery).then(() => {
@@ -702,9 +702,9 @@ const MessageBubble = ({
                       }).catch(() => {});
                     }} style={{
                       padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: promptCopied ? 'color-mix(in srgb, var(--good) 12%, transparent)' : 'var(--bg-secondary)',
-                      color: promptCopied ? 'var(--good)' : 'var(--text-primary)',
-                      border: `1px solid ${promptCopied ? 'color-mix(in srgb, var(--good) 25%, transparent)' : 'var(--border-primary)'}`,
+                      background: promptCopied ? 'color-mix(in srgb, var(--good) 12%, transparent)' : 'var(--surface)',
+                      color: promptCopied ? 'var(--good)' : 'var(--ink)',
+                      border: `1px solid ${promptCopied ? 'color-mix(in srgb, var(--good) 25%, transparent)' : 'var(--line)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}>{promptCopied ? '✓ Copied!' : 'Copy Prompt'}</button>
@@ -733,75 +733,3 @@ const MessageBubble = ({
 };
 
 export default MessageBubble;
-
-/** RAG Info overlay kept as-is from your original file */
-const RagInfoOverlay = ({ ragMetadata, colors }) => {
-  const overlayRef = useRef(null);
-  const [documentChunks, setDocumentChunks] = useState([]);
-
-  useEffect(() => {
-    if (ragMetadata?.documentChunks) {
-      setDocumentChunks(ragMetadata.documentChunks);
-    }
-  }, [ragMetadata]);
-
-  const hasDocuments = documentChunks.length > 0;
-
-  return (
-    <div className="rag-info-overlay" ref={overlayRef}>
-      <div className="rag-overlay-content">
-        <div className="rag-header">
-          <div className="rag-title">
-            <FileText size={14} />
-            <span>Response Details</span>
-          </div>
-        </div>
-
-        <div className="rag-section">
-          <div className="rag-metrics">
-            <div className="metric-item">
-              <Hash size={14} />
-              <span className="metric-label">Model</span>
-              <span className="metric-value">{ragMetadata?.model || 'unknown'}</span>
-            </div>
-            <div className="metric-item">
-              <Hash size={14} />
-              <span className="metric-label">Tokens</span>
-              <span className="metric-value">{ragMetadata?.tokens ?? '—'}</span>
-            </div>
-          </div>
-        </div>
-
-        {hasDocuments && documentChunks.length > 0 && (
-          <div className="rag-documents-section">
-            <div className="rag-section-title">
-              <FileText size={12} />
-              Referenced Sources
-            </div>
-            
-            {documentChunks.map((chunk, index) => (
-              <div key={index} className="rag-document-item">
-                <div className="rag-document-header">
-                  <span className="rag-filename">
-                    {chunk.metadata?.filename || 'Unknown file'}
-                  </span>
-                  <span className="rag-relevance">
-                    <Target size={10} />
-                    {Math.round((chunk.relevance_score || 0) * 100)}%
-                  </span>
-                </div>
-                
-                {chunk.text && (
-                  <div className="rag-chunk-preview">
-                    {chunk.text.substring(0, 120)}
-                    {chunk.text.length > 120 && '...'}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};

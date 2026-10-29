@@ -142,7 +142,7 @@ export default function DegreeBoard({ head = null }) {
   useEffect(() => { fetchDegree(); }, [revision]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => clearTimeout(pulseTimer.current), []);
 
-  const profile = view?.plan?.profile || {};
+  const profile = useMemo(() => view?.plan?.profile || {}, [view]);
   const programIds = profile.program_ids || [];
   const hasPrograms = (programs || []).length > 0;
   const program = (programs || []).find((p) => p.id === programIds[0]) || null;

@@ -8,10 +8,10 @@ const SYNTHETIC_PERSONAS = {
     name: 'Orchestrator',
     role: 'Synthesized Response',
     description: 'A single combined response merging all advisor perspectives.',
-    color: 'var(--accent-blue)',
-    bgColor: 'var(--paper-sunken)',
-    darkColor: 'var(--accent-blue)',
-    darkBgColor: 'var(--paper-sunken)',
+    color: 'var(--academics)',
+    bgColor: 'var(--canvas)',
+    darkColor: 'var(--academics)',
+    darkBgColor: 'var(--canvas)',
     icon: User,
   },
   // Tool-grounded answers (persona_id "orchestrator"): speak as the product,
@@ -21,9 +21,9 @@ const SYNTHETIC_PERSONAS = {
     role: 'Courses, events and places',
     description: 'Answers checked against campus courses, events and maps.',
     color: 'var(--ink)',
-    bgColor: 'var(--paper-sunken)',
+    bgColor: 'var(--canvas)',
     darkColor: 'var(--ink)',
-    darkBgColor: 'var(--paper-sunken)',
+    darkBgColor: 'var(--canvas)',
     icon: MapPin,
   },
 };
@@ -95,15 +95,15 @@ const buildGetAdvisorColors = (advisors) => (advisorId, _isDark = false) => {
   const advisor = advisors[advisorId];
   if (!advisor) {
     return {
-      color: 'var(--ink-soft)',
-      bgColor: 'var(--paper-sunken)',
+      color: 'var(--muted)',
+      bgColor: 'var(--canvas)',
       textColor: 'var(--ink)',
-      dotColor: 'var(--ink-soft)',
+      dotColor: 'var(--muted)',
     };
   }
   return {
     color: advisor.color,
-    bgColor: 'var(--paper-sunken)',
+    bgColor: 'var(--canvas)',
     textColor: 'var(--ink)',
     dotColor: advisor.color,
   };
