@@ -53,9 +53,11 @@ def option_id(index: int) -> str:
 async def execute(*, name: str = "", context=None, q: str = "", **_: Any) -> Dict[str, Any]:
     if context is None or not getattr(context, "user_id", None) or not getattr(context, "school", None):
         return {"error": "The plan tool needs a signed-in student.", "code": "no_context"}
-    found = await service.suggestions(str(context.user_id), context.school, q or "")
+    # The term open in the semester view, when the chat route checked one (O1).
+    term = getattr(context, "active_term", None)
+    found = await service.suggestions(str(context.user_id), context.school, q or "", term)
     items = [
         dict(item, option_id=option_id(i))
         for i, item in enumerate(found.get("items") or [], start=1)
     ]
-    return {"query": q or "", "items": items, "reason": found.get("reason")}
+    return {"query": q or "", "items": items, "reason": found.get("reason"), "term": found.get("term")}

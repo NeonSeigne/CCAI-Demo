@@ -312,10 +312,13 @@ async def redo(user_id: str, school: str, *, expected_revision: int) -> Dict[str
 
 
 async def suggestions(user_id: str, school: str, q: str, term: Optional[str] = None) -> Dict[str, Any]:
+    """``{items, reason, term}``: up to five courses for ``term`` (default the plan's)."""
     plan = await _plan(get_database(), user_id, school)
     programs = programs_for(school, (plan.get("profile") or {}).get("program_ids") or [])
-    return await suggest(plan, q, term or plan["term"], programs=programs,
-                         credit_limits=credit_limits(), facts_provider=facts_provider)
+    term = term or plan["term"]
+    found = await suggest(plan, q, term, programs=programs,
+                          credit_limits=credit_limits(), facts_provider=facts_provider)
+    return dict(found, term=term)
 
 
 # ---------------------------------------------------------------------------
@@ -333,18 +336,20 @@ def _course_list(courses: List[Dict[str, Any]], *, with_term: bool = False) -> s
     return ", ".join(parts)
 
 
-async def plan_summary(user_id: str, school: str) -> Tuple[str, int]:
+async def plan_summary(user_id: str, school: str, active_term: Optional[str] = None) -> Tuple[str, int]:
     """A compact plan summary for the chat's planning pass, and its revision (R3, R9).
 
     At most ``SUMMARY_LIMIT`` characters: programs, term, completed and
-    planned courses, and the pending proposal.
+    planned courses, and the pending proposal. ``active_term`` (the term
+    open in the semester view, already checked) is labelled as the term
+    being planned (tab-workspaces O1).
     """
     plan = await _plan(get_database(), user_id, school)
     profile = plan.get("profile") or {}
     programs = programs_for(school, profile.get("program_ids") or [])
     names = [getattr(p, "name", None) or getattr(p, "id", "") for p in programs]
     missing = [i for i in profile.get("program_ids") or [] if i not in {getattr(p, "id", None) for p in programs}]
-    term = plan["term"]
+    term = active_term or plan["term"]
     courses = checker.planned_courses(plan)
     pending = store.pending_proposal(plan)
     # The pending suggestion goes near the top so truncation never drops it.

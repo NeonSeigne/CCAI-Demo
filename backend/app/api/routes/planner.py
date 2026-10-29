@@ -179,4 +179,4 @@ async def get_suggestions(
 ):
     """Up to five courses matching ``q`` (or the profile's interests), labelled by the checker."""
     result = await _run(service.suggestions(str(current_user.id), _school(), q, term))
-    return {"items": result["items"], "reason": result.get("reason")}
+    return {"items": result["items"], "reason": result.get("reason"), "term": result.get("term")}

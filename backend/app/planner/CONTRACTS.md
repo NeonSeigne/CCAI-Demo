@@ -183,4 +183,14 @@ into a term where it is not offered is kept, with the note
 
 Planning domain tool `plan_edit` (propose only) with `ToolContext(user_id, school)`
 passed by the dispatcher; visual type `proposed_change` carries the proposal
-with its diff; visual type `course_shortlist` carries suggestions.
+with its diff; visual type `course_shortlist` carries suggestions and the
+`term` they were checked for.
+
+The open semester (CEO review O1, eng re-review N2): `/chat-stream` takes an
+optional `active_term` ("Fall 2027"). `tool_context_for` keeps it only when it
+is one of `academics.planner_terms()` (in the school's spelling) and drops
+anything else, so `ToolContext.active_term` never comes from the model.
+With it, `plan_summary` says "planning Fall 2027", `plan_suggest` checks
+suggestions for that term, and `plan_edit` gives an `add` with no `term` that
+term. Without it everything uses `plan.term`. `GET /api/planner/suggestions`
+returns `{items, reason, term}`.

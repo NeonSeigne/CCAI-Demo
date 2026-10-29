@@ -216,6 +216,8 @@ def _shortlist_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     return [{
         "type": "course_shortlist",
         "query": result.get("query") or "",
+        # The term the items were checked for; the card's Choose adds them there (N2).
+        "term": result.get("term"),
         "items": [{key: item.get(key) for key in _SHORTLIST_KEYS} for item in items],
     }]
 

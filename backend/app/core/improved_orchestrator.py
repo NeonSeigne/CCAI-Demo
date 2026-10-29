@@ -470,7 +470,9 @@ class ImprovedChatOrchestrator:
         result = ToolCallResult(text="", used_tool=False)
         for _attempt in range(2):
             try:
-                summary, revision = await planner_service.plan_summary(context.user_id, context.school)
+                summary, revision = await planner_service.plan_summary(
+                    context.user_id, context.school, active_term=context.active_term
+                )
             except Exception as exc:  # noqa: BLE001 — no plan, no planning pass
                 logger.warning("Plan summary failed (%r); skipping the planning pass", exc)
                 return ToolCallResult(text="", used_tool=False)
