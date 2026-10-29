@@ -369,6 +369,8 @@ def _section_row(row: Dict[str, Any]) -> Dict[str, Any]:
     status = row.get("status_at_snapshot")
     is_open = (status == "Open") if status else row.get("is_open")
     out = {
+        # The id the planner's pick_section op expects (matches course_facts).
+        "id": str(row.get("id") or row.get("crn") or row.get("section") or ""),
         "section": row.get("section") or "",
         "type": row.get("type") or "",
         "instructors": row.get("instructors") or row.get("instructor") or "",

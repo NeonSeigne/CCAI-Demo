@@ -129,6 +129,7 @@ def row_to_course(item: Dict[str, Any], term: str) -> Optional[Dict[str, Any]]:
         "course_code": code,
         "title": item.get("title", ""),
         "section": item.get("no", "") or item.get("section", ""),
+        "crn": item.get("crn", ""),
         "instructor": item.get("instr", "") or item.get("instructor", "Staff"),
         "schedule": _parse_schedule(item.get("meets", "") or ""),
         "location": item.get("bldg", item.get("location", "")),

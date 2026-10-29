@@ -379,6 +379,8 @@ async def course_sections(
     for row in matches[:limit]:
         enrolled, capacity = _int(row.get("Enrollment")), _int(row.get("EnrollmentLimit"))
         sections.append({
+            # The planner's section id (course_facts uses ClassNumber).
+            "id": row.get("ClassNumber") or row.get("Section", ""),
             "section": row.get("Section", ""),
             "type": row.get("Type", ""),
             "instructors": _instructors(row),
