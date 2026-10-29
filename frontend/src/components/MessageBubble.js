@@ -400,7 +400,7 @@ const MessageBubble = ({
 
     return (
       <div className="user-message-container">
-        <div className="user-message">
+        <div className="user-message vc-ubub">
           {message.replyTo && (
             <div className="reply-indicator">
               <Reply size={14} />
@@ -534,11 +534,6 @@ const MessageBubble = ({
             className="advisor-message-text"
             style={{ color: colors.textColor || ('var(--ink)') }}
           >
-            {checkedVisual && (
-              <div className={plain ? 'answer-checked' : undefined}>
-                <VisualBlock visual={checkedVisual} />
-              </div>
-            )}
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
             <ReactMarkdown 
               components={markdownComponents}
@@ -560,6 +555,12 @@ const MessageBubble = ({
               {cardVisuals.map((visual, idx) => (
                 <VisualBlock key={idx} visual={visual} onSelectCourse={onCourseSelect} onAsk={onAsk} />
               ))}
+            </div>
+          )}
+
+          {checkedVisual && (
+            <div className={plain ? 'answer-checked' : undefined}>
+              <VisualBlock visual={checkedVisual} />
             </div>
           )}
 
