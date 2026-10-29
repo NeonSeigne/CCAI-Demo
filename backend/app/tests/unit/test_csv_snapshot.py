@@ -125,6 +125,23 @@ class TestGrades(SnapshotTestCase):
         # Dated by the newest grades file read, not by the sections file.
         self.assertEqual(result["data_as_of"], "2026-07-02")
 
+    async def test_rows_without_a_gpa_do_not_count_as_zero(self):
+        # A second 2026 Spring section with a blank Course GPA (40 students).
+        blank = "2026 Spring,CS,2100,DSA 1,,\"Yi,Xinyao\",002,3,Eng,,40,0,0,0,0,0,0,0,0,0,0\n"
+        grades = {**GRADES, GRADES_URLS[0]: GRADES[GRADES_URLS[0]] + blank}
+        self.download.side_effect = lambda url, with_commit_date=False: (
+            (grades[url], GRADES_AS_OF[url]) if url in grades else fake_download(url, with_commit_date)
+        )
+        result = await course_grades.execute(course_identifier="CS 2100")
+        spring = result["terms"][0]
+        self.assertEqual(spring["total"], 140)  # still counted as enrolled
+        self.assertEqual(spring["average_gpa"], 3.0)  # not (3.0*100 + 0*40) / 140
+        self.assertEqual(result["cumulative"]["average_gpa"], 3.25)
+        by_instructor = await csv_snapshot.instructor_grades("CS 2100")
+        self.assertEqual(by_instructor[0], {"name": "Briana Morrison", "gpa": 3.25, "students": 200})
+        self.assertEqual(by_instructor[1]["name"], "Xinyao Yi")
+        self.assertIsNone(by_instructor[1]["gpa"])
+
     async def test_one_missing_grades_file_keeps_the_others(self):
         def flaky(url, with_commit_date=False):
             if url == GRADES_URLS[0]:

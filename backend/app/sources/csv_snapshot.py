@@ -124,6 +124,15 @@ def _float(value: Any) -> Optional[float]:
 _SEASON_ORDER = {"january": 0, "spring": 1, "summer": 2, "fall": 3}
 
 
+def _weighted_gpa(rows: List[Dict[str, str]]) -> Optional[float]:
+    """Student-weighted average of ``Course GPA``. Rows without a GPA (blank
+    in the grade reports) count in neither the sum nor the student total."""
+    graded = [(_float(r.get("Course GPA")), _int(r.get("# of Students"))) for r in rows]
+    graded = [(gpa, n) for gpa, n in graded if gpa is not None and n > 0]
+    students = sum(n for _, n in graded)
+    return round(sum(gpa * n for gpa, n in graded) / students, 2) if students else None
+
+
 def _term_order(label: str) -> Tuple[int, int]:
     """``"2025 Fall"`` -> (2025, 3) so terms sort chronologically."""
     year, _, season = (label or "").partition(" ")
@@ -265,14 +274,13 @@ async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[
 
     def summarize(group: List[Dict[str, str]], label: str) -> Dict[str, Any]:
         students = sum(_int(r.get("# of Students")) for r in group)
-        weighted = sum((_float(r.get("Course GPA")) or 0) * _int(r.get("# of Students")) for r in group)
         distribution = {b: sum(_int(r.get(b)) for r in group) for b in _GRADE_BUCKETS}
         instructors = ", ".join(dict.fromkeys(r.get("Primary Instructor Name", "") for r in group if r.get("Primary Instructor Name")))
         return {
             "term_code": label,
             "total": students,
             "distribution": distribution,
-            "average_gpa": round(weighted / students, 2) if students else None,
+            "average_gpa": _weighted_gpa(group),
             "dfw_rate": round(distribution["DFW"] / students, 3) if students else None,
             "instructors": instructors,
         }
@@ -549,9 +557,7 @@ def _gen_ed(rows: List[Dict[str, str]]) -> Optional[List[str]]:
 
 
 def _course_gpa(rows: List[Dict[str, str]]) -> Optional[float]:
-    students = sum(_int(r.get("# of Students")) for r in rows)
-    weighted = sum((_float(r.get("Course GPA")) or 0) * _int(r.get("# of Students")) for r in rows)
-    return round(weighted / students, 2) if students else None
+    return _weighted_gpa(rows)
 
 
 def _hardest_third(index: Index, key: Tuple[int, ...]) -> Optional[float]:
