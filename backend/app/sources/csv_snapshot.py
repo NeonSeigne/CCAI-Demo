@@ -394,6 +394,21 @@ async def _snapshot_courses() -> Tuple[List[Index], Index, Optional[str]]:
     return indexes, grades, ok[0][1][1] if ok else None
 
 
+async def term_instructors(identifier: str, term: str) -> Optional[List[str]]:
+    """Instructors of the course's sections in ``term``'s file, in file order;
+    ``[]`` when the term doesn't list the course, None when no file covers
+    the term. Raises ``RuntimeError`` when the file can't be loaded."""
+    url = term_files().get(_same_term(term))
+    subject, number = _split(identifier)
+    if not url or not subject:
+        return None
+    rows, _ = await _table(url)
+    names: List[str] = []
+    for row in _index(url, rows, "Mnemonic", "Number").get(_identifier(subject, number)) or []:
+        names.extend(n.strip() for n in _instructors(row).split(","))
+    return list(dict.fromkeys(n for n in names if n))
+
+
 async def prerequisites(*, tool_name: str = "", course_identifier: str) -> Dict[str, Any]:
     """Requisites read from the course description, the newest term first.
 

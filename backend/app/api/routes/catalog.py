@@ -106,18 +106,21 @@ def _identifier(course_identifier: str) -> str:
 @router.get("/ratings/{course_identifier:path}")
 async def ratings(
     course_identifier: str,
+    term: Optional[str] = Query(default=None, max_length=40, pattern=r"^[A-Za-z]+ \d{4}$"),
     _current_user: User = Depends(get_current_active_user),
 ) -> Dict[str, Any]:
     """Ratings for up to 4 of the course's instructors; an instructor with no
-    usable rating is left out, and a failed lookup is never an error."""
+    usable rating is left out, and a failed lookup is never an error.
+    ``instructor_rating`` is the mean for the instructors of ``term``'s
+    sections (the plan's term; default the next term), or null (design Q15)."""
     identifier = _identifier(course_identifier)
     try:
-        return await ratings_source.course_ratings(identifier)
+        return await ratings_source.course_ratings(identifier, term=term)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Course not found") from exc
     except RuntimeError as exc:
         logger.info("ratings source failed: %s", exc)
-        return {"identifier": identifier, "ratings": [], "source": None}
+        return {"identifier": identifier, "ratings": [], "source": None, "instructor_rating": None}
 
 
 @router.get("/{course_identifier:path}")

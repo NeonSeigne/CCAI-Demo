@@ -309,3 +309,24 @@ meeting times, no waitlist, and instructors per course, not per section.
 Snapshot data stays dated: `as_of` and `sections.as_of` carry the snapshot
 date and `sections.historical` is true (R8: the frontend shows "{enrolled} of
 {capacity} · {term}" and no "waiting" for it).
+
+## Instructor ratings (`GET /api/catalog/ratings/{id}?term=`, `sources/ratings.py`)
+
+```
+{"identifier", "ratings": [{name, rating, difficulty, num_ratings, would_take_again_pct?, url?}],
+ "source": {name, url}|null,
+ "instructor_rating": {"rating": 3.6,          # plain mean, one decimal
+                       "instructors": 2,       # how many rated instructors it averages
+                       "term": "Spring 2027"|null}|null}   # null: nobody rated (hide the tile)
+```
+
+Design Q15: the mean rating of the instructors teaching `term`'s sections
+(`term` is the plan's term, "Season YYYY"; default `academics.next_term()`).
+It is on the ratings payload, not the summary, because the summary must stay
+free of RateMyProfessors lookups (and ratings already reads the summary).
+Only unambiguous matches count (the `ratings.match` rule). Per school: UVA
+from that term's snapshot file (null for a term with no file); CU from FOSE's
+rows for the term, but FOSE names instructors by initial or last name only
+("K. Nielsen", "Shandilya/Hoenigman"), which never match a full RMP name, so
+CU is in practice null; UW from Course Map's own ratings of the course's
+instructors (Course Map doesn't say who teaches which term, so `term` is null).

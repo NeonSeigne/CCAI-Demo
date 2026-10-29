@@ -468,6 +468,37 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
     }
 
 
+async def term_instructors(identifier: str, term: str) -> Optional[List[str]]:
+    """Who teaches the course's sections in ``term``: UVA from that term's
+    snapshot file, CU from FOSE's rows for the term. None when the source
+    can't say per term (UW: Course Map lists instructors per course) or
+    can't be read; ``[]`` when the term lists the course with no names."""
+    term = _same_term(term)
+    backend = catalog_backend()
+    try:
+        if backend == "csv_snapshot":
+            from app.sources import csv_snapshot
+
+            return await csv_snapshot.term_instructors(identifier, term)
+        if backend == FOSE:
+            from app.tools import search_courses as fose
+
+            subject, number, _ = parse_query(identifier)
+            if not (subject and number):
+                return None
+            items = await fose.fose_sections(subject, term)
+            code = f"{subject} {number}"
+            names = [
+                name.strip()
+                for item in items if _same_code(item.get("code")) == code
+                for name in re.split(r"[,/]", item.get("instr") or "")
+            ]
+            return list(dict.fromkeys(n for n in names if n))
+    except RuntimeError as exc:
+        logger.info("term instructors for %s %s unavailable: %s", identifier, term, exc)
+    return None
+
+
 def prereq_dict(node: Optional[PrereqNode]) -> Optional[Dict[str, Any]]:
     """A prerequisite tree as JSON: ``{kind: all|any, children}`` groups and
     ``{kind: course, course, minimum_grade?, timing}`` leaves."""

@@ -157,17 +157,42 @@ async def _instructor_names(identifier: str) -> tuple:
     summary = await academics.course_summary(identifier)
     names = [n for n in summary.get("instructors") or [] if isinstance(n, str)]
     names += [i["name"] for i in summary.get("instructor_grades") or [] if i.get("name")]
+    return summary["identifier"], _unique(names)[:MAX_INSTRUCTORS]
+
+
+# Most instructors of the term's sections looked up for its mean rating.
+TERM_INSTRUCTOR_LIMIT = 6
+
+
+def _unique(names: List[str]) -> List[str]:
+    """Usable names, one per normalized name, first spelling kept."""
     unique: Dict[str, str] = {}
     for name in names:
         if _usable(name):
             unique.setdefault(normalize_name(name), name)
-    return summary["identifier"], list(unique.values())[:MAX_INSTRUCTORS]
+    return list(unique.values())
 
 
-async def course_ratings(identifier: str) -> Dict[str, Any]:
+def _mean_rating(rated: List[Dict[str, Any]], term: Optional[str]) -> Optional[Dict[str, Any]]:
+    """``{rating, instructors, term}``: the plain mean of the rated
+    instructors' ratings (design Q15), or None when none is rated."""
+    values = [r["rating"] for r in rated if isinstance(r.get("rating"), (int, float))]
+    if not values:
+        return None
+    return {"rating": round(sum(values) / len(values), 1), "instructors": len(values), "term": term}
+
+
+async def course_ratings(identifier: str, term: Optional[str] = None) -> Dict[str, Any]:
     """``{identifier, ratings: [{name, rating, difficulty, num_ratings,
-    would_take_again_pct?, url?}], source}``; instructors without a usable
-    rating are left out. Raises ``FileNotFoundError`` for an unknown course."""
+    would_take_again_pct?, url?}], source, instructor_rating}``; instructors
+    without a usable rating are left out.
+
+    ``instructor_rating`` (design Q15) is the mean rating of the instructors
+    teaching ``term``'s sections (default ``academics.next_term()``), from
+    unambiguous matches only. UW's Course Map names instructors per course,
+    not per section, so there it is the mean over the course's rated
+    instructors with ``term`` null. None when nobody is rated. Raises
+    ``FileNotFoundError`` for an unknown course."""
     if academics.catalog_backend() == "uw_coursemap":
         from app.tools import _uw_source
 
@@ -177,22 +202,34 @@ async def course_ratings(identifier: str) -> Dict[str, Any]:
         except RuntimeError as exc:
             logger.info("Course Map ratings for %s unavailable: %s", identifier, exc)
             rated = []
-        return {"identifier": course["identifier"], "ratings": rated[:MAX_INSTRUCTORS], "source": COURSEMAP_SOURCE}
+        return {
+            "identifier": course["identifier"], "ratings": rated[:MAX_INSTRUCTORS],
+            "source": COURSEMAP_SOURCE, "instructor_rating": _mean_rating(rated, None),
+        }
 
     try:
         canonical, names = await _instructor_names(identifier)
     except RuntimeError as exc:
         logger.info("Ratings for %s: catalog unavailable: %s", identifier, exc)
-        return {"identifier": identifier, "ratings": [], "source": RMP_SOURCE}
+        return {"identifier": identifier, "ratings": [], "source": RMP_SOURCE, "instructor_rating": None}
     rmp = get_settings().tools.get_tool_config("rate_my_professor")
     school_id = rmp.get("school_id") if rmp.get("enabled", True) else None
-    if not school_id or not names:
-        return {"identifier": canonical, "ratings": [], "source": RMP_SOURCE}
+    if not school_id:
+        return {"identifier": canonical, "ratings": [], "source": RMP_SOURCE, "instructor_rating": None}
+    term = academics._same_term(term) if term else academics.next_term()
+    teaching = _unique(await academics.term_instructors(canonical, term) or [])[:TERM_INSTRUCTOR_LIMIT]
+    wanted = _unique(names + teaching)
     subject = academics.parse_query(canonical)[0]
-    looked_up = await asyncio.gather(*(_candidates(school_id, name) for name in names))
-    ratings = []
-    for name, candidates in zip(names, looked_up):
-        found = match(name, candidates or [], subject)
-        if found:
-            ratings.append(_rating(name, found))
-    return {"identifier": canonical, "ratings": ratings, "source": RMP_SOURCE}
+    looked_up = await asyncio.gather(*(_candidates(school_id, name) for name in wanted))
+    found = {
+        normalize_name(name): match(name, candidates or [], subject)
+        for name, candidates in zip(wanted, looked_up)
+    }
+
+    def rated(group: List[str]) -> List[Dict[str, Any]]:
+        return [_rating(n, found[normalize_name(n)]) for n in group if found.get(normalize_name(n))]
+
+    return {
+        "identifier": canonical, "ratings": rated(names), "source": RMP_SOURCE,
+        "instructor_rating": _mean_rating(rated(teaching), term),
+    }
