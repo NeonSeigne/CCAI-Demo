@@ -7,7 +7,6 @@ from .debug import router as debug_router
 from .root import router as root_router
 from .phd_canvas import router as canvas_router
 from .voice import router as voice_router
-from .courses import router as courses_router
 from .campus import router as campus_router
 from .catalog import router as catalog_router
 from .saved import router as saved_router
@@ -26,7 +25,6 @@ router.include_router(debug_router)
 router.include_router(root_router)
 router.include_router(canvas_router)
 router.include_router(voice_router)
-router.include_router(courses_router, prefix="/api")
 router.include_router(catalog_router, prefix="/api")
 router.include_router(campus_router, prefix="/api")
 router.include_router(saved_router, prefix="/api")

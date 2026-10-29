@@ -1,23 +1,15 @@
-import React, { useCallback } from 'react';
-import { useOpenCourse } from '../../utils/openCourse';
+import React, { useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
+import { useCourseRatings } from '../../hooks/useCampusDetail';
+import { useOpenCourse } from '../../utils/openCourse';
 import {
-  courseLabel,
-  resolveGradeContext,
-  termGradeRows,
-} from '../course/courseUtils';
-import { CourseMetricFromPayload } from '../course/CourseMetricCard';
-import CourseSimilarCourses from '../course/CourseSimilarCourses';
-import CourseSchedule from '../course/CourseSchedule';
-import CourseInstructors from '../course/CourseInstructors';
-import {
-  CourseGradeDistribution,
-  CoursePrereqMap,
-  CourseTrends,
-} from '../course/CourseVisuals';
-import '../../styles/CourseDetailPage.css';
+  GpaByTerm, GradeDistribution, instructorRows, InstructorsTab, SectionsTab,
+} from '../course/CoursePopup';
+import PrereqWeb from '../course/PrereqWeb';
+import { difficultyOf, gpaText, pctText, prereqCourses } from '../course/popupFormat';
+import '../../styles/Popups.css';
 
 const COURSE_VISUAL_TYPES = new Set([
   'course_gpa',
@@ -37,89 +29,81 @@ export function isCourseVisualType(type) {
 }
 
 function CompactStatus({ children }) {
-  return <div className="course-visual-status course-card--compact">{children}</div>;
+  return <div className="pop-tile course-visual-status">{children}</div>;
 }
 
-function renderHydratedCard(type, payload, onCourse) {
-  const { selectedGrades, termLabel } = resolveGradeContext(payload);
-  const label = courseLabel(payload.course?.course_reference) || payload.course_key;
+/** One big number in a tile, labelled as in the course pop-up (D6). */
+function MetricTile({ label, value, tone }) {
+  if (value == null) return null;
+  return (
+    <section className="pop-tile cc-metric" aria-label={label}>
+      <span className="cc-metric-label">{label}</span>
+      <strong className={`cc-metric-value ${tone ? `is-${tone}` : ''}`.trim()}>{value}</strong>
+    </section>
+  );
+}
 
+const NONE = [];
+
+/** The card for one `course_*` ref, from the catalog summary; null when the school lacks the data. */
+function HydratedCard({
+  type, payload, ratings, onCourse,
+}) {
+  const grades = payload.grades || null;
+  const term = grades?.term ? ` · ${grades.term}` : '';
+  const instructors = useMemo(
+    () => instructorRows(payload.instructor_grades, ratings),
+    [payload.instructor_grades, ratings],
+  );
   switch (type) {
     case 'course_gpa':
-    case 'course_completion_rate':
+      return <MetricTile label={`Avg GPA${term}`} value={gpaText(grades?.gpa)} tone={difficultyOf(grades?.gpa)} />;
     case 'course_a_rate':
+      return <MetricTile label="Got an A" value={pctText(grades?.pct_a)} />;
+    case 'course_completion_rate':
+      return <MetricTile label="D or F" value={pctText(grades?.pct_df)} />;
     case 'course_class_size':
       return (
-        <CourseMetricFromPayload
-          payload={payload}
-          metricType={type}
-          variant="compact"
+        <MetricTile
+          label={`Students${term}`}
+          value={grades?.students ? Number(grades.students).toLocaleString('en-US') : null}
         />
       );
     case 'course_grade_distribution':
-      return (
-        <CourseGradeDistribution
-          grades={selectedGrades}
-          termLabel={termLabel}
-          variant="compact"
-        />
-      );
-    case 'course_similar':
-      return (
-        <CourseSimilarCourses
-          courses={payload.similar_courses}
-          onCourse={onCourse}
-          variant="compact"
-        />
-      );
-    case 'course_schedule':
-      return (
-        <CourseSchedule
-          meetings={payload.meetings}
-          courseName={label}
-          variant="compact"
-        />
-      );
-    case 'course_prereq_map':
-      return (
-        <CoursePrereqMap
-          elements={payload.prerequisite_graph}
-          onNavigate={onCourse}
-          variant="compact"
-        />
-      );
-    case 'course_instructors':
-      return (
-        <CourseInstructors
-          instructors={payload.instructors || []}
-          termLabel={termLabel}
-          limit={4}
-          showKeywords={false}
-          variant="compact"
-        />
-      );
+      return <GradeDistribution grades={grades} cumulative={payload.cumulative} />;
     case 'course_trends':
+      return <GpaByTerm history={payload.grade_history} />;
+    case 'course_schedule':
+      return payload.sections?.rows?.length ? <SectionsTab sections={payload.sections} /> : null;
+    case 'course_instructors':
+      return instructors.length ? <InstructorsTab rows={instructors} /> : null;
+    case 'course_prereq_map': {
+      const tree = payload.prereq_tree && prereqCourses(payload.prereq_tree).length ? payload.prereq_tree : null;
+      const unlocks = payload.next_courses?.length ? payload.next_courses : NONE;
+      if (!tree && !unlocks.length) return null;
       return (
-        <CourseTrends
-          rows={termGradeRows(payload.course?.term_data, payload.terms)}
-          variant="compact"
-        />
+        <section className="pop-tile" aria-label={tree ? 'Prerequisites' : 'Unlocks'}>
+          <h3 className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
+          <PrereqWeb course={payload.identifier} tree={tree} unlocks={unlocks} onOpenCourse={onCourse} />
+        </section>
       );
+    }
+    // No catalog source lists similar courses.
     default:
       return null;
   }
 }
 
 /**
- * Hydrates a lightweight `{ type, course, term? }` visual ref via /api/courses
- * and renders the matching shared course card in compact chat layout.
+ * Hydrates a lightweight `{ type, course }` visual ref from `/api/catalog/{id}`
+ * and renders the matching pop-up piece in the chat.
  */
 export default function CourseVisualCard({ visual, onSelectCourse }) {
   const openPopup = useOpenCourse();
   const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
-  const term = visual?.term || undefined;
-  const { data, error, loading, retry } = useCourseDetail(courseId, authToken, term);
+  const { data, error, loading, retry } = useCourseDetail(courseId, authToken);
+  const ratings = useCourseRatings(data?.identifier || courseId, Boolean(data) && visual?.type === 'course_instructors');
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
@@ -144,7 +128,12 @@ export default function CourseVisualCard({ visual, onSelectCourse }) {
 
   return (
     <div className="advisor-course-visual">
-      {renderHydratedCard(visual.type, data, openCourse)}
+      <HydratedCard
+        type={visual.type}
+        payload={data}
+        ratings={ratings.data?.ratings || NONE}
+        onCourse={openCourse}
+      />
     </div>
   );
 }

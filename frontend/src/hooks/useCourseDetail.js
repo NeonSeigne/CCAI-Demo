@@ -1,21 +1,30 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchCourseDetail } from '../services/courseApi';
+import { getCatalogCourse } from '../api/campus';
 
-// One request per course and term for the page's lifetime: an answer's course
-// card and its sources line read the same payload. Failures are not kept.
+// One request per course for the page's lifetime: an answer's course card and
+// its sources line read the same payload. Failures are not kept.
 const responses = new Map();
 
-function loadCourse(identifier, token, term) {
-  const key = `${identifier.trim().toUpperCase()}|${term || ''}`;
+function loadCourse(identifier, token) {
+  const key = identifier.trim().toUpperCase();
   if (!responses.has(key)) {
-    const request = fetchCourseDetail(identifier, { token, term });
+    const request = getCatalogCourse(token, identifier.trim());
     request.catch(() => responses.delete(key));
     responses.set(key, request);
   }
   return responses.get(key);
 }
 
-export default function useCourseDetail(identifier, token, term) {
+/** Test hook: forget cached answers. */
+export function clearCourseDetailCache() {
+  responses.clear();
+}
+
+/**
+ * The chat cards' course summary (`GET /api/catalog/{id}`, every school),
+ * shared between the cards of one answer: `{data, error, loading, retry}`.
+ */
+export default function useCourseDetail(identifier, token) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +42,7 @@ export default function useCourseDetail(identifier, token, term) {
     setLoading(true);
     setError(null);
 
-    loadCourse(identifier, token, term)
+    loadCourse(identifier, token)
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
@@ -48,7 +57,7 @@ export default function useCourseDetail(identifier, token, term) {
       });
 
     return () => { cancelled = true; };
-  }, [identifier, token, term, requestVersion]);
+  }, [identifier, token, requestVersion]);
 
   return { data, error, loading, retry };
 }

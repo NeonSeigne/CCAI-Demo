@@ -1,7 +1,7 @@
 """Course catalog endpoints for the Courses page and Compare (no LLM involved).
 
-Own prefix (``/api/catalog``) so nothing here can be swallowed by the course
-detail page's ``/api/courses/{course_identifier:path}`` catch-all (R1). Search
+Own prefix (``/api/catalog``) (R1); the course pop-up and the chat course
+cards read the summary route (eng R6). Search
 and summaries come from ``app.sources.academics``, the same code the chat
 course tools use (R12). Every response carries ``capabilities`` and
 ``source`` so the page can say "Not available for <school> (<source>)" (R3).

@@ -53,7 +53,7 @@ class BuildVisualsTests(unittest.TestCase):
                 },
             }
         ])
-        # No course_prereq_map: /api/courses has no prerequisite graph yet.
+        # Legacy prereq_tree spec; the pop-up's web reads prereq_tree from /api/catalog.
         self.assertEqual([v["type"] for v in visuals], ["prereq_tree"])
         self.assertEqual(visuals[0]["prerequisites"][0]["identifier"], "COMPSCI 200")
 
@@ -126,7 +126,7 @@ class BuildVisualsTests(unittest.TestCase):
                 "result": {"courses": [{"identifier": "MUSIC 113"}]},
             }
         ])
-        # /api/courses has no similar-courses data yet, so the card would be empty.
+        # No catalog source lists similar courses, so the card would be empty.
         self.assertEqual(single, [])
 
     def test_errors_and_unknown_tools_are_skipped(self):
