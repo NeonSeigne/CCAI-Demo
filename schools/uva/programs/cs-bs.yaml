@@ -14,32 +14,38 @@ complete: false  # math/science elective, HSS electives and unrestricted electiv
 rules:
   - id: calculus
     title: Calculus
+    line: Math and science
     kind: all_of
     courses: [APMA 1090, APMA 1110, APMA 2120]
     notes:
       - APMA 1090 is required for students matriculating Fall 2025 and after.
   - id: chemistry
     title: Chemistry with lab
+    line: Math and science
     kind: all_of
     courses: [CHEM 1410, CHEM 1411]
   - id: physics
     title: Physics with labs
+    line: Math and science
     kind: one_of_groups
     groups:
       - [PHYS 1425, PHYS 1429, PHYS 2415, PHYS 2419]
       - [PHYS 1425, PHYS 1429, ECE 2200]
   - id: engineering-foundations
     title: Engineering foundations
+    line: Engineering
     kind: all_of
     courses: [ENGR 1010, ENGR 1020]
   - id: sts
     title: Engineering ethics and thesis (STS)
+    line: Engineering
     kind: all_of
     courses: [STS 2600, STS 4500, STS 4600]
     notes:
       - STS 4500 and STS 4600 are taken in the fall and spring of the fourth year.
   - id: intro-programming
     title: Introduction to programming
+    line: CS core
     kind: n_of
     n: 1
     courses: [CS 1110, CS 1111, CS 1112, CS 1113]
@@ -47,14 +53,17 @@ rules:
       - AP, IB or dual-enrollment credit also satisfies this; the place-out test satisfies it without giving degree credit.
   - id: foundation
     title: CS foundation
+    line: CS core
     kind: all_of
     courses: [CS 2100, CS 2120, CS 2130, CS 3100, CS 3120, CS 3130, CS 3140]
   - id: software-engineering
     title: Software engineering
+    line: CS core
     kind: all_of
     courses: [CS 3240]
   - id: senior-thesis
     title: CS senior thesis
+    line: CS core
     kind: one_of_groups
     groups:
       - [CS 4980]
@@ -64,6 +73,7 @@ rules:
       - CS 4991 (0 credits) also needs a three-credit, graded CS 4000-level course not used for any other CS requirement.
   - id: cs-electives
     title: CS electives
+    line: Electives
     kind: level
     subjects: [CS]
     min_level: 3000
@@ -74,10 +84,12 @@ rules:
       - More CS electives may be needed for the CS 4991 thesis option or to replace credit missed through a place-out test.
   - id: apma-probability
     title: Probability
+    line: Math and science
     kind: all_of
     courses: [APMA 3100]
   - id: apma-electives
     title: Applied mathematics electives
+    line: Math and science
     kind: n_of
     n: 2
     courses: [APMA 2130, APMA 3080, APMA 3120, APMA 3150]

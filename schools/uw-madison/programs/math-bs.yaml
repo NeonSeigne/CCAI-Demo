@@ -14,6 +14,7 @@ complete: false  # major rules only; L&S breadth, language, residency and Core G
 rules:
   - id: linear-algebra
     title: Linear algebra
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 341, MATH 320, MATH 340, MATH 345, MATH 375]
@@ -21,6 +22,7 @@ rules:
       - Only one linear algebra course counts toward the seven-course and 21-credit minimums.
   - id: transition
     title: Transition to advanced mathematics
+    line: Core
     kind: one_of_groups
     double_count: true
     groups:
@@ -33,11 +35,13 @@ rules:
       - MATH 341 or MATH 375 used for Linear algebra may also count here; it counts once toward the course and credit minimums.
   - id: analysis-algebra-topology
     title: Analysis, topology and algebra
+    line: Core
     kind: n_of
     n: 2
     courses: [MATH 521, MATH 541, MATH 551]
   - id: advanced-elective
     title: Advanced MATH elective
+    line: Electives
     kind: n_of
     n: 1
     courses: [
@@ -51,6 +55,7 @@ rules:
       - Must be at least 3 credits and distinct from the courses used above.
   - id: major-courses
     title: Seven MATH courses
+    line: Electives
     kind: n_of
     n: 7
     double_count: true
@@ -75,6 +80,7 @@ rules:
       - MATH 390 counts only once.
   - id: major-credits
     title: 21 MATH credits
+    line: Electives
     kind: credits_from
     credits: 21
     double_count: true

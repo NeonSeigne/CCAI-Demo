@@ -16,22 +16,27 @@ complete: false  # math-science/technical, HSS and unrestricted electives are no
 rules:
   - id: calculus
     title: Calculus
+    line: Math and science
     kind: all_of
     courses: [APMA 1090, APMA 1110, APMA 2120]
   - id: differential-equations
     title: Differential equations
+    line: Math and science
     kind: all_of
     courses: [APMA 2130, APMA 3140]
   - id: statistics
     title: Probability and statistics
+    line: Math and science
     kind: all_of
     courses: [APMA 3110]
   - id: chemistry
     title: Chemistry with lab
+    line: Math and science
     kind: all_of
     courses: [CHEM 1410, CHEM 1411]
   - id: physics
     title: Physics with labs
+    line: Math and science
     kind: one_of_groups
     groups:
       - [PHYS 1425, PHYS 1429, PHYS 2415, PHYS 2419]
@@ -40,6 +45,7 @@ rules:
       - ECE 2200 (Applied Physics, 4 credits) replaces both PHYS 2415 and PHYS 2419.
   - id: intro-programming
     title: Introduction to programming
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [CS 1110, CS 1111, CS 1112, CS 1113]
@@ -47,12 +53,14 @@ rules:
       - The sheet lists "CS 111X".
   - id: engineering-foundations
     title: Engineering foundations
+    line: Engineering foundations
     kind: all_of
     courses: [ENGR 1010, ENGR 1020]
     notes:
       - Transfer students can replace ENGR 1020 with 3 other credits, generally communication or ethics, by appeal to the Office of the Associate Dean for Undergraduate Affairs.
   - id: mae-core
     title: Mechanical engineering core
+    line: Engineering core
     kind: all_of
     courses: [
       MAE 2020, MAE 2040, MAE 2300, MAE 2100, MAE 2310, MAE 2320, MAE 2330,
@@ -61,6 +69,7 @@ rules:
     ]
   - id: capstone
     title: Capstone design
+    line: Design
     kind: one_of_groups
     groups:
       - [MAE 4610, MAE 4620]
@@ -69,6 +78,7 @@ rules:
       - The semester grid names MAE 4610 and 4620; its footnote allows 4610/4620 or 4690/4700.
   - id: math-science-elective
     title: Math-science elective
+    line: Math and science
     kind: n_of
     n: 1
     courses: [BIOL 2100, BIOL 2200, CHEM 1620, MSE 2090, PHYS 2620]
@@ -76,6 +86,7 @@ rules:
       - Any APMA course numbered 2000 or higher that the major doesn't already require and that doesn't duplicate another APMA course also counts.
   - id: sts
     title: Engineering ethics and thesis (STS)
+    line: Engineering foundations
     kind: all_of
     courses: [STS 2600, STS 4500, STS 4600]
 notes:

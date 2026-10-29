@@ -15,12 +15,14 @@ complete: false  # major rules only; College gen-ed, total credits, the upper-le
 rules:
   - id: intro-biology
     title: Introductory biology
+    line: Foundations
     kind: all_of
     courses: [BIOL 2100, BIOL 2200]
     notes:
       - A 5 on the AP Biology exam, or at least 6 on the IB higher-level exam, gives credit for BIOL 2100 and BIOL 2200.
   - id: chemistry
     title: General chemistry with labs
+    line: Chemistry and physics
     kind: all_of
     courses: [CHEM 1410, CHEM 1411, CHEM 1420, CHEM 1421]
     notes:
@@ -28,11 +30,13 @@ rules:
       - Students with AP credit for CHEM 1410 and CHEM 1420 must still take the labs, unless granted credit for CHEM 1411 and CHEM 1421.
   - id: statistics
     title: Statistics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [STAT 2020, STAT 2120]
   - id: math-or-statistics
     title: Additional math or statistics
+    line: Foundations
     kind: one_of_groups
     groups:
       - [MATH 1190]
@@ -45,6 +49,7 @@ rules:
       - [STAT 3220]
   - id: physics
     title: Physics with workshops
+    line: Chemistry and physics
     kind: all_of
     courses: [PHYS 2010, PHYS 2030, PHYS 2020, PHYS 2040]
     notes:
@@ -52,10 +57,12 @@ rules:
       - Credit for specific AP Physics exams may fulfill part or all of the lecture component; workshops must be taken in person.
   - id: core
     title: Biology core
+    line: Core biology
     kind: all_of
     courses: [BIOL 3000, BIOL 3010, BIOL 3020]
   - id: electives
     title: Biology electives
+    line: Electives
     kind: level
     subjects: [BIOL]
     min_level: 3000
@@ -69,6 +76,7 @@ rules:
       - BIOL 3910 and BIOL 3920 do not count.
   - id: elective-list
     title: Elective from the core-topics list
+    line: Electives
     kind: n_of
     n: 1
     courses: [BIOL 3030, CHEM 4440, BIOL 3040, BIOL 3050, BIOL 3090, BIOL 3180, BIOL 3240, BIOL 3270, BIOL 3450]

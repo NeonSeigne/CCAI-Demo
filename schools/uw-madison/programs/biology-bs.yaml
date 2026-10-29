@@ -16,16 +16,19 @@ complete: false  # major rules only; Additional Lab or Field Research, 31 biolog
 rules:
   - id: calculus
     title: Calculus
+    line: Foundations
     kind: n_of
     n: 1
     courses: [MATH 221, MATH 211]
   - id: statistics
     title: Statistics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [STAT 240, STAT 301, STAT 324, STAT 371]
   - id: general-chemistry
     title: General chemistry
+    line: Chemistry and physics
     kind: one_of_groups
     groups:
       - [CHEM 103, CHEM 104]
@@ -33,20 +36,24 @@ rules:
       - [CHEM 115, CHEM 116]
   - id: organic-chemistry
     title: Organic chemistry
+    line: Chemistry and physics
     kind: all_of
     courses: [CHEM 343, CHEM 344, CHEM 345]
   - id: physics-1
     title: First-semester physics
+    line: Chemistry and physics
     kind: n_of
     n: 1
     courses: [PHYSICS 103, PHYSICS 201, PHYSICS 207]
   - id: physics-2
     title: Second-semester physics
+    line: Chemistry and physics
     kind: n_of
     n: 1
     courses: [PHYSICS 104, PHYSICS 202, PHYSICS 208]
   - id: intro-biology
     title: Introductory biology
+    line: Foundations
     kind: one_of_groups
     double_count: true
     groups:
@@ -57,6 +64,7 @@ rules:
       - BIOCORE 381 and BIOCORE 383 may count toward both Introductory biology and the Foundation course.
   - id: foundation
     title: Foundation course
+    line: Core biology
     kind: one_of_groups
     groups:
       - [BIOCHEM 501]
@@ -69,6 +77,7 @@ rules:
       - A course used for the Foundation requirement may not also count as Upper-Level Breadth.
   - id: upper-level-breadth
     title: Upper-level breadth
+    line: Core biology
     kind: credits_from
     credits: 13
     courses: [
@@ -111,6 +120,7 @@ rules:
       - At least 2 credits must come from an unused category (A, B, C, D or E), beyond the A or B and C or D credits.
   - id: breadth-a-or-b
     title: Breadth from A or B
+    line: Core biology
     kind: credits_from
     credits: 2
     double_count: true
@@ -133,6 +143,7 @@ rules:
       - Part of the 13 upper-level breadth credits; a course used for the Foundation requirement doesn't count here.
   - id: breadth-c-or-d
     title: Breadth from C or D
+    line: Core biology
     kind: credits_from
     credits: 2
     double_count: true
@@ -151,6 +162,7 @@ rules:
       - PATH-BIO 307 (category D) also counts.
   - id: breadth-lab
     title: Approved lab course
+    line: Core biology
     kind: n_of
     n: 1
     double_count: true

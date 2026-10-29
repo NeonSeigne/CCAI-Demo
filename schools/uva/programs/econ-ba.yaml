@@ -12,12 +12,14 @@ complete: false  # major rules only; College gen-ed and total credits aren't enc
 rules:
   - id: intro
     title: Introductory economics
+    line: Foundations
     kind: all_of
     courses: [ECON 2010, ECON 2020]
     notes:
       - Students with transfer credit for ECON 3010 or 3020 but not ECON 2010 or 2020 are exempt from that 2000-level course and take one more elective (five in all).
   - id: calculus
     title: Calculus I
+    line: Foundations
     kind: one_of_groups
     groups:
       - [MATH 1210]
@@ -30,12 +32,14 @@ rules:
       - Financial Economics concentrators and students planning graduate study should take MATH 1310 or APMA 1110.
   - id: statistics
     title: Statistics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [STAT 2120, STAT 3120, APMA 3110, APMA 3120]
     min_grade: C+
   - id: micro-theory
     title: Intermediate microeconomics
+    line: Core theory
     kind: n_of
     n: 1
     courses: [ECON 3010, ECON 3110]
@@ -44,15 +48,18 @@ rules:
       - Credit is not given for both ECON 3010 and ECON 3110.
   - id: macro-theory
     title: Intermediate macroeconomics
+    line: Core theory
     kind: all_of
     courses: [ECON 3020]
   - id: econometrics
     title: Econometrics
+    line: Core theory
     kind: n_of
     n: 1
     courses: [ECON 3720, ECON 4720]
   - id: electives
     title: Economics electives
+    line: Electives
     kind: level
     subjects: [ECON]
     min_level: 2000
@@ -61,6 +68,7 @@ rules:
       - Each elective must carry at least 3 credits.
   - id: electives-3000
     title: Electives at the 3000 level or above
+    line: Electives
     kind: level
     subjects: [ECON]
     min_level: 3000
@@ -70,6 +78,7 @@ rules:
       - Encodes "no more than one elective at the 2000 level"; these courses are among the four electives, not extra.
   - id: electives-4000
     title: Electives at the 4000 level or above
+    line: Electives
     kind: level
     subjects: [ECON]
     min_level: 4000
@@ -77,6 +86,9 @@ rules:
     double_count: true
     notes:
       - Encodes "at least two electives numbered 4000 or above"; these courses are among the four electives, not extra.
+deadline:
+  rules: [intro, micro-theory, econometrics]
+  by_semester: 6
 notes:
   - Total degree credits are not stated on the source page, so total_credits is omitted.
   - "To declare: at least two graded UVA Economics courses and an Economics GPA of 2.3 or higher on UVA ECON courses at the 2000 level or above (transfer, study-abroad direct credit and ECON credit from other UVA departments excluded; HIUS 2061 included)."

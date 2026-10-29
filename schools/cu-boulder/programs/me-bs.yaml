@@ -14,30 +14,36 @@ complete: false  # general technical electives, HSS/writing, free electives, FE 
 rules:
   - id: cad
     title: Computer-aided design
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [MCEN 1026, BMEN 1020, BMEN 1025, GEEN 1017, MCEN 1025]
   - id: computing
     title: Engineering computing
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [MCEN 1030, ASEN 1030, CSCI 1300, ECEN 1310]
   - id: profession
     title: ME as a profession
+    line: Engineering foundations
     kind: all_of
     courses: [MCEN 2000]
   - id: statics
     title: Statics and structures
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [MCEN 2023, ASEN 2401, CVEN 2121, GEEN 2851]
   - id: materials
     title: Materials science
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [MCEN 2024, GEEN 3024]
   - id: fabrication
     title: Introduction to fabrication
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [MCEN 2026, MCEN 1025]
@@ -45,21 +51,25 @@ rules:
       - MCEN 1025 is listed as an alternative for both CAD and fabrication; the catalog page does not say whether it can count for both.
   - id: dynamics
     title: Dynamics
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 2043, ASEN 2403, CVEN 3111, PHYS 3210]
   - id: solids
     title: Mechanics of solids
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 2063, ASEN 3401, CVEN 3161]
   - id: thermo-1
     title: Thermodynamics
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 3012, AREN 2110, ASEN 2402, EVEN 3012, GEEN 3852]
   - id: circuits
     title: Circuits and electronics
+    line: Engineering core
     kind: one_of_groups
     groups:
       - [MCEN 3017]
@@ -69,34 +79,41 @@ rules:
       - [GEEN 3010]
   - id: fluids
     title: Fluid mechanics
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 3021, AREN 2120, CHEN 3200, CVEN 3313]
   - id: heat-transfer
     title: Heat transfer
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 3022, ASEN 3402, CHEN 3210]
   - id: computational
     title: Computational methods
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 3030, APPM 4600, ASEN 3502, CSCI 3656]
   - id: data-analysis
     title: Data analysis and experimental methods
+    line: Engineering core
     kind: n_of
     n: 1
     courses: [MCEN 3047, GEEN 3853]
   - id: me-core
     title: ME core
+    line: Engineering core
     kind: all_of
     courses: [MCEN 3025, MCEN 3032, MCEN 4026, MCEN 4043]
   - id: senior-design
     title: Senior design
+    line: Design and electives
     kind: all_of
     courses: [MCEN 4045, MCEN 4085]
   - id: me-tech-electives
     title: ME technical electives
+    line: Design and electives
     kind: level
     subjects: [MCEN]
     min_level: 4000
@@ -107,21 +124,25 @@ rules:
       - For students starting Fall 2024 or later only MCEN courses count; the department page lists 4000- and 5000-level courses for undergraduates. MCEN 3208 does not count.
   - id: calculus-1
     title: Calculus 1
+    line: Math and science
     kind: n_of
     n: 1
     courses: [APPM 1350, APPM 1345, MATH 1300]
   - id: calculus-2
     title: Calculus 2
+    line: Math and science
     kind: n_of
     n: 1
     courses: [APPM 1360, MATH 2300]
   - id: calculus-3
     title: Calculus 3
+    line: Math and science
     kind: n_of
     n: 1
     courses: [APPM 2350, MATH 2400]
   - id: differential-equations
     title: Differential equations and linear algebra
+    line: Math and science
     kind: one_of_groups
     groups:
       - [APPM 2360]
@@ -129,25 +150,30 @@ rules:
       - [MATH 2135, MATH 3430]
   - id: chemistry
     title: Chemistry
+    line: Math and science
     kind: n_of
     n: 1
     courses: [MCEN 1024, CHEM 1113, CHEM 1400, CHEN 1201, CHEN 1203, CHEN 1211]
   - id: physics-1
     title: General Physics 1
+    line: Math and science
     kind: n_of
     n: 1
     courses: [PHYS 1110, PHYS 1115]
   - id: physics-2
     title: General Physics 2
+    line: Math and science
     kind: n_of
     n: 1
     courses: [PHYS 1120, PHYS 1125]
   - id: physics-lab
     title: Experimental physics
+    line: Math and science
     kind: all_of
     courses: [PHYS 1140]
   - id: engineering-projects
     title: Engineering projects
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [GEEN 1400, GEEN 2400, GEEN 3400, ASEN 1400, ASEN 1403, ECEN 1400]

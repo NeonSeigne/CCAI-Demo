@@ -15,6 +15,7 @@ complete: false  # General Option major rules only; College gen-ed, total credit
 rules:
   - id: core-diffeq
     title: Differential equations
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 3250, MATH 4250, MATH 3315, APMA 2130]
@@ -24,6 +25,7 @@ rules:
       - MATH 3315 must be passed at B- or higher to count as a core course.
   - id: core-linear-algebra
     title: Linear algebra
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 3351, MATH 4651, MATH 3315, APMA 3080]
@@ -34,18 +36,21 @@ rules:
       - If MATH 3315 is used for both differential equations and linear algebra, one more MATH elective is required.
   - id: core-real-analysis
     title: Real analysis
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 3310, MATH 4310]
     min_grade: C
   - id: core-abstract-algebra
     title: Abstract algebra
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 3354, MATH 4652]
     min_grade: C
   - id: math-electives
     title: MATH electives
+    line: Electives
     kind: level
     subjects: [MATH]
     min_level: 3000
@@ -56,6 +61,7 @@ rules:
       - Any MATH course numbered 3000 or higher, except MATH 3350, not used for another requirement of the major.
   - id: general-electives
     title: General electives
+    line: Electives
     kind: level
     subjects: [MATH]
     min_level: 3000
@@ -67,6 +73,7 @@ rules:
       - Only MATH courses are counted here; the listed non-MATH courses also qualify but are not counted automatically.
   - id: computing
     title: Computing elective
+    line: Electives
     kind: n_of
     n: 1
     courses: [CS 1110, CS 1111, CS 1112, CS 1113, PHYS 2660]

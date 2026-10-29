@@ -15,10 +15,12 @@ complete: false  # technical electives by credit, math/science and liberal studi
 rules:
   - id: calculus
     title: Calculus
+    line: Math and science
     kind: all_of
     courses: [MATH 221, MATH 222, MATH 234]
   - id: linear-algebra-de
     title: Linear algebra and differential equations
+    line: Math and science
     kind: one_of_groups
     groups:
       - [MATH 320]
@@ -27,6 +29,7 @@ rules:
       - When MATH 319 and MATH 340 replace MATH 320, MATH 340 may count toward the Math/Science elective or non-ME technical electives.
   - id: statistics
     title: Statistics
+    line: Math and science
     kind: n_of
     n: 1
     courses: [STAT 324, I SY E 210]
@@ -34,11 +37,13 @@ rules:
       - Transfer students may use another statistics course with a calculus prerequisite, with mechanical engineering department approval.
   - id: chemistry
     title: Chemistry
+    line: Math and science
     kind: n_of
     n: 1
     courses: [CHEM 103, CHEM 104, CHEM 109]
   - id: computer-science
     title: Computer science
+    line: Math and science
     kind: n_of
     n: 1
     courses: [COMP SCI 220, COMP SCI 300]
@@ -46,32 +51,38 @@ rules:
       - COMP SCI 220 is preferred; COMP SCI 300 counts when another major or certificate needs it.
   - id: physics
     title: Physics
+    line: Math and science
     kind: all_of
     courses: [PHYSICS 202]
     notes:
       - Students following the normal M E sequence need not take PHYSICS 201 for the PHYSICS 202 prerequisites.
   - id: statics
     title: Statics
+    line: Engineering foundations
     kind: all_of
     courses: [E M A 201]
     min_grade: C
   - id: materials
     title: Materials science
+    line: Engineering foundations
     kind: all_of
     courses: [M S & E 350]
   - id: intro-me
     title: Introduction to mechanical engineering
+    line: Engineering foundations
     kind: all_of
     courses: [M E 201]
     notes:
       - Students who begin in another engineering major may count that major's introduction to engineering course.
   - id: core-c-or-better
     title: Core courses (C or better)
+    line: Engineering foundations
     kind: all_of
     courses: [E M A 202, E M A 303, M E 361]
     min_grade: C
   - id: me-core
     title: Mechanical engineering core
+    line: Engineering core
     kind: all_of
     courses: [
       M E 231, M E 307, M E 310, M E 311, M E 331, M E 340, M E 342, M E 351, M E 352,
@@ -81,6 +92,7 @@ rules:
       - M E 351 is fall only and M E 352 spring only, taken in sequence; an approved out-of-sequence exception also needs M E 353.
   - id: technical-electives-me
     title: ME or EMA technical elective
+    line: Electives
     kind: level
     n: 1
     subjects: [M E, E M A]
@@ -90,6 +102,7 @@ rules:
       - At least 3 of the 12 technical elective credits must be formal M E or E M A courses numbered 400 and higher (not seminar, survey, independent study or research).
   - id: technical-electives
     title: Other technical electives
+    line: Electives
     kind: level
     n: 3
     subjects: [M E, E M A, B M E, BSE, CBE, CIV ENGR, E C E, G L E, I SY E, M S & E, N E, MATH, PHYSICS, CHEM, STAT, COMP SCI]
@@ -102,11 +115,13 @@ rules:
       - Other courses may be proposed to an academic advisor for review by the ME curriculum committee.
   - id: engr-comm-1
     title: Engineering Communication 1
+    line: Engineering foundations
     kind: n_of
     n: 1
     courses: [INTEREGR 156, ENGL 100, LSC 100, COM ARTS 100, ESL 118]
   - id: engr-comm-2
     title: Engineering Communication 2
+    line: Engineering foundations
     kind: all_of
     courses: [INTEREGR 397]
 notes:
