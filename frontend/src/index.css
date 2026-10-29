@@ -39,7 +39,7 @@ pre,
   }
 
   .pill-active {
-    background: #f0f0ee;
+    background: var(--raised);
     color: var(--ink);
     border-radius: 9999px;
   }

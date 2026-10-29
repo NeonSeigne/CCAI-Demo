@@ -74,7 +74,7 @@
   cursor: pointer;
 }
 
-.campus-new-chat:hover { background: #2A2A30; }
+.campus-new-chat:hover { background: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
 
 .campus-recent {
   display: flex;
@@ -107,7 +107,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #3A3A40;
+  color: var(--ink);
   font: inherit;
   font-size: 14px;
   text-align: left;
@@ -146,7 +146,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #E9E9E5;
+  background: var(--raised);
   font-size: 13px;
   font-weight: 600;
 }

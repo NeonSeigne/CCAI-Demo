@@ -115,7 +115,7 @@
   cursor: pointer;
 }
 
-.campus-send:hover { background: #2A2A30; }
+.campus-send:hover { background: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
 
 .campus-section {
   display: flex;
@@ -175,7 +175,7 @@
   cursor: pointer;
 }
 
-.campus-starter:hover { background: #EEEEEA; }
+.campus-starter:hover { background: var(--raised); }
 
 .campus-today {
   display: flex;

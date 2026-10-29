@@ -37,13 +37,13 @@ const input = {
 
 const primaryBtn = {
   padding: '10px 16px', background: 'var(--accent-primary)',
-  color: '#fff', border: 'none', borderRadius: 8,
+  color: 'var(--surface)', border: 'none', borderRadius: 8,
   cursor: 'pointer', fontSize: 14, fontWeight: 500,
 };
 
 const dangerBtn = {
-  padding: '10px 16px', background: '#dc2626',
-  color: '#fff', border: 'none', borderRadius: 8,
+  padding: '10px 16px', background: 'var(--error)',
+  color: 'var(--surface)', border: 'none', borderRadius: 8,
   cursor: 'pointer', fontSize: 14, fontWeight: 500,
 };
 
@@ -243,9 +243,9 @@ const SettingsModal = ({
         ? 'rgba(22,163,74,0.1)'
         : 'var(--bg-secondary)',
     color: type === 'error'
-      ? '#dc2626'
+      ? 'var(--error)'
       : type === 'success'
-        ? '#16a34a'
+        ? 'var(--good)'
         : 'var(--text-secondary)',
     border: `1px solid ${
       type === 'error'
@@ -488,7 +488,7 @@ const SettingsModal = ({
                 background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.3)',
                 marginBottom: 16,
               }}>
-                <AlertTriangle size={18} style={{ color: '#dc2626', flexShrink: 0, marginTop: 2 }} />
+                <AlertTriangle size={18} style={{ color: 'var(--error)', flexShrink: 0, marginTop: 2 }} />
                 <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                   Deleting your account is permanent. All chat history and personal data will be removed.
                 </div>

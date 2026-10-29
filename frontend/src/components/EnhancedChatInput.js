@@ -523,7 +523,7 @@ const EnhancedChatInput = ({
                       borderRadius: 6, cursor: isDisabled ? 'default' : 'pointer',
                       fontFamily: 'inherit',
                       background: active ? 'var(--ink)' : 'transparent',
-                      color: active ? '#fff' : 'var(--text-secondary)',
+                      color: active ? 'var(--surface)' : 'var(--text-secondary)',
                     }}
                   >
                     {icon} {label}
@@ -543,9 +543,9 @@ const EnhancedChatInput = ({
               type="button"
               title={isTranscribing ? 'Transcribing...' : isRecording ? 'Stop recording' : 'Voice input'}
               style={{
-                background: isRecording ? '#EF4444' : 'transparent',
-                border: isRecording ? '1px solid #EF4444' : '1px solid var(--border-primary)',
-                color: isRecording ? '#fff' : 'var(--text-secondary)',
+                background: isRecording ? 'var(--error)' : 'transparent',
+                border: isRecording ? '1px solid var(--error)' : '1px solid var(--border-primary)',
+                color: isRecording ? 'var(--surface)' : 'var(--text-secondary)',
                 borderRadius: '50%', width: 36, height: 36,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: isTranscribing ? 'wait' : 'pointer', transition: 'all 0.2s',

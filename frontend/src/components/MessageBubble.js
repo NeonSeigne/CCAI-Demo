@@ -636,8 +636,8 @@ const MessageBubble = ({
                     onMouseEnter={() => showTooltipWithDelay('speak')}
                     onMouseLeave={hideTooltip}
                     style={{ 
-                      color: isLoadingTTS ? (colors.color || 'var(--text-secondary)') : isSpeaking ? '#EF4444' : (colors.color || 'var(--text-secondary)'),
-                      borderColor: isSpeaking ? '#EF444440' : (colors.color ? colors.color + '40' : 'var(--border-muted)'),
+                      color: isLoadingTTS ? (colors.color || 'var(--text-secondary)') : isSpeaking ? 'var(--error)' : (colors.color || 'var(--text-secondary)'),
+                      borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : (colors.color ? colors.color + '40' : 'var(--border-muted)'),
                       opacity: isLoadingTTS ? 0.7 : 1,
                     }}
                   >
@@ -693,7 +693,7 @@ const MessageBubble = ({
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => window.open(`https://www.perplexity.ai/?q=${encodeURIComponent(searchQuery)}`, '_blank')} style={{
                       padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: 'var(--accent-primary)', color: '#fff', border: 'none', cursor: 'pointer',
+                      background: 'var(--accent-primary)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
                     }}>Open in Perplexity</button>
                     <button onClick={() => {
                       navigator.clipboard.writeText(searchQuery).then(() => {
@@ -702,9 +702,9 @@ const MessageBubble = ({
                       }).catch(() => {});
                     }} style={{
                       padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: promptCopied ? '#10B98120' : 'var(--bg-secondary)',
-                      color: promptCopied ? '#10B981' : 'var(--text-primary)',
-                      border: `1px solid ${promptCopied ? '#10B98140' : 'var(--border-primary)'}`,
+                      background: promptCopied ? 'color-mix(in srgb, var(--good) 12%, transparent)' : 'var(--bg-secondary)',
+                      color: promptCopied ? 'var(--good)' : 'var(--text-primary)',
+                      border: `1px solid ${promptCopied ? 'color-mix(in srgb, var(--good) 25%, transparent)' : 'var(--border-primary)'}`,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}>{promptCopied ? '✓ Copied!' : 'Copy Prompt'}</button>

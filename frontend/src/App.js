@@ -1,5 +1,4 @@
 import React, { Suspense, lazy } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import {
   BrowserRouter, Navigate, Outlet, Route, Routes,
 } from 'react-router-dom';
@@ -22,7 +21,6 @@ import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
-import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -123,7 +121,6 @@ function App() {
     <BrowserRouter>
       <AppConfigProvider>
         <ThemeProvider>
-          <MuiThemeProvider theme={muiTheme}>
             <AuthProvider>
               <SavedProvider>
                 <PlannerProvider>
@@ -140,7 +137,6 @@ function App() {
                 </PlannerProvider>
               </SavedProvider>
             </AuthProvider>
-          </MuiThemeProvider>
         </ThemeProvider>
       </AppConfigProvider>
     </BrowserRouter>

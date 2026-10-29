@@ -34,7 +34,7 @@ const AdvisorCard = ({ advisor, advisorId }) => {
           )}
           {hovered && (
             <div style={{ position: 'absolute', inset: 0, borderRadius: 'inherit', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Pencil size={18} color="#fff" />
+              <Pencil size={18} color="var(--band-text)" />
             </div>
           )}
         </div>

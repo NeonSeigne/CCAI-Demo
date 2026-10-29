@@ -44,13 +44,13 @@
   cursor: pointer;
 }
 
-.landing-soft-btn:hover:not(:disabled) { background: #EEEEEA; }
+.landing-soft-btn:hover:not(:disabled) { background: var(--raised); }
 .landing-soft-btn:disabled { opacity: 0.6; cursor: default; }
 
 .landing-error {
   margin: 0 32px;
   font-size: 13px;
-  color: #B42318;
+  color: var(--error);
   text-align: right;
 }
 
@@ -107,7 +107,7 @@
   cursor: pointer;
 }
 
-.landing-cta:hover { background: #2A2A30; }
+.landing-cta:hover { background: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
 
 .landing-asks {
   display: flex;

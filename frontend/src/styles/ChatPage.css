@@ -456,17 +456,17 @@
 
 /* Document Upload Specific Styles */
 .system-message.document-upload {
-  background: #F0F9F4;
-  border: 1px solid #10B981;
-  border-left: 4px solid #10B981;
-  color: #065F46;
+  background: var(--good-tint);
+  border: 1px solid var(--good);
+  border-left: 4px solid var(--good);
+  color: var(--good);
   font-weight: 500;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
   animation: slideInNotification 0.3s ease-out;
 }
 
 .system-message.document-upload svg {
-  color: #10B981;
+  color: var(--good);
   flex-shrink: 0;
 }
 
@@ -659,7 +659,7 @@
   display: flex;
   align-items: center;
   padding: 6px 12px;
-  background: var(--bg-secondary, #f3f4f6);
+  background: var(--bg-secondary);
   border-radius: 6px;
   margin-right: 8px;
 }
@@ -668,7 +668,7 @@
 .session-title-display span {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary, #111827);
+  color: var(--text-primary);
   max-width: 150px;
   white-space: nowrap;
   overflow: hidden;
@@ -686,14 +686,14 @@
   background: none;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   transition: all 0.2s ease;
   margin-right: 8px;
 }
 
 .header-signout-btn:hover {
-  background: var(--bg-secondary, #f3f4f6);
-  color: #ef4444;
+  background: var(--bg-secondary);
+  color: var(--error);
 }
 
 
@@ -713,8 +713,8 @@
 .loading-session .loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border-light, #e5e7eb);
-  border-top: 2px solid var(--primary-color, #3b82f6);
+  border: 2px solid var(--line);
+  border-top: 2px solid var(--signal);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -837,9 +837,9 @@
   letter-spacing: 0.5px;
 }
 
-.provider-badge.gemini { color: #4285f4; }
-.provider-badge.ollama { color: #10b981; }
-.provider-badge.vllm   { color: #ef4444; }
+.provider-badge.gemini { color: var(--academics); }
+.provider-badge.ollama { color: var(--good); }
+.provider-badge.vllm   { color: var(--error); }
 .provider-badge.hybrid { color: var(--ink); }
 
 
@@ -1056,17 +1056,17 @@
 
 .provider-option-badge.gemini {
   background: rgba(66, 133, 244, 0.15);
-  color: #4285f4;
+  color: var(--academics);
 }
 
 .provider-option-badge.ollama {
   background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  color: var(--good);
 }
 
 .provider-option-badge.vllm {
   background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  color: var(--error);
 }
 
 .provider-option-badge.hybrid {
@@ -1077,18 +1077,18 @@
 .provider-option-configure {
   margin-left: 8px;
   background: transparent;
-  border: 1px solid var(--border-color, #d1d5db);
+  border: 1px solid var(--control);
   border-radius: 6px;
   padding: 4px 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 .provider-option-configure:hover {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--surface);
   border-color: var(--accent-primary);
 }
 

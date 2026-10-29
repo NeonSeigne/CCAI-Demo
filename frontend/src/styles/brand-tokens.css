@@ -1,94 +1,139 @@
-/* Co-Panel brand tokens — Flighty + Nova, light-only */
-html[data-theme="light"],
+/* Campus Companion tokens (DESIGN.md, "Home colors").
+ *
+ * Colour roles (--surface, --ink, --deep, --signal, --tint, ...) are written on
+ * <html> by ThemeContext from src/theme/schoolTheme.js and the school's
+ * app.theme, for the current light or dark mode. This file holds what doesn't
+ * depend on the school: type, radii, shadows, the data palettes per mode, and
+ * the older token names, which now point at the roles.
+ */
 :root {
-  --ink: #111114;
-  --ink-soft: #6B6B70;
-  --paper: #FFFFFF;
-  --paper-sunken: #F7F7F5;
-  --line: rgba(17, 17, 20, 0.08);
+  --font-app: "Hanken Grotesk", sans-serif;
+  --font-display: "Unbounded", "Hanken Grotesk", sans-serif;
+  --font-code: "Unbounded", "Hanken Grotesk", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --accent-red: #FF5A5F;
-  --accent-blue: #2E7CF6;
-  --accent-green: #34C759;
+  /* One radius ramp, ordered by nesting: a child is never rounder than its parent. */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-2xl: 32px;
+  --r-full: 999px;
 
-  /* One color per answer domain (home starters, "Checked" chips). Text on
-     the matching tint uses the -ink shade, which passes 4.5:1. */
-  --domain-academics: #2E7CF6;
-  --domain-academics-tint: #E8F0FE;
-  --domain-academics-ink: #1A4FB0;
-  --domain-student-life: #E8730C;
-  --domain-student-life-tint: #FDEEDF;
-  --domain-student-life-ink: #8A4206;
-  --domain-campus: #1F9D55;
-  --domain-campus-tint: #E3F4EA;
-  --domain-campus-ink: #156B3A;
-
-  /* States and selection (design 24A). New page CSS uses var() only, no hex.
-     --error-ink measures 6.57:1 on white and 5.75:1 on --error-tint. */
-  --error-ink: #B42318;
-  --error-tint: #FDECEA;
-  --selection: var(--domain-academics-tint);
-  --focus-ring: 2px solid var(--ink);
-  --focus-ring-offset: 2px;
-
-  /* Difficulty by average GPA (D14, D15): easier >= 3.4, harder < 3.0.
-     The plain colour is for graphics only; text uses -ink. */
-  --difficulty-easier: #1F9D55;
-  --difficulty-easier-ink: #156B3A;
-  --difficulty-easier-tint: #E3F4EA;
-  --difficulty-typical: #E8730C;
-  --difficulty-typical-ink: #8A4206;
-  --difficulty-typical-tint: #FDEEDF;
-  --difficulty-harder: #D92D20;
-  --difficulty-harder-ink: #B42318;
-  --difficulty-harder-tint: #FDECEA;
+  --shadow-rest: 0 1px 2px rgba(20, 23, 31, 0.05);
+  --shadow-float: 0 12px 32px rgba(20, 23, 31, 0.14), 0 2px 6px rgba(20, 23, 31, 0.08);
+  --scrim: rgba(20, 23, 31, 0.42);
 
   /* Course palette: one colour per planned course (codes, week blocks). */
-  --course-1: #2E7CF6;
-  --course-1-ink: #1A4FB0;
-  --course-1-tint: #E8F0FE;
-  --course-2: #6E56CF;
-  --course-2-ink: #4E36A8;
-  --course-2-tint: #EFEBFC;
-  --course-3: #0E9AA7;
-  --course-3-ink: #0A6971;
-  --course-3-tint: #DFF3F4;
-  --course-4: #D6336C;
-  --course-4-ink: #9C2754;
-  --course-4-tint: #FBE8EF;
-  --course-5: #1F9D55;
-  --course-5-ink: #156B3A;
-  --course-5-tint: #E3F4EA;
-  --course-6: #E8730C;
-  --course-6-ink: #8A4206;
-  --course-6-tint: #FDEEDF;
+  --course-1: #2E7CF6; --course-1-ink: #1A4FB0; --course-1-tint: #E8F0FE;
+  --course-2: #6E56CF; --course-2-ink: #4E36A8; --course-2-tint: #EFEBFC;
+  --course-3: #0E9AA7; --course-3-ink: #0A6971; --course-3-tint: #DFF3F4;
+  --course-4: #D6336C; --course-4-ink: #9C2754; --course-4-tint: #FBE8EF;
+  --course-5: #1F9D55; --course-5-ink: #156B3A; --course-5-tint: #E3F4EA;
+  --course-6: #E8730C; --course-6-ink: #8A4206; --course-6-tint: #FDEEDF;
 
-  /* Gauges: the empty arc and the target band (12–18 credits). */
-  --gauge-track: #ECECE8;
-  --gauge-band: #A8DCBD;
-  --gauge-band-tint: #E3F4EA;
-  --gauge-needle: var(--ink);
+  /* Difficulty by average GPA (D14, D15). The plain colour is for graphics; text uses -ink. */
+  --difficulty-easier: #1F9D55; --difficulty-easier-ink: #156B3A; --difficulty-easier-tint: #E3F4EA;
+  --difficulty-typical: #E8730C; --difficulty-typical-ink: #8A4206; --difficulty-typical-tint: #FDEEDF;
+  --difficulty-harder: #D92D20; --difficulty-harder-ink: #B42318; --difficulty-harder-tint: #FDECEA;
 
-  /* Dark band at the top of the course and event pop-ups. */
-  --band-bg: #111114;
+  /* Answer domains: the graphic colour is the role (a school may override it). */
+  --domain-academics-ink: #1A4FB0; --domain-academics-tint: #E8F0FE;
+  --domain-student-life-ink: #8A4206; --domain-student-life-tint: #FDEEDF;
+  --domain-campus-ink: #156B3A; --domain-campus-tint: #E3F4EA;
+
+  /* Gauges: the empty arc and the target band (12-18 credits). */
+  --gauge-track: #ECECE8; --gauge-band: #A8DCBD; --gauge-band-tint: #E3F4EA;
+
+  /* Dark band at the top of pop-ups; always dark, in both modes. */
   --band-text: #FFFFFF;
   --band-text-soft: rgba(255, 255, 255, 0.66);
   --band-line: rgba(255, 255, 255, 0.12);
   --band-raised: rgba(255, 255, 255, 0.1);
-  /* Coloured text on the band (4.5:1 on --band-bg); the -ink shades are for white. */
+  /* Coloured text on the band (4.5:1 on --band-bg). */
   --band-easier-text: #3DD07A;
   --band-typical-text: #F59E4C;
   --band-harder-text: #F97066;
   --band-a-text: #8AB4F8;
   --band-df-text: #FF8F8F;
-
-  --font-app: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  --shadow-soft: 0 1px 3px rgba(17, 17, 20, 0.06), 0 4px 12px rgba(17, 17, 20, 0.04);
-  --shadow-soft-md: 0 4px 16px rgba(17, 17, 20, 0.08);
 }
 
+html[data-theme="dark"] {
+  --shadow-rest: none;
+  --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --scrim: rgba(0, 0, 0, 0.6);
+
+  --course-1: #7EA1FF; --course-1-ink: #B9CCFF; --course-1-tint: #1C2747;
+  --course-2: #A792F0; --course-2-ink: #CFC2FA; --course-2-tint: #2A2347;
+  --course-3: #3CC4CF; --course-3-ink: #9BE4EA; --course-3-tint: #123638;
+  --course-4: #F06A9B; --course-4-ink: #F8B2CB; --course-4-tint: #3D1B28;
+  --course-5: #5CC98A; --course-5-ink: #A6E6BF; --course-5-tint: #143323;
+  --course-6: #F5A35C; --course-6-ink: #FAD0A8; --course-6-tint: #3A2614;
+
+  --difficulty-easier: #5CC98A; --difficulty-easier-ink: #7FDCA4; --difficulty-easier-tint: #143323;
+  --difficulty-typical: #F5A35C; --difficulty-typical-ink: #F5B36E; --difficulty-typical-tint: #3A2614;
+  --difficulty-harder: #F97066; --difficulty-harder-ink: #FF8F87; --difficulty-harder-tint: #3A1A18;
+
+  --domain-academics-ink: #B9CCFF; --domain-academics-tint: #1C2747;
+  --domain-student-life-ink: #FAD0A8; --domain-student-life-tint: #3A2614;
+  --domain-campus-ink: #A6E6BF; --domain-campus-tint: #143323;
+
+  --gauge-track: #2B3039; --gauge-band: #2D5A40; --gauge-band-tint: #143323;
+}
+
+/* Older names, pointing at the roles. Phase 3 (R5) migrates callers and deletes these. */
+:root {
+  --paper: var(--surface);
+  --paper-sunken: var(--canvas);
+  --ink-soft: var(--muted);
+  --selection: var(--tint);
+  --focus-ring: 2px solid var(--ink);
+  --focus-ring-offset: 2px;
+  --error-ink: var(--error);
+
+  --accent-red: var(--harder);
+  --accent-blue: var(--academics);
+  --accent-green: var(--good);
+
+  --domain-academics: var(--academics);
+  --domain-student-life: var(--life);
+  --domain-campus: var(--campus);
+
+  --gauge-needle: var(--ink);
+  --band-bg: var(--band);
+
+  --shadow-soft: var(--shadow-rest);
+  --shadow-soft-md: var(--shadow-float);
+
+  --bg-primary: var(--canvas);
+  --bg-secondary: var(--surface);
+  --bg-tertiary: var(--raised);
+  --bg-gradient: var(--canvas);
+  --card-bg: var(--surface);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --text-tertiary: var(--faint);
+  --text-accent: var(--ink);
+  --border-primary: var(--line);
+  --border-secondary: var(--control);
+  --border-tertiary: var(--rule);
+  --accent-primary: var(--ink);
+  --accent-secondary: var(--muted);
+  --accent-gradient: var(--ink);
+  --shadow-sm: var(--shadow-rest);
+  --shadow-md: var(--shadow-float);
+  --shadow-lg: var(--shadow-float);
+  --shadow-xl: var(--shadow-float);
+  --feature-bg: var(--surface);
+  --feature-icon-color: var(--ink);
+  --error-bg: var(--error-tint);
+  --error-border: var(--error-tint);
+  --error-text: var(--error);
+  --input-bg: var(--surface);
+  --input-border: var(--control);
+  --input-focus: var(--ink);
+  --input-focus-shadow: 0 0 0 3px var(--tint);
+}
 
 ::selection {
   background: var(--selection);

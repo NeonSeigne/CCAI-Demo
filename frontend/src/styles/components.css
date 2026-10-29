@@ -87,7 +87,7 @@
 .logo-icon {
   width: 24px;
   height: 24px;
-  color: #FFFFFF;
+  color: var(--surface);
 }
 
 .logo-title {
@@ -144,7 +144,7 @@
   align-items: center;
   gap: 12px;
   background: var(--ink);
-  color: #FFFFFF;
+  color: var(--surface);
   padding: 16px 32px;
   border-radius: 12px;
   font-size: 18px;
@@ -451,7 +451,7 @@
 
 .user-message {
   background: var(--ink);
-  color: #FFFFFF;
+  color: var(--surface);
   border-radius: 16px;
   padding: 12px 24px;
   max-width: 384px;
@@ -725,8 +725,8 @@
 
 /* Copy button success state */
 .message-action-button.copied {
-  color: #10B981 !important;
-  border-color: #10B98140 !important;
+  color: var(--good) !important;
+  border-color: color-mix(in srgb, var(--good) 25%, transparent) !important;
 }
 
 .reply-button {
@@ -860,7 +860,7 @@
 /* IMPORTANT: Make send button styles specific to basic ChatInput only */
 .input-container .send-button {
   background: var(--ink);
-  color: #FFFFFF;
+  color: var(--surface);
   padding: 12px 24px;
   border-radius: 12px;
   border: none;
@@ -1010,11 +1010,11 @@
 }
 
 .rag-stat-value.positive {
-  color: #10B981;
+  color: var(--good);
 }
 
 .rag-stat-value.negative {
-  color: #6B7280;
+  color: var(--muted);
 }
 
 .rag-documents-section {

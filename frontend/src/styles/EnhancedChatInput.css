@@ -193,8 +193,8 @@
 }
 
 .document-action-btn:hover:has(svg[data-icon="trash-2"]) {
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--error-tint);
+  color: var(--error);
 }
 
 
@@ -660,11 +660,11 @@
 }
 
 .upload-notification-icon.success {
-  color: #10B981;
+  color: var(--good);
 }
 
 .upload-notification-icon.error {
-  color: #EF4444;
+  color: var(--error);
 }
 
 .upload-notification-text {
@@ -806,7 +806,7 @@
   }
   
   .send-button.enabled {
-    border: 2px solid #3B82F6;
+    border: 2px solid var(--signal);
   }
 }
 

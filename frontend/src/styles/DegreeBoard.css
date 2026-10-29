@@ -551,7 +551,7 @@
   font-size: 12px;
 }
 .su-steps li.is-on .su-num { background: var(--band-text); color: var(--band-bg); }
-.su-steps li.is-done .su-num { background: var(--domain-campus); color: #fff; }
+.su-steps li.is-done .su-num { background: var(--domain-campus); color: var(--surface); }
 .su-close {
   display: inline-flex;
   align-items: center;

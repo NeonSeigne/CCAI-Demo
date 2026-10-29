@@ -163,14 +163,14 @@
 
 /* Clear-canvas variant — destructive */
 .clear-canvas-btn {
-  color: #ef4444;
+  color: var(--error);
   border-color: rgba(239, 68, 68, 0.35);
 }
 
 .clear-canvas-btn:hover:not(:disabled) {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #ef4444;
+  background: var(--error);
+  color: var(--surface);
+  border-color: var(--error);
   box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.45);
 }
 
@@ -524,7 +524,7 @@
 /* Primary — Start Chatting */
 .empty-canvas-btn.primary {
   background: var(--ink);
-  color: #ffffff;
+  color: var(--surface);
   box-shadow: 0 6px 18px -6px rgba(17, 17, 20, 0.55),
               inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
@@ -685,6 +685,6 @@
 .canvas-copyright-footer {
   padding: 24px;
   text-align: center;
-  border-top: 1px solid var(--border-light, #e5e7eb);
+  border-top: 1px solid var(--line);
   margin-top: 32px;
 }

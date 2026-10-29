@@ -39,7 +39,7 @@ const PrereqTree = ({ visual, onSelectCourse }) => {
             padding: '6px 14px',
             borderRadius: 10,
             background: 'var(--accent-primary)',
-            color: '#fff',
+            color: 'var(--surface)',
             fontWeight: 700,
             fontSize: '0.9rem',
             textAlign: 'center',

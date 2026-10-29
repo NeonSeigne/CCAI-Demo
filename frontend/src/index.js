@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/brand-tokens.css';
-import './styles/md3-theme.css';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';

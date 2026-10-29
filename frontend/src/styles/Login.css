@@ -72,7 +72,7 @@
 .logo-icon {
   width: 28px;
   height: 28px;
-  color: #FFFFFF;
+  color: var(--surface);
 }
 
 .login-title {
@@ -234,7 +234,7 @@
   justify-content: center;
   gap: 8px;
   background: var(--ink);
-  color: #fff;
+  color: var(--surface);
   border: none;
   padding: 14px 24px;
   border-radius: 9999px;
@@ -269,7 +269,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid #FFFFFF;
+  border-top: 2px solid var(--surface);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

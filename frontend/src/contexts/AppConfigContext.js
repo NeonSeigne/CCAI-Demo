@@ -273,16 +273,8 @@ export const AppConfigProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Inject the primary colour as a CSS custom property on <html> so it is
-  // available everywhere without prop-drilling.
+  // Keep the tab title in step with the school. Colours are ThemeContext's job.
   useEffect(() => {
-    if (config?.app?.primary_color) {
-      document.documentElement.style.setProperty(
-        '--accent-primary',
-        config.app.primary_color
-      );
-    }
-    // Also update the <title> tag dynamically
     if (config?.app?.title) {
       document.title = config.app.title;
     }
@@ -320,7 +312,7 @@ export const AppConfigProvider = ({ children }) => {
         justifyContent: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
-        color: '#6B7280',
+        color: 'var(--muted)',
       }}>
         Loading configuration…
       </div>
@@ -336,11 +328,11 @@ export const AppConfigProvider = ({ children }) => {
         justifyContent: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
-        color: '#EF4444',
+        color: 'var(--error)',
         gap: '8px',
       }}>
         <p>Failed to load application configuration.</p>
-        <p style={{ fontSize: '14px', color: '#6B7280' }}>{error}</p>
+        <p style={{ fontSize: '14px', color: 'var(--muted)' }}>{error}</p>
       </div>
     );
   }

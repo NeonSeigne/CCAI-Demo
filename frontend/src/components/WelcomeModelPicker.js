@@ -146,7 +146,7 @@ const WelcomeModelPicker = ({
               disabled={isSwitching}
               style={{
                 padding: '8px 14px', borderRadius: 8, border: 'none',
-                background: 'var(--accent-primary)', color: '#fff',
+                background: 'var(--accent-primary)', color: 'var(--surface)',
                 cursor: isSwitching ? 'wait' : 'pointer', fontSize: 13.5, fontWeight: 600,
               }}
             >

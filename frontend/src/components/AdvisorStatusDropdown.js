@@ -88,7 +88,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
           <div className="disable-all-modal">
             <div className="disable-all-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <AlertTriangle size={18} style={{ color: '#dc2626' }} />
+                <AlertTriangle size={18} style={{ color: 'var(--error)' }} />
                 <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: 16 }}>Disable all advisors?</h3>
               </div>
               <button
@@ -138,7 +138,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
                     }
                     {hoveredId === id && (
                       <div style={{ position: 'absolute', inset: 0, borderRadius: 8, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Pencil size={10} color="#fff" />
+                        <Pencil size={10} color="var(--band-text)" />
                       </div>
                     )}
                   </div>
@@ -302,7 +302,7 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
 
         .advisor-off-label {
-          color: var(--text-tertiary, #9ca3af);
+          color: var(--text-tertiary);
           font-style: italic;
         }
 
@@ -443,8 +443,8 @@ const AdvisorStatusDropdown = ({ advisors, thinkingAdvisors, getAdvisorColors })
         }
 
         .disable-all-danger {
-          background: #dc2626;
-          color: #fff;
+          background: var(--error);
+          color: var(--surface);
           border: none;
           font-size: 13px;
           padding: 8px 14px;
