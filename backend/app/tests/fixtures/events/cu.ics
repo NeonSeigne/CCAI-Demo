@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:recorded from calendar.colorado.edu/calendar.ics
+BEGIN:VEVENT
+DTSTAMP:20261027T151541Z
+UID:tag:localist.com\,2008:EventInstance_53577983854936
+DTSTART:20260927T163000Z
+DTEND:20260927T183000Z
+DESCRIPTION:Colorado eBike tours are run on a balance of entertainment and 
+ professionalism (and two fat-tire wheels). We operate daily\, two hour\, g
+ uided tours in Denver and Boulder. Our loops utilize bike lanes and bike p
+ aths that connect you through the historic areas and iconic sites\, stoppi
+ ng along the way to learn interesting facts and capture some photos. These
+  e-Bike tours are perfect for anyone looking to explore the outdoors and u
+ nderstand the layout of the town (to explore more later). With an E-bike a
+ nd a local guide\, we can cover more ground effortlessly\, making it easie
+ r to enjoy all the sights and experiences at a comfortable pace. Weather p
+ ermitting we are open year round.
+GEO:40.029253;-105.287785
+LOCATION:700 Dellwood avenue
+SUMMARY:Cruiser guided Ebike Tour of Boulder 
+URL;VALUE=URI:https://calendar.colorado.edu/event/cruiser-guided-ebike-tour
+ -of-boulder
+CATEGORIES:Tour
+END:VEVENT
+END:VCALENDAR
