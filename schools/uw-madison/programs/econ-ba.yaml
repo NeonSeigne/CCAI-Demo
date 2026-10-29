@@ -9,6 +9,7 @@ catalog_year: 2026
 source_url: https://guide.wisc.edu/undergraduate/letters-science/economics/economics-ba/
 checked_on: 2026-10-28
 total_credits: 120
+complete: false  # major rules only; L&S breadth, residency and language aren't encoded
 rules:
   - id: mathematics
     title: Mathematics

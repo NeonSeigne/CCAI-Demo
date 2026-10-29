@@ -6,6 +6,13 @@ own term; completed courses with the facts of the plan's term. One
 ``checker.check`` per term gives that term's credits and load; requirement
 rules span all terms, so they are reported once. Shape: ``CONTRACTS.md``,
 "Degree board".
+
+The waffle (eng review R14) claims only what the program files encode: one
+group per rule, sized in credits by the rule, plus one "Other credit" group
+filling up to ``total_credits``. A course-count rule is sized by the credits
+of the courses it took plus ``COURSE_CREDITS`` per course still needed.
+Finish is given only when every program says ``complete: true`` and nothing
+is open.
 """
 
 from __future__ import annotations
@@ -14,6 +21,10 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from app.planner import checker
 from app.planner.facts import CourseFacts
+
+# Credits counted for a course whose credits are unknown, or not yet chosen.
+COURSE_CREDITS = 3.0
+OTHER_CREDIT = "Other credit"
 
 
 def planned_terms(plan: Dict[str, Any]) -> List[str]:
@@ -91,6 +102,55 @@ def _completed_rows(plan: Dict[str, Any], facts: Dict[str, CourseFacts]) -> List
     return rows
 
 
+def _credit_value(course_id: str, facts: Dict[str, CourseFacts]) -> float:
+    fact = facts.get(course_id)
+    return float(fact.credits[0]) if _usable(fact) and fact.credits else COURSE_CREDITS
+
+
+def _group(title: str, size: float, earned: float, planned: float, unknown_grade: int, **ids: Any) -> Dict[str, Any]:
+    size = max(size, earned + planned)
+    return {**ids, "title": title, "size": size, "earned": earned, "planned": planned,
+            "open": size - earned - planned, "unknown_grade": unknown_grade}
+
+
+def _rule_group(rule: Dict[str, Any], facts: Dict[str, CourseFacts], grades: Dict[str, Any]) -> Dict[str, Any]:
+    done, planned = rule["completed_courses"], rule["planned_courses"]
+    unknown_grade = sum(1 for c in done if grades.get(c) is None)
+    ids = {"program_id": rule["program_id"], "rule_id": rule["rule_id"], "status": rule["status"]}
+    if rule["unit"] == "credits":
+        return _group(rule["title"], float(rule["needed"]), float(rule["completed"]), float(rule["planned"]),
+                      unknown_grade, **ids)
+    earned = sum(_credit_value(c, facts) for c in done)
+    planning = sum(_credit_value(c, facts) for c in planned)
+    still = max(0, rule["needed"] - len(done) - len(planned))
+    return _group(rule["title"], earned + planning + still * COURSE_CREDITS, earned, planning, unknown_grade, **ids)
+
+
+def waffle(
+    plan: Dict[str, Any], facts: Dict[str, CourseFacts], programs: Sequence[Any], rules: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """``{total_credits, complete, groups, finish}`` for the degree waffle (R14)."""
+    grades = {c["id"]: c.get("grade") for c in checker.completed_courses(plan)}
+    groups = [_rule_group(rule, facts, grades) for rule in rules]
+    totals = [getattr(p, "total_credits", None) for p in programs if getattr(p, "total_credits", None)]
+    total = max(totals) if totals else None
+    if total is not None:
+        used = {c for r in rules for c in r["completed_courses"] + r["planned_courses"]}
+        size = max(0.0, total - sum(g["size"] for g in groups))
+        earned = min(size, sum(_credit_value(c, facts) for c in grades if c not in used))
+        rest = [c["id"] for c in checker.planned_courses(plan) if c["id"] not in used and c["id"] not in grades]
+        planned = min(size - earned, sum(_credit_value(c, facts) for c in rest))
+        unknown = sum(1 for c, g in grades.items() if c not in used and g is None)
+        groups.append(_group(OTHER_CREDIT, size, earned, planned, unknown,
+                             program_id=None, rule_id=None, status=None))
+    complete = bool(programs) and all(bool(getattr(p, "complete", False)) for p in programs)
+    everything_planned = total is not None and all(g["open"] == 0 for g in groups) \
+        and all(r["status"] == "met" for r in rules)
+    terms = [c.get("term") for c in checker.planned_courses(plan) if c.get("term")]
+    finish = max(terms, key=checker.term_key) if complete and everything_planned and terms else None
+    return {"total_credits": total, "complete": complete, "groups": groups, "finish": finish}
+
+
 def board(
     plan: Dict[str, Any],
     by_term: Dict[str, Dict[str, CourseFacts]],
@@ -109,4 +169,5 @@ def board(
                   for t in planned_terms(plan)],
         "completed": _completed_rows(plan, facts),
         "rules": rules,
+        "waffle": waffle(plan, facts, programs, rules),
     }

@@ -31,6 +31,7 @@ catalog_year: 2026
 source_url: https://...
 checked_on: 2026-10-28
 total_credits: 120     # degree total-credit rule; omit if unknown
+complete: false        # the rules encode EVERY degree requirement (default false; gates Finish)
 rules:
   - id: intro
     title: Introductory economics
@@ -125,8 +126,24 @@ degree = {
                  "requirements": [rule titles], "gen_ed": [str]|null}]}],
   "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term"}],
   "rules": [report rule rows, across all terms],
+  "waffle": {
+    "total_credits": n|null,                       # largest total_credits of the student's programs
+    "complete": bool,                              # every program file says complete: true
+    "groups": [{"program_id", "rule_id", "title", "status",   # one per encoded rule, file order
+                "size", "earned", "planned", "open",          # credits; earned + planned + open == size
+                "unknown_grade": n}],                         # completed courses with no grade on record
+                # last: {"program_id": null, "rule_id": null, "title": "Other credit", "status": null, ...}
+                # sized total_credits - sum(rule groups); only when total_credits is known
+    "finish": "Fall 2028"|null,                    # only when complete AND nothing is open AND every rule is met
+  },
 }
 ```
+
+Waffle groups (eng review R14) claim only what the program file encodes; there
+is no gen-ed group. A credits rule is sized by its `credits`; a course-count
+rule by the credits of the courses it took plus 3 per course still needed (a
+course with unknown credits counts 3). A group is never smaller than what it
+already holds.
 
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 

@@ -17,7 +17,9 @@ Rule kinds:
                     MATH 221, or MATH 211 and MATH 213
 
 Anything the official page states that these kinds cannot express goes in the
-program's (or rule's) ``notes`` so it is shown, not dropped. Course
+program's (or rule's) ``notes`` so it is shown, not dropped. ``complete:
+true`` says the rules encode every requirement of the degree (eng review
+R14); it defaults to false, and while it is false no Finish date is shown. Course
 identifiers are normalised to ``"SUBJ 1234"``: upper-case subject, one space.
 Subjects may themselves contain spaces (UW's ``COMP SCI``).
 """
@@ -37,7 +39,9 @@ from app.config import SCHOOLS_DIR
 PROGRAM_TYPES = ("major", "minor", "certificate")
 RULE_KINDS = ("all_of", "n_of", "credits_from", "level", "one_of_groups")
 
-PROGRAM_FIELDS = {"id", "name", "type", "catalog_year", "source_url", "checked_on", "total_credits", "rules", "notes"}
+PROGRAM_FIELDS = {
+    "id", "name", "type", "catalog_year", "source_url", "checked_on", "total_credits", "complete", "rules", "notes",
+}
 RULE_FIELDS = {
     "id", "title", "kind", "courses", "n", "credits", "subjects", "min_level", "max_level",
     "exclude", "min_grade", "double_count", "notes", "groups",
@@ -78,6 +82,7 @@ class Program:
     rules: Tuple[Rule, ...]
     total_credits: Optional[int] = None  # degree total-credit rule; None unknown
     notes: Tuple[str, ...] = ()  # requirements the rule kinds cannot express
+    complete: bool = False  # the rules encode every requirement (R14); gates Finish
 
 
 _cache: Dict[str, Tuple[Program, ...]] = {}
@@ -262,6 +267,9 @@ def _program(raw: Any, path: Path) -> Program:
     duplicate = next((i for i in ids if ids.count(i) > 1), None)
     if duplicate:
         raise where.error(f"rules[{duplicate}].id", "is used twice")
+    complete = raw.get("complete", False)
+    if not isinstance(complete, bool):
+        raise where.error("complete", "must be true or false")
     return Program(
         id=program_id,
         name=_text(raw, "name", where),
@@ -272,6 +280,7 @@ def _program(raw: Any, path: Path) -> Program:
         rules=rules,
         total_credits=_int(raw, "total_credits", where, required=False, minimum=1),
         notes=_notes(raw, where, "notes"),
+        complete=complete,
     )
 
 
