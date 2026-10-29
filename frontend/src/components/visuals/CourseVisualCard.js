@@ -1,11 +1,10 @@
 import React, { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useOpenCourse } from '../../utils/openCourse';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import {
   courseLabel,
-  courseRoute,
   resolveGradeContext,
   termGradeRows,
 } from '../course/courseUtils';
@@ -116,7 +115,7 @@ function renderHydratedCard(type, payload, onCourse) {
  * and renders the matching shared course card in compact chat layout.
  */
 export default function CourseVisualCard({ visual, onSelectCourse }) {
-  const navigate = useNavigate();
+  const openPopup = useOpenCourse();
   const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
   const term = visual?.term || undefined;
@@ -124,8 +123,8 @@ export default function CourseVisualCard({ visual, onSelectCourse }) {
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
-    else navigate(courseRoute(identifier));
-  }, [navigate, onSelectCourse]);
+    else openPopup(identifier);
+  }, [openPopup, onSelectCourse]);
 
   if (!courseId || !isCourseVisualType(visual?.type)) return null;
 

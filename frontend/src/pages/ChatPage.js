@@ -20,6 +20,7 @@ import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
 import PlanPanel from '../components/planner/PlanPanel';
 import PlanSheet, { usePlanPlacement } from '../components/planner/PlanSheet';
 import { creditTotal, shortTerm } from '../components/planner/planFormat';
+import { useOpenCourse } from '../utils/openCourse';
 import '../styles/PlanPanel.css';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
@@ -32,6 +33,7 @@ const isConversation = (message) => message.type !== 'system' && message.type !=
 
 const ChatPageView = () => {
   const navigate = useNavigate();
+  const openCourse = useOpenCourse();
   const location = useLocation();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
   const { config, advisors } = useAppConfig();
@@ -268,7 +270,7 @@ const ChatPageView = () => {
       setPlanCourse(course);
       return;
     }
-    navigate(`/courses/${encodeURIComponent(course)}`);
+    openCourse(course);
   };
 
   const openPlan = () => {
@@ -426,7 +428,7 @@ const ChatPageView = () => {
       courseId={planCourse}
       onOpenCourse={(id) => (planPlacement === 'phone' ? handleCourseSelect(id) : setPlanCourse(id))}
       onBack={() => setPlanCourse(null)}
-      onOpenCoursePage={(id) => navigate(`/courses/${encodeURIComponent(id)}`)}
+      onOpenCoursePage={openCourse}
     />
   );
 

@@ -87,19 +87,4 @@ export function CourseMetricFromPayload({ payload, metricType, variant = 'page' 
   return <CourseMetricCard variant={variant} {...builder(ctx)} />;
 }
 
-export function CourseMetricsRow({ payload, variant = 'page' }) {
-  return (
-    <div className={`course-metrics ${variant === 'compact' ? 'course-metrics--compact' : ''}`}>
-      {Object.keys(METRIC_BUILDERS).map((metricType) => (
-        <CourseMetricFromPayload
-          key={metricType}
-          payload={payload}
-          metricType={metricType}
-          variant={variant}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default CourseMetricCard;

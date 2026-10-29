@@ -5,18 +5,18 @@ import CourseChip from './CourseChip';
 
 function LocationProbe() {
   const location = useLocation();
-  return <output data-testid="location">{location.pathname}</output>;
+  return <output data-testid="location">{`${location.pathname}${location.search}`}</output>;
 }
 
-it('opens the course detail route by default', () => {
+it('opens the course pop-up on the current page by setting ?course=', () => {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/map?category=library']}>
       <CourseChip identifier="COMP SCI 300" />
       <LocationProbe />
     </MemoryRouter>,
   );
   fireEvent.click(screen.getByRole('button', { name: /comp sci 300/i }));
-  expect(screen.getByTestId('location')).toHaveTextContent('/courses/COMP%20SCI%20300');
+  expect(screen.getByTestId('location')).toHaveTextContent('/map?category=library&course=COMP+SCI+300');
 });
 
 it('uses an explicit selection handler when supplied', () => {

@@ -15,13 +15,13 @@ import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import CanvasPage from './pages/CanvasPage';
 import EventsPage from './pages/EventsPage';
+import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
 import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
-const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 const SavedPage = lazy(() => import('./pages/SavedPage'));
 // Lazy: Leaflet stays out of the main bundle (and out of tests that never open the map).
 const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
@@ -86,19 +86,12 @@ function AppRoutes() {
           path="/courses"
           element={<Suspense fallback={pageFallback('Loading courses…')}><CoursesPage /></Suspense>}
         />
-        {/* Before the detail route, so "compare" is never read as a course id. */}
+        {/* Before the redirect, so "compare" is never read as a course id. */}
         <Route
           path="/courses/compare"
           element={<Suspense fallback={pageFallback('Loading compare…')}><CourseComparePage /></Suspense>}
         />
-        <Route
-          path="/courses/:courseIdentifier"
-          element={(
-            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading course…</div>}>
-              <CourseDetailPage />
-            </Suspense>
-          )}
-        />
+        <Route path="/courses/:courseIdentifier" element={<CourseRedirect />} />
       </Route>
 
       <Route path="*" element={<CatchAllRedirect />} />

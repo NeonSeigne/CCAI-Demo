@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import CourseMetricCard, { CourseMetricsRow } from './CourseMetricCard';
+import CourseMetricCard, { CourseMetricFromPayload } from './CourseMetricCard';
 import CourseSimilarCourses from './CourseSimilarCourses';
 import CourseSchedule from './CourseSchedule';
 import CourseInstructors from './CourseInstructors';
@@ -45,7 +45,13 @@ const payload = {
 
 describe('shared course cards', () => {
   it('renders metric cards from a hydrated payload', () => {
-    render(<CourseMetricsRow payload={payload} />);
+    render(
+      <>
+        {['course_gpa', 'course_completion_rate', 'course_a_rate', 'course_class_size'].map((type) => (
+          <CourseMetricFromPayload key={type} payload={payload} metricType={type} />
+        ))}
+      </>,
+    );
     expect(screen.getByText('Grade Point Average')).toBeInTheDocument();
     expect(screen.getByText('Completion Rate')).toBeInTheDocument();
     expect(screen.getByText('A Rate')).toBeInTheDocument();

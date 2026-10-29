@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useOpenCourse } from '../../utils/openCourse';
 import { ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
@@ -9,7 +9,6 @@ import {
   calculateCompletionRate,
   calculateGpa,
   courseLabel,
-  courseRoute,
   resolveGradeContext,
 } from '../course/courseUtils';
 
@@ -178,7 +177,7 @@ function SeatsTile({ meetings }) {
 
 /** One card per course in an answer: grades, then instructor and seats. */
 export default function CourseAnswerCard({ visual, onSelectCourse }) {
-  const navigate = useNavigate();
+  const openPopup = useOpenCourse();
   const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
   const types = visual?.types || [];
@@ -186,8 +185,8 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
-    else navigate(courseRoute(identifier));
-  }, [navigate, onSelectCourse]);
+    else openPopup(identifier);
+  }, [openPopup, onSelectCourse]);
 
   if (!courseId) return null;
   if (loading) {

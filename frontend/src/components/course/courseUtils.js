@@ -64,13 +64,6 @@ export function courseLabel(reference) {
   return `${subjects.join('/')} ${reference?.course_number ?? ''}`.trim();
 }
 
-export function courseRoute(referenceOrLabel) {
-  const label = typeof referenceOrLabel === 'string'
-    ? referenceOrLabel
-    : courseLabel(referenceOrLabel);
-  return `/courses/${encodeURIComponent(label)}`;
-}
-
 export function termGradeRows(termData, terms) {
   return Object.entries(termData || {})
     .filter(([, data]) => data?.grade_data)
