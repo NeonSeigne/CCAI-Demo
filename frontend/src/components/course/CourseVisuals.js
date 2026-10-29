@@ -13,9 +13,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { courseRoute, GRADE_KEYS } from './courseUtils';
+import { GRADE_KEYS } from './courseUtils';
 
 cytoscape.use(fcose);
+
+/** cytoscape with the fcose layout registered, for every course graph. */
+export { cytoscape };
 
 const chartColors = [
   'var(--ink-soft)',
@@ -70,9 +73,6 @@ export function CourseGradeDistribution({
     </section>
   );
 }
-
-/** @deprecated Prefer CourseGradeDistribution */
-export const GradeDistribution = CourseGradeDistribution;
 
 export function CourseTrends({ rows, variant = 'page' }) {
   const keys = ['f', 'd', 'c', 'bc', 'b', 'ab', 'a'];
@@ -137,9 +137,6 @@ export function CourseTrends({ rows, variant = 'page' }) {
     </section>
   );
 }
-
-/** @deprecated Prefer CourseTrends */
-export const TrendsChart = CourseTrends;
 
 export function CoursePrereqMap({ elements, onNavigate, variant = 'page' }) {
   const containerRef = useRef(null);
@@ -231,8 +228,3 @@ export function CoursePrereqMap({ elements, onNavigate, variant = 'page' }) {
     </section>
   );
 }
-
-/** @deprecated Prefer CoursePrereqMap */
-export const PrerequisiteGraph = CoursePrereqMap;
-
-export const getCourseHref = courseRoute;
