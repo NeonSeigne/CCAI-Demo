@@ -30,16 +30,21 @@ export function useDelayedFlag(active, delay = 300) {
  * Browse | Compare (n), a tablist whose tabs switch pages (4A, 28A). Arrow
  * keys move between the two tabs.
  */
-export function CoursesTabs({ active, count, onBrowse, onCompare }) {
+export function CoursesTabs({
+  active, count, onBrowse, onDegree, onCompare,
+}) {
   const refs = useRef({});
   const tabs = [
     { id: 'browse', label: 'Browse', onSelect: onBrowse },
+    ...(onDegree ? [{ id: 'degree', label: 'My degree', onSelect: onDegree }] : []),
     { id: 'compare', label: 'Compare', onSelect: onCompare },
   ];
   const onKeyDown = (event) => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
-    const other = event.currentTarget.dataset.tab === 'browse' ? 'compare' : 'browse';
+    const index = tabs.findIndex((tab) => tab.id === event.currentTarget.dataset.tab);
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const other = tabs[(index + step + tabs.length) % tabs.length].id;
     refs.current[other]?.focus();
   };
   return (
