@@ -3,6 +3,7 @@ import { Popover } from '@mui/material';
 import { ArrowUp, Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { useAppConfig } from '../contexts/AppConfigContext';
+import { attachmentLabel } from '../contexts/ChatContext';
 
 const EnhancedChatInput = ({ 
   onSendMessage, 
@@ -30,6 +31,9 @@ const EnhancedChatInput = ({
   onInvokeSkill,
   activeSkills = [],
   onDismissSkill,
+  // Course, event and place chips; each is sent as a line before the message.
+  attachments = [],
+  onRemoveAttachment,
 }) => {
   const { advisors, isAdvisorEnabled } = useAppConfig();
   const [inputMessage, setInputMessage] = useState(initialMessage || '');
@@ -307,6 +311,27 @@ const EnhancedChatInput = ({
             )}
           </div>
         </div>
+      )}
+
+      {attachments.length > 0 && (
+        <ul className="composer-attachments" aria-label="Attached">
+          {attachments.map((item) => {
+            const label = attachmentLabel(item);
+            return (
+              <li key={`${item.type}:${item.id}`} className="composer-skill-pill composer-attachment">
+                <span>{label}</span>
+                <button
+                  type="button"
+                  className="composer-attachment-remove"
+                  onClick={() => onRemoveAttachment?.(item)}
+                  aria-label={`Remove ${label}`}
+                >
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {/* Main Input Box */}
