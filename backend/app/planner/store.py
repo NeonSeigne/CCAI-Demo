@@ -45,6 +45,9 @@ from pymongo.errors import DuplicateKeyError
 from app.planner import edits
 
 UNDO_DEPTH = 20
+# Undo entries written since moves record their sections (R13). An entry with
+# no "v" predates that: its moves keep the course's sections when applied.
+UNDO_ENTRY_VERSION = 2
 IDEMPOTENCY_KEEP = 50
 PAST_PROPOSALS_KEEP = 20
 PROPOSAL_TTL = timedelta(hours=24)
@@ -154,6 +157,11 @@ def current_undo_label(plan: Dict[str, Any]) -> Optional[str]:
     return undo["stack"][pointer - 1]["label"] if pointer else None
 
 
+def _legacy(entry: Dict[str, Any]) -> bool:
+    """An undo entry stored before ``UNDO_ENTRY_VERSION``."""
+    return not entry.get("v")
+
+
 def current_redo_label(plan: Dict[str, Any]) -> Optional[str]:
     """``"Redo: added ECON 3010"`` for the step after the pointer, else None."""
     undo = plan.get("undo") or {}
@@ -187,7 +195,7 @@ async def commit_edit(
     edits.check_applies(plan, ops)
     after = edits.apply_ops(plan, ops)
     entry = {"ops": ops, "inverse": edits.inverse_ops(plan, ops), "label": edits.undo_label(ops),
-             "revision": plan["revision"] + 1}
+             "revision": plan["revision"] + 1, "v": UNDO_ENTRY_VERSION}
     undo = plan.get("undo") or {"stack": [], "pointer": 0}
     stack = (undo["stack"][: undo["pointer"]] + [entry])[-UNDO_DEPTH:]
     keys = plan.get("idempotency") or []
@@ -212,7 +220,7 @@ async def undo(db, user_id: str, school: str, *, expected_revision: int) -> Dict
         edits.check_applies(plan, entry["inverse"])
     except edits.EditError as exc:
         raise Refused(f"Can't undo that: {exc.message}") from exc
-    after = edits.apply_ops(plan, entry["inverse"])
+    after = edits.apply_ops(plan, entry["inverse"], keep_sections_on_move=_legacy(entry))
     fields = {"courses": after["courses"], "profile": after["profile"],
               "undo": {"stack": undo_state["stack"], "pointer": pointer - 1}}
     return await _write(db, plan, fields)
@@ -241,7 +249,7 @@ async def redo(
             await validate(plan, ops)
     except edits.EditError as exc:
         raise Refused(f"Can't redo that: {exc.message}") from exc
-    after = edits.apply_ops(plan, ops)
+    after = edits.apply_ops(plan, ops, keep_sections_on_move=_legacy(stack[pointer]))
     stack[pointer] = dict(stack[pointer], inverse=edits.inverse_ops(plan, ops), revision=plan["revision"] + 1)
     fields = {"courses": after["courses"], "profile": after["profile"],
               "undo": {"stack": stack, "pointer": pointer + 1}}

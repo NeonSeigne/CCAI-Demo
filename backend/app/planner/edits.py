@@ -221,8 +221,15 @@ def validate_ops(
 # ---------------------------------------------------------------------------
 
 
-def apply_ops(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """A new plan with ``ops`` applied in order; run ``check_applies`` first."""
+def apply_ops(
+    plan: Dict[str, Any], ops: List[Dict[str, Any]], *, keep_sections_on_move: bool = False
+) -> Dict[str, Any]:
+    """A new plan with ``ops`` applied in order; run ``check_applies`` first.
+
+    A ``move`` clears sections unless it names some. ``keep_sections_on_move``
+    keeps them instead when the op has no ``sections`` key: the pre-R13 rule,
+    for undo entries stored before moves recorded their sections.
+    """
     new = copy.deepcopy(plan)
     new.setdefault("courses", [])
     new.setdefault("profile", {})
@@ -237,7 +244,8 @@ def apply_ops(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> Dict[str, Any]
             course = _find(new, op["course"])
             course["term"] = op["to_term"]
             # Sections belong to a term: a move keeps none unless it names new ones (R13).
-            course["sections"] = list(op["sections"]) if op.get("sections") else None
+            if not (keep_sections_on_move and "sections" not in op):
+                course["sections"] = list(op["sections"]) if op.get("sections") else None
         elif kind == "swap":
             course = _find(new, op["out"])
             course["id"] = norm(op["in"])

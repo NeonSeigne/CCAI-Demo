@@ -110,6 +110,29 @@ class TermAwareTests(PlannerTestCase):
         undone = await routes.post_undo(UndoRequest(expected_revision=moved["plan"]["revision"]), self.user)
         self.assertEqual(undone["plan"]["courses"][0], {"id": "ECON 3010", "term": TERM, "sections": ["002"]})
 
+    async def test_new_undo_entries_are_versioned(self):
+        await self.edit([add("ECON 3010"), {"op": "pick_section", "course": "ECON 3010", "sections": ["002"]}])
+        await self.edit([{"op": "move", "course": "ECON 3010", "to_term": FALL}])
+        (doc,) = self.db.plans.docs
+        self.assertEqual({e["v"] for e in doc["undo"]["stack"]}, {2})
+        self.assertEqual(doc["undo"]["stack"][-1]["inverse"][0]["sections"], ["002"])
+
+    async def test_undo_entry_stored_before_versioning_keeps_sections_on_move(self):
+        await self.edit([add("ECON 3010")])
+        (doc,) = self.db.plans.docs
+        # A stack as written before moves recorded sections: no "v", and an
+        # inverse move without a "sections" key.
+        doc["courses"] = [{"id": "ECON 3010", "term": FALL, "sections": ["002"]}]
+        doc["undo"] = {"pointer": 1, "stack": [{
+            "ops": [{"op": "move", "course": "ECON 3010", "to_term": FALL}],
+            "inverse": [{"op": "move", "course": "ECON 3010", "to_term": TERM}],
+            "label": "Undo: moved ECON 3010 to Fall 2027", "revision": 1,
+        }]}
+        undone = await routes.post_undo(UndoRequest(expected_revision=1), self.user)
+        self.assertEqual(undone["plan"]["courses"], [{"id": "ECON 3010", "term": TERM, "sections": ["002"]}])
+        redone = await routes.post_redo(UndoRequest(expected_revision=2), self.user)
+        self.assertEqual(redone["plan"]["courses"], [{"id": "ECON 3010", "term": FALL, "sections": ["002"]}])
+
     async def test_move_keeps_sections_it_names(self):
         await self.edit([add("ECON 3010")])
         moved = await self.edit([{"op": "move", "course": "ECON 3010", "to_term": FALL, "sections": ["001"]}])
