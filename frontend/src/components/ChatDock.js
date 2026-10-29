@@ -18,15 +18,22 @@ const BIGGER = { peek: 'half', half: 'full', full: 'full' };
 const SMALLER = { full: 'half', half: 'peek', peek: null };
 const DRAG_THRESHOLD = 40;
 
-/** Answers that arrived while the dock was closed light the strip's dot. */
-function useUnread(open) {
-  const { messages } = useChat();
+/**
+ * Answers that arrived while the dock was closed light the strip's dot.
+ * Replies read where the dock is hidden (/home, /chat) or that belong to an
+ * earlier conversation never count.
+ */
+function useUnread(visible) {
+  const { messages, sessionEpoch } = useChat();
   const answers = messages.filter((m) => m.type === 'advisor').length;
   const [seen, setSeen] = useState(answers);
+  const epochRef = useRef(sessionEpoch);
   useEffect(() => {
-    if (open || answers < seen) setSeen(answers);
-  }, [open, answers, seen]);
-  return !open && answers > seen;
+    const replaced = epochRef.current !== sessionEpoch;
+    epochRef.current = sessionEpoch;
+    if (visible || replaced || answers < seen) setSeen(answers);
+  }, [visible, answers, seen, sessionEpoch]);
+  return !visible && answers > seen;
 }
 
 function Strip({ dock, unread, targetRef, targetClass, buttonRef }) {
@@ -57,7 +64,11 @@ function SheetHandle({ snap, onSnap, onClose }) {
       type="button"
       className="cc-dock-handle"
       aria-label={snap === 'full' ? 'Shrink' : 'Expand'}
-      onPointerDown={(event) => { start.current = event.clientY; }}
+      onPointerDown={(event) => {
+        start.current = event.clientY;
+        dragged.current = false;
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+      }}
       onPointerUp={(event) => {
         const delta = start.current == null ? 0 : event.clientY - start.current;
         start.current = null;
@@ -92,7 +103,7 @@ export default function ChatDock() {
   const panelRef = useRef(null);
   const stripButtonRef = useRef(null);
   const epochRef = useRef(chat.sessionEpoch);
-  const unread = useUnread(Boolean(dock?.open));
+  const unread = useUnread(!dock?.available || Boolean(dock?.open));
 
   const target = useDropTarget({
     id: 'chat-dock',
@@ -122,9 +133,17 @@ export default function ChatDock() {
   if (!dock?.available) return null;
   const { mode, open } = dock;
 
+  // Focus goes back to the strip, or on phones to the Ask tab (or whatever
+  // opened the sheet).
   const close = () => {
+    const back = mode === 'sheet'
+      ? [dock.askTabRef?.current, dock.openerRef?.current]
+      : [stripButtonRef.current, dock.openerRef?.current];
     dock.closeDock();
-    window.requestAnimationFrame?.(() => stripButtonRef.current?.focus());
+    window.requestAnimationFrame?.(() => {
+      const target = back.find((node) => node?.isConnected && node !== document.body);
+      target?.focus();
+    });
   };
 
   const strip = (

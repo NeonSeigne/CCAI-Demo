@@ -242,6 +242,7 @@ export default function CampusRail({
           return (
             <button
               key={item.to}
+              ref={dock.askTabRef}
               type="button"
               className={`campus-tab ${dock.open ? 'is-current' : ''}`}
               aria-expanded={dock.open}

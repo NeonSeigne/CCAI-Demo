@@ -148,9 +148,89 @@ describe('chat dock by width (D17)', () => {
     await screen.findByText('Your chats will show up here.');
   });
 
+  test('< 768px: closing the sheet returns focus to the Ask tab', async () => {
+    setWidth(375);
+    renderShell();
+    const ask = within(screen.getByRole('navigation', { name: 'Main tabs' })).getByRole('button', { name: 'Ask' });
+    ask.focus();
+    fireEvent.click(ask);
+    fireEvent.click(screen.getByRole('button', { name: 'Close Ask' }));
+    await waitFor(() => expect(ask).toHaveFocus());
+    await screen.findByText('Your chats will show up here.');
+  });
+
   test.each(['/home', '/chat'])('hidden on %s, where the page is the ask', async (path) => {
     renderShell(path);
     expect(dock()).toHaveLength(0);
+    await screen.findByText('Your chats will show up here.');
+  });
+});
+
+describe('unread dot', () => {
+  const reply = { id: 'a1', type: 'advisor', content: 'Answer' };
+  const tree = () => (
+    <MemoryRouter initialEntries={['/home']}>
+      <SavedContext.Provider value={{ count: 0 }}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route path="/home" element={<Page>Home</Page>} />
+            <Route path="/courses" element={<Page>Courses</Page>} />
+          </Route>
+        </Routes>
+      </SavedContext.Provider>
+    </MemoryRouter>
+  );
+
+  afterEach(() => {
+    mockChat.messages = [];
+    mockChat.sessionEpoch = 0;
+  });
+
+  test('a reply read on /home lights no dot on /courses; a later one does', async () => {
+    window.localStorage.setItem(DOCK_COLLAPSED_KEY, 'true');
+    const { rerender } = render(tree());
+    mockChat.messages = [reply];
+    rerender(tree());
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Courses' }));
+    expect(screen.getByRole('button', { name: 'Open Ask' })).toBeInTheDocument();
+    expect(screen.queryByText('New reply')).not.toBeInTheDocument();
+
+    mockChat.messages = [reply, { ...reply, id: 'a2' }];
+    rerender(tree());
+    expect(screen.getByText('New reply')).toBeInTheDocument();
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test('a new conversation clears the dot', async () => {
+    window.localStorage.setItem(DOCK_COLLAPSED_KEY, 'true');
+    const { rerender } = renderShell();
+    mockChat.messages = [reply];
+    rerender(
+      <MemoryRouter initialEntries={['/courses']}>
+        <SavedContext.Provider value={{ count: 0 }}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/courses" element={<Page>Courses</Page>} />
+            </Route>
+          </Routes>
+        </SavedContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('New reply')).toBeInTheDocument();
+    mockChat.messages = [reply, { ...reply, id: 'a2' }];
+    mockChat.sessionEpoch = 1;
+    rerender(
+      <MemoryRouter initialEntries={['/courses']}>
+        <SavedContext.Provider value={{ count: 0 }}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/courses" element={<Page>Courses</Page>} />
+            </Route>
+          </Routes>
+        </SavedContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText('New reply')).not.toBeInTheDocument();
     await screen.findByText('Your chats will show up here.');
   });
 });
@@ -165,6 +245,8 @@ describe('pop-ups in the page column (R15)', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Course' });
     expect(dialog).toHaveAttribute('aria-modal', 'false');
     expect(document.querySelector('.cc-shell-page')).toContainElement(dialog);
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    expect(document.querySelector('.cc-shell-page').style.overflow).toBe('');
     expect(screen.getByTestId('page')).toHaveAttribute('aria-hidden', 'true');
 
     const rail = screen.getByRole('navigation', { name: 'Main' });
@@ -181,5 +263,6 @@ describe('pop-ups in the page column (R15)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(trigger).toHaveFocus());
     expect(screen.getByTestId('page')).not.toHaveAttribute('aria-hidden');
+    expect(document.documentElement.style.overflow).toBe('');
   });
 });

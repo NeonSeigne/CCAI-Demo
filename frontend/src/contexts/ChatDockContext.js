@@ -1,4 +1,6 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  createContext, useCallback, useContext, useMemo, useRef, useState,
+} from 'react';
 import useMediaMatch from '../hooks/useMediaMatch';
 
 /**
@@ -46,6 +48,10 @@ export function ChatDockProvider({ available = true, children }) {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [snap, setSnap] = useState('half');
   const [focusRequest, setFocusRequest] = useState(0);
+  // The phone tab bar's Ask button, and whatever had focus when the dock
+  // opened: where focus goes back when the drawer or sheet closes.
+  const askTabRef = useRef(null);
+  const openerRef = useRef(null);
 
   const open = available && (mode === 'docked' ? !collapsed : overlayOpen);
 
@@ -59,6 +65,7 @@ export function ChatDockProvider({ available = true, children }) {
   }, [mode]);
 
   const openDock = useCallback(() => {
+    if (typeof document !== 'undefined') openerRef.current = document.activeElement;
     setOpen(true);
     if (mode === 'sheet') setSnap((current) => (current === 'peek' ? 'half' : current));
   }, [mode, setOpen]);
@@ -79,6 +86,8 @@ export function ChatDockProvider({ available = true, children }) {
     setSnap,
     focusRequest,
     requestComposerFocus,
+    askTabRef,
+    openerRef,
   }), [available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus]);
 
   return <ChatDockContext.Provider value={value}>{children}</ChatDockContext.Provider>;
