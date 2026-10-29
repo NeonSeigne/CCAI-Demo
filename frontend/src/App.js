@@ -1,6 +1,8 @@
 import React, { Suspense, lazy } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import {
+  BrowserRouter, Navigate, Outlet, Route, Routes,
+} from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AppConfigProvider } from './contexts/AppConfigContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -28,6 +30,9 @@ const SavedPage = lazy(() => import('./pages/SavedPage'));
 const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
 const CoursesPage = lazy(() => import('./pages/CoursesPage'));
 const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
+// One course pop-up host for every signed-in page (eng R8); cytoscape and
+// recharts load with it, not with the first page.
+const CoursePopupHost = lazy(() => import('./components/course/CoursePopupHost'));
 
 const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
 
@@ -53,7 +58,17 @@ function CatchAllRedirect() {
   return <Navigate to={isAuthenticated ? '/home' : '/'} replace />;
 }
 
-function AppRoutes() {
+/** The app shell with the course pop-up host, which reads `?course=` on any page. */
+export function ShellWithPopups() {
+  return (
+    <AppShell>
+      <Outlet />
+      <Suspense fallback={null}><CoursePopupHost /></Suspense>
+    </AppShell>
+  );
+}
+
+export function AppRoutes() {
   return (
     <Routes>
       <Route element={<PublicOnlyRoute />}>
@@ -62,7 +77,7 @@ function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppShell />}>
+        <Route element={<ShellWithPopups />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<ChatSearchPage />} />

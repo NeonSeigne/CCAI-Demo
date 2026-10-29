@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  fireEvent, render, screen, waitFor,
+  act, fireEvent, render, renderHook, screen, waitFor,
 } from '@testing-library/react';
 import {
   MemoryRouter, Route, Routes, useLocation,
 } from 'react-router-dom';
-import CoursePopupHost, { requirementLabels } from './CoursePopupHost';
+import CoursePopupHost, { requirementLabels, useCloseOnce } from './CoursePopupHost';
 import CourseChip from '../visuals/CourseChip';
 import CourseRedirect from './CourseRedirect';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
@@ -61,6 +61,18 @@ it('redirects /courses/:id to /courses?course=ID', () => {
     </MemoryRouter>,
   );
   expect(screen.getByTestId('location')).toHaveTextContent('/courses?course=COMP+SCI+400');
+});
+
+it('closes once per open pop-up, however many close events arrive', () => {
+  const close = jest.fn();
+  const { result, rerender } = renderHook(({ value }) => useCloseOnce(value, close), {
+    initialProps: { value: 'COMP SCI 400' },
+  });
+  act(() => { result.current(); result.current(); result.current(); });
+  expect(close).toHaveBeenCalledTimes(1);
+  rerender({ value: 'MATH 240' });
+  act(() => { result.current(); });
+  expect(close).toHaveBeenCalledTimes(2);
 });
 
 it("labels requirement chips from the student's programs", () => {

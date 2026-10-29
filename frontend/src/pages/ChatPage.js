@@ -30,6 +30,9 @@ import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 
+/** location.state keys that carry a one-shot intent from another page. */
+const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
+
 const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
 
 const ChatPageView = () => {
@@ -218,7 +221,8 @@ const ChatPageView = () => {
   useEffect(() => {
     if (!authToken || intentConsumedRef.current) return;
     const intent = location.state;
-    if (!intent || (typeof intent === 'object' && Object.keys(intent).length === 0)) {
+    // Only the known intent keys; other state (a pop-up's history marker) is not an intent.
+    if (!intent || typeof intent !== 'object' || !INTENT_KEYS.some((key) => intent[key])) {
       return;
     }
 
@@ -242,7 +246,8 @@ const ChatPageView = () => {
           setComposerMessage(intent.pendingPrompt);
         }
       } finally {
-        navigate('/chat', { replace: true, state: null });
+        // Keep the query (?course= keeps its pop-up open).
+        navigate({ pathname: '/chat', search: location.search }, { replace: true, state: null });
       }
     };
 

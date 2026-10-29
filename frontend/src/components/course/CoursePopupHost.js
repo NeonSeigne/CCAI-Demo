@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AppDialog from '../AppDialog';
 import CoursePopup from './CoursePopup';
-import { useChat } from '../../contexts/ChatContext';
 import { usePlanner } from '../../contexts/PlannerContext';
+import { usePageColumn } from '../shell/PageColumnContext';
 import { useToast } from '../Toast';
+import useAsk from '../../hooks/useAsk';
 import { COURSE_PARAM, useCloseCourse, useOpenCourse } from '../../utils/openCourse';
 
 /** "Comp Sci B.S. · Core" for each rule of the student's programs that lists `id`. */
@@ -21,20 +22,33 @@ export function requirementLabels(id, programs, programIds) {
 }
 
 /**
- * Reads `?course=ID` on any route and shows the course pop-up (eng R8).
- *
- * TODO(tab-workspaces, Lane D): render inside the page-column container
- * (AppDialog `container`, between the rail and the chat dock, D3) once that
- * shell lands; for now it is a plain AppDialog over the whole window.
+ * `close` that runs once per open value: Escape, the scrim and the Close
+ * button can all fire before the location changes, and a second
+ * `navigate(-1)` would leave the page.
+ */
+export function useCloseOnce(value, close) {
+  const closingRef = useRef(false);
+  useEffect(() => { closingRef.current = false; }, [value]);
+  return useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    close();
+  }, [close]);
+}
+
+/**
+ * Reads `?course=ID` on any signed-in route and shows the course pop-up over
+ * the page column, so the rail and the chat dock stay live (eng R8, R15, D3).
  */
 export default function CoursePopupHost() {
   const [params] = useSearchParams();
   const courseId = (params.get(COURSE_PARAM) || '').trim();
-  const closeCourse = useCloseCourse();
+  const close = useCloseOnce(courseId, useCloseCourse());
   const openCourse = useOpenCourse();
-  const chat = useChat();
+  const ask = useAsk();
   const planner = usePlanner();
   const toast = useToast();
+  const pageColumn = usePageColumn();
 
   const plan = planner?.view?.plan || null;
   const term = plan?.term || null;
@@ -42,6 +56,10 @@ export default function CoursePopupHost() {
     () => requirementLabels(courseId, planner?.programs, plan?.profile?.program_ids),
     [courseId, planner?.programs, plan?.profile?.program_ids],
   );
+
+  useEffect(() => {
+    if (courseId) planner?.ensureLoaded?.();
+  }, [courseId, planner]);
 
   if (!courseId) return null;
 
@@ -58,7 +76,8 @@ export default function CoursePopupHost() {
   return (
     <AppDialog
       open
-      onClose={closeCourse}
+      container={pageColumn || undefined}
+      onClose={close}
       maxWidth={false}
       aria-labelledby="course-popup-title"
       slotProps={{ paper: { className: 'pop-dialog-paper' } }}
@@ -69,8 +88,8 @@ export default function CoursePopupHost() {
         plan={plan ? { revision: plan.revision } : null}
         requirements={requirements}
         onAdd={onAdd}
-        onAsk={chat?.attach ? (item) => chat.attach(item) : undefined}
-        onClose={closeCourse}
+        onAsk={ask}
+        onClose={close}
         onOpenCourse={openCourse}
         titleId="course-popup-title"
       />
