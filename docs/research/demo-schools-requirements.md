@@ -28,8 +28,10 @@ All in `schools/<school>/programs/`. Each was drafted from its source, then chec
 | CU Boulder | B.A. | B.A., Comprehensive track | Ecology & Evolutionary Biology B.A. | B.S. | B.S., 128 cr |
 | UVA | B.A. | B.A., General Option | B.A. | B.S. (Engineering) | B.S., 131 cr (class of 2029 sheet) |
 
+UVA also has the Batten School's Master of Public Policy (`mpp.yaml`, type `graduate`, 49 credits), from [its program page](https://batten.virginia.edu/programs/graduate-programs/mpp/): the 11 core courses are rules; the Foundation Skills Workshop, 15 elective credits and the summer internship are notes.
+
 - **UW and CU:** total credits are set (120, or 128 for engineering).
-- **UVA:** only Mechanical Engineering sets total credits (131). The other UVA files don't, because no readable source states the degree total, so their credit grid has no "Other credit" block.
+- **UVA:** only Mechanical Engineering (131) and the MPP (49) set total credits. The other UVA files don't, because no readable source states the degree total, so their credit grid has no "Other credit" block.
 
 ## Open items before the demo
 

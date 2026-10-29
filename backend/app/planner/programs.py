@@ -36,7 +36,7 @@ import yaml
 
 from app.config import SCHOOLS_DIR
 
-PROGRAM_TYPES = ("major", "minor", "certificate")
+PROGRAM_TYPES = ("major", "minor", "certificate", "graduate")
 RULE_KINDS = ("all_of", "n_of", "credits_from", "level", "one_of_groups")
 
 PROGRAM_FIELDS = {

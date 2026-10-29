@@ -26,7 +26,7 @@ returns `known="unavailable"` with a reason.
 ```yaml
 id: econ-ba
 name: Economics B.A.
-type: major            # major | minor | certificate
+type: major            # major | minor | certificate | graduate
 catalog_year: 2026
 source_url: https://...
 checked_on: 2026-10-28

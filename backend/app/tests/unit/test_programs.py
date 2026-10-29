@@ -168,6 +168,13 @@ class ShippedProgramsTest(unittest.TestCase):
         self.assertEqual(rules["micro-theory"].min_grade, "C+")
         self.assertEqual((rules["electives-4000"].min_level, rules["electives-4000"].n), (4000, 2))
         self.assertTrue(program.notes)
+
+    def test_uva_mpp_loads_as_graduate(self):
+        program = programs.get_program("uva", "mpp")
+        self.assertEqual(program.type, "graduate")
+        self.assertEqual(program.total_credits, 49)
+        core = [c for r in program.rules for c in r.courses]
+        self.assertEqual(len(core), 11)
         self.assertFalse(program.complete)
 
     def test_uw_econ_loads(self):

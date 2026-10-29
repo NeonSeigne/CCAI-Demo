@@ -1,0 +1,39 @@
+# Drafted from https://batten.virginia.edu/programs/graduate-programs/mpp/ ; needs a human check against the official page before the demo.
+# The two-year, full-time Master of Public Policy from the Frank Batten School of Leadership and Public Policy.
+# The accelerated MPP and combination degrees have their own pages and are not covered here.
+id: mpp
+name: Master of Public Policy
+type: graduate
+catalog_year: 2026
+source_url: https://batten.virginia.edu/programs/graduate-programs/mpp/
+checked_on: 2026-10-29
+total_credits: 49
+complete: false  # the Foundation Skills Workshop, 15 elective credits and the summer internship are notes only
+rules:
+  - id: economics
+    title: Economics of public policy
+    kind: all_of
+    courses: [LPPA 6100, LPPA 7110]
+  - id: research-methods
+    title: Research methods and data analysis
+    kind: all_of
+    courses: [LPPA 6150, LPPA 7160]
+  - id: leadership
+    title: Leadership
+    kind: all_of
+    courses: [LPPL 6050, LPPL 7025, LPPL 7410]
+  - id: policy-analysis
+    title: Policy analysis and politics
+    kind: all_of
+    courses: [LPPP 6250, LPPP 6350]
+  - id: applied-policy-project
+    title: Applied Policy Project
+    kind: all_of
+    courses: [LPPP 7710, LPPP 7750]
+    notes:
+      - The capstone; students produce a professional policy report for a real client under faculty supervision.
+notes:
+  - Eleven three-credit core courses (33 credits), a one-credit Foundation Skills Workshop and 15 elective credits make 49.
+  - "Electives: three-credit courses, two-credit policy clinics and one-credit short courses, at Batten or elsewhere at UVA, pending approval from Batten's Director of Academic Program."
+  - A 400-hour, policy-based summer internship between the first and second year is required.
+  - The Foundation Skills Workshop's course number isn't on the source page.
