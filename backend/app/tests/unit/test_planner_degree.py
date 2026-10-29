@@ -16,6 +16,7 @@ SET_ECON = {"op": "set_profile", "program_ids": ["econ-ba"], "completed": [{"id"
 class DegreeBoardTests(PlannerTestCase):
     async def test_board_has_every_planned_term_completed_courses_and_rules(self):
         await self.edit([SET_ECON, add("ECON 3010"), add("ECON 3020", FALL)])
+        self.calls.clear()
         with patch.dict(FALL_FACTS, {"ECON 3020": course("ECON 3020", avg_gpa=2.9, harder=True)}):
             body = await routes.get_degree(self.user)
         self.assertEqual(body["revision"], 1)
@@ -33,7 +34,8 @@ class DegreeBoardTests(PlannerTestCase):
         self.assertEqual((rule["rule_id"], rule["planned"], rule["needed"]), ("el", 2, 4))
         # Each course was looked up in its own term, all in one batch.
         self.assertIn((("ECON 3020",), FALL), self.calls)
-        self.assertNotIn((("ECON 3020",), TERM), self.calls[-3:])
+        self.assertNotIn((("ECON 3020",), TERM), self.calls)
+        self.assertEqual({ids for ids, term in self.calls if term == TERM}, {("ECON 3010",), ("ECON 2010",)})
 
     async def test_slow_term_misses_the_shared_deadline_without_holding_the_others(self):
         await self.edit([add("ECON 3010"), add("ECON 3020", FALL)])

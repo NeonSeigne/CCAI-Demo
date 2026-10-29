@@ -54,6 +54,9 @@ class PlannerTestCase(unittest.IsolatedAsyncioTestCase):
             patch.object(service, "get_database", return_value=self.db),
             patch.object(service, "facts_provider", term_provider(self.calls)),
             patch.object(service, "default_term", return_value=TERM),
+            # Both terms covered, whatever SCHOOL the suite runs with; the
+            # uncovered path has its own test (test_planner_degree).
+            patch.object(service, "covered_terms", return_value=[TERM, FALL]),
             patch.object(service, "credit_limits", return_value={"min": 12, "max": 18}),
             patch.object(service, "programs_for", side_effect=lambda school, ids: [ECON] if "econ-ba" in ids else []),
             patch.object(routes, "_school", return_value=SCHOOL),
