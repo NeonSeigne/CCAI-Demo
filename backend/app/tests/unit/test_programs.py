@@ -173,8 +173,9 @@ class ShippedProgramsTest(unittest.TestCase):
         program = programs.get_program("uva", "mpp")
         self.assertEqual(program.type, "graduate")
         self.assertEqual(program.total_credits, 49)
-        core = [c for r in program.rules for c in r.courses]
-        self.assertEqual(len(core), 11)
+        rules = {r.id: r for r in program.rules}
+        self.assertEqual(rules["applied-policy-project-1"].courses, ("LPPP 7700", "LPPP 7710"))
+        self.assertEqual(rules["leadership"].courses, ("LPPL 6050", "LPPL 7025", "LPPL 7410"))
         self.assertFalse(program.complete)
 
     def test_uw_econ_loads(self):

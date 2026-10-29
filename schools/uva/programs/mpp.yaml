@@ -26,12 +26,20 @@ rules:
     title: Policy analysis and politics
     kind: all_of
     courses: [LPPP 6250, LPPP 6350]
-  - id: applied-policy-project
-    title: Applied Policy Project
+  - id: applied-policy-project-1
+    title: Applied Policy Project I
+    kind: n_of
+    n: 1
+    courses: [LPPP 7700, LPPP 7710]
+    notes:
+      - The program page lists LPPP 7710; UVA's Fall 2026 class schedule (theCourseForum snapshot) lists Applied Policy Project I as LPPP 7700, with 7 sections. Either counts here.
+  - id: applied-policy-project-2
+    title: Applied Policy Project II
     kind: all_of
-    courses: [LPPP 7710, LPPP 7750]
+    courses: [LPPP 7750]
     notes:
       - The capstone; students produce a professional policy report for a real client under faculty supervision.
+      - LPPP 7750 isn't in UVA's course data snapshot, so it shows without a title, grades or sections.
 notes:
   - Eleven three-credit core courses (33 credits), a one-credit Foundation Skills Workshop and 15 elective credits make 49.
   - "Electives: three-credit courses, two-credit policy clinics and one-credit short courses, at Batten or elsewhere at UVA, pending approval from Batten's Director of Academic Program."
