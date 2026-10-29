@@ -62,3 +62,21 @@ test('opens the advisor menu and selects an exact responder', () => {
   fireEvent.click(screen.getByRole('button', { name: /Academic Planner/ }));
   expect(onSelectedAdvisorIdsChange).toHaveBeenCalledWith(['academic_planner']);
 });
+
+test('shows attached items as chips with a remove button', () => {
+  const onRemoveAttachment = jest.fn();
+  const course = { type: 'course', id: 'ECON 3720', title: 'Intermediate Macroeconomics' };
+  render(
+    <EnhancedChatInput
+      {...defaultProps}
+      compact
+      attachments={[course, { type: 'place', id: 'pl-2', title: 'Memorial Library' }]}
+      onRemoveAttachment={onRemoveAttachment}
+    />,
+  );
+
+  expect(screen.getByText('ECON 3720 Intermediate Macroeconomics')).toBeInTheDocument();
+  expect(screen.getByText('Memorial Library')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Remove ECON 3720 Intermediate Macroeconomics' }));
+  expect(onRemoveAttachment).toHaveBeenCalledWith(course);
+});

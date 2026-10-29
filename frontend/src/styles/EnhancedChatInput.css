@@ -378,6 +378,44 @@
   background: var(--paper-sunken);
 }
 
+.composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0 4px;
+  list-style: none;
+}
+
+.composer-attachment {
+  cursor: default;
+  gap: 6px;
+  padding: 4px 6px 4px 12px;
+}
+
+.composer-attachment:hover {
+  background: var(--paper);
+}
+
+.composer-attachment-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 9999px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.composer-attachment-remove:hover {
+  background: var(--paper-sunken);
+  color: var(--ink);
+}
+
 .advisor-menu-button {
   display: inline-flex;
   align-items: center;

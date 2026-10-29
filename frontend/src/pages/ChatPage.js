@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 
@@ -16,6 +16,7 @@ import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanner } from '../contexts/PlannerContext';
+import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
 import PlanPanel from '../components/planner/PlanPanel';
 import PlanSheet, { usePlanPlacement } from '../components/planner/PlanSheet';
 import { creditTotal, shortTerm } from '../components/planner/planFormat';
@@ -26,18 +27,29 @@ import '../styles/ChatFrame.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
 import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
-import { parseServerTime } from '../utils/serverTime';
 
-const ChatPage = () => {
+const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
+
+const ChatPageView = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
   const { config, advisors } = useAppConfig();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [thinkingAdvisors, setThinkingAdvisors] = useState([]);
-  const [collectedInfo, setCollectedInfo] = useState({});
+  const chat = useChat();
+  const {
+    messages,
+    isLoading,
+    thinkingAdvisors,
+    sessionId: currentSessionId,
+    sessionTitle: currentSessionTitle,
+    isLoadingSession,
+    sessionsVersion,
+    sessionEpoch,
+    uploadedDocuments,
+    groupViews,
+    synthesizingGroups,
+  } = chat;
   const [replyingTo, setReplyingTo] = useState(null);
   const [llmConfig, setLlmConfig] = useState({
     mode: 'uniform',
@@ -48,29 +60,16 @@ const ChatPage = () => {
   const [availableBackends, setAvailableBackends] = useState([]);
   const [isProviderSwitching, setIsProviderSwitching] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [uploadedDocuments, setUploadedDocuments] = useState([]);
   const [composerMessage, setComposerMessage] = useState('');
   const [selectedAdvisorIds, setSelectedAdvisorIds] = useState(null);
-  const [chatPhase, setChatPhase] = useState('landing');
+  // Coming back to a conversation in progress opens it active.
+  const [chatPhase, setChatPhase] = useState(() => (messages.some(isConversation) ? 'active' : 'landing'));
   const messagesEndRef = useRef(null);
   const intentConsumedRef = useRef(false);
   const phaseTimerRef = useRef(null);
+  const seenEpochRef = useRef(sessionEpoch);
 
-  const [currentSessionId, setCurrentSessionId] = useState(null);
-  const [currentSessionTitle, setCurrentSessionTitle] = useState('');
-  const [isSavingSession, setIsSavingSession] = useState(false);
-  const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
-  // Campus Companion answers as one voice: advisor replies are always combined.
-  const responseMode = 'aggregated';
-
-  // Per-exchange view override: { [responseGroupId]: 'panel' | 'aggregated' }.
-  // Lets the user flip an individual exchange between the advisor panel and
-  // the single combined answer, independently of the global default.
-  const [groupViews, setGroupViews] = useState({});
-  // Group ids currently running an on-demand synthesis pass (for lag UX).
-  const [synthesizingGroups, setSynthesizingGroups] = useState({});
   const skipAutoScrollRef = useRef(false);
 
   // Semester plan (design 3A, 5A, 15A, 16A): the Plan toggle opens the plan in
@@ -81,7 +80,9 @@ const ChatPage = () => {
   const [planSnap, setPlanSnap] = useState('half');
   const [planCourse, setPlanCourse] = useState(null);
   const planToggleRef = useRef(null);
-  const lastProposalRef = useRef(null);
+  // undefined until mount: a proposal already in a conversation the page
+  // reopens was handled when it arrived.
+  const lastProposalRef = useRef(undefined);
 
 
 
@@ -146,32 +147,26 @@ const ChatPage = () => {
           setLlmConfig(payload);
         }
 
-        setMessages(prev => [...prev, {
-          id: generateMessageId(),
+        chat.appendMessage({
           type: 'system',
           content: `✨ Switched to ${label}. Your advisors are now ready with the new configuration.`,
-          timestamp: new Date()
-        }]);
+        });
         return true;
       }
 
       const error = await response.json().catch(() => ({}));
       console.error('Failed to switch provider:', error);
-      setMessages(prev => [...prev, {
-        id: generateMessageId(),
+      chat.appendMessage({
         type: 'error',
         content: `Failed to switch to ${label}: ${error.detail || 'Unknown error'}`,
-        timestamp: new Date()
-      }]);
+      });
       return false;
     } catch (error) {
       console.error('Error switching provider:', error);
-      setMessages(prev => [...prev, {
-        id: generateMessageId(),
+      chat.appendMessage({
         type: 'error',
         content: `Error switching to ${label}. Please try again.`,
-        timestamp: new Date()
-      }]);
+      });
       return false;
     } finally {
       setIsProviderSwitching(false);
@@ -187,202 +182,35 @@ const ChatPage = () => {
     return ok;
   };
 
-  const generateMessageId = () => {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-  };
+  // newChat / openSession replaced the conversation: reset the composer and
+  // land or stay active to match what was loaded. Before paint, so the
+  // welcome state never flashes over loaded messages.
+  useLayoutEffect(() => {
+    if (seenEpochRef.current === sessionEpoch) return;
+    seenEpochRef.current = sessionEpoch;
+    setComposerMessage('');
+    setSelectedAdvisorIds(null);
+    setReplyingTo(null);
+    setChatPhase(messages.some(isConversation) ? 'active' : 'landing');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionEpoch]);
 
-  const createNewSession = async (firstMessage = null) => {
-    try {
-      const title = firstMessage 
-        ? `${firstMessage.substring(0, 30)}...` 
-        : `Chat ${new Date().toLocaleDateString()}`;
+  const loadChatSession = (sessionId) => chat.openSession(sessionId);
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ title })
-      });
-
-      if (response.ok) {
-        const newSession = await response.json();
-        
-        // Update state immediately
-        setCurrentSessionId(newSession.id);
-        setCurrentSessionTitle(newSession.title);
-        
-        console.log('MongoDB session created:', newSession.id);
-        return newSession.id;
-      } else {
-        console.error('Failed to create new session');
-        return null;
-      }
-    } catch (error) {
-      console.error('Error creating new session:', error);
-      return null;
-    }
-  };
-
-
-// Load an existing chat session
-const loadChatSession = async (sessionId) => {
-  if (!sessionId || isLoadingSession) return;
-  setIsLoadingSession(true);
-  try {
-    // Use the new switch-chat endpoint that syncs context
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/switch-chat`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        chat_session_id: sessionId
-      })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      if (result.status === 'success') {
-        setCurrentSessionId(sessionId);
-        setCurrentSessionTitle(''); // Will be set from MongoDB data
-        
-        // Load the messages from the synced context
-        const formattedMessages = result.context.messages.map(msg => ({
-          ...msg,
-          timestamp: parseServerTime(msg.timestamp),
-          persona_id: msg.persona_id || msg.advisor || msg.advisorId,
-          responseGroupId: msg.response_group_id || null,
-        }));
-        
-        setMessages(formattedMessages);
-        setComposerMessage('');
-        setSelectedAdvisorIds(null);
-        setChatPhase(formattedMessages.some(
-          (message) => message.type !== 'system' && message.type !== 'document_upload',
-        ) ? 'active' : 'landing');
-        setReplyingTo(null);
-        setThinkingAdvisors([]);
-        
-        // Also get the session title from MongoDB
-        const sessionResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${sessionId}`, {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          setCurrentSessionTitle(sessionData.title);
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error loading session:', error);
-  } finally {
-    setIsLoadingSession(false);
-  }
-};
-
-// Update session title based on first message
-const updateSessionTitle = async (sessionId, newTitle) => {
-  if (!sessionId || !authToken) return;
-
-  try {
-    await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${sessionId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ title: newTitle })
-    });
-    setCurrentSessionTitle(newTitle);
-  } catch (error) {
-    console.error('Error updating session title:', error);
-  }
-};
-
-// Handle selecting a session from sidebar
-const handleSelectSession = async (sessionId) => {
-  if (sessionId === currentSessionId) return;
-  await loadChatSession(sessionId);
-};
-
-// Handle creating new chat from sidebar
-const handleNewChat = async (sessionId = null) => {
-  if (sessionId) {
-    // Loading existing session
+  // Handle selecting a session from sidebar
+  const handleSelectSession = async (sessionId) => {
+    if (sessionId === currentSessionId) return;
     await loadChatSession(sessionId);
-    return; // Return early for existing session loading
-  } else {
-    // Creating completely new chat with fresh context
-    try {
-      // Step 1: Reset memory session
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/new-chat`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: `Chat ${new Date().toLocaleDateString()}`
-        })
-      });
+  };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.status === 'success') {
-          // Step 2: Immediately create MongoDB session
-          const newSessionId = await createNewSession(`Chat ${new Date().toLocaleDateString()}`);
-          
-          if (newSessionId) {
-            // Reset all state to fresh with the new session
-            setMessages([]);
-            setComposerMessage('');
-            setSelectedAdvisorIds(null);
-            setChatPhase('landing');
-            setCurrentSessionId(newSessionId); // Set the new session ID immediately
-            setCurrentSessionTitle(`Chat ${new Date().toLocaleDateString()}`);
-            setReplyingTo(null);
-            setThinkingAdvisors([]);
-            setUploadedDocuments([]);
-            
-            console.log('New chat created with MongoDB session:', newSessionId);
-            
-            // Wait a bit to ensure state has updated
-            await new Promise(resolve => setTimeout(resolve, 100));
-            return newSessionId; // Return the session ID for the sidebar
-          } else {
-            throw new Error('Failed to create MongoDB session');
-          }
-        } else {
-          throw new Error('Failed to create memory session');
-        }
-      } else {
-        throw new Error(`HTTP error: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error creating new chat:', error);
-      
-      // Fallback to local reset
-      setMessages([]);
-      setComposerMessage('');
-      setSelectedAdvisorIds(null);
-      setChatPhase('landing');
-      setCurrentSessionId(null);
-      setCurrentSessionTitle('');
-      setReplyingTo(null);
-      setThinkingAdvisors([]);
-      setUploadedDocuments([]);
-      
-      // Re-throw the error so the sidebar knows something went wrong
-      throw error;
+  // Handle creating new chat from sidebar
+  const handleNewChat = async (sessionId = null) => {
+    if (sessionId) {
+      await loadChatSession(sessionId);
+      return;
     }
-  }
-};
+    return chat.newChat();
+  };
 
   // Consume one-shot navigation intent from Home (session resume / new chat / prompt).
   useEffect(() => {
@@ -396,10 +224,11 @@ const handleNewChat = async (sessionId = null) => {
     const applyIntent = async () => {
       try {
         if (intent.pendingPrompt && intent.autoSend) {
-          // Asked from the home page: send it straight away. With no current
-          // session, sending creates one titled after the question, so a
-          // separate new-chat step would only leave an empty session behind.
-          await handleSendMessage(intent.pendingPrompt);
+          // Asked from the home page: send it straight away in a fresh
+          // conversation. Sending creates a session titled after the
+          // question, so a separate new-chat step would only leave an empty
+          // session behind.
+          await handleSendMessage(intent.pendingPrompt, null, { fresh: true });
           return;
         }
         if (intent.sessionId) {
@@ -423,47 +252,13 @@ const handleNewChat = async (sessionId = null) => {
   
 
   const handleFileUploaded = async (file, uploadResult) => {
-    // FIXED: Use the upload result data for better messaging
-    const documentMessage = {
-      id: generateMessageId(),
-      type: 'document_upload',
-      content: `Document uploaded: ${uploadResult.filename || file.name} (${uploadResult.chunks_created || 0} sections processed)`,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, documentMessage]);
-    setUploadedDocuments(prev => [...prev, file]);
-    
-    // FIXED: Log document access info
+    chat.addDocument(file, uploadResult);
     console.log('File uploaded to session:', {
       filename: uploadResult.filename,
       session_id: uploadResult.session_id,
       chat_session_id: uploadResult.chat_session_id,
       current_session_id: currentSessionId
     });
-    
-  };
-
-
-  // Reusable streaming call to /chat-stream. Lifted to component scope so the
-  // on-demand "generalize" action can reuse it too.
-  const streamChat = async (userInput, sessionId = null, activeAdvisorIds = null) => {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/chat-stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({
-        user_input: userInput,
-        response_length: 'medium',
-        chat_session_id: sessionId || currentSessionId,
-        response_mode: responseMode,
-        active_advisors: activeAdvisorIds,
-      }),
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return response;
   };
 
   const handleCourseSelect = (identifier) => {
@@ -489,7 +284,7 @@ const handleNewChat = async (sessionId = null) => {
     window.requestAnimationFrame?.(() => planToggleRef.current?.focus());
   };
 
-  const handleSendMessage = async (inputMessage, activeAdvisorIds = null) => {
+  const handleSendMessage = async (inputMessage, activeAdvisorIds = null, options) => {
     if (!inputMessage.trim()) return;
 
     if (!hasConversationMessages) {
@@ -498,232 +293,10 @@ const handleNewChat = async (sessionId = null) => {
       phaseTimerRef.current = window.setTimeout(() => setChatPhase('active'), 280);
     }
 
-    // Create user message
-    const userMessage = {
-      id: generateMessageId(),
-      type: 'user',
-      content: inputMessage,
-      timestamp: new Date()
-    };
-
-    // Add to local state immediately
-    setMessages(prev => [...prev, userMessage]);
-
-    // Create new session if we don't have one
-    let sessionId = currentSessionId;
-    if (!sessionId) {
-      sessionId = await createNewSession(inputMessage);
-      if (!sessionId) {
-        console.error('Failed to create session');
-        return;
-      }
-    }
-
-    // Update session title if this is the first message and title is generic
-    if (messages.length === 0 && currentSessionTitle.includes('Chat ')) {
-      const newTitle = inputMessage.length > 30 
-        ? `${inputMessage.substring(0, 30)}...` 
-        : inputMessage;
-      await updateSessionTitle(sessionId, newTitle);
-    }
-
-    // Set loading state
-    setIsLoading(true);
-    setThinkingAdvisors(['system']);
-
-    const aggregatedMode = responseMode === 'aggregated';
-    const responseGroupId = 'grp_' + generateMessageId();
-    // Always collect this exchange's advisor responses so the panel is stored
-    // even when aggregated mode is the default — the user can toggle to it.
-    const collectedAdvisorResponses = [];
-
-    try {
-      const response = await streamChat(inputMessage, sessionId, activeAdvisorIds);
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let refreshedForUserMessage = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          const payload = JSON.parse(line);
-
-          if (!refreshedForUserMessage) {
-            setSidebarRefreshTrigger(prev => prev + 1);
-            refreshedForUserMessage = true;
-          }
-
-          const d = payload.data || {};
-
-          switch (payload.type) {
-            case 'advisor': {
-              const msg = {
-                id: generateMessageId(),
-                type: 'advisor',
-                persona_id: d.persona_id,
-                content: d.content,
-                timestamp: new Date(),
-                advisorName: d.persona_name || d.persona_id,
-                used_documents: d.used_documents || false,
-                document_chunks_used: d.document_chunks_used || 0,
-                responseGroupId,
-                is_aggregated: d.is_aggregated || false,
-                source_personas: d.source_personas || null,
-                visuals: d.visuals || null,
-              };
-              collectedAdvisorResponses.push(msg);
-              setThinkingAdvisors(prev => prev.filter(a => a !== d.persona_id));
-              if (!aggregatedMode || msg.is_aggregated) {
-                setMessages(prev => [...prev, msg]);
-              }
-              break;
-            }
-            case 'clarification':
-              setMessages(prev => [...prev, {
-                id: generateMessageId(),
-                type: 'clarification',
-                content: d.message,
-                suggestions: d.suggestions || [],
-                timestamp: new Date(),
-              }]);
-              break;
-            case 'progress':
-              if (d.phase === 'complete') {
-                break;
-              }
-              if (d.phase === 'synthesizing') {
-                setSynthesizingGroups(prev => ({ ...prev, [responseGroupId]: true }));
-              }
-              if (d.persona_id != null) {
-                setThinkingAdvisors(prev => prev.filter(a => a !== d.persona_id));
-              }
-              break;
-            case 'error':
-              setMessages(prev => [...prev, {
-                id: generateMessageId(),
-                type: 'error',
-                content: d.detail || 'An error occurred',
-                timestamp: new Date(),
-              }]);
-              break;
-            default:
-              break;
-          }
-        }
-      }
-
-      const hasAggregated = collectedAdvisorResponses.some(m => m.is_aggregated);
-      if (aggregatedMode) {
-        const deferred = collectedAdvisorResponses.filter(m => !m.is_aggregated);
-        if (deferred.length > 0) {
-          setMessages(prev => [...prev, ...deferred]);
-        }
-      }
-      setGroupViews(prev => ({ ...prev, [responseGroupId]: hasAggregated ? 'aggregated' : 'panel' }));
-      setSynthesizingGroups(prev => { const n = { ...prev }; delete n[responseGroupId]; return n; });
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        id: generateMessageId(),
-        type: 'error',
-        content: `Failed to send message: ${error.message}`,
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsLoading(false);
-      setThinkingAdvisors([]);
-      setSidebarRefreshTrigger(prev => prev + 1);
-    }
+    await chat.send(inputMessage, activeAdvisorIds, options);
   };
 
-  const handleReplyToAdvisor = async (inputMessage, replyContext) => {
-  // Ensure we have a session before proceeding
-  let sessionId = currentSessionId;
-  if (!sessionId) {
-    sessionId = await createNewSession(inputMessage);
-    if (!sessionId) {
-      console.error('Failed to create session for reply');
-      return;
-    }
-  }
-
-  const replyMessage = {
-    id: generateMessageId(),
-    type: 'user',
-    content: inputMessage,
-    replyTo: {
-      advisorId: replyContext.persona_id,
-      advisorName: replyContext.advisorName,
-      messageId: replyContext.messageId
-    },
-    timestamp: new Date()
-  };
-
-  setMessages(prev => [...prev, replyMessage]);
-  setSidebarRefreshTrigger(prev => prev + 1);
-
-  setIsLoading(true);
-  setThinkingAdvisors([replyContext.persona_id]);
-
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/reply-to-advisor`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({
-        user_input: inputMessage,
-        advisor_id: replyContext.advisorId,
-        original_message_id: replyContext.messageId,
-        chat_session_id: sessionId // Use confirmed session ID
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.type === 'advisor_reply') {
-      const replyResponseMessage = {
-        id: generateMessageId(),
-        type: 'advisor',
-        persona_id: data.persona_id,
-        advisorName: data.persona,
-        content: data.response,
-        isReply: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, replyResponseMessage]);
-    }
-
-  } catch (error) {
-    console.error('Error replying to advisor:', error);
-    const errorMessage = {
-      id: generateMessageId(),
-      type: 'error',
-      content: 'Sorry, I encountered an error with your reply. Please try again.',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, errorMessage]);
-  }
-
-  setIsLoading(false);
-  setThinkingAdvisors([]);
-  setSidebarRefreshTrigger(prev => prev + 1);
-};
+  const handleReplyToAdvisor = (inputMessage, replyContext) => chat.replyToAdvisor(inputMessage, replyContext);
 
   const handleCopyMessage = (messageId, content) => {
     // Optional: Show a toast notification or add to message history
@@ -733,82 +306,7 @@ const handleNewChat = async (sessionId = null) => {
   const handleExpandMessage = async (messageId, advisorId) => {
     const advisor = advisors[advisorId];
     if (!advisor) return;
-
-    const originalMessage = messages.find(msg => msg.id === messageId);
-    if (!originalMessage) return;
-
-    const expandPrompt = `Please expand on your previous response: "${originalMessage.content.substring(0, 100)}..." Provide more detail and depth.`;
-    
-    const expandMessage = {
-      id: generateMessageId(),
-      type: 'user',
-      content: expandPrompt,
-      timestamp: new Date(),
-      isExpandRequest: true,
-      expandsMessageId: messageId
-    };
-    setMessages(prev => [...prev, expandMessage]);
-    setSidebarRefreshTrigger(prev => prev + 1);
-
-    setIsLoading(true);
-    setThinkingAdvisors([advisorId]);
-
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/chat/${advisorId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          user_input: expandPrompt,
-          response_length: 'long',
-          chat_session_id: currentSessionId
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.persona && data.response) {
-        const expandedMessage = {
-          id: generateMessageId(),
-          type: 'advisor',
-          persona_id: advisorId,
-          advisorName: advisor.name,
-          content: data.response,
-          isExpansion: true,
-          expandsMessageId: messageId,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, expandedMessage]);
-      } else {
-        const errorMessage = {
-          id: generateMessageId(),
-          type: 'error',
-          content: 'Sorry, I received an unexpected response format. Please try again.',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      }
-
-    } catch (error) {
-      console.error('Error expanding message:', error);
-      const errorMessage = {
-        id: generateMessageId(),
-        type: 'error',
-        content: 'Sorry, I encountered an error while expanding the message. Please try again.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-
-    setIsLoading(false);
-    setThinkingAdvisors([]);
-    setSidebarRefreshTrigger(prev => prev + 1);
+    await chat.expand(messageId, advisorId, advisor.name);
   };
 
   const handleReplyToMessage = (message) => {
@@ -898,7 +396,7 @@ const handleNewChat = async (sessionId = null) => {
   }, [dialogInset]);
 
   const hasMessages = messages.length > 0;
-  const hasConversationMessages = messages.filter(m => m.type !== 'system' && m.type !== 'document_upload').length > 0;
+  const hasConversationMessages = messages.some(isConversation);
 
   const chatPlaceholder = config?.chat_page?.placeholder || 'Ask about courses, events or places';
   const firstQuestion = messages.find((m) => m.type === 'user')?.content;
@@ -938,6 +436,10 @@ const handleNewChat = async (sessionId = null) => {
   // A new proposal in the latest answer goes to the panel; on phones the
   // sheet rises to 45% so the card and the changed rows show together (15A).
   useEffect(() => {
+    if (lastProposalRef.current === undefined) {
+      lastProposalRef.current = latestProposalId;
+      return;
+    }
     if (!latestProposalId || lastProposalRef.current === latestProposalId) return;
     lastProposalRef.current = latestProposalId;
     planner?.receiveProposal(latestProposal.proposal || latestProposal);
@@ -953,7 +455,7 @@ const handleNewChat = async (sessionId = null) => {
       <CampusRail
         className="chat-rail"
         currentSessionId={currentSessionId}
-        refreshTrigger={sidebarRefreshTrigger}
+        refreshTrigger={sessionsVersion}
         onNewChat={() => { setIsMobileMenuOpen(false); handleNewChat(); }}
         onSelectSession={(sessionId) => { setIsMobileMenuOpen(false); handleSelectSession(sessionId); }}
         onShowAllChats={() => navigate('/search')}
@@ -1216,6 +718,8 @@ const handleNewChat = async (sessionId = null) => {
               onMessageChange={setComposerMessage}
               selectedAdvisorIds={selectedAdvisorIds}
               onSelectedAdvisorIdsChange={setSelectedAdvisorIds}
+              attachments={chat.attachments}
+              onRemoveAttachment={chat.removeAttachment}
               isLanding={chatPhase !== 'active'}
               placeholder={
                 replyingTo
@@ -1278,5 +782,11 @@ const handleNewChat = async (sessionId = null) => {
     </OnboardingTour>
   );
 };
+
+// The app mounts one ChatProvider above the routes; rendered on its own
+// (tests, previews) the page brings its own.
+const ChatPage = () => (
+  useContext(ChatContext) ? <ChatPageView /> : <ChatProvider><ChatPageView /></ChatProvider>
+);
 
 export default ChatPage;
