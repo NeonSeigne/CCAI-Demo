@@ -5,9 +5,10 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from bson import ObjectId
+from fastapi import HTTPException
 
 from app.api.routes import planner as routes
-from app.models.planner import EditRequest, UndoRequest
+from app.models.planner import EditRequest, PreviewRequest, UndoRequest
 from app.models.user import User
 from app.planner import facts as facts_module
 from app.planner import service
@@ -135,6 +136,32 @@ class TermAwareTests(PlannerTestCase):
         self.assertEqual(undone["plan"]["courses"], [{"id": "ECON 3010", "term": TERM, "sections": ["002"]}])
         redone = await routes.post_redo(UndoRequest(expected_revision=2), self.user)
         self.assertEqual(redone["plan"]["courses"], [{"id": "ECON 3010", "term": FALL, "sections": ["002"]}])
+
+    async def test_client_terms_are_canonicalized(self):
+        await self.edit([add("ECON 3010"), add("ECON 3020", FALL)])
+        fall = (await routes.get_plan(self.user, term="fall  2027"))["report"]
+        self.assertEqual((fall["term"], [c["id"] for c in fall["courses"]]), (FALL, ["ECON 3020"]))
+        body = PreviewRequest(ops=[add("ECON 4010", FALL)], expected_revision=await self.revision(), term=" FALL 2027")
+        diff = (await routes.post_preview(body, self.user))["diff"]
+        self.assertEqual([(c["id"], c["term"]) for c in diff["added_courses"]], [("ECON 4010", FALL)])
+
+    async def test_terms_the_plan_names_count_without_coverage(self):
+        await self.edit([add("ECON 3010")])
+        with patch.object(service, "covered_terms", return_value=[]):
+            spring = (await routes.get_plan(self.user, term="spring 2027"))["report"]
+            self.assertEqual(spring["term"], TERM)
+            # A move's destination is a term the preview may be shown in.
+            body = PreviewRequest(ops=[{"op": "move", "course": "ECON 3010", "to_term": FALL}],
+                                  expected_revision=1, term="fall 2027")
+            self.assertEqual((await routes.post_preview(body, self.user))["diff"]["courses"]["moved"][0]["to"], FALL)
+
+    async def test_unknown_term_is_422(self):
+        for call in (routes.get_plan(self.user, term="Fall 2031"),
+                     routes.post_preview(PreviewRequest(ops=[add("ECON 3010")], expected_revision=0,
+                                                        term="Fall 2031"), self.user)):
+            with self.assertRaises(HTTPException) as ctx:
+                await call
+            self.assertEqual((ctx.exception.status_code, ctx.exception.detail["code"]), (422, "unknown_term"))
 
     async def test_move_keeps_sections_it_names(self):
         await self.edit([add("ECON 3010")])

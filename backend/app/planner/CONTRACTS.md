@@ -174,7 +174,12 @@ Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
 course's sections unless it names new ones), `{"op":"swap","out":id,"in":id}`,
 `{"op":"pick_section","course":id,"sections":[ids]}`,
 `{"op":"set_profile", ...profile fields}`.
-Errors: `unknown_course`, `couldnt_verify_course`, `revision_conflict`.
+Errors: `unknown_course`, `couldnt_verify_course`, `unknown_term`, `revision_conflict`.
+
+A client `term` (`GET /plan?term=`, `/preview`, `/proposals`) is matched case-
+and space-insensitively against `planner_terms()`, the plan's terms and the
+terms the ops name, and used in that spelling (`fall 2027` -> `Fall 2027`); an
+unknown term is 422 `unknown_term`.
 
 Every op is validated against the facts of the term it lands in (eng review
 R13): `add.term`, `move.to_term`, the current term of the course a `swap` or

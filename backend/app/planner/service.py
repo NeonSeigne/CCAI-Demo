@@ -88,6 +88,25 @@ def _same_term(term: Optional[str]) -> str:
     return " ".join(str(term or "").split()).title()
 
 
+def canonical_term(
+    plan: Dict[str, Any], term: Optional[str], ops: Sequence[Dict[str, Any]] = ()
+) -> Optional[str]:
+    """A client's term (``"fall  2027"``) in the spelling the plan and the
+    school use (``"Fall 2027"``), matched case- and space-insensitively against
+    ``covered_terms()``, the plan's terms and the terms ``ops`` name. None for
+    no term; an unknown one raises ``EditError("unknown_term")`` (422)."""
+    if term is None or not str(term).strip():
+        return None
+    known = list(covered_terms()) + [plan["term"]]
+    known += [c.get("term") for c in checker.planned_courses(plan)]
+    known += [op.get("term") or op.get("to_term") for op in ops if isinstance(op, dict)]
+    wanted = _same_term(term)
+    match = next((t for t in known if isinstance(t, str) and _same_term(t) == wanted), None)
+    if match is None:
+        raise edits.EditError("unknown_term", f"{' '.join(str(term).split())} isn't a term in your plan or the school's data")
+    return match
+
+
 def _uncovered(fact: CourseFacts, term: str) -> CourseFacts:
     """A course in a term past the data's coverage: what it is, but not when it runs."""
     if fact.known != "yes":
@@ -159,7 +178,8 @@ def _changed(view_: Dict[str, Any]) -> Dict[str, Any]:
 async def view(user_id: str, school: str, term: Optional[str] = None) -> Dict[str, Any]:
     """``{plan, report, proposal, undo_label, redo_label}`` for the plan panel and page;
     ``term`` checks the plan as the semester view of that term (R13)."""
-    return await _view(await _plan(get_database(), user_id, school), school, term)
+    plan = await _plan(get_database(), user_id, school)
+    return await _view(plan, school, canonical_term(plan, term))
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +262,7 @@ async def preview(
     plan = await _plan(get_database(), user_id, school)
     if plan["revision"] != expected_revision:
         raise store.RevisionConflict(plan["revision"])
+    term = canonical_term(plan, term, ops)
     return {"diff": await _validated_diff(plan, ops, school, term=term), "revision": plan["revision"]}
 
 
@@ -261,6 +282,7 @@ async def propose(
     plan = await _plan(db, user_id, school)
     if plan["revision"] != expected_revision:
         raise store.RevisionConflict(plan["revision"])
+    term = canonical_term(plan, term, ops)
     diff = await _validated_diff(plan, ops, school, asked=asked, term=term)
     proposal = await store.put_proposal(db, str(user_id), school, ops, base_revision=expected_revision, diff=diff,
                                         term=term)
