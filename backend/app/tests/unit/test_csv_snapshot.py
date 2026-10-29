@@ -190,11 +190,17 @@ class TestSections(SnapshotTestCase):
 
 
 class TestUnsupported(SnapshotTestCase):
-    async def test_prerequisites_and_next_say_not_available(self):
-        prereq = await course_prerequisites.execute(course_identifier="CS 2100")
+    async def test_next_says_not_available(self):
         nxt = await course_next.execute(course_identifier="CS 2100")
-        self.assertIn("does not include", prereq["error"])
         self.assertIn("does not include", nxt["error"])
+
+    async def test_prerequisites_without_requisite_text_are_empty(self):
+        prereq = await course_prerequisites.execute(course_identifier="CS 2100")
+        self.assertNotIn("error", prereq)
+        self.assertEqual((prereq["prereq_text"], prereq["prerequisites"]), ("", []))
+        self.assertEqual(prereq["data_as_of"], "2026-09-03")
+        missing = await course_prerequisites.execute(course_identifier="CS 9999")
+        self.assertIn("No course found", missing["error"])
 
 
 class TestCaching(SnapshotTestCase):

@@ -125,6 +125,9 @@ tools:
   course_sections:
     enabled: true
     max_results: 25
+  # Prerequisites as written in the snapshot's course descriptions.
+  course_prerequisites:
+    enabled: true
   rate_my_professor:
     enabled: true
     # From scripts/rmp_school_lookup.py "University of Virginia".

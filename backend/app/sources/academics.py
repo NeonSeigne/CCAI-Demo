@@ -74,10 +74,11 @@ _CAPABILITIES: Dict[str, Dict[str, bool]] = {
         "meeting_times": False, "section_bundles": False, "gen_ed": True,
     },
     # UVA: theCourseForum snapshot. Seats are counts at snapshot time.
+    # Prerequisites are read from the description text (not checkable by the planner).
     "csv_snapshot": {
         "keyword_search": True, "seat_filter": True, "grades": True, "sections": True,
         "seats": True, "seats_historical": True, "instructors": True,
-        "prerequisites": False, "next_courses": False,
+        "prerequisites": True, "next_courses": False,
         "meeting_times": True, "section_bundles": True, "gen_ed": True,
     },
     # CU: FOSE needs a subject code and lists sections without seat counts.
@@ -499,6 +500,92 @@ def course_difficulty(facts: Optional[CourseFacts]) -> Optional[str]:
     return difficulty_of(facts, easier_from_gpa())
 
 
+# Prerequisite chains: how deep, how many courses and how long to look.
+CHAIN_DEPTH = 4
+CHAIN_LIMIT = 30
+CHAIN_BUDGET_S = 6.0
+CHAIN_CONCURRENCY = 6
+
+
+async def prereq_chain(
+    identifier: str,
+    *,
+    first: Optional[Dict[str, Any]] = None,
+    depth: int = CHAIN_DEPTH,
+    limit: int = CHAIN_LIMIT,
+    budget_s: float = CHAIN_BUDGET_S,
+) -> Optional[Dict[str, Any]]:
+    """Prerequisites of prerequisites, read level by level from the provider's
+    ``prerequisites`` (``first`` is the root's result when already fetched).
+
+    ``{"root", "courses": [{"id", "title", "depth", "requires", "known"}],
+    "complete"}``: courses in breadth-first order, the root at depth 0;
+    ``requires`` are the course ids each one's requisites name (how they
+    combine is in its ``prereq_tree`` or text, not here); ``known`` is false
+    when the source couldn't answer for that course. ``complete`` is false
+    when ``depth``, ``limit`` or ``budget_s`` cut the chain short. None when
+    the school has no prerequisite data or the root names no courses.
+    """
+    if not catalog_capabilities()["prerequisites"]:
+        return None
+    provider = get_provider()
+    gate = asyncio.Semaphore(CHAIN_CONCURRENCY)
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + budget_s
+
+    async def fetch(course: str) -> Dict[str, Any]:
+        async with gate:
+            try:
+                return await provider.prerequisites(course_identifier=course)
+            except Exception as exc:  # noqa: BLE001 — one course never sinks the chain
+                logger.info("prerequisites for %s failed: %s", course, exc)
+                return {"error": str(exc)}
+
+    nodes: Dict[str, Dict[str, Any]] = {}
+    complete = True
+    frontier = [identifier]
+    level = 0
+    while frontier:
+        if level == 0 and first is not None:
+            results = [first]
+        else:
+            tasks = [asyncio.ensure_future(fetch(c)) for c in frontier]
+            done, pending = await asyncio.wait(tasks, timeout=max(0.0, deadline - loop.time()))
+            for task in pending:
+                task.cancel()
+            if pending:
+                complete = False
+            results = [t.result() if t in done else {"error": "timeout"} for t in tasks]
+        upcoming: List[str] = []
+        for course, result in zip(frontier, results):
+            known = not result.get("error")
+            requires = [
+                c["identifier"] for c in (result.get("prerequisites") or [])
+                if isinstance(c, dict) and c.get("identifier") and c["identifier"] != course
+            ] if known else []
+            requires = list(dict.fromkeys(requires))
+            nodes[course] = {
+                "id": course, "title": result.get("title") or "", "depth": level,
+                "requires": requires, "known": known,
+            }
+            for code in requires:
+                if code in nodes or code in frontier or code in upcoming:
+                    continue
+                waiting = sum(1 for c in frontier if c not in nodes)
+                if level + 1 > depth or len(nodes) + waiting + len(upcoming) >= limit:
+                    complete = False
+                    continue
+                upcoming.append(code)
+        frontier = [c for c in upcoming if c not in nodes]
+        level += 1
+        if frontier and loop.time() >= deadline:
+            complete = False
+            break
+    if not nodes.get(identifier, {}).get("requires"):
+        return None
+    return {"root": identifier, "courses": list(nodes.values()), "complete": complete}
+
+
 async def _facts_fields(identifier: str) -> Dict[str, Any]:
     """``difficulty``, ``credits``, ``gen_ed`` and ``prereq_tree`` from the
     planner's course facts for the next term (the sources cache what the
@@ -574,6 +661,9 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
             "text": result.get("prereq_text") or "",
             "courses": result.get("prerequisites") or [],
         }
+        chain = await prereq_chain(canonical, first=result)
+        if chain:
+            summary["prereq_chain"] = chain
     if caps["next_courses"]:
         result = await provider.next_courses(course_identifier=canonical)
         summary["next_courses"] = None if result.get("error") else result.get("next_courses") or []

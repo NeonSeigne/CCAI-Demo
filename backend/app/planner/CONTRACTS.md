@@ -253,3 +253,40 @@ the dated label (R8). Sources: UW `course_grades`, `course_prerequisites`,
 (FOSE) gives `course_schedule` and `course_instructors` when its rows are one
 course, nothing for a subject listing (no grades at CU). Course links
 (`course:` markdown) stay UW-only (`academics.links_to_course_pages`).
+
+### Prerequisites and chains (`prerequisites`, `prereq_chain`)
+
+```
+"prerequisites": {"text": str, "courses": [{"identifier", "title", "timing"?}]}|null,  # capabilities.prerequisites
+"prereq_tree": {kind: all|any|course, ...},       # planner-checkable tree; UW only
+"prereq_chain": {                                 # only when the course's requisites name a course
+  "root": "CS 4774",
+  "courses": [{"id", "title", "depth": n,         # breadth-first, root at depth 0
+               "requires": [ids],                 # courses its requisites name (and/or not kept)
+               "known": bool}],                   # false: the source didn't answer for it
+  "complete": bool,                               # false when depth 4, 30 courses or 6 s cut it short
+}
+```
+
+`academics.prereq_chain` walks the provider's `prerequisites` level by level.
+Per school:
+
+- UW (Course Map): structured requirements; `prereq_tree` (and/or, minimum
+  grade, timing) for the course itself, `prereq_chain` for the levels below.
+- UVA (snapshot): no structured prerequisites. `prerequisites.text` is the
+  description's "Prerequisite:" / "Co-requisite:" sentences as written (768 of
+  2,839 Spring 2027 courses have one); `courses` are the codes they name that
+  the snapshot lists (a bare number takes the subject before it), with
+  `timing` "prior" or "concurrent". No `prereq_tree`: how the courses combine
+  is only in the text, so the planner keeps reading UVA prerequisites as
+  unknown. `next_courses` stays unavailable.
+- CU (FOSE): the class search rows carry no prerequisites (fields: code,
+  title, crn, no, schd, meets, meetingTimes, instr, dates, linked_crns,
+  cart_opts); `capabilities.prerequisites` is false and there is no
+  `prerequisites`, `prereq_tree` or `prereq_chain`. Reading FOSE's per-section
+  details would be a new source path and isn't built.
+
+Chat: a `course_prerequisites` result naming at least one course gives
+`{type: "course_prereq_map", course}` (hydrated from the summary above); the
+legacy flat `prereq_tree` spec is no longer emitted but still renders for old
+messages. UVA's pack now enables `course_prerequisites`.

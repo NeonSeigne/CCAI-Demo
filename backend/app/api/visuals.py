@@ -73,29 +73,15 @@ def _grades_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 def _prereq_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """A ``course_prereq_map`` ref: the card hydrates the course's
+    ``prereq_tree`` and ``prereq_chain`` (prerequisites of prerequisites)
+    from ``/api/catalog/{id}``. Only when the result names a course; the
+    legacy flat ``prereq_tree`` spec is no longer emitted."""
     course = (result.get("course_identifier") or "").strip()
-    prereqs = result.get("prerequisites") or []
-    prereq_text = (result.get("prereq_text") or "").strip()
-    if not course or (not prereqs and not prereq_text):
+    prereqs = [p for p in result.get("prerequisites") or [] if isinstance(p, dict) and p.get("identifier")]
+    if not course or not prereqs:
         return []
-    # The course API has no prerequisite graph yet, so a course_prereq_map card
-    # would always be empty; the flat tree is built from the tool result itself.
-    return [
-        {
-            "type": "prereq_tree",
-            "course": course,
-            "title": result.get("title", ""),
-            "prereq_text": prereq_text,
-            "prerequisites": [
-                {
-                    "identifier": p.get("identifier", ""),
-                    "title": p.get("title") or "",
-                }
-                for p in prereqs
-                if p.get("identifier")
-            ],
-        },
-    ]
+    return [_course_ref(course, "course_prereq_map")]
 
 
 def _next_specs(result: Dict[str, Any]) -> List[VisualSpec]:

@@ -41,7 +41,7 @@ class BuildVisualsTests(unittest.TestCase):
         self.assertTrue(all(v["course"] == "MUSIC 113" for v in visuals))
         self.assertTrue(all(v.get("term") == "1254" for v in visuals))
 
-    def test_prereq_tool_emits_only_the_flat_tree(self):
+    def test_prereq_tool_emits_a_prereq_map_ref(self):
         visuals = build_visuals([
             {
                 "name": "course_prerequisites",
@@ -53,9 +53,15 @@ class BuildVisualsTests(unittest.TestCase):
                 },
             }
         ])
-        # Legacy prereq_tree spec; the pop-up's web reads prereq_tree from /api/catalog.
-        self.assertEqual([v["type"] for v in visuals], ["prereq_tree"])
-        self.assertEqual(visuals[0]["prerequisites"][0]["identifier"], "COMPSCI 200")
+        # Hydrated from /api/catalog (prereq_tree, prereq_chain); no legacy flat tree.
+        self.assertEqual(visuals, [{"type": "course_prereq_map", "course": "COMPSCI 300"}])
+
+    def test_prereq_text_without_courses_emits_nothing(self):
+        visuals = build_visuals([{"name": "course_prerequisites", "result": {
+            "course_identifier": "PERS 3020", "prereq_text": "Prerequisites: instructor permission",
+            "prerequisites": [],
+        }}])
+        self.assertEqual(visuals, [])
 
     def test_next_courses_tool_emits_tree(self):
         visuals = build_visuals([

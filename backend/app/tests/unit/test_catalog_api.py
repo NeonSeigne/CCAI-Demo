@@ -480,7 +480,9 @@ class TestUVA(CatalogTestCase):
         self.assertEqual(body["grades"]["labels"]["df"], "DFW")
         self.assertEqual(body["grades"]["pct_df"], 10.0)
         self.assertIn("Briana Morrison", body["instructors"])
-        self.assertNotIn("prerequisites", body)
+        # Prerequisites come from the description; CS 2100's names none.
+        self.assertEqual(body["prerequisites"], {"text": "", "courses": []})
+        self.assertNotIn("prereq_chain", body)
         self.assertNotIn("next_courses", body)
 
     def test_per_instructor_grades_and_history(self):
