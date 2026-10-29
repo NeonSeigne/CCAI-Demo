@@ -76,8 +76,6 @@ const RAW_COLOUR_ALLOWED = {
   'components/Signup.js': "Google's sign-in logo",
   'contexts/AppConfigContext.js': 'persona colours; callers append alpha suffixes',
   'data/advisors.js': 'persona colours; callers append alpha suffixes',
-  'components/visuals/CourseAnswerCard.js': 'grade ramp; lane C rebuilds this card',
-  'components/course/PrereqWeb.js': 'cytoscape fallbacks; lane C replaces cytoscape (R11)',
 };
 
 const sourceFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
