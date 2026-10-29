@@ -11,8 +11,7 @@ import { InlineError } from '../../catalog/CatalogParts';
 import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
 import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
-import ProgramPicker from './ProgramPicker';
-import CompletedEditor from './CompletedEditor';
+import SetupDialog from './SetupDialog';
 import {
   creditsOf, groupTone, nextTerm, parseTerm, pastTerms, sortTerms, termOrder,
 } from './degreeFormat';
@@ -81,7 +80,10 @@ export default function DegreeBoard({ head = null }) {
   const [loadState, setLoadState] = useState(degree ? 'ready' : 'loading');
   const [pulseId, setPulseId] = useState(null);
   const [showPast, setShowPast] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
+  // The setup dialog and the step it opens at (0 Program, 1 Completed, 2 First term).
+  const [setup, setSetup] = useState({ open: false, step: 0 });
+  const autoOpened = useRef(false);
+  const openSetup = useCallback((step) => setSetup({ open: true, step }), []);
   const pulseTimer = useRef(null);
   const haveDegree = Boolean(degree);
 
@@ -226,15 +228,18 @@ export default function DegreeBoard({ head = null }) {
     setSearchParams({ view: 'semester', term });
   }, [setSearchParams]);
 
-  const chooseProgram = useCallback((id) => {
-    edit([{ op: 'set_profile', program_ids: [id] }]).catch(() => {});
-  }, [edit]);
+  // Opens by itself on each visit while the plan has no program (eng review D6).
+  const needsProgram = Boolean(view?.plan) && hasPrograms && !programIds.length;
+  useEffect(() => {
+    if (needsProgram && !autoOpened.current) {
+      autoOpened.current = true;
+      openSetup(0);
+    }
+  }, [needsProgram, openSetup]);
 
   let top = null;
   if (loadState === 'loading' && !degree) top = <DegreeSummarySkeleton />;
-  else if (hasPrograms && !programIds.length) {
-    top = <ProgramPicker programs={programs} onChoose={chooseProgram} onEditCompleted={() => setEditorOpen(true)} />;
-  } else if (hasPrograms && waffle && groups.length) {
+  else if (hasPrograms && programIds.length && waffle && groups.length) {
     top = <DegreeSummary name={program?.name || null} waffle={waffle} />;
   }
 
@@ -256,7 +261,7 @@ export default function DegreeBoard({ head = null }) {
             courseTone={courseTone}
             expanded={showPast}
             onToggle={() => setShowPast((on) => !on)}
-            onEditCompleted={() => setEditorOpen(true)}
+            onEditCompleted={() => openSetup(1)}
           />
         )}
         {showPast && [...past].reverse().map((entry) => (
@@ -292,9 +297,14 @@ export default function DegreeBoard({ head = null }) {
         {head}
         {program && (
           <div className="dg-program">
-            <h2>{program.name}</h2>
+            <h2>
+              <button type="button" className="dg-program-btn" onClick={() => openSetup(0)}>{program.name}</button>
+            </h2>
             {profile.catalog_year && <span className="dg-catalog">Catalog {profile.catalog_year}</span>}
           </div>
+        )}
+        {!program && hasPrograms && (
+          <button type="button" className="cc-btn dg-program-pick" onClick={() => openSetup(0)}>Program</button>
         )}
         <div className="dg-history">
           <button
@@ -324,10 +334,13 @@ export default function DegreeBoard({ head = null }) {
       {top}
       {board}
 
-      <CompletedEditor
-        open={editorOpen}
-        onClose={() => setEditorOpen(false)}
+      <SetupDialog
+        open={setup.open}
+        step={setup.step}
+        onClose={() => setSetup((current) => ({ ...current, open: false }))}
         planner={planner}
+        degree={degree}
+        terms={terms}
         titles={titles}
       />
     </div>

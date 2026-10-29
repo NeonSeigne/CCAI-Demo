@@ -732,13 +732,17 @@ export function PlannerProvider({
    * The student's own edit: shows at once, resolves to the server's answer,
    * or throws on a 4xx (the edit is reverted) or when the queue holds (the
    * edit stays and is saved on retry). `onSaved({ops, data, term})` runs
-   * when it lands, for the "Added to <term>" toast (D8).
+   * when it lands, for the "Added to <term>" toast (D8). With `onHold(error)`
+   * a hold calls it instead of throwing, and the promise resolves when the
+   * held edit finally lands (setup dialog, eng review R12).
    */
-  const edit = useCallback((ops, { onSaved } = {}) => {
+  const edit = useCallback((ops, { onSaved, onHold } = {}) => {
     seqRef.current += 1;
     const id = seqRef.current;
     setPending((list) => [...list, { id, ops }]);
-    return enqueue({ kind: 'edit', id, ops, key: newIdempotencyKey(), onSaved });
+    return enqueue({
+      kind: 'edit', id, ops, key: newIdempotencyKey(), onSaved, onHold,
+    });
   }, [enqueue]);
 
   const undo = useCallback(() => enqueue({ kind: 'undo' }), [enqueue]);

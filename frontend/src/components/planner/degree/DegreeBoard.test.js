@@ -8,12 +8,17 @@ import { PlannerContext } from '../../../contexts/PlannerContext';
 import { DndProvider } from '../../dnd';
 import { BrowseRow } from '../../../pages/CoursesPage';
 import { searchCatalog } from '../../../api/campus';
+import { uploadTranscript } from '../../../api/planner';
 import { waffleModel, waffleSquares, waffleSummary } from './degreeFormat';
 
 jest.mock('../../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
 jest.mock('../../../api/campus', () => ({
   ...jest.requireActual('../../../api/campus'),
   searchCatalog: jest.fn(),
+}));
+jest.mock('../../../api/planner', () => ({
+  ...jest.requireActual('../../../api/planner'),
+  uploadTranscript: jest.fn(),
 }));
 
 const COMPLETED = [
@@ -274,11 +279,18 @@ describe('waffle and top bar', () => {
     expect(within(column('Spring 2027')).getByText('ECON 3020')).toBeInTheDocument();
   });
 
-  test('with no program, the Program picker takes the waffle\'s place and saves the choice', () => {
+  test('with no program, setup opens at Program and Next saves the choice', async () => {
     const { planner } = renderBoard(makePlanner({ profile: { program_ids: [] } }));
     expect(screen.queryByTestId('degree-waffle')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Program' }), { target: { value: 'econ-ba' } });
-    expect(planner.edit).toHaveBeenCalledWith([{ op: 'set_profile', program_ids: ['econ-ba'] }]);
+    const dialog = await screen.findByRole('dialog', { name: 'Program' });
+    fireEvent.click(within(dialog).getByRole('radio', { name: /Economics B.A./ }));
+    fireEvent.click(within(dialog).getByRole('radio', { name: String(new Date().getFullYear() + 2) }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(planner.edit).toHaveBeenCalledWith(
+      [{ op: 'set_profile', program_ids: ['econ-ba'], class_year: String(new Date().getFullYear() + 2) }],
+      expect.objectContaining({ onHold: expect.any(Function) }),
+    ));
+    expect(await screen.findByRole('dialog', { name: 'Completed' })).toBeInTheDocument();
   });
 });
 
@@ -476,20 +488,20 @@ describe('undo and redo', () => {
   });
 });
 
-describe('Completed editor', () => {
+describe('Setup: Completed step', () => {
   test('saves the list through set_profile with a grade', async () => {
     const { planner } = renderBoard();
     fireEvent.click(screen.getByRole('button', { name: 'Completed' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Grade for ECON 2020'), { target: { value: 'B+' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(planner.edit).toHaveBeenCalledWith([{
       op: 'set_profile',
       completed: [
         { id: 'ECON 2010', grade: 'A', term: 'Fall 2025' },
         { id: 'ECON 2020', grade: 'B+', term: 'Fall 2025' },
       ],
-    }]));
+    }], expect.objectContaining({ onHold: expect.any(Function) })));
   });
 
   test('search adds a course from the catalog', async () => {
@@ -500,11 +512,11 @@ describe('Completed editor', () => {
     fireEvent.change(within(dialog).getByLabelText('Search courses'), { target: { value: 'stat' } });
     fireEvent.click(await within(dialog).findByRole('button', { name: 'Add STAT 3120' }, { timeout: 2000 }));
     fireEvent.change(within(dialog).getByLabelText('Grade for STAT 3120'), { target: { value: 'A-' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(planner.edit).toHaveBeenCalledWith([{
       op: 'set_profile',
       completed: expect.arrayContaining([{ id: 'STAT 3120', grade: 'A-', term: null }]),
-    }]));
+    }], expect.anything()));
   });
 
   const openEditor = async () => {
@@ -538,10 +550,11 @@ describe('Completed editor', () => {
     expect(planner.edit).not.toHaveBeenCalled();
   });
 
-  test('while the queue holds another save, Save says so at once and Retry resumes', async () => {
+  test('while the queue holds another save, Next says so at once and Retry resumes', async () => {
     const { planner } = renderBoard(makePlanner({ queueHeld: true }));
     const dialog = await openEditor();
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    fireEvent.change(within(dialog).getByLabelText('Grade for ECON 2020'), { target: { value: 'B' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
     expect(within(dialog).getByText("Couldn't save")).toBeInTheDocument();
     expect(planner.edit).not.toHaveBeenCalled();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Retry' }));
@@ -552,7 +565,8 @@ describe('Completed editor', () => {
     const other = [{ op: 'remove', course: 'ECON 3720' }];
     const { planner } = renderBoard(makePlanner({ saveError: { held: false, kind: 'edit', ops: other } }));
     const dialog = await openEditor();
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    fireEvent.change(within(dialog).getByLabelText('Grade for ECON 2020'), { target: { value: 'B' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
     await waitFor(() => expect(planner.edit).toHaveBeenCalled());
     expect(planner.dismissSaveError).not.toHaveBeenCalled();
   });
@@ -584,10 +598,103 @@ describe('Completed editor', () => {
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Completed' })).not.toBeInTheDocument());
   });
 
-  test('opens from the first-run Program picker', async () => {
-    renderBoard(makePlanner({ profile: { program_ids: [] } }));
-    // Past column and picker both offer it; the picker's comes first.
-    fireEvent.click(screen.getAllByRole('button', { name: 'Completed' })[0]);
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  test('a transcript ticks passed courses, lists the rest unticked and flagged, and Next saves its credits', async () => {
+    uploadTranscript.mockResolvedValue({
+      rows: [
+        { id: 'STAT 2120', title: 'Intro Statistics', grade: 'B', credits: 4, ticked: true, checked: true, in_catalog: true },
+        { id: 'CS 1110', title: 'Intro Programming', grade: 'IP', credits: 3, ticked: false, checked: true, in_catalog: true },
+        { id: 'AP MATH', title: null, grade: null, credits: null, ticked: false, checked: true, in_catalog: false },
+      ],
+    });
+    const { planner } = renderBoard();
+    const dialog = await openEditor();
+    const file = new File(['ECON'], 'transcript.txt', { type: 'text/plain' });
+    fireEvent.change(within(dialog).getByLabelText('Transcript file'), { target: { files: [file] } });
+    expect(await within(dialog).findByText('Found 3')).toBeInTheDocument();
+    expect(within(dialog).getByRole('checkbox', { name: /STAT 2120/ })).toBeChecked();
+    expect(within(dialog).getByRole('checkbox', { name: /CS 1110/ })).not.toBeChecked();
+    expect(within(dialog).getByRole('checkbox', { name: /AP MATH/ })).not.toBeChecked();
+    expect(within(dialog).getByText('Not in catalog')).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(planner.edit).toHaveBeenCalledWith([{
+      op: 'set_profile',
+      completed: expect.arrayContaining([{ id: 'STAT 2120', grade: 'B', term: null, credits: 4 }]),
+    }], expect.anything()));
+    const sent = planner.edit.mock.calls[0][0][0].completed.map((c) => c.id);
+    expect(sent).not.toContain('CS 1110');
+  });
+
+  test('an unreadable transcript says so and keeps the list', async () => {
+    uploadTranscript.mockRejectedValue(Object.assign(new Error('422'), { status: 422 }));
+    renderBoard();
+    const dialog = await openEditor();
+    fireEvent.change(within(dialog).getByLabelText('Transcript file'), {
+      target: { files: [new File(['x'], 'scan.pdf', { type: 'application/pdf' })] },
+    });
+    expect(await within(dialog).findByText("Couldn't read this file")).toBeInTheDocument();
+    expect(within(dialog).getByRole('checkbox', { name: /ECON 2010/ })).toBeChecked();
   });
 });
+
+describe('Setup dialog', () => {
+  test('the program name opens Program; graduate programs are grouped apart', async () => {
+    const programs = [...PROGRAMS, { id: 'mpp', name: 'Master of Public Policy', type: 'graduate', rules: [] }];
+    renderBoard(makePlanner({ programs }));
+    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Program' });
+    expect(within(dialog).getByText('Undergraduate')).toBeInTheDocument();
+    expect(within(dialog).getByText('Graduate')).toBeInTheDocument();
+    expect(within(dialog).getByRole('radio', { name: /Economics B.A./ })).toBeChecked();
+  });
+
+  test('skipped with no program, the toolbar Program button reopens it', async () => {
+    renderBoard(makePlanner({ profile: { program_ids: [] } }));
+    let dialog = await screen.findByRole('dialog', { name: 'Program' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Program' })).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Program' }));
+    dialog = await screen.findByRole('dialog', { name: 'Program' });
+    expect(dialog).toBeInTheDocument();
+  });
+
+  test('First term saves set_term on Done and closes', async () => {
+    const { planner } = renderBoard();
+    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
+    let dialog = await screen.findByRole('dialog', { name: 'Program' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
+    dialog = await screen.findByRole('dialog', { name: 'Completed' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
+    dialog = await screen.findByRole('dialog', { name: 'First term' });
+    expect(within(dialog).getByRole('radio', { name: 'Spring 2027' })).toBeChecked();
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Fall 2027' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(planner.edit).toHaveBeenCalledWith(
+      [{ op: 'set_term', term: 'Fall 2027' }], expect.anything(),
+    ));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'First term' })).not.toBeInTheDocument());
+  });
+
+  test('a held save shows Retry with Next off, then moves on when the edit lands', async () => {
+    let land;
+    const edit = jest.fn((ops, { onHold } = {}) => new Promise((resolve) => {
+      onHold?.(new Error("Couldn't save"));
+      land = resolve;
+    }));
+    const { planner } = renderBoard(makePlanner({ edit }));
+    const dialog = await openEditorFromPast();
+    fireEvent.change(within(dialog).getByLabelText('Grade for ECON 2020'), { target: { value: 'C' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
+    expect(await within(dialog).findByText("Couldn't save")).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Next' })).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Next' }));
+    expect(planner.edit).toHaveBeenCalledTimes(1);
+    await act(async () => { land({}); });
+    expect(await screen.findByRole('dialog', { name: 'First term' })).toBeInTheDocument();
+  });
+});
+
+async function openEditorFromPast() {
+  await waitFor(() => expect(document.querySelector('.MuiDialog-root')).toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: 'Completed' }));
+  return screen.findByRole('dialog', { name: 'Completed' });
+}

@@ -39,6 +39,31 @@ export const getPlan = (token, { term } = {}, options) =>
 /** GET the degree board: every planned term, completed courses, the waffle. */
 export const getDegree = (token, options) => request(token, '/api/planner/degree', options);
 
+/**
+ * POST a transcript file (PDF, DOCX or TXT) for the setup dialog's Completed
+ * step: `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}]}`.
+ * Nothing is stored. Throws an `ApiError` (413 too large, 422 unreadable).
+ */
+export async function uploadTranscript(token, file, { signal } = {}) {
+  const form = new FormData();
+  form.append('file', file);
+  let response;
+  try {
+    response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/planner/transcript`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+      signal,
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    throw new ApiError("Couldn't reach the server", { network: true });
+  }
+  const body = await response.json().catch(() => null);
+  if (!response.ok) throw new ApiError(`Request failed (${response.status})`, { status: response.status, body });
+  return body;
+}
+
 /** GET the school's program files: `[{id, name, type}]`. */
 export const listPrograms = async (token, options) => {
   const data = await request(token, '/api/planner/programs', options);
