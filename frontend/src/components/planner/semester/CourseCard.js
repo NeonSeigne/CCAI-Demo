@@ -1,15 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import MoreHorizRounded from '@mui/icons-material/MoreHorizRounded';
-import SwapHorizRounded from '@mui/icons-material/SwapHorizRounded';
-import CloseRounded from '@mui/icons-material/CloseRounded';
-import DragIndicatorRounded from '@mui/icons-material/DragIndicatorRounded';
-import PersonOutlineRounded from '@mui/icons-material/PersonOutlineRounded';
-import StarRounded from '@mui/icons-material/StarRounded';
-import CheckCircleOutlineRounded from '@mui/icons-material/CheckCircleOutlineRounded';
-import LockOutlined from '@mui/icons-material/LockOutlined';
-import DriveFileMoveRounded from '@mui/icons-material/DriveFileMoveRounded';
+import { MoreHorizRounded, SwapHorizRounded, CloseRounded, DragIndicatorRounded, PersonOutlineRounded, StarRounded, CheckCircleOutlineRounded, LockOutlined, DriveFileMoveRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { clockText, creditSpan } from '../planFormat';
 import {

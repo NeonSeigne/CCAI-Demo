@@ -7,7 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from './icons';
 import AppDialog from './AppDialog';
 
 const ConfirmDialog = ({
@@ -34,28 +34,18 @@ const ConfirmDialog = ({
       <DialogTitle
         id="app-confirm-dialog-title"
         component="div"
-        sx={{ pt: 3, textAlign: 'center' }}
+        sx={{ textAlign: 'center' }}
       >
         <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: 2,
-            mx: 'auto',
-            mb: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: 'var(--paper-sunken)',
-            color: isDanger ? 'var(--accent-red)' : 'var(--ink-soft)',
-          }}
+          className="cc-confirm-icon"
+          sx={{ color: isDanger ? 'var(--band-harder-text)' : 'var(--on-deep)' }}
         >
-          <AlertTriangle size={22} />
+          <AlertTriangle size={24} />
         </Box>
         <Box component="span">{title}</Box>
       </DialogTitle>
       {message && (
-        <DialogContent sx={{ pt: 0, pb: 2, textAlign: 'center' }}>
+        <DialogContent sx={{ pb: 2, textAlign: 'center' }}>
           <DialogContentText>{message}</DialogContentText>
         </DialogContent>
       )}

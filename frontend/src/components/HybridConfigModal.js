@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Layers } from 'lucide-react';
+import { X, Layers } from './icons';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
 
 const overlay = {
@@ -9,9 +9,9 @@ const overlay = {
 };
 
 const modal = {
-  background: 'var(--bg-primary)', borderRadius: 16, padding: 24, width: 560,
+  background: 'var(--canvas)', borderRadius: 16, padding: 24, width: 560,
   maxWidth: '95vw', maxHeight: '85vh', overflowY: 'auto',
-  boxShadow: 'var(--shadow-xl)', color: 'var(--text-primary)',
+  boxShadow: 'var(--shadow-float)', color: 'var(--ink)',
 };
 
 const seedConfig = (initialConfig, personaIds, availableBackends) => {
@@ -49,7 +49,7 @@ const HybridConfigModal = ({
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}
           >
             <X size={20} />
           </button>
@@ -68,8 +68,8 @@ const HybridConfigModal = ({
             onClick={onClose}
             disabled={isSaving}
             style={{
-              padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border-primary)',
-              background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 13.5,
+              padding: '8px 14px', borderRadius: 8, border: '1px solid var(--line)',
+              background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 13.5,
             }}
           >
             Cancel
@@ -79,7 +79,7 @@ const HybridConfigModal = ({
             disabled={isSaving}
             style={{
               padding: '8px 14px', borderRadius: 8, border: 'none',
-              background: 'var(--accent-primary)', color: '#fff',
+              background: 'var(--ink)', color: 'var(--surface)',
               cursor: isSaving ? 'wait' : 'pointer', fontSize: 13.5, fontWeight: 600,
             }}
           >

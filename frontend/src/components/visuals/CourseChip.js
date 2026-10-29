@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen } from '../icons';
 import { useOpenCourse } from '../../utils/openCourse';
 
 /**
@@ -34,9 +34,9 @@ const CourseChip = ({ identifier, title, onSelect, size = 'md' }) => {
         padding: isSmall ? '2px 8px' : '4px 10px',
         margin: '0 1px',
         borderRadius: 999,
-        border: '1px solid var(--accent-primary)',
-        background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
-        color: 'var(--accent-primary)',
+        border: '1px solid var(--ink)',
+        background: 'color-mix(in srgb, var(--ink) 12%, transparent)',
+        color: 'var(--ink)',
         fontSize: isSmall ? '0.78rem' : '0.85rem',
         fontWeight: 600,
         lineHeight: 1.3,
@@ -46,11 +46,11 @@ const CourseChip = ({ identifier, title, onSelect, size = 'md' }) => {
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background =
-          'color-mix(in srgb, var(--accent-primary) 22%, transparent)';
+          'color-mix(in srgb, var(--ink) 22%, transparent)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background =
-          'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+          'color-mix(in srgb, var(--ink) 12%, transparent)';
       }}
     >
       <BookOpen size={isSmall ? 11 : 13} />

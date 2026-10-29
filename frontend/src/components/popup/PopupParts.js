@@ -1,5 +1,5 @@
 import React from 'react';
-import DragIndicatorRounded from '@mui/icons-material/DragIndicatorRounded';
+import { DragIndicatorRounded } from '../icons';
 import { useDraggableItem } from '../dnd';
 
 /** D7: a failed request, in the tile or pop-up body. */

@@ -13,7 +13,6 @@
 app:
   title: "CU Undergraduate Advisor"
   subtitle: "AI-Powered Guidance for Your College Journey"
-  primary_color: "#2563EB"
   logo_icon: "GraduationCap"
   institution: "University of Colorado Boulder"
   footer_text: "© 2025 University of Colorado Boulder. All rights reserved."

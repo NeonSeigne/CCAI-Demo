@@ -6,6 +6,50 @@ school:
   timezone: America/Chicago
   status: active
 
+app:
+  # School colours (DESIGN.md): every role for light and dark. The frontend writes
+  # each as a CSS variable and builds the MUI theme from the same values.
+  # Toned-down red on large areas; Badger red only on small things. "Harder" is ink plus an icon so red stays the school's.
+  theme:
+    light:
+      deep: "#7D1015"
+      deep_raised: "#8F2227"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFFBD"
+      signal: "#C5050C"
+      signal_hover: "#9B0000"
+      on_signal: "#FFFFFF"
+      tint: "#F9ECEC"
+      tint_strong: "#F0CFD0"
+      tint_ink: "#8A1015"
+      band: "#14171F"
+      mark_bg: "#FFFFFF"
+      mark_ink: "#C5050C"
+      canvas: "#F6F5F4"
+      line_1: "#2F5BEA"
+      line_2: "#9B0000"
+      line_3: "#1E9E5A"
+      harder: "#14171F"
+    dark:
+      deep: "#3B1A1C"
+      deep_raised: "#4C2427"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFFB8"
+      signal: "#D0343A"
+      signal_hover: "#DD4A50"
+      on_signal: "#FFFFFF"
+      tint: "#2E1A1B"
+      tint_strong: "#4A2427"
+      tint_ink: "#FFC9CB"
+      band: "#2A1A1B"
+      mark_bg: "#FFFFFF"
+      mark_ink: "#C5050C"
+      canvas: "#121010"
+      line_1: "#7EA1FF"
+      line_2: "#FF6B70"
+      line_3: "#5CC98A"
+      harder: "#EEF0F4"
+
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
 

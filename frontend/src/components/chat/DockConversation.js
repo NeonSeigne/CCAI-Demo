@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText } from 'lucide-react';
+import { FileText } from '../icons';
 import AdvisorCarousel from '../AdvisorCarousel';
 import ChatThinking from './ChatThinking';
 import { useChat } from '../../contexts/ChatContext';

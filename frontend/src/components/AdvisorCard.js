@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { Pencil } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AvatarPickerModal from './AvatarPickerModal';
 
@@ -22,7 +22,7 @@ const AdvisorCard = ({ advisor, advisorId }) => {
         </div>
         <div
           className="advisor-card-icon"
-          style={{ backgroundColor: 'var(--paper-sunken)', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
+          style={{ backgroundColor: 'var(--canvas)', position: 'relative', cursor: 'pointer', overflow: 'hidden' }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           onClick={() => setPickerOpen(true)}
@@ -34,7 +34,7 @@ const AdvisorCard = ({ advisor, advisorId }) => {
           )}
           {hovered && (
             <div style={{ position: 'absolute', inset: 0, borderRadius: 'inherit', background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Pencil size={18} color="#fff" />
+              <Pencil size={18} color="var(--band-text)" />
             </div>
           )}
         </div>

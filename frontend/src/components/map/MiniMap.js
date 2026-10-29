@@ -1,9 +1,9 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { Icon } from '../icons';
 
 /**
  * A still map centred on one point: a 3×3 block of OpenStreetMap tiles
- * (no Leaflet), with the pin in the middle. Decorative; the venue name and
+ * (no Leaflet), with a round pin in the middle. Decorative; the venue name and
  * Directions beside it carry the meaning. OSM's tile policy asks for the
  * attribution, so it stays.
  */
@@ -20,7 +20,7 @@ export function pixelOf(lat, lon, zoom) {
   return { x, y };
 }
 
-export default function MiniMap({ lat, lon, zoom = 17 }) {
+export default function MiniMap({ lat, lon, zoom = 17, icon = 'location_on' }) {
   if (lat == null || lon == null) return null;
   const { x, y } = pixelOf(lat, lon, zoom);
   const tx = Math.floor(x / TILE);
@@ -44,8 +44,8 @@ export default function MiniMap({ lat, lon, zoom = 17 }) {
   }
   return (
     <div className="mini-map" aria-hidden="true">
-      {tiles}
-      <MapPin className="mini-map-pin" size={30} />
+      <div className="mini-map-tiles">{tiles}</div>
+      <span className="mini-map-pin"><Icon name={icon} size={24} filled /></span>
       <span className="mini-map-credit">© OpenStreetMap</span>
     </div>
   );

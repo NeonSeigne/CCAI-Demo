@@ -1,355 +1,216 @@
-/* Enhanced Chat Input Styles */
+/* The composer (DESIGN.md "Home colors"): a 32px card with +, the scope chip,
+   mic and a round signal Send. `div.cc-composer` outranks the older one-row
+   pill rules in ChatFrame.css whatever order the sheets load in. */
 .enhanced-chat-input-container {
   position: relative;
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding: 0 16px;
+  box-sizing: border-box;
+  font-family: var(--font-app);
 }
 
-/* Reply Banner */
-.reply-banner {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 12px 12px 0 0;
-  padding: 12px 16px;
-  margin: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.reply-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cancel-reply {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.cancel-reply:hover {
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-}
-
-/* Floating Upload Section */
-.floating-upload-section {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 16px;
-  margin-bottom: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  animation: slideUpFade 0.2s ease-out;
-}
-
-
-
-/* Floating Documents Section */
-.floating-documents-section {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 16px;
-  margin-bottom: 12px;
-  max-height: 400px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  animation: slideUpFade 0.2s ease-out;
-}
-
-
-
-.documents-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-primary);
-  background: var(--bg-secondary);
-}
-
-.documents-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.close-documents-btn {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.close-documents-btn:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
-
-.documents-list {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.no-documents {
+/* ---- The card ------------------------------------------------------------ */
+div.cc-composer .floating-input-box {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--text-tertiary);
+  align-items: stretch;
+  gap: 10px;
+  min-height: 0;
+  padding: 16px 12px 10px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--r-2xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  transition: border-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.no-documents svg {
-  margin-bottom: 12px;
-  opacity: 0.5;
-}
+div.cc-composer .floating-input-box:focus-within { border-color: var(--control); }
 
-.no-documents p {
-  margin: 8px 0;
+div.cc-composer .text-input-row,
+div.cc-composer .controls-row { display: flex; }
+
+div.cc-composer .text-input-row { padding: 0 8px 0 0; }
+
+div.cc-composer .main-textarea {
+  width: 100%;
+  min-height: 26px;
+  max-height: 200px;
+  padding: 2px 0;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
   font-weight: 500;
-  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-y: auto;
 }
 
-.no-documents span {
-  font-size: 13px;
-  color: var(--text-tertiary);
+div.cc-composer .main-textarea::placeholder { color: var(--faint); }
+
+div.cc-composer .main-textarea:focus { outline: none; }
+
+div.cc-composer .controls-row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0;
 }
 
-.document-item {
+div.cc-composer .file-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
+  gap: 4px;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
-.document-item:hover {
-  background: var(--bg-secondary);
-}
-
-.document-icon {
-  font-size: 20px;
+div.cc-composer .composer-end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.document-info {
-  flex: 1;
-  min-width: 0;
+/* + and mic: 40px round, no outline. */
+div.cc-composer .composer-plus-btn,
+div.cc-composer .mic-button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1), color 150ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.document-name {
-  font-weight: 500;
-  color: var(--text-primary);
-  font-size: 14px;
+div.cc-composer .composer-plus-btn:hover:not(:disabled),
+div.cc-composer .composer-plus-btn.active,
+div.cc-composer .mic-button:hover:not(:disabled) {
+  background: var(--raised);
+  color: var(--ink);
+}
+
+div.cc-composer .composer-plus-btn:active:not(:disabled),
+div.cc-composer .mic-button:active:not(:disabled),
+div.cc-composer .send-button.enabled:active { transform: scale(0.95); }
+
+div.cc-composer .composer-plus-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+div.cc-composer .mic-button.listening {
+  background: var(--error);
+  color: var(--surface);
+  animation: mic-pulse 1.5s ease-in-out infinite;
+}
+
+div.cc-composer .mic-button.transcribing { opacity: 0.6; cursor: wait; }
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--error) 35%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--error) 0%, transparent); }
+}
+
+.cc-composer .spinning { animation: composer-spin 0.9s linear infinite; }
+
+@keyframes composer-spin { to { transform: rotate(360deg); } }
+
+/* Send: the one signal action. */
+div.cc-composer .send-button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+div.cc-composer .send-button.enabled { background: var(--signal); color: var(--on-signal); }
+div.cc-composer .send-button.enabled:hover { background: var(--signal-hover); }
+
+div.cc-composer .send-button.disabled {
+  background: var(--raised);
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+/* What Ask looks through. */
+.composer-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-left: 4px;
+  padding: 5px 12px 5px 8px;
+  border-radius: var(--r-full);
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.document-details {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-.document-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.document-action-btn {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.document-action-btn:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-}
-
-.document-action-btn:hover:has(svg[data-icon="trash-2"]) {
-  background: #FEF2F2;
-  color: #DC2626;
-}
-
-
-
-/* Main Input Box */
-.floating-input-box {
-  background: var(--paper);
-  border: 1px solid var(--border-primary);
-  border-radius: 28px;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-
-
-.floating-input-box:focus-within {
-  border-color: var(--ink);
-  box-shadow: var(--shadow-soft), 0 0 0 1px var(--ink);
-}
-
-
-
-/* Text Input Row */
-.text-input-row {
-  padding: 16px 20px 4px 20px;
-}
-
-.main-textarea {
-  width: 100%;
-  min-height: 24px;
-  max-height: 200px;
-  border: none;
-  outline: none;
-  resize: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 16px;
-  font-family: inherit;
-  line-height: 1.5;
-  overflow-y: auto;
-}
-
-.main-textarea::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Controls Row */
-.controls-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 20px 16px 20px;
-}
-
-/* File Controls - ensure buttons stay side by side */
-.file-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-}
-
-/* Add Documents Button */
-.add-docs-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-secondary);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.composer-plus-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
+/* ---- The + menu ---------------------------------------------------------- */
+.composer-plus-popover.MuiPaper-root {
   border: 1px solid var(--line);
-  border-radius: 9999px;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.composer-plus-btn:hover:not(:disabled),
-.composer-plus-btn.active {
-  background: var(--paper-sunken);
-  color: var(--ink);
-}
-
-.composer-plus-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.composer-plus-popover {
-  border-radius: 14px !important;
-  border: 1px solid var(--line) !important;
-  box-shadow: 0 8px 28px rgba(17, 17, 20, 0.1) !important;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
   overflow: hidden;
 }
 
 .composer-plus-menu {
-  min-width: 220px;
-  padding: 8px;
-  background: var(--paper);
+  min-width: 240px;
+  padding: 6px;
+  font-family: var(--font-app);
 }
 
 .composer-plus-section-label {
-  margin: 8px 8px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  padding: 10px 12px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .composer-plus-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 0 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   text-align: left;
 }
 
-.composer-plus-item:hover:not(:disabled) {
-  background: var(--paper-sunken);
-}
+.composer-plus-item .ms { color: var(--muted); }
+.composer-plus-item:hover:not(:disabled) { background: var(--raised); }
+.composer-plus-item:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.composer-plus-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* ---- Chips above and below the card --------------------------------------- */
 .composer-active-skills {
   display: flex;
   flex-wrap: wrap;
@@ -362,20 +223,25 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 9999px;
-  padding: 6px 10px 6px 12px;
-  background: var(--paper);
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(17, 17, 20, 0.04);
 }
 
-.composer-skill-pill:hover {
-  background: var(--paper-sunken);
+.composer-skill-pill:hover { background: var(--raised); }
+
+.composer-skill-pill.pill-active {
+  border-color: var(--tint-strong);
+  background: var(--tint);
+  color: var(--tint-ink);
 }
 
 .composer-attachments {
@@ -388,105 +254,107 @@
 }
 
 .composer-attachment {
-  cursor: default;
+  min-height: 32px;
   gap: 6px;
-  padding: 4px 6px 4px 12px;
+  padding: 0 6px 0 12px;
+  border-color: var(--tint-strong);
+  background: var(--tint);
+  color: var(--tint-ink);
+  font-size: 13px;
+  cursor: default;
 }
 
-.composer-attachment:hover {
-  background: var(--paper);
-}
+.composer-attachment:hover { background: var(--tint); }
 
 .composer-attachment-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: 0;
-  border-radius: 9999px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   padding: 0;
+  border: 0;
+  border-radius: 50%;
   background: transparent;
-  color: var(--ink-soft);
+  color: inherit;
   cursor: pointer;
 }
 
-.composer-attachment-remove:hover {
-  background: var(--paper-sunken);
-  color: var(--ink);
-}
+.composer-attachment-remove:hover { background: var(--tint-strong); }
 
+/* ---- Advisors (full composer only) ---------------------------------------- */
 .advisor-menu-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 9999px;
-  padding: 7px 10px;
-  background: transparent;
-  color: var(--ink-soft);
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--muted);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .advisor-menu-button:hover,
 .advisor-menu-button.active {
-  color: var(--ink);
-  background: var(--paper-sunken);
+  background: var(--tint);
+  border-color: var(--tint-strong);
+  color: var(--tint-ink);
 }
 
-.composer-advisor-popover {
+.composer-advisor-popover.MuiPaper-root {
   border: 1px solid var(--line);
-  border-radius: 16px !important;
-  box-shadow: var(--shadow-soft) !important;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
 }
 
 .composer-advisor-menu {
   width: min(320px, calc(100vw - 32px));
-  padding: 8px;
-  background: var(--paper);
+  padding: 6px;
+  font-family: var(--font-app);
 }
 
 .composer-advisor-menu-header {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 8px 10px 10px;
+  padding: 10px 12px 8px;
   color: var(--ink);
 }
 
 .composer-advisor-menu-header span {
-  color: var(--ink-soft);
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .composer-advisor-option {
   width: 100%;
+  min-height: 44px;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 10px;
-  padding: 8px;
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--ink);
   text-align: left;
   font: inherit;
-  font-size: 13px;
+  font-size: 14.5px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.composer-advisor-option:hover,
-.composer-advisor-option.selected {
-  background: var(--paper-sunken);
-}
+.composer-advisor-option:hover { background: var(--raised); }
+.composer-advisor-option.selected { background: var(--tint); color: var(--tint-ink); }
 
 .composer-advisor-option:disabled {
-  color: var(--ink-soft);
+  color: var(--muted);
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -494,13 +362,11 @@
 .advisor-option-avatar {
   width: 28px;
   height: 28px;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
   overflow: hidden;
-  background: var(--paper-sunken);
-  border: 1px solid var(--line);
+  background: var(--raised);
 }
 
 .advisor-option-avatar img {
@@ -511,317 +377,332 @@
 
 .advisor-option-check {
   width: 16px;
-  color: var(--ink);
-  font-weight: 700;
+  font-weight: 800;
 }
 
-.add-docs-btn:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-  border-color: var(--border-primary);
-  color: var(--text-primary);
-}
+/* Response mode: a segmented control (components.css .cc-segmented). */
+.composer-mode { flex: none; }
 
-.add-docs-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.add-docs-btn.active {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: white;
-}
-
-/* View Documents Button */
+/* ---- Profile and documents buttons (full composer only) ------------------- */
+.add-docs-btn,
 .view-docs-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-secondary);
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: var(--text-secondary);
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.view-docs-btn:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--border-primary);
-  color: var(--text-primary);
-}
+.add-docs-btn:hover:not(:disabled),
+.view-docs-btn:hover { background: var(--raised); color: var(--ink); }
 
+.add-docs-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.add-docs-btn.active,
 .view-docs-btn.active {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
-  color: white;
+  background: var(--tint);
+  border-color: var(--tint-strong);
+  color: var(--tint-ink);
 }
 
 .docs-count {
-  background: var(--accent-primary);
-  color: white;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px;
+  min-width: 18px;
+  padding: 1px 6px;
+  box-sizing: border-box;
+  border-radius: var(--r-full);
+  background: var(--deep);
+  color: var(--on-deep);
+  font-size: 11px;
+  font-weight: 800;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
-.view-docs-btn:hover .docs-count,
-.view-docs-btn.active .docs-count {
-  background: white;
-  color: var(--accent-primary);
-}
-
-/* Send Button - FIXED VERSION */
-.send-button {
+/* ---- Reply banner --------------------------------------------------------- */
+.reply-banner {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  margin: 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.reply-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancel-reply {
+  padding: 4px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+}
+
+.cancel-reply:hover { background: var(--surface); color: var(--muted); }
+
+/* ---- Upload and documents panels ------------------------------------------ */
+.floating-upload-section,
+.floating-documents-section {
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  animation: slideUpFade 0.2s ease-out;
+}
+
+.floating-upload-section { padding: 20px; }
+
+.floating-documents-section {
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.documents-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px 20px;
+}
+
+.documents-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.close-documents-btn {
+  display: inline-grid;
+  place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  padding: 0;
   border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+}
+
+.close-documents-btn:hover { background: var(--raised); color: var(--ink); }
+
+.documents-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0 8px 8px;
+}
+
+.no-documents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.no-documents p {
+  margin: 8px 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.no-documents span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+}
+
+.document-item:hover { background: var(--raised); }
+
+.document-icon {
+  font-size: 20px;
   flex-shrink: 0;
 }
 
-/* Enabled state - clean approach */
-.send-button.enabled {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: var(--shadow-sm);
+.document-info {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Icon styling - use currentColor for better inheritance */
-.send-button svg {
-  width: 16px;
-  height: 16px;
-  color: currentColor;
+.document-name {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.send-button.enabled:hover {
-  background: var(--ink);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-soft);
+.document-details {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12.5px;
 }
 
-.send-button.enabled:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+.document-actions {
+  display: flex;
+  gap: 4px;
 }
 
-/* Disabled state */
-.send-button.disabled {
-  background: var(--paper-sunken);
-  color: var(--ink-soft);
-  cursor: not-allowed;
-  box-shadow: none;
+.document-action-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
 }
 
+.document-action-btn:hover { background: var(--error-tint); color: var(--error); }
 
-
-/* Document Upload Notifications */
+/* ---- Upload notifications ------------------------------------------------- */
 .document-upload-notification {
   display: flex;
   justify-content: center;
   margin: 16px 0;
-  animation: slideUpFade 0.3s ease-out;
+  padding: 0;
+  border: none;
   background: transparent;
   box-shadow: none;
-  border: none;
-  padding: 0;
+  animation: slideUpFade 0.3s ease-out;
 }
-
-/*  */
 
 .upload-notification-content {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: var(--feature-bg);  /* Change from fixed color */
-  border: 1px solid var(--accent-primary);  /* Change from fixed color */
-  border-radius: 12px;
-  color: var(--accent-primary);  /* Change from fixed color */
-  font-size: 14px;
-  font-weight: 500;
   max-width: 80%;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.upload-notification-icon {
-  flex-shrink: 0;
-}
-
-.upload-notification-icon.success {
-  color: #10B981;
-}
-
-.upload-notification-icon.error {
-  color: #EF4444;
-}
-
-.upload-notification-text {
-  flex: 1;
-}
+.upload-notification-icon { flex-shrink: 0; }
+.upload-notification-icon.success { color: var(--good); }
+.upload-notification-icon.error { color: var(--error); }
+.upload-notification-text { flex: 1; }
 
 .upload-notification-title {
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 0 0 2px 0;
+  margin: 0 0 2px;
+  color: var(--ink);
   font-size: 14px;
+  font-weight: 700;
 }
 
 .upload-notification-message {
-  color: var(--text-secondary);
   margin: 0;
+  color: var(--muted);
   font-size: 13px;
 }
 
-/*  */
-
 .notification-close-btn {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
   padding: 4px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
 }
 
-.notification-close-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-}
+.notification-close-btn:hover { background: var(--raised); color: var(--muted); }
 
-/* Animations */
 @keyframes slideUpFade {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .enhanced-chat-input-container {
-    padding: 0 12px;
-  }
-  
-  .text-input-row {
-    padding: 14px 16px 4px 16px;
-  }
-  
-  .controls-row {
-    padding: 8px 16px 14px 16px;
-  }
-  
-  .main-textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  .add-docs-btn {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-  
-  .add-docs-btn span {
-    display: none; /* Hide text on mobile, show only icon */
-  }
+/* ---- Phones --------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .enhanced-chat-input-container { padding: 0 12px; }
 
-  .advisor-menu-button span {
-    display: none;
-  }
-  
-  .view-docs-btn {
-    padding: 6px 8px;
-  }
-  
-  .send-button {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .floating-upload-section,
-  .floating-documents-section {
-    padding: 16px;
-  }
-  
-  .documents-header {
-    padding: 12px 16px;
-  }
-  
-  .documents-list {
-    max-height: 250px;
-  }
-  
+  div.cc-composer .floating-input-box { padding: 14px 10px 8px 16px; }
+
+  .composer-scope,
+  .add-docs-btn span,
+  .advisor-menu-button span { display: none; }
+
+  .floating-upload-section { padding: 16px; }
+
+  .documents-list { max-height: 250px; }
+
   .upload-notification-content {
     max-width: 95%;
     padding: 10px 14px;
     font-size: 13px;
   }
-  
-  .reply-banner {
-    margin: 0 12px 12px 12px;
-  }
+
+  .reply-banner { margin: 0 12px 12px; }
 }
 
-/* Focus and accessibility */
-.add-docs-btn:focus-visible,
-.view-docs-btn:focus-visible,
-.send-button:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
+/* ---- Focus, contrast and motion ------------------------------------------- */
+.cc-composer :focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
-.main-textarea:focus {
-  outline: none; /* Handled by parent container */
-}
+div.cc-composer .main-textarea:focus-visible { outline: none; }
 
-/* Loading states */
 .floating-input-box.loading {
   opacity: 0.7;
   pointer-events: none;
 }
 
-.main-textarea.loading {
-  cursor: wait;
-}
+.main-textarea.loading { cursor: wait; }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
-  .floating-input-box {
-    border-width: 2px;
-  }
-  
-  .send-button.enabled {
-    border: 2px solid #3B82F6;
-  }
+  div.cc-composer .floating-input-box { border: 2px solid var(--ink); }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .floating-input-box,
+  div.cc-composer .floating-input-box,
+  div.cc-composer .composer-plus-btn,
+  div.cc-composer .mic-button,
+  div.cc-composer .send-button,
   .add-docs-btn,
   .view-docs-btn,
-  .send-button,
   .floating-upload-section,
-  .floating-documents-section {
-    transition: none;
-  }
-  
-  .slideUpFade {
-    animation: none;
-  }
+  .floating-documents-section,
+  .document-upload-notification { transition: none; animation: none; }
+
+  div.cc-composer .mic-button.listening { animation: none; }
 }

@@ -15,10 +15,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
-import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
-import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
-import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
+import { ArticleOutlined as ArticleOutlinedIcon, PictureAsPdfOutlined as PictureAsPdfOutlinedIcon, ShareOutlined as ShareOutlinedIcon, TextSnippetOutlined as TextSnippetOutlinedIcon } from './icons';
 
 const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken = null }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -178,7 +175,7 @@ const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken 
               width: 340,
               maxWidth: 'calc(100vw - 24px)',
               border: '1px solid var(--line)',
-              boxShadow: 'var(--shadow-soft-md)',
+              boxShadow: 'var(--shadow-float)',
             },
           },
         }}

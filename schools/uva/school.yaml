@@ -9,9 +9,50 @@ school:
 
 app:
   title: "UVA Undergraduate Advisor"
-  primary_color: "#232D4B"
   institution: "University of Virginia"
   footer_text: "Unofficial student advising demo for the University of Virginia."
+  # School colours (DESIGN.md): every role for light and dark. The frontend writes
+  # each as a CSS variable and builds the MUI theme from the same values.
+  # Student life moves to UVA yellow so it doesn't collide with UVA orange.
+  theme:
+    light:
+      deep: "#232D4B"
+      deep_raised: "#303B5E"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFFB3"
+      signal: "#E57200"
+      signal_hover: "#C96400"
+      on_signal: "#14171F"
+      tint: "#FCEBDD"
+      tint_strong: "#F8D2AE"
+      tint_ink: "#8A4206"
+      band: "#232D4B"
+      mark_bg: "#E57200"
+      mark_ink: "#14171F"
+      canvas: "#F3F4F7"
+      line_1: "#009FDF"
+      line_2: "#EF3F6B"
+      line_3: "#62BB46"
+      life: "#C79A00"
+    dark:
+      deep: "#1B2440"
+      deep_raised: "#27325A"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFFA8"
+      signal: "#F28A2E"
+      signal_hover: "#FF9D47"
+      on_signal: "#14171F"
+      tint: "#33230F"
+      tint_strong: "#5A3712"
+      tint_ink: "#FFD3A8"
+      band: "#232D4B"
+      mark_bg: "#F28A2E"
+      mark_ink: "#14171F"
+      canvas: "#10131B"
+      line_1: "#3DB8EA"
+      line_2: "#F46A8D"
+      line_3: "#7FCB66"
+      life: "#E9C13A"
 
 
 mongodb:

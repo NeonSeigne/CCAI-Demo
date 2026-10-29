@@ -1,6 +1,4 @@
 import React from 'react';
-import cytoscape from 'cytoscape';
-import fcose from 'cytoscape-fcose';
 import {
   Bar,
   BarChart,
@@ -11,11 +9,6 @@ import {
   YAxis,
 } from 'recharts';
 import '../../styles/CourseVisuals.css';
-
-cytoscape.use(fcose);
-
-/** cytoscape with the fcose layout registered, for every course graph. */
-export { cytoscape };
 
 /** UW Course Map letter buckets, as legacy `gpa_chart` visuals carry them. */
 export const GRADE_KEYS = ['other', 'f', 'd', 'c', 'bc', 'b', 'ab', 'a'];
@@ -55,7 +48,7 @@ export function CourseGradeDistribution({
             <CartesianGrid vertical={false} stroke="var(--line)" />
             <XAxis dataKey="grade" tickLine={false} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} width={42} />
-            <Tooltip cursor={{ fill: 'var(--paper-sunken)' }} />
+            <Tooltip cursor={{ fill: 'var(--canvas)' }} />
             <Bar dataKey="students" fill="var(--ink)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

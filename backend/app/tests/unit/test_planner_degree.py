@@ -6,8 +6,10 @@ import unittest
 from unittest.mock import patch
 
 from app.api.routes import planner as routes
-from app.planner import service
-from app.tests.unit.planner_fakes import TERM, course
+from app.planner import checker, degree, service
+from app.planner.facts import CourseFacts, PrereqNode
+from app.planner.programs import Deadline
+from app.tests.unit.planner_fakes import TERM, Program, Rule, course, plan
 from app.tests.unit.test_planner_terms import FALL, FALL_FACTS, PlannerTestCase, add
 
 SET_ECON = {"op": "set_profile", "program_ids": ["econ-ba"], "completed": [{"id": "ECON 2010", "grade": "B+"}]}
@@ -32,6 +34,8 @@ class DegreeBoardTests(PlannerTestCase):
                                               "grade": "B+", "term": None}])
         (rule,) = body["rules"]
         self.assertEqual((rule["rule_id"], rule["planned"], rule["needed"]), ("el", 2, 4))
+        self.assertEqual(body["route"]["lines"], [{"program_id": "econ-ba", "name": "Economics electives", "rule_ids": ["el"]}])
+        self.assertEqual(body["route"]["slots"][0]["open"], 2)
         # Each course was looked up in its own term, all in one batch.
         self.assertIn((("ECON 3020",), FALL), self.calls)
         self.assertNotIn((("ECON 3020",), TERM), self.calls)
@@ -92,3 +96,63 @@ class DegreeBoardTests(PlannerTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RouteTests(unittest.TestCase):
+    """The route map's data (R2, R9): lines, deadline, open slots, prerequisite links."""
+
+    def setUp(self):
+        rules = (
+            Rule("intro", "Introductory economics", "all_of", courses=("ECON 2010", "ECON 2020"), line="Foundations"),
+            Rule("stats", "Statistics", "all_of", courses=("STAT 2120",), line="Foundations"),
+            Rule("micro", "Intermediate micro", "all_of", courses=("ECON 3010",), line="Core theory"),
+            Rule("el", "Economics electives", "level", subjects=("ECON",), min_level=4000, n=4),
+            Rule("lab", "Lab credits", "credits_from", credits=6.0, courses=("ECON 4720", "ECON 4730")),
+        )
+        self.programs = [Program("econ-ba", "Economics B.A.", rules=rules,
+                                 deadline=Deadline(rules=("micro",), by_semester=6))]
+        either = PrereqNode("any", children=(PrereqNode("course", course="ECON 2010"),
+                                             PrereqNode("course", course="ECON 9999")))
+        both = PrereqNode("all", children=(either, PrereqNode("course", course="STAT 2120")))
+        self.facts = {
+            "ECON 2010": course("ECON 2010"),
+            "STAT 2120": course("STAT 2120"),
+            "ECON 3010": course("ECON 3010", prereq_tree=both),
+            "ECON 4010": course("ECON 4010", prereq_tree=PrereqNode("course", course="econ 3010")),
+        }
+        self.plan = plan(["ECON 3010", "STAT 2120"])
+        self.plan["courses"].append({"id": "ECON 4010", "term": "Fall 2027", "sections": None})
+        self.plan["profile"]["completed"] = [{"id": "ECON 2010", "grade": "A-", "term": "Fall 2025"}]
+
+    def route(self):
+        rules, _ = checker.check_rules(self.plan, self.facts, self.programs)
+        return degree.route(self.plan, self.facts, self.programs, rules)
+
+    def test_rules_share_a_named_line_and_unnamed_rules_get_their_own(self):
+        lines = self.route()["lines"]
+        self.assertEqual([(l["name"], l["rule_ids"]) for l in lines], [
+            ("Foundations", ["intro", "stats"]), ("Core theory", ["micro"]),
+            ("Economics electives", ["el"]), ("Lab credits", ["lab"]),
+        ])
+        self.assertEqual({l["program_id"] for l in lines}, {"econ-ba"})
+
+    def test_deadline_comes_from_the_program(self):
+        self.assertEqual(self.route()["deadline"], {"program_id": "econ-ba", "rule_ids": ["micro"], "by_semester": 6})
+        self.programs = [Program("econ-ba", "Economics B.A.", rules=self.programs[0].rules)]
+        self.assertIsNone(self.route()["deadline"])
+
+    def test_slots_are_courses_the_plan_has_not_chosen(self):
+        slots = {s["rule_id"]: (s["line"], s["open"]) for s in self.route()["slots"]}
+        # ECON 2020 unchosen; 3 of 4 electives open; 6 lab credits is 2 courses.
+        self.assertEqual(slots, {"intro": ("Foundations", 1), "el": ("Economics electives", 3),
+                                 "lab": ("Lab credits", 2)})
+
+    def test_edges_link_prerequisites_inside_the_plan_only(self):
+        edges = {(e["from"], e["to"]) for e in self.route()["edges"]}
+        # AND and OR parts alike; ECON 9999 is not in the plan, so no edge.
+        self.assertEqual(edges, {("ECON 2010", "ECON 3010"), ("STAT 2120", "ECON 3010"), ("ECON 3010", "ECON 4010")})
+
+    def test_unknown_facts_give_no_edges(self):
+        self.facts["ECON 3010"] = CourseFacts("ECON 3010", known="unavailable")
+        edges = {(e["from"], e["to"]) for e in self.route()["edges"]}
+        self.assertEqual(edges, {("ECON 3010", "ECON 4010")})

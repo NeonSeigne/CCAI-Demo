@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, File, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileText, File, X, CheckCircle, AlertCircle } from './icons';
 import '../styles/FileUpload.css'
 
 const FileUpload = ({ onFileUploaded, isUploading, onUploadStart, currentChatSessionId = null, authToken = null  }) => {
@@ -10,9 +10,9 @@ const FileUpload = ({ onFileUploaded, isUploading, onUploadStart, currentChatSes
   const fileInputRef = useRef(null);
 
   const supportedTypes = {
-    'application/pdf': { ext: 'PDF', icon: FileText, color: '#EF4444' },
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { ext: 'DOCX', icon: File, color: '#3B82F6' },
-    'text/plain': { ext: 'TXT', icon: FileText, color: '#10B981' }
+    'application/pdf': { ext: 'PDF', icon: FileText, color: 'var(--error)' },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { ext: 'DOCX', icon: File, color: 'var(--academics)' },
+    'text/plain': { ext: 'TXT', icon: FileText, color: 'var(--good)' }
   };
 
   const validateFile = (file) => {

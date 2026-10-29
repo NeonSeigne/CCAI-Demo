@@ -6,8 +6,7 @@ import {
 } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import * as LucideIcons from 'lucide-react';
-import { X, Search, ChevronRight, BookOpen } from 'lucide-react';
+import { X, Search, ChevronRight, BookOpen, iconFor } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { userGuideTopics } from '../data/userGuide';
 import AppDialog from './AppDialog';
@@ -104,7 +103,7 @@ const UserGuide = ({ leftInset = 0 }) => {
                 <div className="ug-empty">No matches</div>
               )}
               {filteredTopics.map((t) => {
-                const TopicIcon = LucideIcons[t.icon] || BookOpen;
+                const TopicIcon = t.icon ? iconFor(t.icon) : BookOpen;
                 return (
                   <button
                     key={t.id}

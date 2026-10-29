@@ -1,7 +1,5 @@
 import React from 'react';
-import AddRounded from '@mui/icons-material/AddRounded';
-import CloseRounded from '@mui/icons-material/CloseRounded';
-import DragIndicatorRounded from '@mui/icons-material/DragIndicatorRounded';
+import { AddRounded, CloseRounded, DragIndicatorRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { difficultyOf } from './semesterData';
 

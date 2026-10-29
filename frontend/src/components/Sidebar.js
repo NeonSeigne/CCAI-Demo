@@ -22,16 +22,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import LogoutIcon from '@mui/icons-material/Logout';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import SearchIcon from '@mui/icons-material/Search';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
+import { Close as CloseIcon, DeleteOutlined as DeleteOutlinedIcon, DescriptionOutlined as DescriptionOutlinedIcon, EditOutlined as EditOutlinedIcon, HomeOutlined as HomeOutlinedIcon, Logout as LogoutIcon, PersonOutlined as PersonOutlinedIcon, Search as SearchIcon, SettingsOutlined as SettingsOutlinedIcon, ViewSidebarOutlined as ViewSidebarOutlinedIcon } from './icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import muiTheme from '../theme/muiTheme';
@@ -220,7 +211,7 @@ const Sidebar = ({
     minHeight: 40,
     px: showCollapsed ? 1 : 1.25,
     justifyContent: showCollapsed ? 'center' : 'flex-start',
-    borderRadius: 2,
+    borderRadius: 'var(--r-full)',
   };
 
   const drawerContent = (
@@ -318,9 +309,7 @@ const Sidebar = ({
                 disabled={isCreatingNewChat}
                 sx={{
                   ...navItemSx,
-                  bgcolor: showCollapsed
-                    ? 'var(--paper-sunken)'
-                    : 'var(--bg-tertiary)',
+                  bgcolor: 'var(--raised)',
                   mb: 0.25,
                 }}
               >
@@ -442,13 +431,14 @@ const Sidebar = ({
         >
           {!showCollapsed && (
             <Typography
-              variant="overline"
               sx={{
                 display: 'block',
                 px: 0.75,
                 pt: 1.5,
                 pb: 0.75,
-                color: 'var(--ink-soft)',
+                color: 'var(--muted)',
+                fontSize: 13,
+                fontWeight: 700,
                 lineHeight: 1.2,
               }}
             >
@@ -465,7 +455,7 @@ const Sidebar = ({
                 justifyContent: 'center',
                 gap: 1,
                 py: 4,
-                color: 'var(--ink-soft)',
+                color: 'var(--muted)',
               }}
             >
               <CircularProgress size={20} color="inherit" />
@@ -579,18 +569,19 @@ const Sidebar = ({
               justifyContent: showCollapsed ? 'center' : 'flex-start',
               gap: 1,
               p: 0.75,
-              borderRadius: 2,
+              borderRadius: 'var(--r-full)',
               textAlign: 'left',
-              '&:hover': { bgcolor: 'var(--paper-sunken)' },
+              '&:hover': { bgcolor: 'var(--raised)' },
             }}
           >
             <Avatar
               sx={{
                 width: 34,
                 height: 34,
-                bgcolor: 'var(--ink)',
-                color: 'var(--paper)',
-                fontSize: 14,
+                bgcolor: 'var(--deep)',
+                color: 'var(--on-deep)',
+                fontSize: 13,
+                fontWeight: 800,
               }}
             >
               {user?.firstName?.[0] || <PersonOutlinedIcon fontSize="small" />}
@@ -667,7 +658,7 @@ const Sidebar = ({
             setAccountMenuAnchor(null);
             onSignOut();
           }}
-          sx={{ color: 'var(--accent-red)', gap: 1 }}
+          sx={{ color: 'var(--harder)', gap: 1 }}
         >
           <LogoutIcon fontSize="small" />
           Sign out

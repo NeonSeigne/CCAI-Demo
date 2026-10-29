@@ -1,7 +1,9 @@
 import React from 'react';
-import { ArrowRight, ExternalLink, MapPin } from 'lucide-react';
+import { ArrowRight, ExternalLink, Icon } from '../icons';
 import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';
+import MiniMap from '../map/MiniMap';
+import '../../styles/CourseVisuals.css';
 
 const CATEGORY_LABELS = {
   academic: 'Building',
@@ -28,63 +30,63 @@ export function mapPageLink(origin, place) {
   return `/map?${params.toString()}`;
 }
 
-/** A drawn walk from origin to place; decoration, not a map. */
-function WalkSketch() {
-  return (
-    <div className="cc-walk-sketch" aria-hidden="true">
-      <svg viewBox="0 0 300 96" preserveAspectRatio="none">
-        <path d="M0 45 H300 M138 0 V96" className="cc-walk-street" />
-        <path d="M60 24 L236 72" className="cc-walk-route" />
-      </svg>
-      <span className="cc-walk-from" />
-      <span className="cc-walk-to" />
-    </div>
-  );
+function KindIcon({ category }) {
+  if (category === 'dining') return <Icon name="restaurant" size={18} />;
+  if (category === 'library') return <Icon name="menu_book" size={18} />;
+  if (category === 'academic') return <Icon name="school" size={18} />;
+  return <Icon name="location_on" size={18} />;
 }
 
-/** Places found by find_place, one card each, with the walk when there's an origin. */
+/** Places found by find_place, one card each: the map, the place, the walk when there's an origin. */
 export default function PlaceCard({ visual }) {
   const places = visual?.places || [];
   if (!places.length) return null;
   const origin = visual.from;
 
   return (
-    <section className={`cc-places ${places.length > 1 ? 'cc-span' : ''}`} aria-label="Places">
+    <section className="vc-places" aria-label="Places">
       {places.map((place, index) => {
         const walking = origin && place.walk_minutes_estimate != null;
+        const hasMap = place.lat != null && place.lon != null;
         return (
-          <div key={place.id || `${place.name}-${index}`} className="cc-card cc-place">
-            {walking && <WalkSketch />}
-            <div className="cc-place-top">
-              {!walking && (
-                <span className="cc-place-pin" aria-hidden="true">
-                  <MapPin size={16} />
-                </span>
-              )}
-              <div className="cc-place-body">
-                <strong>{place.name}</strong>
-                <span className="cc-place-meta">
-                  {walking ? `from ${origin.name}` : CATEGORY_LABELS[place.category] || 'Place'}
-                </span>
+          <div key={place.id || `${place.name}-${index}`} className={`vc-card vc-place ${hasMap ? '' : 'is-plain'}`.trim()}>
+            {hasMap && (
+              <div className="vc-place-map">
+                <MiniMap lat={place.lat} lon={place.lon} />
+              </div>
+            )}
+            <div className="vc-place-body">
+              <span className="vc-place-kind">
+                <KindIcon category={place.category} />
+                {CATEGORY_LABELS[place.category] || 'Place'}
+              </span>
+              <div className="vc-place-top">
+                <h3>{place.name}</h3>
+                <SaveButton className="vc-save" item={place.id ? { kind: 'place', key: place.id, display_name: place.name } : null} />
               </div>
               {walking && (
-                <span className="cc-place-walk">
-                  <strong>~{place.walk_minutes_estimate} min</strong>
-                  <small>{Math.round(place.distance_m)} m straight line</small>
-                </span>
+                <div className="vc-place-tiles">
+                  <div className="vc-tile">
+                    <span>{`from ${origin.name}`}</span>
+                    <b>~{place.walk_minutes_estimate} min</b>
+                    {place.distance_m != null && <small>{Math.round(place.distance_m)} m straight line</small>}
+                  </div>
+                </div>
               )}
-              <SaveButton item={place.id ? { kind: 'place', key: place.id, display_name: place.name } : null} />
+              <div className="vc-place-acts">
+                {place.id && (
+                  <ContextLink className="vc-btn is-primary" to={mapPageLink(origin, place)}>
+                    <Icon name="map" size={20} />
+                    Open on map <ArrowRight size={18} aria-hidden="true" />
+                  </ContextLink>
+                )}
+                {place.map_url && (
+                  <a className="vc-btn" href={place.map_url} target="_blank" rel="noopener noreferrer">
+                    {mapLabel(place.map_url)} <ExternalLink size={16} aria-hidden="true" />
+                  </a>
+                )}
+              </div>
             </div>
-            {place.id && (
-              <ContextLink className="cc-context-link" to={mapPageLink(origin, place)}>
-                Open on map <ArrowRight size={13} aria-hidden="true" />
-              </ContextLink>
-            )}
-            {place.map_url && (
-              <a className="cc-soft-btn cc-place-map" href={place.map_url} target="_blank" rel="noopener noreferrer">
-                {mapLabel(place.map_url)} <ExternalLink size={12} aria-hidden="true" />
-              </a>
-            )}
           </div>
         );
       })}

@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { changedRowKeys, consequenceRows, literalOps } from '../planner/proposalDiff';
 import useAcceptProposal from '../planner/useAcceptProposal';
-import '../../styles/PlanCards.css';
+import { Icon } from '../icons';
+import '../../styles/CourseVisuals.css';
 
 /**
  * Chat card for a `proposed_change` visual (design 2A, 6A, 11A).
@@ -47,16 +48,27 @@ function stateOf(visual, proposal, outcome, planner) {
   return 'ready';
 }
 
-function Row({ row, changed }) {
+function RowIcon({ row, lead }) {
+  if (lead) return <span className="vc-diff-icon is-move"><Icon name="swap_horiz" size={18} /></span>;
+  if (row.key === 'credits') return <span className="vc-diff-icon"><Icon name="functions" size={18} /></span>;
+  if (row.key === 'difficulty') return <span className="vc-diff-icon"><Icon name="bar_chart" size={18} /></span>;
+  if (row.key === 'clashes') return <span className="vc-diff-icon"><Icon name="warning" size={18} /></span>;
+  return <span className="vc-diff-icon"><Icon name="school" size={18} /></span>;
+}
+
+/** One consequence: icon, label, before → after. The first (biggest) leads. */
+function Row({ row, changed, lead = false }) {
   return (
-    <li className={`pc-row ${changed ? 'is-changed' : ''}`.trim()}>
-      <span>
+    <li className={`${lead ? 'pc-lead' : 'pc-row'}${changed ? ' is-changed' : ''}`}>
+      <RowIcon row={row} lead={lead} />
+      <span className="vc-diff-label">
         {row.label}
-        {changed && <span className="pc-changed-tag"> · Changed</span>}
+        {lead && row.suffix && <small> · {row.suffix}</small>}
+        {changed && <small className="pc-changed-tag"> · Changed</small>}
       </span>
-      <span className="pc-row-value">
-        {row.before}
-        <span aria-hidden="true"> → </span>
+      <span className="vc-arrow">
+        <s>{row.before}</s>
+        <Icon name="arrow_forward" size={18} />
         <span className="sr-only"> changes to </span>
         {row.after}
       </span>
@@ -64,16 +76,12 @@ function Row({ row, changed }) {
   );
 }
 
-function Lead({ row }) {
-  if (!row) return null;
+function Head() {
   return (
-    <p className="pc-lead">
-      {row.label}: {row.before}
-      <span aria-hidden="true"> → </span>
-      <span className="sr-only"> changes to </span>
-      {row.after}
-      {row.suffix ? ` · ${row.suffix}` : ''}
-    </p>
+    <div className="vc-head">
+      <Icon name="edit_calendar" size={20} />
+      <h3>Proposed change</h3>
+    </div>
   );
 }
 
@@ -102,32 +110,33 @@ export default function ProposalCard({ visual }) {
 
   if (state === 'checking') {
     return (
-      <div className="proposal-card" aria-busy="true">
-        <p className="pc-label">Proposed change</p>
-        <p className="pc-line">Checking your plan…</p>
-        <div className="pp-skeleton">
-          {[0, 1, 2].map((i) => <div key={i} className="pp-skel pp-skel-row" />)}
+      <div className="vc-card vc-proposal" aria-busy="true">
+        <Head />
+        <p className="vc-line is-muted">Checking your plan…</p>
+        <div className="vc-skeleton">
+          {[0, 1, 2].map((i) => <i key={i} />)}
         </div>
       </div>
     );
   }
 
   if (state === 'applied' && undone) {
-    return <div className="proposal-card"><p className="pc-line is-muted">{MUTED.undone}</p></div>;
+    return <div className="vc-card vc-proposal"><p className="vc-line is-muted">{MUTED.undone}</p></div>;
   }
 
   if (state === 'applied') {
     const latest = outcome?.revision != null && planner?.view?.plan?.revision === outcome.revision && planner?.view?.undo_label;
     return (
-      <div className="proposal-card">
-        <p className="pc-line">
+      <div className="vc-card vc-proposal">
+        <p className="vc-line">
+          <Icon name="check_circle" size={20} />
           Applied
           {latest && (
             <>
               <span aria-hidden="true">·</span>
               <button
                 type="button"
-                className="pp-link"
+                className="vc-link"
                 onClick={() => planner.undo()
                   .then(() => setUndone(true))
                   .catch(() => setLocalError("Couldn't undo"))}
@@ -137,16 +146,16 @@ export default function ProposalCard({ visual }) {
             </>
           )}
         </p>
-        {localError && <p className="pc-refused" role="alert">{localError}</p>}
+        {localError && <p className="vc-alert vc-line" role="alert">{localError}</p>}
       </div>
     );
   }
 
   if (MUTED[state]) {
     return (
-      <div className="proposal-card">
-        <p className="pc-line is-muted">{MUTED[state]}</p>
-        {replacement && <div className="sl-chosen"><ProposalCard visual={{ type: 'proposed_change', proposal: replacement }} /></div>}
+      <div className="vc-card vc-proposal">
+        <p className="vc-line is-muted">{MUTED[state]}</p>
+        {replacement && <div className="vc-chosen"><ProposalCard visual={{ type: 'proposed_change', proposal: replacement }} /></div>}
       </div>
     );
   }
@@ -174,56 +183,58 @@ export default function ProposalCard({ visual }) {
   };
 
   return (
-    <div className="proposal-card" aria-busy={busy || undefined}>
-      <p className="pc-label">Proposed change</p>
-      <h3 className="pc-heading">{diff?.heading || 'Change to your plan'}</h3>
-      {diff?.literal_differs && <p className="pc-literal">{diff.literal_differs}</p>}
-      <Lead row={lead} />
-      {rest.length > 0 && (
-        <ul className="pc-rows">
-          {rest.map((row) => <Row key={row.key} row={row} changed={changed.has(row.key)} />)}
-        </ul>
-      )}
-      {changed.has(lead?.key) && <p className="pc-changed-tag">The first line changed too.</p>}
-      {(diff?.unknowns || []).length > 0 && (
-        <ul className="pc-unknowns">
-          {diff.unknowns.map((text) => <li key={text}>? {text}</li>)}
-        </ul>
-      )}
-      {state === 'needs_review' && <p className="pc-review">Your plan changed, check again</p>}
-      {state === 'refused' && (
-        <p className="pc-refused" role="alert">{outcome?.reason || "This change can't be applied."}</p>
-      )}
-      {(outcome?.error || localError) && state !== 'refused' && (
-        <p className="pc-refused" role="alert">{outcome?.error || localError}</p>
-      )}
-      {held && (
-        <p className="pc-refused" role="alert">
-          Couldn't save <span aria-hidden="true">·</span>
-          {' '}
-          <button type="button" className="pp-link" onClick={planner.retry}>Retry</button>
-        </p>
-      )}
+    <div className="vc-card vc-proposal" aria-busy={busy || undefined}>
+      <Head />
+      <div className="vc-body">
+        <h4 className="vc-proposal-title">{diff?.heading || 'Change to your plan'}</h4>
+        {diff?.literal_differs && <p className="vc-proposal-note">{diff.literal_differs}</p>}
+        {rows.length > 0 && (
+          <ul className="vc-diff">
+            {lead && <Row row={lead} lead changed={false} />}
+            {rest.map((row) => <Row key={row.key} row={row} changed={changed.has(row.key)} />)}
+          </ul>
+        )}
+        {changed.has(lead?.key) && <p className="vc-alert is-review pc-changed-tag">The first line changed too.</p>}
+        {(diff?.unknowns || []).length > 0 && (
+          <ul className="vc-unknowns">
+            {diff.unknowns.map((text) => <li key={text}>? {text}</li>)}
+          </ul>
+        )}
+        {state === 'needs_review' && <p className="vc-alert is-review">Your plan changed, check again</p>}
+        {state === 'refused' && (
+          <p className="vc-alert" role="alert">{outcome?.reason || "This change can't be applied."}</p>
+        )}
+        {(outcome?.error || localError) && state !== 'refused' && (
+          <p className="vc-alert" role="alert">{outcome?.error || localError}</p>
+        )}
+        {held && (
+          <p className="vc-alert" role="alert">
+            Couldn't save <span aria-hidden="true">·</span>
+            {' '}
+            <button type="button" className="vc-link" onClick={planner.retry}>Retry</button>
+          </p>
+        )}
+      </div>
       {canAct && (
-        <div className="pc-actions">
+        <div className="vc-foot">
           {!stale && (
             <button
               type="button"
-              className="pp-btn is-primary"
+              className="vc-btn is-primary"
               disabled={busy || held}
               onClick={() => acceptProposal(reviewed)}
             >
-              {applying && <span className="pc-spinner" aria-hidden="true" />}
+              {applying ? <span className="vc-spinner" aria-hidden="true" /> : <Icon name="check" size={20} />}
               {applying ? 'Applying…' : 'Accept'}
             </button>
           )}
           {(state !== 'needs_review' || stale) && (
-            <button type="button" className="pp-btn" disabled={busy} onClick={() => planner.discard(reviewed)}>
+            <button type="button" className="vc-btn" disabled={busy} onClick={() => planner.discard(reviewed)}>
               Discard
             </button>
           )}
           {diff?.literal_differs && state !== 'needs_review' && !stale && (
-            <button type="button" className="pp-btn" disabled={busy} onClick={dropInstead}>
+            <button type="button" className="vc-btn" disabled={busy} onClick={dropInstead}>
               Drop it instead
             </button>
           )}

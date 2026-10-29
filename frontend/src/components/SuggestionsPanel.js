@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 
-const ACCENT_DOTS = ['var(--accent-red)', 'var(--accent-blue)', 'var(--accent-green)'];
+const ACCENT_DOTS = ['var(--harder)', 'var(--academics)', 'var(--good)'];
 const FILTER_LABELS = {
   academic: 'Academic',
   career: 'Career',

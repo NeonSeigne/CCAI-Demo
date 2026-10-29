@@ -13,6 +13,7 @@ complete: false  # major rules only; L&S breadth, residency and language aren't 
 rules:
   - id: mathematics
     title: Mathematics
+    line: Foundations
     kind: one_of_groups
     groups:
       - [MATH 221]
@@ -20,12 +21,14 @@ rules:
       - [MATH 211, ECON 205]
   - id: principles
     title: Principles of economics
+    line: Foundations
     kind: one_of_groups
     groups:
       - [ECON 101, ECON 102]
       - [ECON 111]
   - id: statistics
     title: Statistics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [ECON 310, ECON 400, ECON 410, MATH 309, STAT 309, MATH 431, STAT 431, STAT 311, STAT 324, STAT 340]
@@ -33,6 +36,7 @@ rules:
       - ECON 310 is the recommended choice.
   - id: micro-theory
     title: Intermediate microeconomic theory
+    line: Core theory
     kind: n_of
     n: 1
     courses: [ECON 301, ECON 311]
@@ -40,6 +44,7 @@ rules:
       - ECON 311 is the advanced treatment.
   - id: macro-theory
     title: Intermediate macroeconomic theory
+    line: Core theory
     kind: n_of
     n: 1
     courses: [ECON 302, ECON 312]
@@ -47,6 +52,7 @@ rules:
       - ECON 312 is the advanced treatment.
   - id: core
     title: Two Core ECON courses
+    line: Core theory
     kind: n_of
     n: 2
     courses: [
@@ -57,6 +63,7 @@ rules:
     ]
   - id: electives
     title: Economics electives
+    line: Electives
     kind: credits_from
     credits: 6
     courses: [

@@ -12,22 +12,27 @@ complete: false  # the Foundation Skills Workshop, 15 elective credits and the s
 rules:
   - id: economics
     title: Economics of public policy
+    line: Core
     kind: all_of
     courses: [LPPA 6100, LPPA 7110]
   - id: research-methods
     title: Research methods and data analysis
+    line: Core
     kind: all_of
     courses: [LPPA 6150, LPPA 7160]
   - id: leadership
     title: Leadership
+    line: Core
     kind: all_of
     courses: [LPPL 6050, LPPL 7025, LPPL 7410]
   - id: policy-analysis
     title: Policy analysis and politics
+    line: Core
     kind: all_of
     courses: [LPPP 6250, LPPP 6350]
   - id: applied-policy-project-1
     title: Applied Policy Project I
+    line: Applied Policy Project
     kind: n_of
     n: 1
     courses: [LPPP 7700, LPPP 7710]
@@ -35,6 +40,7 @@ rules:
       - The program page lists LPPP 7710; UVA's Fall 2026 class schedule (theCourseForum snapshot) lists Applied Policy Project I as LPPP 7700, with 7 sections. Either counts here.
   - id: applied-policy-project-2
     title: Applied Policy Project II
+    line: Applied Policy Project
     kind: all_of
     courses: [LPPP 7750]
     notes:

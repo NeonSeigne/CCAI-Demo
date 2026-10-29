@@ -16,6 +16,11 @@ Rule kinds:
 - ``one_of_groups`` every course of any one listed group (``groups``), e.g.
                     MATH 221, or MATH 211 and MATH 213
 
+A rule may name its ``line``: rules sharing a line are drawn as one line on
+the My degree route map; a rule without one is its own line. A program's
+``deadline`` (``rules`` and ``by_semester``) is the semester by which those
+rules should be finished, drawn as the "Core due" marker.
+
 Anything the official page states that these kinds cannot express goes in the
 program's (or rule's) ``notes`` so it is shown, not dropped. ``complete:
 true`` says the rules encode every requirement of the degree (eng review
@@ -41,11 +46,13 @@ RULE_KINDS = ("all_of", "n_of", "credits_from", "level", "one_of_groups")
 
 PROGRAM_FIELDS = {
     "id", "name", "type", "catalog_year", "source_url", "checked_on", "total_credits", "complete", "rules", "notes",
+    "deadline",
 }
 RULE_FIELDS = {
     "id", "title", "kind", "courses", "n", "credits", "subjects", "min_level", "max_level",
-    "exclude", "min_grade", "double_count", "notes", "groups",
+    "exclude", "min_grade", "double_count", "notes", "groups", "line",
 }
+DEADLINE_FIELDS = {"rules", "by_semester"}
 
 _COURSE = re.compile(r"^([A-Z][A-Z &/]*?)\s*(\d{2,4}[A-Z]?)$")
 _SUBJECT = re.compile(r"^[A-Z][A-Z &/]*$")
@@ -69,6 +76,13 @@ class Rule:
     min_grade: Optional[str] = None
     double_count: bool = False  # may a course also count toward another rule
     notes: Tuple[str, ...] = ()
+    line: Optional[str] = None  # route-map line; None: the rule is its own line
+
+
+@dataclass(frozen=True)
+class Deadline:
+    rules: Tuple[str, ...]  # rule ids to finish
+    by_semester: int  # by the end of the student's n-th semester, counted from their start term
 
 
 @dataclass(frozen=True)
@@ -83,6 +97,7 @@ class Program:
     total_credits: Optional[int] = None  # degree total-credit rule; None unknown
     notes: Tuple[str, ...] = ()  # requirements the rule kinds cannot express
     complete: bool = False  # the rules encode every requirement (R14); gates Finish
+    deadline: Optional[Deadline] = None  # the "Core due" marker (R2)
 
 
 _cache: Dict[str, Tuple[Program, ...]] = {}
@@ -241,7 +256,27 @@ def _rule(raw: Any, index: int, where: _Where) -> Rule:
         id=rule_id, title=title, kind=kind, courses=courses, n=n, credits=credits,
         subjects=subjects, min_level=min_level, max_level=max_level, exclude=exclude,
         groups=groups, min_grade=min_grade, double_count=double_count, notes=_notes(raw, rw, "notes"),
+        line=_text(raw, "line", rw, required=False),
     )
+
+
+def _deadline(raw: Dict[str, Any], rule_ids: List[str], where: _Where) -> Optional[Deadline]:
+    value = raw.get("deadline")
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise where.error("deadline", "must be a mapping with rules and by_semester")
+    unknown = sorted(set(value) - DEADLINE_FIELDS)
+    if unknown:
+        raise where.error(f"deadline.{unknown[0]}", "unknown field")
+    rules = value.get("rules")
+    if not isinstance(rules, list) or not rules or not all(isinstance(r, str) for r in rules):
+        raise where.error("deadline.rules", "must be a non-empty list of rule ids")
+    missing = next((r for r in rules if r not in rule_ids), None)
+    if missing:
+        raise where.error("deadline.rules", f"names {missing!r}, which is not a rule in this file")
+    by_semester = _int(value, "by_semester", _Where(f"{where.label}: deadline"), required=True, minimum=1)
+    return Deadline(rules=tuple(dict.fromkeys(rules)), by_semester=by_semester)
 
 
 def _program(raw: Any, path: Path) -> Program:
@@ -281,6 +316,7 @@ def _program(raw: Any, path: Path) -> Program:
         total_credits=_int(raw, "total_credits", where, required=False, minimum=1),
         notes=_notes(raw, where, "notes"),
         complete=complete,
+        deadline=_deadline(raw, ids, where),
     )
 
 

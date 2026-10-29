@@ -2,10 +2,7 @@ import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock, List as ListIcon, MapPin, Navigation, RefreshCw,
-  Search, X,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/icons';
 import AppDialog from '../components/AppDialog';
 import CampusRail from '../components/CampusRail';
 import EventPopup from '../components/events/EventPopup';
@@ -29,9 +26,9 @@ import '../styles/CampusHome.css';
 import '../styles/EventsPage.css';
 
 const VIEWS = [
-  { id: 'next', label: 'Up next', icon: Clock },
-  { id: 'list', label: 'List', icon: ListIcon },
-  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+  { id: 'next', label: 'Up next' },
+  { id: 'list', label: 'List' },
+  { id: 'calendar', label: 'Calendar' },
 ];
 const PLACEHOLDER_DELAY = 300;
 const SEARCH_DELAY = 300;
@@ -146,11 +143,13 @@ function groupByDay(events, days, timezone) {
 // ---------------------------------------------------------------------------
 // Pieces shared by the views
 
-function WalkTime({ event, className = '' }) {
+function WalkTime({ event, className = '', to = false }) {
   if (event.walk_minutes == null || !isPhysical(event)) return null;
   return (
     <span className={`ev-walk ${className}`.trim()}>
-      {event.walk_minutes} min<span className="ev-walk-unit"> walk</span>
+      <Icon name="directions_walk" size={18} />
+      {event.walk_minutes} min<span className="sr-only"> walk</span>
+      {to && <span className="ev-walk-to">{` to ${event.location}`}</span>}
     </span>
   );
 }
@@ -161,25 +160,25 @@ function DirectionsLink({ event, compact = false }) {
   const label = `Directions to ${event.location}`;
   return compact ? (
     <Link className="ev-icon-btn" to={to} aria-label={label} title="Directions">
-      <Navigation size={16} aria-hidden="true" />
+      <Icon name="directions" size={21} />
     </Link>
   ) : (
     <Link className="ev-soft-btn" to={to} aria-label={label}>
-      <Navigation size={15} aria-hidden="true" /> Directions
+      <Icon name="directions_walk" size={20} /> Directions
     </Link>
   );
 }
 
-function CalendarButton({ event, compact = false }) {
+function CalendarButton({ event, compact = false, className = 'ev-soft-btn' }) {
   if (!event.start) return null;
   const label = `Add ${event.title} to calendar`;
   return compact ? (
     <button type="button" className="ev-icon-btn" aria-label={label} title="Add to calendar" onClick={() => downloadEventIcs(event)}>
-      <CalendarPlus size={16} aria-hidden="true" />
+      <Icon name="calendar_add_on" size={21} />
     </button>
   ) : (
-    <button type="button" className="ev-soft-btn" aria-label={label} onClick={() => downloadEventIcs(event)}>
-      <CalendarPlus size={15} aria-hidden="true" /> Add to calendar
+    <button type="button" className={className} aria-label={label} onClick={() => downloadEventIcs(event)}>
+      <Icon name="calendar_add_on" size={20} /> Add to calendar
     </button>
   );
 }
@@ -208,22 +207,24 @@ function NextUp({ event, timezone, todayKey, now }) {
     <article className="ev-feature" aria-labelledby="ev-feature-title">
       <div className="ev-feature-main">
         <p className="ev-feature-kicker">
-          Next up
+          <span>Next up</span>
+          <span aria-hidden="true">·</span>
+          <span className="ev-feature-when">{featureWhen(event, timezone, todayKey)}</span>
           {tag && <span className="ev-tag">{tag}</span>}
         </p>
         <h3 id="ev-feature-title" className="ev-feature-title"><EventTitle event={event} /></h3>
-        <p className="ev-feature-meta">
-          <span className="ev-mono">{featureWhen(event, timezone, todayKey)}</span>
-          {event.location && (
-            <span className="ev-feature-place">
-              <MapPin size={14} aria-hidden="true" /> {event.location}
-            </span>
-          )}
-          <WalkTime event={event} />
-        </p>
+        {event.location && (
+          <p className="ev-feature-meta">
+            {event.walk_minutes != null && isPhysical(event) ? <WalkTime event={event} to /> : (
+              <span className="ev-feature-place">
+                <Icon name="location_on" size={18} /> {event.location}
+              </span>
+            )}
+          </p>
+        )}
       </div>
       <div className="ev-feature-actions">
-        <CalendarButton event={event} />
+        <CalendarButton event={event} className="ev-mark-btn" />
         <DirectionsLink event={event} />
         <SaveButton item={saveItem(event)} className="ev-save" />
       </div>
@@ -232,14 +233,20 @@ function NextUp({ event, timezone, todayKey, now }) {
 }
 
 function EventRow({ event, timezone }) {
+  const until = isAllDayLike(event) ? null : formatEventRange(event, timezone).split(' – ')[1];
   return (
     <li className="ev-row">
-      <span className="ev-row-time ev-mono">{formatEventTime(event, timezone)}</span>
+      <span className="ev-row-time">
+        <span className="ev-row-start">{formatEventTime(event, timezone)}</span>
+        {until && <small>{`to ${until}`}</small>}
+      </span>
       <span className="ev-row-text">
         <EventTitle event={event} />
-        {event.location && <span className="ev-row-place">{event.location}</span>}
+        {event.location && (
+          <span className="ev-row-place"><span className="ev-dot" aria-hidden="true" />{event.location}</span>
+        )}
       </span>
-      <WalkTime event={event} className="ev-row-walk" />
+      <span className="ev-row-walk"><WalkTime event={event} /></span>
       <span className="ev-row-actions">
         <DirectionsLink event={event} compact />
         <CalendarButton event={event} compact />
@@ -625,8 +632,9 @@ function StartPlace({ origin, authToken, onPick }) {
 
   return (
     <div className="ev-start" ref={boxRef}>
+      <Icon name="near_me" size={18} className="ev-start-icon" />
       <span className="ev-start-label">Starting from</span>
-      <span className="ev-start-place"><MapPin size={14} aria-hidden="true" /> {label}</span>
+      <span className="ev-start-place">{label}</span>
       <span aria-hidden="true" className="ev-muted">·</span>
       <button
         type="button"
@@ -653,7 +661,7 @@ function StartPlace({ origin, authToken, onPick }) {
         >
           <label htmlFor="ev-start-search" className="sr-only">Search campus places</label>
           <div className="ev-search ev-popover-search">
-            <Search size={16} aria-hidden="true" />
+            <Icon name="search" size={20} />
             <input
               id="ev-start-search"
               ref={inputRef}
@@ -675,7 +683,7 @@ function StartPlace({ origin, authToken, onPick }) {
               {results.places.map((place) => (
                 <li key={place.id}>
                   <button type="button" disabled={saving} onClick={() => pick(place)}>
-                    <MapPin size={14} aria-hidden="true" /> {place.name}
+                    <Icon name="location_on" size={18} /> {place.name}
                   </button>
                 </li>
               ))}
@@ -923,7 +931,7 @@ const EventsPage = () => {
                   <h1>Events</h1>
                 </div>
                 <div className="ev-tabs" role="tablist" aria-label="Events view">
-                  {VIEWS.map(({ id, label, icon: Icon }) => (
+                  {VIEWS.map(({ id, label }) => (
                     <button
                       key={id}
                       id={`ev-tab-${id}`}
@@ -937,7 +945,7 @@ const EventsPage = () => {
                       onClick={() => update({ view: id === 'next' ? '' : id })}
                       onKeyDown={onTabKey}
                     >
-                      <Icon size={15} aria-hidden="true" /> {label}
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -972,7 +980,7 @@ const EventsPage = () => {
                   update({ q: draft.trim() }, { replace: true });
                 }}
               >
-                <Search size={16} aria-hidden="true" />
+                <Icon name="search" size={20} />
                 <label htmlFor="ev-search-input" className="sr-only">Search events</label>
                 <input
                   id="ev-search-input"

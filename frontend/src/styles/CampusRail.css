@@ -1,181 +1,56 @@
-/* Campus Companion left rail, shared by the home and chat pages. */
+/* Campus Companion rail (DESIGN.md "Home colors"): the school's deep colour, 240px. */
 
 .campus-rail {
-  flex: 0 0 260px;
-  width: 260px;
+  flex: 0 0 240px;
+  width: 240px;
   max-width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px 16px;
-  background: var(--paper);
-  border-right: 1px solid var(--line);
+  gap: 4px;
+  padding: 16px 12px;
+  background: var(--deep);
+  color: var(--on-deep);
+  font-family: var(--font-app);
 }
 
 .campus-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 8px;
+  padding: 6px 8px 18px;
 }
 
 .campus-brand-mark {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
-  color: var(--paper);
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--mark-bg);
+  color: var(--mark-ink);
+  font-family: var(--font-code);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0;
 }
+
+.campus-brand-text { display: flex; flex-direction: column; min-width: 0; }
 
 .campus-brand-name {
+  font-family: var(--font-display);
+  font-size: 12.5px;
   font-weight: 700;
-  font-size: 15px;
   letter-spacing: -0.01em;
-}
-
-.campus-school {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.campus-school-dot {
-  width: 12px;
-  height: 12px;
-  flex-shrink: 0;
-  border-radius: 99px;
-  background: var(--accent-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
-}
-
-.campus-new-chat {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  border-radius: 12px;
-  border: 0;
-  background: var(--ink);
-  color: var(--paper);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.campus-new-chat:hover { background: #2A2A30; }
-
-.campus-recent {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-height: 0;
-}
-
-.campus-rail-label {
-  padding: 0 12px 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-
-.campus-rail-empty {
-  margin: 0;
-  padding: 0 12px;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.campus-recent-item,
-.campus-recent-all {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: #3A3A40;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.campus-recent-item svg { flex-shrink: 0; }
-
-.campus-recent-item span {
-  overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
-.campus-recent-item.is-current { background: var(--paper-sunken); color: var(--ink); font-weight: 500; }
-
-.campus-recent-item:hover,
-.campus-recent-all:hover { background: var(--paper-sunken); }
-
-.campus-recent-all { color: var(--ink-soft); font-size: 13px; }
-
-.campus-user {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 4px 0;
-  border-top: 1px solid var(--line);
-}
-
-.campus-avatar {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: 99px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #E9E9E5;
-  font-size: 13px;
+.campus-school-name {
+  font-size: 12.5px;
   font-weight: 600;
-}
-
-.campus-user-name {
-  flex-grow: 1;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.campus-icon-btn {
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--ink-soft);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.campus-icon-btn:hover { background: var(--paper-sunken); color: var(--ink); }
-
-
-.campus-rail :focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-ring-offset);
+  line-height: 1.25;
+  color: var(--on-deep-soft);
 }
 
 /* ---- Page links (Ask, Courses, Events, Campus map, Saved) ---------------- */
@@ -191,38 +66,120 @@
 .campus-nav-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-height: 44px;
-  padding: 0 12px;
-  border-radius: 10px;
-  color: var(--ink-soft);
-  font-size: 14px;
-  font-weight: 500;
+  padding: 0 14px;
+  border-radius: var(--r-full);
+  color: var(--on-deep-soft);
+  font-size: 15px;
+  font-weight: 600;
   text-decoration: none;
+  transition: background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1), color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.campus-nav-link svg { flex-shrink: 0; }
 .campus-nav-label { flex-grow: 1; }
-.campus-nav-link:hover { background: var(--paper-sunken); color: var(--ink); }
-.campus-nav-link.is-current { background: var(--paper-sunken); color: var(--ink); font-weight: 600; }
+.campus-nav-link:hover { background: color-mix(in srgb, var(--on-deep) 8%, transparent); color: var(--on-deep); }
+.campus-nav-link.is-current {
+  background: color-mix(in srgb, var(--on-deep) 14%, transparent);
+  color: var(--on-deep);
+  font-weight: 700;
+}
 
 .campus-nav-count {
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
   box-sizing: border-box;
-  border-radius: 99px;
+  border-radius: var(--r-full);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--domain-academics-tint);
-  color: var(--domain-academics-ink);
+  background: var(--tint);
+  color: var(--tint-ink);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-/* ---- Recent chats failure (design 11A) ----------------------------------- */
-.campus-rail-error { color: var(--error-ink); }
+.campus-new-chat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--deep-raised);
+  color: var(--on-deep);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.campus-new-chat:hover { background: color-mix(in srgb, var(--on-deep) 18%, var(--deep-raised)); }
+.campus-new-chat:active { transform: scale(0.97); }
+
+/* ---- Recent ---------------------------------------------------------------- */
+.campus-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 0;
+}
+
+.campus-rail-label {
+  padding: 18px 14px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-deep-soft);
+}
+
+.campus-rail-empty {
+  margin: 0;
+  padding: 0 14px;
+  font-size: 13.5px;
+  color: var(--on-deep-soft);
+}
+
+.campus-recent-item,
+.campus-recent-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--on-deep-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campus-recent-item .ms { flex-shrink: 0; }
+
+.campus-recent-item span:not(.ms) {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campus-recent-item:hover,
+.campus-recent-all:hover { background: color-mix(in srgb, var(--on-deep) 8%, transparent); color: var(--on-deep); }
+.campus-recent-item.is-current {
+  background: color-mix(in srgb, var(--on-deep) 14%, transparent);
+  color: var(--on-deep);
+  font-weight: 700;
+}
+
+.campus-recent-all { font-size: 13.5px; font-weight: 700; }
+
+.campus-rail-error { color: var(--on-deep); }
 
 .campus-rail-retry {
   display: inline-flex;
@@ -232,11 +189,111 @@
   padding: 0 4px;
   border: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--on-deep);
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* ---- Theme toggle and the signed-in user ----------------------------------- */
+.cc-theme-toggle {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 120px;
+  height: 36px;
+  padding: 3px;
+  box-sizing: border-box;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--on-deep) 10%, transparent);
+}
+
+.cc-theme-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: var(--r-full);
+  background: var(--tint-strong);
+  transition: transform 250ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.cc-theme-toggle[data-mode="light"] .cc-theme-thumb { transform: translateX(100%); }
+.cc-theme-toggle[data-mode="dark"] .cc-theme-thumb { transform: translateX(200%); }
+
+.cc-theme-toggle button {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--on-deep-soft);
+  font: 700 12px var(--font-app);
+  cursor: pointer;
+}
+
+.cc-theme-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
+.cc-theme-toggle button:hover:not([aria-pressed="true"]) { color: var(--on-deep); }
+
+.campus-rail-toggle { width: auto; height: 38px; margin: 12px 2px 4px; }
+
+.campus-user {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px 0 6px;
+}
+
+/* The toggle and the profile row sit at the bottom of the rail. */
+.campus-recent + .campus-rail-toggle { margin-top: auto; }
+
+.campus-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--deep-raised);
+  color: var(--on-deep);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.campus-user-name {
+  flex-grow: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.campus-icon-btn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--on-deep-soft);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.campus-icon-btn:hover { background: color-mix(in srgb, var(--on-deep) 10%, transparent); color: var(--on-deep); }
+
+/* The ring reads on the deep colour. */
+.campus-rail :focus-visible,
+.campus-phone-header :focus-visible {
+  outline: 2px solid var(--on-deep);
+  outline-offset: 2px;
 }
 
 /* ---- Phone shell (design 26A) -------------------------------------------- */
@@ -248,18 +305,26 @@
   .campus-rail:not(.chat-rail) { display: none; }
 
   .campus-phone-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
     flex: 0 0 100%;
+    min-width: 0;
+    max-width: 100%;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 10px;
-    height: 52px;
-    padding: 0 8px 0 16px;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
+    min-height: 52px;
+    padding: 10px 6px 10px 16px;
+    background: var(--deep);
+    color: var(--on-deep);
+    font-family: var(--font-app);
   }
 
   .chat-frame .campus-phone-header { display: none; }
+
+  .campus-phone-header .campus-brand-mark { width: 32px; height: 32px; font-size: 9px; }
 
   .campus-phone-school {
     flex-grow: 1;
@@ -267,36 +332,42 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 15px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
+
+  .campus-phone-toggle { width: 102px; height: 32px; }
 
   .campus-tabbar {
     position: fixed;
     inset: auto 0 0 0;
     z-index: 50;
-    display: flex;
-    height: 56px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: var(--paper);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 52px;
+    padding: 4px 4px env(safe-area-inset-bottom, 0px);
+    box-sizing: content-box;
+    background: var(--surface);
     border-top: 1px solid var(--line);
+    font-family: var(--font-app);
   }
 
   .campus-tab {
-    flex: 1 1 0;
     min-width: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2px;
-    color: var(--ink-soft);
-    font-size: 11px;
-    font-weight: 500;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 700;
     text-decoration: none;
   }
 
-  .campus-tab.is-current { color: var(--ink); font-weight: 600; }
+  .campus-tab.is-current { color: var(--ink); }
 
   /* Ask is a button where it raises the chat dock's sheet (D17). */
   button.campus-tab {
@@ -307,17 +378,36 @@
     cursor: pointer;
   }
 
-  .campus-tab-icon { position: relative; display: inline-flex; }
+  .campus-tab-icon {
+    position: relative;
+    width: 58px;
+    height: 32px;
+    border-radius: var(--r-full);
+    display: inline-grid;
+    place-items: center;
+    transition: background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .campus-tab.is-current .campus-tab-icon { background: var(--tint); color: var(--tint-ink); }
 
   .campus-tab-icon .campus-nav-count {
     position: absolute;
-    top: -6px;
-    left: 12px;
-    min-width: 16px;
-    height: 16px;
+    top: -4px;
+    right: 6px;
+    min-width: 17px;
+    height: 17px;
     padding: 0 4px;
+    background: var(--signal);
+    color: var(--on-signal);
     font-size: 10px;
   }
 
   .campus-tabbar :focus-visible { outline-offset: -2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-theme-thumb,
+  .campus-nav-link,
+  .campus-new-chat,
+  .campus-tab-icon { transition: none; }
 }

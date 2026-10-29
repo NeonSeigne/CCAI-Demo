@@ -2,8 +2,7 @@ import React, {
   useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import UndoRounded from '@mui/icons-material/UndoRounded';
-import RedoRounded from '@mui/icons-material/RedoRounded';
+import { UndoRounded, RedoRounded } from '../../icons';
 import { usePlanner } from '../../../contexts/PlannerContext';
 import { useOpenCourse } from '../../../utils/openCourse';
 import { useDropToast } from '../../dnd';
@@ -12,12 +11,31 @@ import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
 import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
 import SetupDialog from './SetupDialog';
+import RouteMap, { RouteList } from './RouteMap';
+import { NOT_PLACED, routeModel } from './routeModel';
 import {
   creditsOf, groupTone, nextTerm, parseTerm, pastTerms, sortTerms, termOrder,
 } from './degreeFormat';
 import '../../../styles/DegreeBoard.css';
 
 const PULSE_MS = 700;
+
+// Map or Semesters (Phase 2 P.3): Map on a first visit, then the last choice.
+export const VIEW_KEY = 'cc.degree.view.v1';
+const readView = () => {
+  try {
+    return window.localStorage.getItem(VIEW_KEY) === 'semesters' ? 'semesters' : 'map';
+  } catch {
+    return 'map';
+  }
+};
+const writeView = (value) => {
+  try {
+    window.localStorage.setItem(VIEW_KEY, value);
+  } catch {
+    // Blocked storage: the choice holds for this visit only.
+  }
+};
 
 const sameIds = (a, b) => a.length === b.length && a.every((id) => b.includes(id));
 
@@ -80,6 +98,11 @@ export default function DegreeBoard({ head = null }) {
   const [loadState, setLoadState] = useState(degree ? 'ready' : 'loading');
   const [pulseId, setPulseId] = useState(null);
   const [showPast, setShowPast] = useState(false);
+  const [boardView, setBoardView] = useState(readView);
+  const chooseView = useCallback((value) => {
+    setBoardView(value);
+    writeView(value);
+  }, []);
   // The setup dialog and the step it opens at (0 Program, 1 Completed, 2 First term).
   const [setup, setSetup] = useState({ open: false, step: 0 });
   const autoOpened = useRef(false);
@@ -119,7 +142,7 @@ export default function DegreeBoard({ head = null }) {
   useEffect(() => { fetchDegree(); }, [revision]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => clearTimeout(pulseTimer.current), []);
 
-  const profile = view?.plan?.profile || {};
+  const profile = useMemo(() => view?.plan?.profile || {}, [view]);
   const programIds = profile.program_ids || [];
   const hasPrograms = (programs || []).length > 0;
   const program = (programs || []).find((p) => p.id === programIds[0]) || null;
@@ -179,6 +202,10 @@ export default function DegreeBoard({ head = null }) {
   }), [terms, planCourses, details, degree]);
 
   const past = useMemo(() => pastTerms(completed), [completed]);
+
+  const route = useMemo(() => routeModel(degree, planCourses, profile), [degree, planCourses, profile]);
+  const hasRoute = route.lines.length > 0;
+  const showMap = hasRoute && boardView === 'map';
 
   const titles = useMemo(() => {
     const out = {};
@@ -243,8 +270,20 @@ export default function DegreeBoard({ head = null }) {
     top = <DegreeSummary name={program?.name || null} waffle={waffle} />;
   }
 
+  const lastTerm = [...route.terms].reverse().find((t) => t !== NOT_PLACED);
+
   let board;
-  if (loadState === 'error' && !degree) {
+  if (showMap) {
+    board = (
+      <div className="rt-view">
+        <section className="rt-card" aria-labelledby="rt-title">
+          <h3 id="rt-title">{lastTerm ? `Route to ${lastTerm}` : 'Route'}</h3>
+          <RouteMap model={route} onOpen={openCourse} />
+        </section>
+        <RouteList model={route} onOpen={openCourse} />
+      </div>
+    );
+  } else if (loadState === 'error' && !degree) {
     board = <InlineError message="Couldn't load" onRetry={() => fetchDegree(true)} />;
   } else if (!degree) {
     board = (
@@ -305,6 +344,14 @@ export default function DegreeBoard({ head = null }) {
         )}
         {!program && hasPrograms && (
           <button type="button" className="cc-btn dg-program-pick" onClick={() => openSetup(0)}>Program</button>
+        )}
+        {hasRoute && (
+          <div className="cc-segmented dg-view-switch" role="group" aria-label="View">
+            <button type="button" aria-pressed={boardView === 'map'} onClick={() => chooseView('map')}>Map</button>
+            <button type="button" aria-pressed={boardView === 'semesters'} onClick={() => chooseView('semesters')}>
+              Semesters
+            </button>
+          </div>
         )}
         <div className="dg-history">
           <button

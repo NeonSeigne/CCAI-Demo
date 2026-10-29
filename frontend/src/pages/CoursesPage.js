@@ -2,8 +2,7 @@ import React, {
   Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Search, X } from 'lucide-react';
-import DragIndicatorRounded from '@mui/icons-material/DragIndicatorRounded';
+import { ArrowLeft, MessageSquare, Search, X, DragIndicatorRounded } from '../components/icons';
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import SaveButton from '../components/SaveButton';
 import {

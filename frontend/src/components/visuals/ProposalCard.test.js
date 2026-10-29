@@ -71,8 +71,10 @@ test('Ready: label, action heading, biggest consequence first, rows, unknowns ab
   expect(screen.getByText('Proposed change')).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'Move ECON 3010 to Fall 2027, add ECON 3300' })).toBeInTheDocument();
   // A rule count moving outranks difficulty, which outranks unchanged credits.
-  expect(document.querySelector('.pc-lead')).toHaveTextContent(/^Economics electives: 1 →.*2 of 4$/);
-  const rows = [...document.querySelectorAll('.pc-row')].map((row) => row.textContent);
+  const lead = document.querySelector('.pc-lead');
+  expect(lead.querySelector('.vc-diff-label')).toHaveTextContent(/^Economics electives$/);
+  expect(lead.querySelector('.vc-arrow')).toHaveTextContent(/^1.*changes to 2 of 4$/);
+  const rows = [...document.querySelectorAll('.pc-row .vc-diff-label')].map((row) => row.textContent);
   expect(rows[0]).toMatch(/^Difficulty estimate/);
   expect(rows[1]).toMatch(/^Credits this term/);
   expect(screen.getByText('? Prerequisites not published for UVA')).toBeInTheDocument();
@@ -91,7 +93,7 @@ test('Applying, then Applied · Undo while it is the latest edit; the semester v
   expect(document.querySelector('.sv-card.is-ghost-in')).toBeInTheDocument();
 
   // The semester view has its own Accept for the same proposal; act on the card's.
-  const cardEl = () => document.querySelector('.proposal-card');
+  const cardEl = () => document.querySelector('.vc-proposal');
   fireEvent.click(within(cardEl()).getByRole('button', { name: 'Accept' }));
   expect(within(cardEl()).getByRole('button', { name: 'Applying…' })).toBeDisabled();
   expect(within(cardEl()).getByRole('button', { name: 'Discard' })).toBeDisabled();
@@ -170,7 +172,7 @@ test('Needs review: changed rows highlighted, "Your plan changed, check again", 
   const credits = screen.getByText('Credits this term').closest('li');
   expect(credits).toHaveClass('is-changed');
   expect(credits).toHaveTextContent('Changed');
-  expect(credits).toHaveTextContent(/17 →.*14/);
+  expect(credits.querySelector('.vc-arrow')).toHaveTextContent(/^17.*changes to 14$/);
   expect(screen.getByText('Difficulty estimate').closest('li')).not.toHaveClass('is-changed');
   expect(screen.queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument();
 
@@ -184,7 +186,7 @@ test('Refused: the reason in the error style, no buttons', async () => {
   renderCard();
   fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
   const reason = await screen.findByText('ECON 3300 is no longer offered');
-  expect(reason).toHaveClass('pc-refused');
+  expect(reason).toHaveClass('vc-alert');
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
   await settle();
 });

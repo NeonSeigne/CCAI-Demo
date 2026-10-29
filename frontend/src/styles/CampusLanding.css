@@ -4,7 +4,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--paper-sunken);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-app);
 }
@@ -36,7 +36,7 @@
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -44,13 +44,13 @@
   cursor: pointer;
 }
 
-.landing-soft-btn:hover:not(:disabled) { background: #EEEEEA; }
+.landing-soft-btn:hover:not(:disabled) { background: var(--raised); }
 .landing-soft-btn:disabled { opacity: 0.6; cursor: default; }
 
 .landing-error {
   margin: 0 32px;
   font-size: 13px;
-  color: #B42318;
+  color: var(--error);
   text-align: right;
 }
 
@@ -87,7 +87,7 @@
   max-width: 54ch;
   font-size: 18px;
   line-height: 1.55;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .landing-cta {
@@ -100,14 +100,14 @@
   border: 0;
   border-radius: 999px;
   background: var(--ink);
-  color: var(--paper);
+  color: var(--surface);
   font: inherit;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.landing-cta:hover { background: #2A2A30; }
+.landing-cta:hover { background: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
 
 .landing-asks {
   display: flex;
@@ -118,10 +118,8 @@
 .landing-asks h2 {
   margin: 0;
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .landing-domains,
@@ -133,7 +131,7 @@
 
 .landing-domains {
   border-radius: 18px;
-  background: var(--paper);
+  background: var(--surface);
   border: 1px solid var(--line);
 }
 
@@ -160,7 +158,7 @@
   grid-column: 2;
   font-size: 13px;
   line-height: 1.4;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .landing-prompts {
@@ -174,7 +172,7 @@
 .landing-foot {
   padding: 20px 32px 28px;
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .landing-foot p { margin: 0; }

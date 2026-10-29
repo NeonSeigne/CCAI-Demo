@@ -23,13 +23,16 @@ what an edit does to the shown term's week (tab-workspaces R16):
 from __future__ import annotations
 
 import copy
+import re
 from typing import Any, Dict, List, Optional
 
 from app.planner.checker import norm
 from app.planner.facts import CourseFacts
 
 OPS = ("add", "remove", "move", "swap", "pick_section", "set_profile", "set_term")
-PROFILE_FIELDS = ("program_ids", "catalog_year", "class_year", "completed", "interests")
+PROFILE_FIELDS = ("program_ids", "catalog_year", "class_year", "start_term", "completed", "interests")
+# A start term (R10) is a regular term label like "Fall 2025".
+START_TERM = re.compile(r"^(Spring|Summer|Fall|Winter) (19|20)\d{2}$")
 # Credits a completed entry may carry from a transcript row (setup-dialog R10).
 COMPLETED_CREDITS = (0, 12)
 
@@ -145,6 +148,9 @@ def _check_shape(op: Dict[str, Any]) -> None:
         raise EditError("bad_op", "'set_term' needs a term")
     if kind == "set_profile" and "completed" in op:
         _check_completed(op["completed"])
+    if kind == "set_profile" and op.get("start_term") is not None:
+        if not isinstance(op["start_term"], str) or not START_TERM.match(op["start_term"]):
+            raise EditError("bad_op", "Start term must be a term like Fall 2025")
 
 
 def _check_completed(completed: Any) -> None:

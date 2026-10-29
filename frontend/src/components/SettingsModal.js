@@ -7,7 +7,7 @@ import {
   DialogTitle,
   IconButton,
 } from '@mui/material';
-import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from 'lucide-react';
+import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from './icons';
 import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
@@ -15,42 +15,42 @@ import AppDialog from './AppDialog';
 
 const tabRow = {
   display: 'flex', gap: 4, padding: '12px 16px 0',
-  borderBottom: '1px solid var(--border-primary)',
+  borderBottom: '1px solid var(--line)',
 };
 
 const tabBtn = (active) => ({
   display: 'flex', alignItems: 'center', gap: 8,
   padding: '10px 14px', background: 'transparent',
-  border: 'none', borderBottom: active ? '2px solid var(--accent-primary)' : '2px solid transparent',
-  color: active ? 'var(--accent-primary)' : 'var(--text-secondary)',
+  border: 'none', borderBottom: active ? '2px solid var(--ink)' : '2px solid transparent',
+  color: active ? 'var(--ink)' : 'var(--muted)',
   cursor: 'pointer', fontSize: 13.5, fontWeight: 500,
   marginBottom: -1,
 });
 
-const label = { display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 };
+const label = { display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginBottom: 6 };
 
 const input = {
   width: '100%', padding: '10px 12px', borderRadius: 8,
-  border: '1px solid var(--border-primary)', background: 'var(--bg-secondary)',
-  color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box',
+  border: '1px solid var(--line)', background: 'var(--surface)',
+  color: 'var(--ink)', fontSize: 14, boxSizing: 'border-box',
 };
 
 const primaryBtn = {
-  padding: '10px 16px', background: 'var(--accent-primary)',
-  color: '#fff', border: 'none', borderRadius: 8,
+  padding: '10px 16px', background: 'var(--ink)',
+  color: 'var(--surface)', border: 'none', borderRadius: 8,
   cursor: 'pointer', fontSize: 14, fontWeight: 500,
 };
 
 const dangerBtn = {
-  padding: '10px 16px', background: '#dc2626',
-  color: '#fff', border: 'none', borderRadius: 8,
+  padding: '10px 16px', background: 'var(--error)',
+  color: 'var(--surface)', border: 'none', borderRadius: 8,
   cursor: 'pointer', fontSize: 14, fontWeight: 500,
 };
 
 const miniBtn = {
   background: 'transparent',
-  border: '1px solid var(--border-primary)',
-  color: 'var(--text-secondary)',
+  border: '1px solid var(--line)',
+  color: 'var(--muted)',
   fontSize: 12,
   padding: '5px 10px',
   borderRadius: 6,
@@ -241,18 +241,18 @@ const SettingsModal = ({
       ? 'rgba(220,38,38,0.1)'
       : type === 'success'
         ? 'rgba(22,163,74,0.1)'
-        : 'var(--bg-secondary)',
+        : 'var(--surface)',
     color: type === 'error'
-      ? '#dc2626'
+      ? 'var(--error)'
       : type === 'success'
-        ? '#16a34a'
-        : 'var(--text-secondary)',
+        ? 'var(--good)'
+        : 'var(--muted)',
     border: `1px solid ${
       type === 'error'
         ? 'rgba(220,38,38,0.3)'
         : type === 'success'
           ? 'rgba(22,163,74,0.3)'
-          : 'var(--border-primary)'
+          : 'var(--line)'
     }`,
   });
 
@@ -377,10 +377,10 @@ const SettingsModal = ({
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
                     Active advisors
                   </div>
-                  <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>
                     {enabledCount} of {advisorEntries.length} active · turn an advisor off to keep them out of your conversations
                   </div>
                 </div>
@@ -392,7 +392,7 @@ const SettingsModal = ({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {advisorEntries.length === 0 && (
-                  <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
+                  <div style={{ padding: 24, textAlign: 'center', color: 'var(--faint)', fontSize: 13 }}>
                     No advisors configured.
                   </div>
                 )}
@@ -407,7 +407,7 @@ const SettingsModal = ({
                         alignItems: 'center',
                         gap: 12,
                         padding: '12px 4px',
-                        borderTop: '1px solid var(--border-primary)',
+                        borderTop: '1px solid var(--line)',
                         opacity: enabled ? 1 : 0.55,
                         transition: 'opacity .15s ease',
                       }}
@@ -425,10 +425,10 @@ const SettingsModal = ({
                           : <IconComponent size={18}/>}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
                           {advisor.name}
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {advisor.description || advisor.role || ''}
                         </div>
                       </div>
@@ -459,8 +459,8 @@ const SettingsModal = ({
                   onClick={onClose}
                   disabled={isSaving}
                   style={{
-                    padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border-primary)',
-                    background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 13.5,
+                    padding: '8px 14px', borderRadius: 8, border: '1px solid var(--line)',
+                    background: 'transparent', color: 'var(--ink)', cursor: 'pointer', fontSize: 13.5,
                   }}
                 >
                   Cancel
@@ -488,8 +488,8 @@ const SettingsModal = ({
                 background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.3)',
                 marginBottom: 16,
               }}>
-                <AlertTriangle size={18} style={{ color: '#dc2626', flexShrink: 0, marginTop: 2 }} />
-                <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+                <AlertTriangle size={18} style={{ color: 'var(--error)', flexShrink: 0, marginTop: 2 }} />
+                <div style={{ fontSize: 13, color: 'var(--ink)' }}>
                   Deleting your account is permanent. All chat history and personal data will be removed.
                 </div>
               </div>

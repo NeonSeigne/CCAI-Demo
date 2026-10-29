@@ -34,12 +34,6 @@ jest.mock('./components/UserGuide', () => () => null);
 jest.mock('./components/CampusRail', () => () => null);
 jest.mock('./components/SettingsModal', () => () => null);
 jest.mock('./components/ChatDock', () => () => <aside data-testid="dock">Ask</aside>);
-jest.mock('cytoscape', () => {
-  const cytoscape = jest.fn(() => ({ on: jest.fn(), destroy: jest.fn() }));
-  cytoscape.use = jest.fn();
-  return { __esModule: true, default: cytoscape };
-});
-jest.mock('cytoscape-fcose', () => ({ __esModule: true, default: {} }));
 
 const realFetch = global.fetch;
 beforeEach(() => {

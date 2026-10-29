@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Code2, MapPin } from 'lucide-react';
+import { ArrowRight, Code2, MapPin } from '../components/icons';
 import CopyrightNotice from '../components/CopyrightNotice';
 import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -116,7 +116,7 @@ const OnboardingPage = () => {
                   <div className="landing-domain-head">
                     <span
                       className="campus-domain-dot"
-                      style={{ background: DOMAIN_COLORS[group.domain] || 'var(--ink-soft)' }}
+                      style={{ background: DOMAIN_COLORS[group.domain] || 'var(--muted)' }}
                       aria-hidden="true"
                     />
                     <strong>{group.title}</strong>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from '../icons';
 
 const focusItem = (container, step) => {
   if (!container) return;

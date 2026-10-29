@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import * as LucideIcons from 'lucide-react';
+import { MapPin, User, iconFor } from '../components/icons';
 
 const AppConfigContext = createContext(null);
 
@@ -8,11 +8,11 @@ const SYNTHETIC_PERSONAS = {
     name: 'Orchestrator',
     role: 'Synthesized Response',
     description: 'A single combined response merging all advisor perspectives.',
-    color: 'var(--accent-blue)',
-    bgColor: 'var(--paper-sunken)',
-    darkColor: 'var(--accent-blue)',
-    darkBgColor: 'var(--paper-sunken)',
-    icon: LucideIcons.User,
+    color: 'var(--academics)',
+    bgColor: 'var(--canvas)',
+    darkColor: 'var(--academics)',
+    darkBgColor: 'var(--canvas)',
+    icon: User,
   },
   // Tool-grounded answers (persona_id "orchestrator"): speak as the product,
   // not as an internal component name.
@@ -21,10 +21,10 @@ const SYNTHETIC_PERSONAS = {
     role: 'Courses, events and places',
     description: 'Answers checked against campus courses, events and maps.',
     color: 'var(--ink)',
-    bgColor: 'var(--paper-sunken)',
+    bgColor: 'var(--canvas)',
     darkColor: 'var(--ink)',
-    darkBgColor: 'var(--paper-sunken)',
-    icon: LucideIcons.MapPin,
+    darkBgColor: 'var(--canvas)',
+    icon: MapPin,
   },
 };
 
@@ -45,14 +45,8 @@ const getAuthToken = () => {
   try { return localStorage.getItem('authToken'); } catch { return null; }
 };
 
-/**
- * Resolve a Lucide icon name string (e.g. "BookOpen") to the actual React
- * component.  Falls back to HelpCircle if the name isn't found.
- */
-const resolveIcon = (iconName) => {
-  if (!iconName) return LucideIcons.User;
-  return LucideIcons[iconName] || LucideIcons.User;
-};
+/** A config icon name (Material, or an older Lucide name) as a component; unknown names fall back to a person. */
+const resolveIcon = (iconName) => iconFor(iconName);
 
 /**
  * Build the advisors lookup object (keyed by persona id) from the config
@@ -101,15 +95,15 @@ const buildGetAdvisorColors = (advisors) => (advisorId, _isDark = false) => {
   const advisor = advisors[advisorId];
   if (!advisor) {
     return {
-      color: 'var(--ink-soft)',
-      bgColor: 'var(--paper-sunken)',
+      color: 'var(--muted)',
+      bgColor: 'var(--canvas)',
       textColor: 'var(--ink)',
-      dotColor: 'var(--ink-soft)',
+      dotColor: 'var(--muted)',
     };
   }
   return {
     color: advisor.color,
-    bgColor: 'var(--paper-sunken)',
+    bgColor: 'var(--canvas)',
     textColor: 'var(--ink)',
     dotColor: advisor.color,
   };
@@ -273,16 +267,8 @@ export const AppConfigProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Inject the primary colour as a CSS custom property on <html> so it is
-  // available everywhere without prop-drilling.
+  // Keep the tab title in step with the school. Colours are ThemeContext's job.
   useEffect(() => {
-    if (config?.app?.primary_color) {
-      document.documentElement.style.setProperty(
-        '--accent-primary',
-        config.app.primary_color
-      );
-    }
-    // Also update the <title> tag dynamically
     if (config?.app?.title) {
       document.title = config.app.title;
     }
@@ -320,7 +306,7 @@ export const AppConfigProvider = ({ children }) => {
         justifyContent: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
-        color: '#6B7280',
+        color: 'var(--muted)',
       }}>
         Loading configuration…
       </div>
@@ -336,11 +322,11 @@ export const AppConfigProvider = ({ children }) => {
         justifyContent: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
-        color: '#EF4444',
+        color: 'var(--error)',
         gap: '8px',
       }}>
         <p>Failed to load application configuration.</p>
-        <p style={{ fontSize: '14px', color: '#6B7280' }}>{error}</p>
+        <p style={{ fontSize: '14px', color: 'var(--muted)' }}>{error}</p>
       </div>
     );
   }

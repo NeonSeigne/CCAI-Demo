@@ -1,5 +1,4 @@
 import React, { Suspense, lazy } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import {
   BrowserRouter, Navigate, Outlet, Route, Routes,
 } from 'react-router-dom';
@@ -22,7 +21,6 @@ import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
-import muiTheme from './theme/muiTheme';
 import './styles/components.css';
 
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -36,11 +34,6 @@ const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
 const CoursePopupHost = lazy(() => import('./components/course/CoursePopupHost'));
 
 const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
-
-// Set REACT_APP_TESTING_ONBOARDING=true in your .env to force the onboarding
-// tour to run on every page load. Leave unset in production — tour will only
-// show once per user (localStorage).
-export const TESTING_ONBOARDING = process.env.REACT_APP_TESTING_ONBOARDING === 'true';
 
 // Set REACT_APP_ENABLE_DEV_LOGIN=true to show the homepage "Developer mode"
 // button (auto-login as the seeded developer user). Requires ENABLE_DEV_LOGIN=true
@@ -123,7 +116,6 @@ function App() {
     <BrowserRouter>
       <AppConfigProvider>
         <ThemeProvider>
-          <MuiThemeProvider theme={muiTheme}>
             <AuthProvider>
               <SavedProvider>
                 <PlannerProvider>
@@ -140,7 +132,6 @@ function App() {
                 </PlannerProvider>
               </SavedProvider>
             </AuthProvider>
-          </MuiThemeProvider>
         </ThemeProvider>
       </AppConfigProvider>
     </BrowserRouter>

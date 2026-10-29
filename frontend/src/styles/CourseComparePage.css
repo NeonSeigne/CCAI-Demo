@@ -13,7 +13,7 @@
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--surface);
   scroll-snap-type: x proximity;
 }
 
@@ -61,7 +61,7 @@
   justify-content: center;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
 }
@@ -70,10 +70,10 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  background: var(--paper);
+  background: var(--surface);
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .cmp-value {
@@ -84,7 +84,7 @@
   color: var(--ink);
 }
 
-.cmp-note { display: block; margin-top: 2px; font-size: 13px; color: var(--ink-soft); }
+.cmp-note { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
 
 .cmp-cell .cc-grades + .cmp-note { margin-top: 6px; }
 .cmp-cell .cc-na { font-size: 13px; }
@@ -99,12 +99,12 @@
   padding: 16px;
   border: 1px dashed var(--line);
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .cmp-add h2 { margin: 0; font-size: 16px; }
-.cmp-add-full { color: var(--ink-soft); font-size: 14px; }
-.cmp-add-label { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); }
+.cmp-add-full { color: var(--muted); font-size: 14px; }
+.cmp-add-label { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
 
 .cmp-add-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 
@@ -127,7 +127,7 @@
 }
 
 .cmp-add-title {
-  color: var(--ink-soft);
+  color: var(--muted);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -141,7 +141,7 @@
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .cmp-empty p { margin: 0; font-size: 16px; font-weight: 600; }
@@ -153,7 +153,7 @@
   padding: 12px 12px 12px 20px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .cmp-ask p { flex: 1; margin: 0; font-size: 15px; }

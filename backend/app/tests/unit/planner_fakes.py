@@ -35,6 +35,7 @@ class Rule:
     groups: Tuple[Tuple[str, ...], ...] = ()
     min_grade: Optional[str] = None
     double_count: bool = False
+    line: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,7 @@ class Program:
     total_credits: Optional[int] = 120
     rules: Tuple[Rule, ...] = ()
     complete: bool = False
+    deadline: Optional[Any] = None  # programs.Deadline
 
 
 def course(identifier: str, **kw: Any) -> CourseFacts:

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, Plus, Search, X } from 'lucide-react';
+import { MessageSquare, Plus, Search, X } from '../components/icons';
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import {
   CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced, useDelayedFlag,

@@ -1,23 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  FileText,
-  RefreshCw,
-  Download,
-  Calendar,
-  TrendingUp,
-  Target,
-  BookOpen,
-  Lightbulb,
-  AlertTriangle,
-  Users,
-  BarChart3,
-  Heart,
-  ArrowLeft,
-  Printer,
-  Trash2,
-  MessageCircle,
-  ArrowRight
-} from 'lucide-react';
+import { FileText, RefreshCw, Download, Calendar, TrendingUp, Target, BookOpen, Lightbulb, AlertTriangle, Users, BarChart3, Heart, ArrowLeft, Printer, Trash2, MessageCircle, ArrowRight } from '../components/icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import CopyrightNotice from '../components/CopyrightNotice';

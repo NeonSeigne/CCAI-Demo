@@ -13,40 +13,47 @@ complete: false  # major core and Comprehensive track only; other tracks and A&S
 rules:
   - id: calculus-1
     title: Calculus 1
+    line: Calculus
     kind: n_of
     n: 1
     courses: [MATH 1300, MATH 1310, APPM 1350]
     min_grade: C-
   - id: calculus-2
     title: Calculus 2
+    line: Calculus
     kind: n_of
     n: 1
     courses: [MATH 2300, APPM 1360]
     min_grade: C-
   - id: calculus-3
     title: Calculus 3
+    line: Calculus
     kind: n_of
     n: 1
     courses: [MATH 2400, APPM 2350]
     min_grade: C-
   - id: proofs
     title: Discrete mathematics
+    line: Core
     kind: n_of
     n: 1
     courses: [MATH 2001, MATH 2002]
     min_grade: C-
   - id: linear-algebra
     title: Linear algebra
+    line: Core
     kind: all_of
     courses: [MATH 2135]
     min_grade: C-
   - id: analysis
     title: Analysis 1
+    line: Core
     kind: all_of
     courses: [MATH 3001]
     min_grade: C-
   - id: algebra
     title: Abstract algebra
+    line: Core
     kind: all_of
     courses: [MATH 3140]
     min_grade: C-
@@ -54,6 +61,7 @@ rules:
       - Comprehensive track.
   - id: advanced-course
     title: Advanced analysis or algebra
+    line: Electives
     kind: n_of
     n: 1
     courses: [MATH 4140, MATH 4001]
@@ -62,6 +70,7 @@ rules:
       - Comprehensive track.
   - id: electives
     title: Upper-division electives
+    line: Electives
     kind: level
     subjects: [MATH]
     min_level: 3000
@@ -72,6 +81,7 @@ rules:
       - Comprehensive track, 9 credits. Approved APPM courses also count.
   - id: electives-4000
     title: Electives at the 4000 level
+    line: Electives
     kind: level
     subjects: [MATH]
     min_level: 4000

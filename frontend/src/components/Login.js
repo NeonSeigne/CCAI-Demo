@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, BookOpen, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, BookOpen, Phone } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import CopyrightNotice from './CopyrightNotice';
 import '../styles/Login.css';

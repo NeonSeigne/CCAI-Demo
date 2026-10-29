@@ -14,29 +14,35 @@ complete: false  # major rules only; L&S breadth, language, residency and Core G
 rules:
   - id: calculus
     title: Foundational math
+    line: Foundations
     kind: all_of
     courses: [MATH 221, MATH 222]
   - id: basic-cs
     title: Basic computer sciences
+    line: Foundations
     kind: all_of
     courses: [COMP SCI 240, COMP SCI 252, COMP SCI 300, COMP SCI 354, COMP SCI 400]
   - id: linear-algebra
     title: Linear algebra
+    line: Foundations
     kind: n_of
     n: 1
     courses: [MATH 320, MATH 340, MATH 345, MATH 341, MATH 375]
   - id: probability-statistics
     title: Probability or statistics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [STAT 309, MATH 309, STAT 311, STAT 324, MATH 331, STAT 333, STAT 340, STAT 371, STAT 431, MATH 431, MATH 531]
   - id: theory
     title: Theory of computer science
+    line: Core
     kind: n_of
     n: 1
     courses: [COMP SCI 577, COMP SCI 520]
   - id: software-hardware
     title: Software and hardware
+    line: Core
     kind: n_of
     n: 2
     courses: [
@@ -48,6 +54,7 @@ rules:
       - COMP SCI 536 and COMP SCI 538 are listed as one choice (536 or 538).
   - id: applications
     title: Applications
+    line: Core
     kind: n_of
     n: 1
     courses: [
@@ -57,6 +64,7 @@ rules:
     ]
   - id: electives
     title: Electives
+    line: Electives
     kind: n_of
     n: 2
     courses: [

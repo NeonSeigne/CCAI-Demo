@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bookmark } from 'lucide-react';
+import { Bookmark } from './icons';
 import { useSaved } from '../contexts/SavedContext';
 import { useToast } from './Toast';
 import '../styles/SaveButton.css';

@@ -1,8 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import AddCommentRounded from '@mui/icons-material/AddCommentRounded';
-import ChatBubbleOutlineRounded from '@mui/icons-material/ChatBubbleOutlineRounded';
-import CloseRounded from '@mui/icons-material/CloseRounded';
-import KeyboardTabRounded from '@mui/icons-material/KeyboardTabRounded';
+import { AddCommentRounded, ChatBubbleOutlineRounded, CloseRounded, KeyboardTabRounded } from './icons';
 import EnhancedChatInput from './EnhancedChatInput';
 import DockConversation from './chat/DockConversation';
 import { useDropTarget } from './dnd';
@@ -206,6 +203,7 @@ export default function ChatDock() {
           attachments={chat.attachments}
           onRemoveAttachment={chat.removeAttachment}
           placeholder={chatPlaceholder(config)}
+          showScope={false}
         />
       </div>
     </aside>

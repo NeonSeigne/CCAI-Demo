@@ -3,12 +3,12 @@
   min-height: 100vh;
   display: flex;
   flex-wrap: wrap;
-  background: var(--paper-sunken);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-app);
 }
 
-.saved-page ::selection { background: var(--selection); color: var(--ink); }
+.saved-page ::selection { background: var(--tint); color: var(--ink); }
 
 .saved-page :focus-visible {
   outline: var(--focus-ring);
@@ -31,7 +31,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .saved-header h1 {
@@ -84,10 +84,10 @@
 }
 
 .saved-collection:hover,
-.saved-new:hover { background: var(--paper); }
+.saved-new:hover { background: var(--surface); }
 
 .saved-collection.is-selected {
-  background: var(--paper);
+  background: var(--surface);
   font-weight: 600;
   box-shadow: inset 0 0 0 1px var(--line);
 }
@@ -102,11 +102,11 @@
 
 .saved-count {
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
-.saved-new { color: var(--ink-soft); }
+.saved-new { color: var(--muted); }
 
 /* ---- Items panel ---------------------------------------------------------- */
 .saved-panel {
@@ -115,7 +115,7 @@
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .saved-panel-head {
@@ -158,7 +158,7 @@
   box-sizing: border-box;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -168,11 +168,11 @@
   cursor: pointer;
 }
 
-.saved-btn:hover:not(:disabled) { background: var(--paper-sunken); }
-.saved-btn:disabled { color: var(--ink-soft); cursor: not-allowed; }
-.saved-btn.is-primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.saved-btn:hover:not(:disabled) { background: var(--canvas); }
+.saved-btn:disabled { color: var(--muted); cursor: not-allowed; }
+.saved-btn.is-primary { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .saved-btn.is-primary:hover:not(:disabled) { background: var(--ink); }
-.saved-btn.is-danger { color: var(--error-ink); }
+.saved-btn.is-danger { color: var(--error); }
 
 .saved-icon-btn {
   width: 44px;
@@ -182,12 +182,12 @@
   justify-content: center;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
 }
 
-.saved-icon-btn:hover { background: var(--paper-sunken); }
+.saved-icon-btn:hover { background: var(--canvas); }
 
 .saved-inline-form {
   display: flex;
@@ -204,7 +204,7 @@
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 15px;
@@ -267,7 +267,7 @@
   flex-wrap: wrap;
   gap: 4px 12px;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .saved-when {
@@ -277,9 +277,9 @@
 }
 
 .saved-walk { color: var(--domain-campus-ink); }
-.saved-walk.is-unavailable { color: var(--ink-soft); }
+.saved-walk.is-unavailable { color: var(--muted); }
 
-.saved-status { color: var(--error-ink); }
+.saved-status { color: var(--error); }
 
 .saved-tag {
   flex: 0 0 auto;
@@ -303,8 +303,8 @@
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--paper);
-  box-shadow: var(--shadow-soft-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
 }
 
 .saved-menu-panel ul {
@@ -328,7 +328,7 @@
 }
 
 .saved-menu-panel [role="menuitem"]:hover,
-.saved-menu-panel [role="menuitem"]:focus { background: var(--paper-sunken); }
+.saved-menu-panel [role="menuitem"]:focus { background: var(--canvas); }
 
 /* ---- Past group (17A, DO3) ------------------------------------------------ */
 .saved-past {
@@ -353,7 +353,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--muted);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -366,7 +366,7 @@
 .saved-error p {
   margin: 0;
   font-size: 15px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .saved-empty-line { padding: 20px 0 4px; }
@@ -379,7 +379,7 @@
   background: var(--error-tint);
 }
 
-.saved-error p { color: var(--error-ink); font-weight: 600; }
+.saved-error p { color: var(--error); font-weight: 600; }
 
 /* Placeholders appear only after 300 ms, so fast lookups never flash (9A). */
 .saved-ph {
@@ -397,7 +397,7 @@
   height: 12px;
   width: 70%;
   border-radius: 6px;
-  background: var(--paper-sunken);
+  background: var(--canvas);
 }
 
 .saved-ph-bar.is-short { width: 35%; }
@@ -407,7 +407,7 @@
 .saved-footnote {
   margin: 0;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 /* ---- Phone picker (27A) --------------------------------------------------- */
@@ -427,7 +427,7 @@
     margin-bottom: 12px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--ink-soft);
+    color: var(--muted);
   }
 
   .saved-picker select {
@@ -435,7 +435,7 @@
     padding: 0 12px;
     border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--paper);
+    background: var(--surface);
     color: var(--ink);
     font: inherit;
     font-size: 15px;

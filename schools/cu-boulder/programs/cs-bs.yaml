@@ -14,25 +14,30 @@ complete: false  # CS electives, natural science electives, HSS/writing and free
 rules:
   - id: intro-seminar
     title: Introductory seminar
+    line: CS foundations
     kind: n_of
     n: 1
     courses: [CSCI 1000, ASEN 1000, BMEN 1000, CHEN 1300, CVEN 1317, ECEN 1100, EVEN 1000, MCEN 2000]
   - id: cs1
     title: Computer Science 1
+    line: CS foundations
     kind: n_of
     n: 1
     courses: [CSCI 1300, ECEN 1310]
   - id: cs2
     title: Data structures
+    line: CS foundations
     kind: n_of
     n: 1
     courses: [CSCI 2270, CSCI 2275]
   - id: foundation
     title: Computer Science foundation
+    line: CS foundations
     kind: all_of
     courses: [CSCI 2400, CSCI 3104, CSCI 3155, CSCI 3308]
   - id: core
     title: Computer Science core
+    line: CS core
     kind: n_of
     n: 5
     courses: [
@@ -45,6 +50,7 @@ rules:
       - The core is 15-18 credits depending on the courses chosen.
   - id: capstone
     title: Senior capstone
+    line: Capstone
     kind: one_of_groups
     groups:
       - [CSCI 4308, CSCI 4318]
@@ -53,46 +59,55 @@ rules:
       - [CSCI 4368, CSCI 4378]
   - id: calculus-1
     title: Calculus 1
+    line: Math and science
     kind: n_of
     n: 1
     courses: [APPM 1350, MATH 1300, MATH 1310, APPM 1345]
   - id: calculus-2
     title: Calculus 2
+    line: Math and science
     kind: n_of
     n: 1
     courses: [APPM 1360, MATH 2300]
   - id: discrete
     title: Discrete structures
+    line: Math and science
     kind: n_of
     n: 1
     courses: [CSCI 2824, ECEN 2703, APPM 3170, MATH 2001]
   - id: linear-algebra
     title: Linear algebra
+    line: Math and science
     kind: n_of
     n: 1
     courses: [CSCI 2820, MATH 2130, MATH 2135, MATH 3130, MATH 3135, APPM 3310]
   - id: probability
     title: Probability and statistics
+    line: Math and science
     kind: n_of
     n: 1
     courses: [CSCI 3022, APPM 3570, CHEN 3010, CVEN 3227, ECEN 3810, ECON 3818, MATH 3510, MATH 4510, STAT 3100, STAT 4000]
   - id: logic
     title: Logic
+    line: CS core
     kind: n_of
     n: 1
     courses: [PHIL 1440, PHIL 2440]
   - id: ethics
     title: Ethics
+    line: CS core
     kind: n_of
     n: 1
     courses: [PHIL 1100, PHIL 1200, PHIL 2160, PHIL 3100, CSCI 2750, INFO 4601, ENLP 2000, EHON 1151]
   - id: physics-1
     title: General Physics 1
+    line: Math and science
     kind: n_of
     n: 1
     courses: [PHYS 1110, PHYS 1115]
   - id: science-with-lab
     title: Second science with lab
+    line: Math and science
     kind: one_of_groups
     groups:
       - [PHYS 1120, PHYS 1140]

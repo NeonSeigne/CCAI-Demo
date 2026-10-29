@@ -37,7 +37,7 @@ const Toggle = ({ checked, onChange, size = 'md', disabled = false, label }) => 
         borderRadius: dims.h,
         background: checked
           ? 'var(--ink)'
-          : 'var(--border-secondary, #d1d5db)',
+          : 'var(--control)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         position: 'relative',
@@ -53,7 +53,7 @@ const Toggle = ({ checked, onChange, size = 'md', disabled = false, label }) => 
           width: dims.knob,
           height: dims.knob,
           borderRadius: '50%',
-          background: '#ffffff',
+          background: 'var(--band-text)',
           boxShadow: '0 1px 2px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)',
           transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}

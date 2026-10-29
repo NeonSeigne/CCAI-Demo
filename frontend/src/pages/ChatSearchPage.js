@@ -13,8 +13,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SearchIcon from '@mui/icons-material/Search';
+import { ArrowBack as ArrowBackIcon, Search as SearchIcon } from '../components/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { parseServerTime } from '../utils/serverTime';
 
@@ -102,7 +101,7 @@ const ChatSearchPage = () => {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--paper-sunken)',
+        background: 'var(--canvas)',
       }}
     >
         <AppBar position="static" color="transparent" elevation={0}>
@@ -152,7 +151,7 @@ const ChatSearchPage = () => {
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                background: 'var(--paper)',
+                background: 'var(--surface)',
                 borderRadius: 2,
               },
             }}
@@ -167,7 +166,7 @@ const ChatSearchPage = () => {
                 justifyContent: 'center',
                 gap: 1,
                 py: 8,
-                color: 'var(--ink-soft)',
+                color: 'var(--muted)',
               }}
             >
               <CircularProgress size={22} color="inherit" />
@@ -186,7 +185,7 @@ const ChatSearchPage = () => {
             <List
               disablePadding
               sx={{
-                background: 'var(--paper)',
+                background: 'var(--surface)',
                 border: '1px solid var(--line)',
                 borderRadius: 2,
                 overflow: 'hidden',

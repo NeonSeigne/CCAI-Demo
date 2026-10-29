@@ -3,7 +3,8 @@ import { usePlanner } from '../../contexts/PlannerContext';
 import { plannerError } from '../../api/planner';
 import { creditSpan, statusWord } from '../planner/planFormat';
 import ProposalCard from './ProposalCard';
-import '../../styles/PlanCards.css';
+import { Icon } from '../icons';
+import '../../styles/CourseVisuals.css';
 
 /**
  * Chat card for a `course_shortlist` visual (design 19A).
@@ -29,6 +30,15 @@ const PREREQ_TEXT = {
   unknown: 'Prerequisites unknown',
 };
 
+function Head() {
+  return (
+    <div className="vc-head">
+      <Icon name="playlist_add" size={20} />
+      <h3>Suggested courses</h3>
+    </div>
+  );
+}
+
 export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
   const planner = usePlanner();
   const items = Array.isArray(visual?.items) ? visual.items : [];
@@ -39,13 +49,13 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
 
   if (!items.length) {
     return (
-      <div className="proposal-card shortlist-card">
-        <p className="pc-label">Suggested courses</p>
-        <p className="pc-line">{visual?.reason || 'No courses matched; try other words'}</p>
+      <div className="vc-card vc-shortlist">
+        <Head />
+        <p className="vc-line is-muted">{visual?.reason || 'No courses matched; try other words'}</p>
         {onAsk && (
-          <div className="pp-chips">
+          <div className="vc-chips">
             {EXAMPLES.map((text) => (
-              <button key={text} type="button" className="pp-chip" onClick={() => onAsk(text)}>{text}</button>
+              <button key={text} type="button" className="vc-chip" onClick={() => onAsk(text)}>{text}</button>
             ))}
           </div>
         )}
@@ -70,58 +80,56 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
   };
 
   return (
-    <div className="proposal-card shortlist-card">
-      <p className="pc-label">Suggested courses</p>
-      {visual?.reason && <p className="pc-lead">{visual.reason}</p>}
-      <ul className="pc-rows">
+    <div className="vc-card vc-shortlist">
+      <Head />
+      {visual?.reason && <p className="vc-lead">{visual.reason}</p>}
+      <ul className="vc-rows">
         {items.slice(0, shown).map((item) => {
           const credits = creditSpan(item.credits);
           const prereq = item.prereqs?.status || 'unknown';
           const chips = (item.labels || []).filter((label) => !/^Prerequisites/i.test(label));
           return (
-            <li key={item.id} className="sl-row">
-              <div className="sl-row-main">
-                <span className="sl-name">
+            <li key={item.id} className="vc-srow">
+              <div className="vc-srow-main">
+                <span>
                   {onSelectCourse ? (
-                    <button type="button" className="pp-link" onClick={() => onSelectCourse(item.id)}>{item.id}</button>
-                  ) : item.id}
-                  {item.title && <span className="sl-title"> {item.title}</span>}
-                  {credits && <span className="pp-muted"> · {credits} cr</span>}
+                    <button type="button" className="vc-link" onClick={() => onSelectCourse(item.id)}>{item.id}</button>
+                  ) : <span className="vc-code">{item.id}</span>}
+                  {credits && <span className="vc-code"> · {credits} cr</span>}
                 </span>
-                {item.why && <p className="sl-why">{item.why}</p>}
+                {item.title && <b>{item.title}</b>}
+                {item.why && <p className="vc-srow-why">{item.why}</p>}
                 {chips.length > 0 && (
-                  <div className="sl-chips">
-                    {chips.map((label) => <span key={label} className="sl-chip">{label}</span>)}
+                  <div className="vc-srow-chips">
+                    {chips.map((label) => <span key={label} className="vc-tag">{label}</span>)}
                   </div>
                 )}
-                <span className={`sl-prereq ${prereq === 'short' ? 'is-short' : ''}`.trim()}>
+                <span className={`vc-srow-prereq ${prereq === 'short' ? 'is-short' : ''}`.trim()}>
                   {PREREQ_TEXT[prereq] || statusWord(prereq)}
                   {item.prereqs?.reason ? ` · ${item.prereqs.reason}` : ''}
                 </span>
-                {error?.id === item.id && <p className="pc-refused" role="alert">{error.text}</p>}
+                {error?.id === item.id && <p className="vc-alert" role="alert">{error.text}</p>}
               </div>
               {planner && (
-                <div className="sl-row-action">
-                  <button
-                    type="button"
-                    className="pp-btn"
-                    disabled={!!choosing}
-                    aria-label={`Choose ${item.id}`}
-                    onClick={() => choose(item)}
-                  >
-                    {choosing === item.id ? 'Checking…' : 'Choose'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="vc-btn"
+                  disabled={!!choosing}
+                  aria-label={`Choose ${item.id}`}
+                  onClick={() => choose(item)}
+                >
+                  {choosing === item.id ? 'Checking…' : <><Icon name="add" size={20} />Choose</>}
+                </button>
               )}
             </li>
           );
         })}
       </ul>
       {items.length > shown && (
-        <button type="button" className="pp-link" onClick={() => setShown(shown + PAGE)}>Show more</button>
+        <button type="button" className="vc-btn vc-more-btn" onClick={() => setShown(shown + PAGE)}>Show more</button>
       )}
       {chosen && (
-        <div className="sl-chosen">
+        <div className="vc-chosen">
           <ProposalCard visual={{ type: 'proposed_change', proposal: chosen }} />
         </div>
       )}

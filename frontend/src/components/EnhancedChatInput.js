@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover } from '@mui/material';
-import { ArrowUp, Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
+import { ArrowUp, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays, Icon } from './icons';
 import FileUpload from './FileUpload';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { attachmentLabel } from '../contexts/ChatContext';
@@ -34,6 +34,8 @@ const EnhancedChatInput = ({
   // Course, event and place chips; each is sent as a line before the message.
   attachments = [],
   onRemoveAttachment,
+  // What Ask looks through, as a chip beside +. The dock leaves it out.
+  showScope = true,
 }) => {
   const { advisors, isAdvisorEnabled } = useAppConfig();
   const [inputMessage, setInputMessage] = useState(initialMessage || '');
@@ -244,7 +246,7 @@ const EnhancedChatInput = ({
   };
 
   return (
-    <div className={`enhanced-chat-input-container ${isLanding ? 'landing-composer' : ''} ${compact ? 'compact-composer' : ''}`}>
+    <div className={`enhanced-chat-input-container cc-composer ${isLanding ? 'landing-composer' : ''} ${compact ? 'compact-composer' : ''}`}>
       {/* File Upload Area */}
       {showUpload && (
         <div className="floating-upload-section" ref={uploadRef}>
@@ -363,8 +365,9 @@ const EnhancedChatInput = ({
               aria-haspopup="menu"
               aria-expanded={Boolean(plusAnchorEl)}
               title="Add documents or skills"
+              aria-label="Add documents or skills"
             >
-              <Plus size={16} />
+              <Plus size={22} />
             </button>
             <Popover
               open={Boolean(plusAnchorEl)}
@@ -382,7 +385,7 @@ const EnhancedChatInput = ({
                   onClick={openUploadPanel}
                   disabled={isUploading}
                 >
-                  <Paperclip size={15} />
+                  <Paperclip size={21} />
                   <span>Upload documents</span>
                 </button>
                 {/* Skills show only when the page can run them. */}
@@ -395,14 +398,21 @@ const EnhancedChatInput = ({
                       role="menuitem"
                       onClick={() => handleInvokeSkill('plan_semester')}
                     >
-                      <CalendarDays size={15} />
+                      <CalendarDays size={21} />
                       <span>Plan my Semester</span>
                     </button>
                   </>
                 )}
               </div>
             </Popover>
-            
+
+            {showScope && (
+              <span className="composer-scope">
+                <Icon name="school" size={18} />
+                Courses, events and places
+              </span>
+            )}
+
             {uploadedDocuments.length > 0 && (
               <button
                 onClick={toggleDocuments}
@@ -410,7 +420,7 @@ const EnhancedChatInput = ({
                 type="button"
                 title={`View ${uploadedDocuments.length} uploaded document${uploadedDocuments.length !== 1 ? 's' : ''}`}
               >
-                <FileText size={16} />
+                <FileText size={18} />
                 <span className="docs-count">{uploadedDocuments.length}</span>
               </button>
             )}
@@ -424,7 +434,7 @@ const EnhancedChatInput = ({
               aria-expanded={Boolean(advisorAnchorEl)}
               title="Choose advisors for this message"
             >
-              <Users size={16} />
+              <Users size={18} />
               <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors` : 'Advisors'}</span>
             </button>
             )}
@@ -496,19 +506,10 @@ const EnhancedChatInput = ({
             )}
 
             {!compact && (
-            <div
-              role="group"
-              aria-label="Response mode"
-              style={{
-                display: 'inline-flex', gap: 2,
-                background: 'var(--bg-secondary, rgba(0,0,0,0.04))',
-                border: '1px solid var(--border-secondary)',
-                borderRadius: 8, padding: 2,
-              }}
-            >
+            <div role="group" aria-label="Response mode" className="cc-segmented composer-mode">
               {[
-                { mode: 'panel', icon: <Users size={16} />, label: 'Panel' },
-                { mode: 'aggregated', icon: <Sparkles size={16} />, label: 'Aggregated' },
+                { mode: 'panel', icon: <Users size={18} />, label: 'Panel' },
+                { mode: 'aggregated', icon: <Sparkles size={18} />, label: 'Aggregated' },
               ].map(({ mode, icon, label }) => {
                 const active = responseMode === mode;
                 return (
@@ -516,15 +517,9 @@ const EnhancedChatInput = ({
                     key={mode}
                     type="button"
                     disabled={isDisabled}
+                    aria-pressed={active}
+                    className={active ? 'is-on' : ''}
                     onClick={() => onResponseModeChange?.(mode)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      fontSize: 14, padding: '6px 10px', border: 'none',
-                      borderRadius: 6, cursor: isDisabled ? 'default' : 'pointer',
-                      fontFamily: 'inherit',
-                      background: active ? 'var(--ink)' : 'transparent',
-                      color: active ? '#fff' : 'var(--text-secondary)',
-                    }}
                   >
                     {icon} {label}
                   </button>
@@ -535,25 +530,16 @@ const EnhancedChatInput = ({
           </div>
 
           {/* Right - Mic + Send */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div className="composer-end">
             <button
               onClick={toggleRecording}
               disabled={isTranscribing}
-              className={`mic-button ${isRecording ? 'listening' : ''}`}
+              className={`mic-button ${isRecording ? 'listening' : ''} ${isTranscribing ? 'transcribing' : ''}`.trim()}
               type="button"
               title={isTranscribing ? 'Transcribing...' : isRecording ? 'Stop recording' : 'Voice input'}
-              style={{
-                background: isRecording ? '#EF4444' : 'transparent',
-                border: isRecording ? '1px solid #EF4444' : '1px solid var(--border-primary)',
-                color: isRecording ? '#fff' : 'var(--text-secondary)',
-                borderRadius: '50%', width: 36, height: 36,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: isTranscribing ? 'wait' : 'pointer', transition: 'all 0.2s',
-                animation: isRecording ? 'mic-pulse 1.5s ease-in-out infinite' : 'none',
-                opacity: isTranscribing ? 0.6 : 1,
-              }}
+              aria-label={isTranscribing ? 'Transcribing' : isRecording ? 'Stop recording' : 'Voice input'}
             >
-              {isTranscribing ? <Loader2 size={16} className="spinning" /> : isRecording ? <MicOff size={16} /> : <Mic size={16} />}
+              {isTranscribing ? <Loader2 size={22} className="spinning" /> : isRecording ? <MicOff size={22} /> : <Mic size={22} />}
             </button>
             <button
               onClick={handleSend}
@@ -562,7 +548,7 @@ const EnhancedChatInput = ({
               type="button"
               aria-label="Send"
             >
-              {compact ? <ArrowUp size={18} strokeWidth={2.4} /> : <Send size={16} />}
+              <ArrowUp size={22} />
             </button>
           </div>
         </div>

@@ -12,11 +12,13 @@ complete: false  # major rules only; A&S Gen Ed, upper-division and residency ru
 rules:
   - id: principles
     title: Principles of economics
+    line: Foundations
     kind: all_of
     courses: [ECON 2010, ECON 2020]
     min_grade: C-
   - id: mathematics
     title: Mathematics
+    line: Foundations
     kind: n_of
     n: 1
     courses: [APPM 1350, ECON 1088, MATH 1300, MATH 1330]
@@ -25,22 +27,26 @@ rules:
       - The math course does not count toward the 33 ECON credits or the major GPA.
   - id: intermediate-theory
     title: Intermediate theory
+    line: Core theory
     kind: all_of
     courses: [ECON 3070, ECON 3080]
     min_grade: C-
   - id: statistics
     title: Statistics
+    line: Foundations
     kind: all_of
     courses: [ECON 3818]
     min_grade: C-
   - id: econometrics
     title: Econometrics
+    line: Core theory
     kind: n_of
     n: 1
     courses: [ECON 4818, ECON 4848, ECON 4858]
     min_grade: C-
   - id: electives
     title: 4000-level ECON electives
+    line: Electives
     kind: level
     subjects: [ECON]
     min_level: 4000

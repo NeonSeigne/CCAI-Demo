@@ -263,6 +263,7 @@ State: approved
 Actual answer: A, recommended (authorized auto-decision, 2026-10-29)
 Accepted scope: Phase 3 removes `--ink`, `--paper*`, `--accent-*`, `--domain-*`, `--band-*`, `--course-*`, `--difficulty-*` aliases after migrating callers; the token test asserts none remain in src/.
 History: none
+Built (Phase 3): Phase 0 kept `--ink`, `--course-*`, `--difficulty-*` and the `--domain-*-ink/-tint` data tokens as real roles, so the aliases removed were the 45 old names in brand-tokens.css's alias block (`--paper*`, `--ink-soft`, `--accent-*`, bare `--domain-*`, `--bg-*`, `--text-*`, `--border-*`, `--input-*`, the old shadows). The token test fails on any of them, and also on any `var()` that nothing defines, which found five undefined names left from before the redesign.
 
 ### R6: Subset the icon font
 Finding: P1, INFORMATIONAL, 7/10, plan T0.6 (loads Material Symbols Rounded with four axes)
@@ -351,6 +352,8 @@ Approval readiness: PASS — R1 (D17), R2 (D18), R3 (D19), R4–R14 (authorized 
 - **Ask home:** "Your classes today" reuses `meetingsOf` (semesterData.js:84) with a date-aware filter (R12).
 - **Phase 2:** P.0 data contract (R9), `start_term` + deadline (R2, R10), optional `line:` field (R2), shared `routeModel` (R4), then RouteMap/RouteList.
 - **Phase 3:** delete the alias layer (R5); full suites green at every merge (R7).
+
+- **R13 as built (Phase 0):** the Lucide→Material table lives in `frontend/src/components/icons.js` (`LEGACY`), not the backend: it is the same table the import aliases need, so one list instead of two. Config icon names stay Lucide names because the backend validates them against `app/utils/lucide_icons.py`; `icons.test.js` checks that every icon the shipped configs name maps to Material. Moving configs to Material names needs a Material name registry in the backend; not done.
 
 ### File ownership (parallel lanes)
 | Lane | Owns |
