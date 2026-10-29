@@ -384,6 +384,12 @@ def _section_row(row: Dict[str, Any]) -> Dict[str, Any]:
         out["meetings"] = row["meetings"]
     if (row.get("schedule") or {}).get("raw"):
         out["meetings"] = [row["schedule"]["raw"]]
+    # Parsed times (UVA, CU): [{day: "Mo", start: "09:05", end: "09:55"}].
+    if row.get("meeting_times"):
+        out["meeting_times"] = row["meeting_times"]
+    # Students waiting at snapshot time (UVA); no other source publishes it.
+    if row.get("waitlist_at_snapshot") is not None:
+        out["waitlist"] = row["waitlist_at_snapshot"]
     # FOSE's building (``bldg``, carried as ``location``); other sources have none.
     bldg = " ".join(re.sub(r"<[^>]+>", " ", str(row.get("location") or "")).split())
     if bldg:
@@ -442,10 +448,13 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
     for term in fose_terms():
         # Cached per subject and term, so the facts read below asks FOSE once.
         items = await fose.fose_sections(subject, term)
-        rows = [
-            row for row in (fose.row_to_course(item, term) for item in items)
-            if row and _same_code(row.get("course_code")) == code
-        ]
+        rows = []
+        for item in items:
+            row = fose.row_to_course(item, term)
+            if row and _same_code(row.get("course_code")) == code:
+                meetings = _fose_meetings(item) or ()
+                row["meeting_times"] = [{"day": m.day, "start": m.start, "end": m.end} for m in meetings]
+                rows.append(row)
         if rows:
             break
     if not rows:

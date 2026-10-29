@@ -290,3 +290,22 @@ Chat: a `course_prerequisites` result naming at least one course gives
 `{type: "course_prereq_map", course}` (hydrated from the summary above); the
 legacy flat `prereq_tree` spec is no longer emitted but still renders for old
 messages. UVA's pack now enables `course_prerequisites`.
+
+### Section rows (`sections.rows[]`)
+
+```
+{"id", "section", "type", "instructors": str, "enrolled", "capacity", "seats_open", "is_open",
+ "meetings": [str]?,                                  # as the source writes them
+ "meeting_times": [{"day": "Mo", "start": "HH:MM", "end": "HH:MM"}]?,  # parsed, 24-hour, school-local
+ "waitlist": n?,                                      # students waiting at snapshot time
+ "bldg": str?}                                        # CU only
+```
+
+A key is left out where the source lacks it. UVA (snapshot): instructor per
+section, `meeting_times`, `waitlist` (the Spring 2027 and Fall 2026 files
+read 0 for every section today). CU (FOSE): instructor per section and
+`meeting_times`; no seats, no waitlist. UW (Course Map): seats only; no
+meeting times, no waitlist, and instructors per course, not per section.
+Snapshot data stays dated: `as_of` and `sections.as_of` carry the snapshot
+date and `sections.historical` is true (R8: the frontend shows "{enrolled} of
+{capacity} · {term}" and no "waiting" for it).

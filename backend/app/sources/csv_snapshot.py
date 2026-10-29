@@ -492,6 +492,10 @@ async def course_sections(
             "type": row.get("Type", ""),
             "instructors": _instructors(row),
             "meetings": _meetings(row),
+            "meeting_times": [
+                {"day": m.day, "start": m.start, "end": m.end}
+                for i in range(1, 5) for m in parse_meetings(row.get(f"Days{i}", ""))
+            ],
             "status_at_snapshot": row.get("Status", ""),
             "enrolled_at_snapshot": enrolled,
             "capacity": capacity,

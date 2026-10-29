@@ -354,6 +354,18 @@ class TestCU(CatalogTestCase):
         # The summary and the facts read share one cached FOSE read.
         self.assertEqual({c.args for c in self.fose_sections.await_args_list}, {("CSCI", "Spring 2027")})
 
+    def test_section_rows_carry_parsed_times_and_no_waitlist(self):
+        times = [{"meet_day": "1", "start_time": "930", "end_time": "1045"},
+                 {"meet_day": "3", "start_time": "930", "end_time": "1045"}]
+        self.terms = {"Spring 2027": [{**fose_item("CSCI 2270", "100", "K. Nielsen"),
+                                       "meetingTimes": json.dumps(times)}]}
+        row = self.client.get("/api/catalog/CSCI 2270").json()["sections"]["rows"][0]
+        self.assertEqual(row["meeting_times"], [
+            {"day": "Tu", "start": "09:30", "end": "10:45"}, {"day": "Th", "start": "09:30", "end": "10:45"},
+        ])
+        self.assertEqual(row["instructors"], "K. Nielsen")
+        self.assertNotIn("waitlist", row)  # FOSE publishes no waitlists
+
     def test_summary_term_comes_from_the_planner_not_a_constant(self):
         use_settings({**CU, "planner": {"terms": ["Fall 2026"]}})
         self.terms = {"Fall 2026": SPRING_2027}
@@ -494,6 +506,19 @@ class TestUVA(CatalogTestCase):
         self.assertEqual(body["sections"]["rows"][0]["instructors"], "Briana Morrison")
         self.assertNotIn("prereq_tree", body)
         self.assertNotIn("bldg", body["sections"]["rows"][0])
+
+    def test_section_rows_carry_times_instructor_and_waitlist(self):
+        body = self.client.get("/api/catalog/CS 2100").json()
+        lecture, lab = body["sections"]["rows"]
+        self.assertEqual(lecture["meeting_times"], [
+            {"day": "Mo", "start": "10:00", "end": "10:50"},
+            {"day": "We", "start": "10:00", "end": "10:50"},
+            {"day": "Fr", "start": "10:00", "end": "10:50"},
+        ])
+        self.assertEqual((lecture["instructors"], lecture["waitlist"]), ("Briana Morrison", 0))
+        self.assertEqual((lab["instructors"], lab["waitlist"]), ("Ana Lab", 5))
+        # Snapshot rows stay dated (R8).
+        self.assertEqual((body["as_of"], body["sections"]["as_of"]), ("2026-09-03", "2026-09-03"))
 
     def test_unknown_course_is_404(self):
         self.assertEqual(self.client.get("/api/catalog/CS 9999").status_code, 404)
