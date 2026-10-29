@@ -58,6 +58,33 @@ class LoadFactsTests(unittest.IsolatedAsyncioTestCase):
         await load_facts(["ECON 3010", "ECON 3010", ""], "Fall 2027", provider=provider)
         self.assertEqual(seen, [(("ECON 3010",), "Fall 2027")])
 
+    async def test_counts_only_switch_keeps_course_ids_out_of_warnings(self):
+        # Setup-dialog R8: the transcript check logs counts, never course codes.
+        async def provider(ids, term):
+            if "ECON 4999" in ids:
+                await asyncio.sleep(5)
+            if "ECON 1500" in ids:
+                raise RuntimeError("no answer for ECON 1500")
+            return {i: course(i) for i in ids}
+
+        ids = ["ECON 3010", "ECON 4999", "ECON 1500"]
+        with self.assertLogs(facts_module.logger, level="WARNING") as logs:
+            result = await facts_module.load_facts_by_term({"Spring 2027": ids}, provider=provider, budget_s=0.05,
+                                                           log_ids=False)
+        self.assertEqual([result["Spring 2027"][i].known for i in ids], ["yes", "unavailable", "unavailable"])
+        self.assertEqual(len(logs.records), 2)
+        for record in logs.records:
+            text = record.getMessage() + repr(vars(record))
+            for course_id in ("4999", "1500", "3010"):
+                self.assertNotIn(course_id, text)
+        self.assertIn("count=1", logs.records[-1].getMessage())
+        self.assertEqual(logs.records[-1].facts_timeout["terms"], {"Spring 2027": 1})
+
+        # The default still names the courses, for the plan's own checks.
+        with self.assertLogs(facts_module.logger, level="WARNING") as logs:
+            await facts_module.load_facts_by_term({"Spring 2027": ids}, provider=provider, budget_s=0.05)
+        self.assertIn("ECON 4999", logs.records[-1].getMessage())
+
     async def test_defaults_to_the_academics_provider(self):
         async def provider(ids, term):
             return {i: course(i) for i in ids}

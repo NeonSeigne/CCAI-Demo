@@ -7,8 +7,10 @@ from fastapi import HTTPException
 
 from app.api.routes import planner as routes
 from app.models.planner import UndoRequest
+from app.planner import service
 from app.planner.facts import CourseFacts
-from app.tests.unit.test_planner_terms import FACTS, FALL_FACTS, PlannerTestCase, add
+from app.tests.unit.planner_fakes import TERM
+from app.tests.unit.test_planner_terms import FACTS, FALL, FALL_FACTS, PlannerTestCase, add
 
 
 class RedoTests(PlannerTestCase):
@@ -74,6 +76,29 @@ class RedoTests(PlannerTestCase):
         with self.assertRaises(HTTPException) as ctx:
             await self.redo(revision=1)
         self.assertEqual((ctx.exception.status_code, ctx.exception.detail["code"]), (409, "revision_conflict"))
+
+    async def test_set_term_undo_and_redo_persist(self):
+        result = await self.edit([{"op": "set_term", "term": "fall 2027"}])
+        self.assertEqual(result["plan"]["term"], FALL)
+        self.assertEqual(result["undo_label"], "Undo: set your term to Fall 2027")
+        self.assertEqual(self.db.plans.docs[0]["term"], FALL)
+
+        undone = await self.undo()
+        self.assertEqual(undone["plan"]["term"], TERM)
+        self.assertEqual((await routes.get_plan(self.user))["plan"]["term"], TERM)
+
+        redone = await self.redo()
+        self.assertEqual(redone["plan"]["term"], FALL)
+        self.assertEqual((await routes.get_plan(self.user))["plan"]["term"], FALL)
+        self.assertEqual(self.db.plans.docs[0]["term"], FALL)
+
+    async def test_redo_of_a_term_no_longer_known_is_refused(self):
+        await self.edit([{"op": "set_term", "term": FALL}])
+        await self.undo()
+        with patch.object(service, "covered_terms", return_value=[TERM]):
+            reason = await self.assert_refused(self.redo())
+        self.assertEqual(reason, "Can't redo that: Fall 2027 isn't a term in your plan or the school's data")
+        self.assertEqual((await routes.get_plan(self.user))["plan"]["term"], TERM)
 
 
 if __name__ == "__main__":

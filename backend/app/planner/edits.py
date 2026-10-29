@@ -1,7 +1,7 @@
 """The one set of plan edits, their inverses, and the diff of two reports.
 
 Ops (``CONTRACTS.md``): ``add``, ``remove``, ``move``, ``swap``,
-``pick_section``, ``set_profile``. Every surface (panel, plan page, chat) goes
+``pick_section``, ``set_profile``, ``set_term``. Every surface (panel, plan page, chat) goes
 through the same three steps:
 
 1. ``validate_ops`` checks each op against the plan and the course facts.
@@ -28,8 +28,10 @@ from typing import Any, Dict, List, Optional
 from app.planner.checker import norm
 from app.planner.facts import CourseFacts
 
-OPS = ("add", "remove", "move", "swap", "pick_section", "set_profile")
+OPS = ("add", "remove", "move", "swap", "pick_section", "set_profile", "set_term")
 PROFILE_FIELDS = ("program_ids", "catalog_year", "class_year", "completed", "interests")
+# Credits a completed entry may carry from a transcript row (setup-dialog R10).
+COMPLETED_CREDITS = (0, 12)
 
 # What a student might say for each op, for ``literal_differs`` (design 11A).
 ASKED_WORDS = {
@@ -39,6 +41,7 @@ ASKED_WORDS = {
     "swap": "swap", "replace": "swap", "switch": "swap",
     "pick_section": "pick_section", "section": "pick_section",
     "set_profile": "set_profile",
+    "set_term": "set_term",
 }
 
 
@@ -132,12 +135,35 @@ def _check_shape(op: Dict[str, Any]) -> None:
     if kind not in OPS:
         raise EditError("bad_op", f"Unknown edit '{kind}'")
     required = {"add": ("course",), "remove": ("course",), "move": ("course", "to_term"),
-                "swap": ("out", "in"), "pick_section": ("course", "sections")}.get(kind, ())
+                "swap": ("out", "in"), "pick_section": ("course", "sections"), "set_term": ("term",)}.get(kind, ())
     missing = [name for name in required if not op.get(name)]
     if missing:
         raise EditError("bad_op", f"'{kind}' needs {', '.join(missing)}")
     if kind == "set_profile" and not any(name in op for name in PROFILE_FIELDS):
         raise EditError("bad_op", "'set_profile' needs at least one profile field")
+    if kind == "set_term" and not isinstance(op["term"], str):
+        raise EditError("bad_op", "'set_term' needs a term")
+    if kind == "set_profile" and "completed" in op:
+        _check_completed(op["completed"])
+
+
+def _check_completed(completed: Any) -> None:
+    """Completed entries are ``{id, grade?, term?, credits?}``; ``credits``,
+    when given, is a number from 0 to 12 (setup-dialog R10)."""
+    if completed is None:
+        return
+    if not isinstance(completed, list):
+        raise EditError("bad_op", "'completed' must be a list")
+    low, high = COMPLETED_CREDITS
+    for entry in completed:
+        if not isinstance(entry, dict):
+            raise EditError("bad_op", "Each completed course must be an object")
+        credits = entry.get("credits")
+        if credits is None:
+            continue
+        if isinstance(credits, bool) or not isinstance(credits, (int, float)) or not low <= credits <= high:
+            raise EditError("bad_op", f"Credits for {norm(entry.get('id'))} must be a number from {low} to {high}",
+                            norm(entry.get("id")) or None)
 
 
 def check_applies(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> None:
@@ -252,6 +278,8 @@ def apply_ops(
             course["sections"] = op.get("sections")
         elif kind == "pick_section":
             _find(new, op["course"])["sections"] = list(op["sections"]) if op["sections"] else None
+        elif kind == "set_term":
+            new["term"] = op["term"]
         elif kind == "set_profile":
             for name in PROFILE_FIELDS:
                 if name in op:
@@ -278,6 +306,8 @@ def _inverse_one(plan: Dict[str, Any], op: Dict[str, Any]) -> Dict[str, Any]:
     if kind == "pick_section":
         course = _find(plan, op["course"])
         return {"op": "pick_section", "course": course["id"], "sections": course.get("sections") or []}
+    if kind == "set_term":
+        return {"op": "set_term", "term": plan.get("term")}
     profile = plan.get("profile") or {}
     return {"op": "set_profile", **{name: copy.deepcopy(profile.get(name)) for name in PROFILE_FIELDS if name in op}}
 
@@ -296,7 +326,8 @@ def _describe(op: Dict[str, Any], *, past: bool) -> str:
     kind = op["op"]
     verbs = {"add": ("add", "added"), "remove": ("remove", "removed"), "move": ("move", "moved"),
              "swap": ("swap", "swapped"), "pick_section": ("pick sections for", "picked sections for"),
-             "set_profile": ("update your profile", "updated your profile")}
+             "set_profile": ("update your profile", "updated your profile"),
+             "set_term": ("set your term to", "set your term to")}
     verb = verbs[kind][1 if past else 0]
     if kind in ("add", "remove", "pick_section"):
         return f"{verb} {norm(op['course'])}"
@@ -304,6 +335,8 @@ def _describe(op: Dict[str, Any], *, past: bool) -> str:
         return f"{verb} {norm(op['course'])} to {op['to_term']}"
     if kind == "swap":
         return f"{verb} {norm(op['out'])} for {norm(op['in'])}"
+    if kind == "set_term":
+        return f"{verb} {op['term']}"
     return verb
 
 

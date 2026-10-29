@@ -12,7 +12,9 @@ group per rule, sized in credits by the rule, plus one "Other credit" group
 filling up to ``total_credits``. A course-count rule is sized by the credits
 of the courses it took plus ``COURSE_CREDITS`` per course still needed.
 Each course's credits count in one group only: a course a ``double_count``
-rule reuses is listed in that group but adds no credits there. Finish is
+rule reuses is listed in that group but adds no credits there. A completed
+course's credits saved from a transcript row come before the catalog's
+(setup-dialog R10). Finish is
 given only when every program says ``complete: true`` and nothing is open.
 """
 
@@ -89,21 +91,34 @@ def _term_entry(
     }
 
 
+def saved_credits(plan: Dict[str, Any]) -> Dict[str, float]:
+    """``{id: credits}`` for completed courses saved with credits (R10)."""
+    return {c["id"]: float(c["credits"]) for c in checker.completed_courses(plan)
+            if isinstance(c.get("credits"), (int, float)) and not isinstance(c.get("credits"), bool)}
+
+
 def _completed_rows(plan: Dict[str, Any], facts: Dict[str, CourseFacts]) -> List[Dict[str, Any]]:
     rows = []
+    saved = saved_credits(plan)
     for course in checker.completed_courses(plan):
         fact = facts.get(course["id"])
+        if course["id"] in saved:
+            credits = [saved[course["id"]], saved[course["id"]]]
+        else:
+            credits = list(fact.credits) if _usable(fact) and fact.credits else None
         rows.append({
             "id": course["id"],
             "title": fact.title if _usable(fact) else "",
-            "credits": list(fact.credits) if _usable(fact) and fact.credits else None,
+            "credits": credits,
             "grade": course.get("grade"),
             "term": course.get("term"),
         })
     return rows
 
 
-def _credit_value(course_id: str, facts: Dict[str, CourseFacts]) -> float:
+def _credit_value(course_id: str, facts: Dict[str, CourseFacts], saved: Optional[Dict[str, float]] = None) -> float:
+    if saved and course_id in saved:
+        return saved[course_id]
     fact = facts.get(course_id)
     return float(fact.credits[0]) if _usable(fact) and fact.credits else COURSE_CREDITS
 
@@ -120,42 +135,44 @@ def _group(
 
 
 def _rule_group(
-    rule: Dict[str, Any], facts: Dict[str, CourseFacts], grades: Dict[str, Any], counted: set
+    rule: Dict[str, Any], facts: Dict[str, CourseFacts], grades: Dict[str, Any], counted: set,
+    saved: Dict[str, float],
 ) -> Dict[str, Any]:
     """One rule's group. A course an earlier group already counted is listed
     (``courses``, ``counted_elsewhere``) but adds no credits, so credits are
     counted once across the waffle; ``counted`` collects the ids used."""
     done, planned = rule["completed_courses"], rule["planned_courses"]
     taken = done + planned
-    earned = sum(_credit_value(c, facts) for c in done if c not in counted)
+    earned = sum(_credit_value(c, facts, saved) for c in done if c not in counted)
     planning = sum(_credit_value(c, facts) for c in planned if c not in counted)
     if rule["unit"] == "credits":
-        open_ = max(0.0, float(rule["needed"]) - sum(_credit_value(c, facts) for c in taken))
+        open_ = max(0.0, float(rule["needed"]) - sum(_credit_value(c, facts, saved) for c in done)
+                    - sum(_credit_value(c, facts) for c in planned))
     else:
         open_ = max(0, rule["needed"] - len(taken)) * COURSE_CREDITS
     shared = [c for c in taken if c in counted]
     ungraded = [c for c in done if c not in counted and grades.get(c) is None]
     counted.update(taken)
     return _group(rule["title"], earned, planning, open_, len(ungraded),
-                  sum(_credit_value(c, facts) for c in ungraded),
+                  sum(_credit_value(c, facts, saved) for c in ungraded),
                   program_id=rule["program_id"], rule_id=rule["rule_id"], status=rule["status"],
                   courses=taken, counted_elsewhere=shared)
 
 
 def _other_group(
     plan: Dict[str, Any], facts: Dict[str, CourseFacts], grades: Dict[str, Any], counted: set,
-    total: float, groups: List[Dict[str, Any]],
+    total: float, groups: List[Dict[str, Any]], saved: Dict[str, float],
 ) -> Dict[str, Any]:
     """"Other credit": ``total`` minus the distinct rule credits and the rules'
     open credits (never negative), filled by courses no rule took."""
     size = max(0.0, total - sum(g["size"] for g in groups))
     done = [c for c in grades if c not in counted]
     rest = [c["id"] for c in checker.planned_courses(plan) if c["id"] not in counted and c["id"] not in grades]
-    earned = min(size, sum(_credit_value(c, facts) for c in done))
+    earned = min(size, sum(_credit_value(c, facts, saved) for c in done))
     planned = min(size - earned, sum(_credit_value(c, facts) for c in rest))
     ungraded = [c for c in done if grades[c] is None]
     return _group(OTHER_CREDIT, earned, planned, size - earned - planned,
-                  len(ungraded), sum(_credit_value(c, facts) for c in ungraded),
+                  len(ungraded), sum(_credit_value(c, facts, saved) for c in ungraded),
                   program_id=None, rule_id=None, status=None, courses=done + rest, counted_elsewhere=[])
 
 
@@ -169,11 +186,12 @@ def waffle(
     """
     grades = {c["id"]: c.get("grade") for c in checker.completed_courses(plan)}
     counted: set = set()
-    groups = [_rule_group(rule, facts, grades, counted) for rule in rules]
+    saved = saved_credits(plan)
+    groups = [_rule_group(rule, facts, grades, counted, saved) for rule in rules]
     totals = [getattr(p, "total_credits", None) for p in programs if getattr(p, "total_credits", None)]
     total = max(totals) if totals else None
     if total is not None:
-        groups.append(_other_group(plan, facts, grades, counted, float(total), groups))
+        groups.append(_other_group(plan, facts, grades, counted, float(total), groups, saved))
     complete = bool(programs) and all(bool(getattr(p, "complete", False)) for p in programs)
     everything_planned = total is not None and all(g["open"] == 0 for g in groups) \
         and all(r["status"] == "met" for r in rules)

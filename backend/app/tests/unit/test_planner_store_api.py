@@ -204,6 +204,34 @@ class PlannerApiTests(unittest.IsolatedAsyncioTestCase):
         await self.assert_409(routes.post_undo(UndoRequest(expected_revision=6), self.alice),
                               status="refused", reason="Nothing to undo")
 
+    async def test_set_term_survives_commit_undo_redo_and_reload(self):
+        fall = "Fall 2027"
+        with patch.object(service, "covered_terms", return_value=[TERM, fall]):
+            await self.edit(self.alice, [add("ECON 3010")])
+            result = await self.edit(self.alice, [{"op": "set_term", "term": fall}])
+            self.assertEqual(result["plan"]["term"], fall)
+            # The course planned before keeps its own term.
+            self.assertEqual(result["plan"]["courses"][0]["term"], TERM)
+            self.assertEqual((await store.load(self.db, str(self.alice.id), SCHOOL))["term"], fall)
+            self.assertEqual((await routes.get_degree(self.alice))["term"], fall)
+
+            undone = await routes.post_undo(UndoRequest(expected_revision=2), self.alice)
+            self.assertEqual(undone["plan"]["term"], TERM)
+            self.assertEqual((await store.load(self.db, str(self.alice.id), SCHOOL))["term"], TERM)
+
+            redone = await routes.post_redo(UndoRequest(expected_revision=3), self.alice)
+            self.assertEqual(redone["plan"]["term"], fall)
+            self.assertEqual((await store.load(self.db, str(self.alice.id), SCHOOL))["term"], fall)
+            # Bob's plan is untouched.
+            self.assertEqual((await routes.get_plan(self.bob))["plan"]["term"], TERM)
+
+    async def test_set_term_to_an_unknown_term_is_422(self):
+        with patch.object(service, "covered_terms", return_value=[TERM]):
+            with self.assertRaises(HTTPException) as ctx:
+                await self.edit(self.alice, [{"op": "set_term", "term": "Fall 2031"}])
+        self.assertEqual((ctx.exception.status_code, ctx.exception.detail["code"]), (422, "unknown_term"))
+        self.assertEqual((await routes.get_plan(self.alice))["plan"]["revision"], 0)
+
     async def test_new_edit_clears_steps_after_the_pointer(self):
         for cid in ("ECON 3010", "ECON 3020", "ECON 4010"):
             await self.edit(self.alice, [add(cid)])

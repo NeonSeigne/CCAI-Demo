@@ -62,12 +62,12 @@ Supports extracting raw text from uploaded documents.
 ### Key Function
 
 ```python
-extract_text_from_file(file_bytes: bytes, content_type: str) -> str
+extract_text_from_file(file_bytes: bytes, content_type: str, *, max_pages: Optional[int] = None) -> str
 ```
 
 Uses:
 - `PyPDF2` for PDFs
-- `docx2txt` for Word documents (via temp file)
+- `docx2txt` for Word documents (in memory, no temp file)
 - UTF-8 decoding for plain text
 
 ---

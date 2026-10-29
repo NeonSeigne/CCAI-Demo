@@ -169,12 +169,15 @@ adds no credits there, so the earned sum is the distinct earned credits.
 | POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
 | POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
+| POST | `/api/planner/transcript` | multipart `file` (PDF, DOCX or TXT; 10 MB; PDF 40 pages) | `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}], counts: {rows, ticked, not_checked, not_in_catalog}}`; nothing stored, logs carry counts only; 413 `too_large`, 415 `unsupported_type`, 422 `no_file` / `too_many_pages` / `unreadable` (`planner/transcript.py`) |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
 `{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the
 course's sections unless it names new ones), `{"op":"swap","out":id,"in":id}`,
 `{"op":"pick_section","course":id,"sections":[ids]}`,
-`{"op":"set_profile", ...profile fields}`.
+`{"op":"set_profile", ...profile fields}` (a `completed` entry may carry
+`credits`, 0–12), `{"op":"set_term","term":term}` (sets `plan.term`; the term
+must be one `canonical_term` knows, else `unknown_term`; undo restores the old one).
 Errors: `unknown_course`, `couldnt_verify_course`, `unknown_term`, `revision_conflict`.
 
 A client `term` (`GET /plan?term=`, `/preview`, `/proposals`) is matched case-
