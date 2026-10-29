@@ -1,0 +1,41 @@
+{
+ "entities": {
+  "Q99990001": {
+   "type": "item",
+   "id": "Q99990001",
+   "claims": {
+    "P18": [
+     {
+      "mainsnak": {
+       "snaktype": "value",
+       "property": "P18",
+       "datavalue": {"value": "Alderman_Library_UVA_2019.jpg", "type": "string"},
+       "datatype": "commonsMedia"
+      },
+      "type": "statement",
+      "rank": "normal"
+     }
+    ]
+   }
+  },
+  "Q99990002": {
+   "type": "item",
+   "id": "Q99990002",
+   "claims": {
+    "P18": [
+     {
+      "mainsnak": {
+       "snaktype": "value",
+       "property": "P18",
+       "datavalue": {"value": "greenberrys cafe.jpg", "type": "string"},
+       "datatype": "commonsMedia"
+      },
+      "type": "statement",
+      "rank": "normal"
+     }
+    ]
+   }
+  }
+ },
+ "success": 1
+}

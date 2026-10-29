@@ -1,0 +1,62 @@
+{
+ "_fixture_note": "Overpass `out center tags` elements in the shape the import query returns; ids, Q-ids and values are illustrative.",
+ "elements": [
+  {
+   "type": "way",
+   "id": 23620211,
+   "center": {"lat": 38.0365, "lon": -78.5054},
+   "tags": {
+    "amenity": "library",
+    "building": "university",
+    "name": "Alderman Library",
+    "short_name": "Alderman",
+    "opening_hours": "Mo-Fr 08:00-22:00",
+    "website": "https://www.library.virginia.edu/libraries/alderman",
+    "phone": "+1 434-924-3021",
+    "wheelchair": "yes",
+    "building:levels": "5",
+    "addr:housenumber": "160",
+    "addr:street": "McCormick Road",
+    "addr:city": "Charlottesville",
+    "operator": "University of Virginia Library",
+    "wikidata": "Q99990001",
+    "wikipedia": "en:Alderman Library"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5512345678,
+   "lat": 38.0355,
+   "lon": -78.5032,
+   "tags": {
+    "amenity": "cafe",
+    "name": "Greenberry's",
+    "cuisine": "coffee_shop;bagel",
+    "website": "greenberrys.com",
+    "description": "Coffee  and   pastries.",
+    "wikidata": "Q99990002"
+   }
+  },
+  {
+   "type": "way",
+   "id": 44528420,
+   "center": {"lat": 38.0324, "lon": -78.5060},
+   "tags": {
+    "building": "yes",
+    "name": "1 Dawson's Row",
+    "building:levels": "two",
+    "wheelchair": "maybe",
+    "website": "not a url",
+    "wikidata": "wikidata.org/wiki/Q1",
+    "wikipedia": "Dawson's Row"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1,
+   "lat": 38.03,
+   "lon": -78.50,
+   "tags": {"amenity": "bench"}
+  }
+ ]
+}

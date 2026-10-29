@@ -1,0 +1,49 @@
+{
+ "batchcomplete": "",
+ "query": {
+  "normalized": [
+   {"from": "File:greenberrys cafe.jpg", "to": "File:Greenberrys cafe.jpg"}
+  ],
+  "pages": {
+   "81234567": {
+    "pageid": 81234567,
+    "ns": 6,
+    "title": "File:Alderman Library UVA 2019.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Alderman_Library_UVA_2019.jpg/640px-Alderman_Library_UVA_2019.jpg",
+      "thumbwidth": 640,
+      "thumbheight": 427,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Alderman_Library_UVA_2019.jpg",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Alderman_Library_UVA_2019.jpg",
+      "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=81234567",
+      "extmetadata": {
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Example\" title=\"User:Example\">Jane Q. Photographer</a> &amp; <span>UVA Library</span>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {"value": "CC BY-SA 4.0", "source": "commons-desc-page", "hidden": ""}
+      }
+     }
+    ]
+   },
+   "81234568": {
+    "pageid": 81234568,
+    "ns": 6,
+    "title": "File:Greenberrys cafe.jpg",
+    "imagerepository": "local",
+    "imageinfo": [
+     {
+      "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Greenberrys_cafe.jpg/640px-Greenberrys_cafe.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Greenberrys_cafe.jpg",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Greenberrys_cafe.jpg",
+      "extmetadata": {
+       "Artist": {"value": "Unknown", "source": "commons-desc-page"}
+      }
+     }
+    ]
+   }
+  }
+ }
+}

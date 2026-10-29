@@ -4,23 +4,35 @@
 Reads the school pack's ``campus.osm_area`` ({type: way|relation, id}) and asks
 the Overpass API for named buildings, libraries, dining, health, recreation,
 landmarks (lawns, quads, monuments, museums) and bus stops inside it. Each
-place becomes a GeoJSON Point with ``name``, ``aliases``, ``category`` and
-optional ``hours``. Aliases come from OSM
+place becomes a GeoJSON Point with ``name``, ``aliases``, ``category``, the
+OSM ``type/id`` and, when OSM has them, ``hours``, ``website``, ``phone``,
+``wheelchair``, ``cuisine``, ``building_levels``, ``address`` (addr:*
+street address), ``operator``, ``description``, ``wikidata`` and
+``wikipedia``. Aliases come from OSM
 (alt_name, short_name, official_name, old_name) plus the pack's optional
 ``aliases.yaml`` ({"<OSM name>": ["UMC", ...]}), which is where hand-curated
 student nicknames go.
 
+Places with a ``wikidata`` tag get that item's image (Wikidata P18, a Wikimedia
+Commons file) as ``photo: {url, author, license, page}``: a ~640px thumbnail,
+the file's author (plain text) and licence from Commons ``extmetadata``, and
+the file page. An image without a licence is skipped (eng review R7).
+
 Usage:
     python3 scripts/import_places.py cu-boulder
 
-Respects Overpass usage: one query, identified User-Agent, 60s timeout.
+Respects Overpass and Wikimedia usage: one Overpass query, batched Wikidata and
+Commons requests, an identified User-Agent, 60s timeout.
 """
 
 import argparse
+import html
 import json
 import os
+import re
 import sys
 from pathlib import Path
+from urllib.parse import quote, urlsplit
 
 import httpx
 import yaml
@@ -29,6 +41,11 @@ REPO = Path(__file__).resolve().parents[1]
 # Set OVERPASS_URL to use another public instance when the main one is busy.
 OVERPASS_URL = os.environ.get("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
 USER_AGENT = "CCAI-Demo-import-places/1.0 (+https://github.com/NeonSeigne/CCAI-Demo)"
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+PHOTO_WIDTH = 640
+# Wikimedia APIs take at most 50 ids or titles per request.
+WIKI_BATCH = 50
 
 CATEGORY_BY_TAG = [
     ("amenity", {"library"}, "library"),
@@ -76,6 +93,73 @@ def overpass_query(area_type, area_id):
     )
 
 
+_TAG_RE = re.compile(r"<[^>]+>")
+_WIKIDATA_RE = re.compile(r"^Q[1-9][0-9]*$")
+
+
+def plain_text(value):
+    """Commons ``extmetadata`` values are HTML; keep the visible text."""
+    return " ".join(html.unescape(_TAG_RE.sub(" ", str(value or ""))).split())
+
+
+def web_url(value):
+    """An http(s) URL, adding ``https://`` to a bare domain; None otherwise."""
+    url = (value or "").split(";")[0].strip()
+    if url and "://" not in url and re.match(r"^[a-z0-9.-]+\.[a-z]{2,}(/|$)", url, re.I):
+        url = "https://" + url
+    parts = urlsplit(url)
+    return url if parts.scheme in ("http", "https") and parts.netloc and " " not in url else None
+
+
+def street_address(tags):
+    """``addr:housenumber`` + ``addr:street`` (+ unit), e.g. "1826 University Ave"."""
+    street = tags.get("addr:street", "").strip()
+    if not street:
+        return None
+    number = tags.get("addr:housenumber", "").strip()
+    unit = tags.get("addr:unit", "").strip()
+    return " ".join(p for p in (number, street, f"Unit {unit}" if unit else "") if p)
+
+
+def wikipedia_url(tag):
+    """OSM ``wikipedia`` ("en:Alderman Library") to the article URL."""
+    lang, sep, title = (tag or "").partition(":")
+    if not sep or not re.fullmatch(r"[a-z]{2,3}(-[a-z]+)?", lang.strip()) or not title.strip():
+        return None
+    return f"https://{lang.strip()}.wikipedia.org/wiki/{quote(title.strip().replace(' ', '_'))}"
+
+
+def details(tags):
+    """The extra OSM tags a place sheet shows; a missing or unusable tag is left out."""
+    out = {}
+    website = web_url(tags.get("website") or tags.get("contact:website") or tags.get("url"))
+    if website:
+        out["website"] = website
+    phone = (tags.get("phone") or tags.get("contact:phone") or "").split(";")[0].strip()
+    if phone:
+        out["phone"] = phone
+    if tags.get("wheelchair") in ("yes", "no", "limited", "designated"):
+        out["wheelchair"] = tags["wheelchair"]
+    cuisine = [c.strip().replace("_", " ") for c in tags.get("cuisine", "").split(";") if c.strip()]
+    if cuisine:
+        out["cuisine"] = cuisine
+    levels = tags.get("building:levels", "").strip()
+    if re.fullmatch(r"\d{1,3}", levels) and int(levels) > 0:
+        out["building_levels"] = int(levels)
+    address = street_address(tags)
+    if address:
+        out["address"] = address
+    for key in ("operator", "description"):
+        if tags.get(key, "").strip():
+            out[key] = " ".join(tags[key].split())
+    if _WIKIDATA_RE.match(tags.get("wikidata", "").strip()):
+        out["wikidata"] = tags["wikidata"].strip()
+    wikipedia = wikipedia_url(tags.get("wikipedia"))
+    if wikipedia:
+        out["wikipedia"] = wikipedia
+    return out
+
+
 def to_feature(element, curated):
     tags = element.get("tags") or {}
     name = tags.get("name", "").strip()
@@ -98,7 +182,86 @@ def to_feature(element, curated):
     }
     if tags.get("opening_hours"):
         props["hours"] = tags["opening_hours"]
+    props.update(details(tags))
     return {"type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]}, "properties": props}
+
+
+def image_files(entities):
+    """{Q-id: Commons file title} from a ``wbgetentities`` response (first P18)."""
+    out = {}
+    for qid, entity in ((entities or {}).get("entities") or {}).items():
+        for claim in ((entity or {}).get("claims") or {}).get("P18") or []:
+            value = ((claim.get("mainsnak") or {}).get("datavalue") or {}).get("value")
+            if isinstance(value, str) and value.strip():
+                out[qid] = "File:" + value.strip().replace("_", " ")
+                break
+    return out
+
+
+def photo_from_imageinfo(page):
+    """``photo`` from one Commons ``imageinfo`` page, or None without a
+    thumbnail or a licence."""
+    info = ((page or {}).get("imageinfo") or [None])[0] or {}
+    meta = info.get("extmetadata") or {}
+    license_name = plain_text((meta.get("LicenseShortName") or {}).get("value"))
+    url = web_url(info.get("thumburl") or info.get("url"))
+    if not license_name or not url:
+        return None
+    photo = {"url": url, "license": license_name, "page": info.get("descriptionurl") or None}
+    author = plain_text((meta.get("Artist") or {}).get("value"))
+    if author:
+        photo["author"] = author
+    return {k: v for k, v in photo.items() if v}
+
+
+def photos_by_file(response):
+    """{file title as asked: photo} from a Commons ``imageinfo`` query response."""
+    query = (response or {}).get("query") or {}
+    asked = {n["to"]: n["from"] for n in query.get("normalized") or []}
+    out = {}
+    for page in (query.get("pages") or {}).values():
+        photo = photo_from_imageinfo(page)
+        if photo and page.get("title"):
+            out[asked.get(page["title"], page["title"])] = photo
+    return out
+
+
+def _get_json(client, url, params):
+    response = client.get(url, params={**params, "format": "json"}, headers={"User-Agent": USER_AGENT})
+    response.raise_for_status()
+    return response.json()
+
+
+def fetch_photos(client, qids):
+    """{Q-id: photo} for the Wikidata items that have a licensed P18 image."""
+    qids = sorted(set(qids))
+    files = {}
+    for i in range(0, len(qids), WIKI_BATCH):
+        files.update(image_files(_get_json(client, WIKIDATA_API, {
+            "action": "wbgetentities", "ids": "|".join(qids[i:i + WIKI_BATCH]), "props": "claims",
+        })))
+    titles = sorted(set(files.values()))
+    photos = {}
+    for i in range(0, len(titles), WIKI_BATCH):
+        photos.update(photos_by_file(_get_json(client, COMMONS_API, {
+            "action": "query", "titles": "|".join(titles[i:i + WIKI_BATCH]), "prop": "imageinfo",
+            "iiprop": "url|extmetadata", "iiurlwidth": PHOTO_WIDTH,
+            "iiextmetadatafilter": "Artist|LicenseShortName",
+        })))
+    return {qid: photos[title] for qid, title in files.items() if title in photos}
+
+
+def add_photos(features, client):
+    """Set ``photo`` on each feature whose wikidata item has a licensed image."""
+    qids = [f["properties"]["wikidata"] for f in features if f["properties"].get("wikidata")]
+    if not qids:
+        return 0
+    photos = fetch_photos(client, qids)
+    for feature in features:
+        photo = photos.get(feature["properties"].get("wikidata"))
+        if photo:
+            feature["properties"]["photo"] = photo
+    return sum(1 for f in features if f["properties"].get("photo"))
 
 
 def main():
@@ -135,10 +298,12 @@ def main():
         seen.add(key)
         features.append(feature)
     features.sort(key=lambda f: (f["properties"]["category"], f["properties"]["name"]))
+    with httpx.Client(timeout=60, follow_redirects=True) as client:
+        with_photos = add_photos(features, client)
 
     out = {
         "type": "FeatureCollection",
-        "source": "OpenStreetMap contributors (ODbL), via Overpass API",
+        "source": "OpenStreetMap contributors (ODbL), via Overpass API; photos from Wikimedia Commons",
         "osm_area": f"{area['type']}/{area['id']}",
         "features": features,
     }
@@ -147,7 +312,7 @@ def main():
     counts = {}
     for f in features:
         counts[f["properties"]["category"]] = counts.get(f["properties"]["category"], 0) + 1
-    print(f"Wrote {len(features)} places to {out_path.relative_to(REPO)}: {counts}")
+    print(f"Wrote {len(features)} places ({with_photos} with photos) to {out_path.relative_to(REPO)}: {counts}")
 
 
 if __name__ == "__main__":
