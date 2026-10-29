@@ -110,7 +110,7 @@ async def _facts_by_term(wanted: Dict[str, Sequence[str]], school: str) -> Dict[
     fetch: Dict[str, List[str]] = {}
     for term, ids in wanted.items():
         fetch[source[term]] = list(dict.fromkeys(fetch.get(source[term], []) + ids))
-    loaded = await load_facts_by_term(fetch, provider=facts_provider, budget_s=FACTS_BUDGET_S)
+    loaded = await load_facts_by_term(fetch, provider=facts_provider, budget_s=FACTS_BUDGET_S, school=school)
     return {
         term: {i: loaded[source[term]][i] if source[term] == term else _uncovered(loaded[source[term]][i], term)
                for i in ids}

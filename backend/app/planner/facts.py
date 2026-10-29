@@ -97,6 +97,7 @@ async def load_facts(
     concurrency: int = 8,
     budget_s: float = 6.0,
     chunk_size: int = 1,
+    school: Optional[str] = None,
 ) -> Dict[str, CourseFacts]:
     """Facts for every id in ``ids`` for ``term``, keyed by the ids as given.
 
@@ -107,6 +108,7 @@ async def load_facts(
     """
     found = await load_facts_by_term(
         {term: ids}, provider=provider, concurrency=concurrency, budget_s=budget_s, chunk_size=chunk_size,
+        school=school,
     )
     return found.get(term, {})
 
@@ -118,11 +120,13 @@ async def load_facts_by_term(
     concurrency: int = 8,
     budget_s: float = 6.0,
     chunk_size: int = 1,
+    school: Optional[str] = None,
 ) -> Dict[str, Dict[str, CourseFacts]]:
     """Facts for ``{term: ids}``, every term in ONE bounded batch: one gate of
     ``concurrency`` calls and one ``budget_s`` deadline shared by all terms
     (eng review R12, R13). Returns ``{term: {id: facts}}``; a term with no ids
-    maps to ``{}``.
+    maps to ``{}``. A batch with courses past the deadline logs one warning
+    naming them, with ``school`` (for the log only), term and budget (C5).
     """
     unique = {term: list(dict.fromkeys(i for i in ids if i)) for term, ids in wanted.items()}
     if not any(unique.values()):
@@ -159,5 +163,18 @@ async def load_facts_by_term(
         for identifier in chunk:
             result[term][identifier] = answered.get(identifier) or unavailable(identifier, NO_ANSWER)
     if pending:
+        _log_timeouts([chunk for task, chunk in tasks.items() if task in pending], school, budget_s)
         await asyncio.gather(*pending, return_exceptions=True)
     return {term: {i: result[term][i] for i in ids} for term, ids in unique.items()}
+
+
+def _log_timeouts(chunks: List[Tuple[str, List[str]]], school: Optional[str], budget_s: float) -> None:
+    by_term: Dict[str, List[str]] = {}
+    for term, chunk in chunks:
+        by_term.setdefault(term, []).extend(chunk)
+    ids = [i for chunk_ids in by_term.values() for i in chunk_ids]
+    logger.warning(
+        "course facts timed out: school=%s term=%s budget_s=%s ids=%s",
+        school, ", ".join(by_term), budget_s, ", ".join(ids),
+        extra={"facts_timeout": {"school": school, "terms": by_term, "budget_s": budget_s}},
+    )
