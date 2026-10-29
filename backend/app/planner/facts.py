@@ -121,12 +121,15 @@ async def load_facts_by_term(
     budget_s: float = 6.0,
     chunk_size: int = 1,
     school: Optional[str] = None,
+    log_ids: bool = True,
 ) -> Dict[str, Dict[str, CourseFacts]]:
     """Facts for ``{term: ids}``, every term in ONE bounded batch: one gate of
     ``concurrency`` calls and one ``budget_s`` deadline shared by all terms
     (eng review R12, R13). Returns ``{term: {id: facts}}``; a term with no ids
     maps to ``{}``. A batch with courses past the deadline logs one warning
     naming them, with ``school`` (for the log only), term and budget (C5).
+    ``log_ids=False`` keeps course ids out of the warnings, which then carry
+    counts only: the transcript check (setup-dialog R8).
     """
     unique = {term: list(dict.fromkeys(i for i in ids if i)) for term, ids in wanted.items()}
     if not any(unique.values()):
@@ -158,21 +161,35 @@ async def load_facts_by_term(
         try:
             answered = task.result() or {}
         except Exception as exc:  # a provider should not raise; never let one course sink the check
-            logger.warning("course_facts failed for %s (%s): %s", chunk, term, exc)
+            if log_ids:
+                logger.warning("course_facts failed for %s (%s): %s", chunk, term, exc)
+            else:
+                logger.warning("course_facts failed for %d course(s) (%s): %s", len(chunk), term,
+                               type(exc).__name__)
             answered = {}
         for identifier in chunk:
             result[term][identifier] = answered.get(identifier) or unavailable(identifier, NO_ANSWER)
     if pending:
-        _log_timeouts([chunk for task, chunk in tasks.items() if task in pending], school, budget_s)
+        _log_timeouts([chunk for task, chunk in tasks.items() if task in pending], school, budget_s, log_ids)
         await asyncio.gather(*pending, return_exceptions=True)
     return {term: {i: result[term][i] for i in ids} for term, ids in unique.items()}
 
 
-def _log_timeouts(chunks: List[Tuple[str, List[str]]], school: Optional[str], budget_s: float) -> None:
+def _log_timeouts(
+    chunks: List[Tuple[str, List[str]]], school: Optional[str], budget_s: float, log_ids: bool = True
+) -> None:
     by_term: Dict[str, List[str]] = {}
     for term, chunk in chunks:
         by_term.setdefault(term, []).extend(chunk)
     ids = [i for chunk_ids in by_term.values() for i in chunk_ids]
+    if not log_ids:
+        counts = {term: len(chunk_ids) for term, chunk_ids in by_term.items()}
+        logger.warning(
+            "course facts timed out: school=%s term=%s budget_s=%s count=%d",
+            school, ", ".join(by_term), budget_s, len(ids),
+            extra={"facts_timeout": {"school": school, "terms": counts, "budget_s": budget_s}},
+        )
+        return
     logger.warning(
         "course facts timed out: school=%s term=%s budget_s=%s ids=%s",
         school, ", ".join(by_term), budget_s, ", ".join(ids),
