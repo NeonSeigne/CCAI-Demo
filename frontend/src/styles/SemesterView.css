@@ -148,11 +148,9 @@
 
 .sv-label {
   margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 /* D17: below 1440px the gauges become a row of three compact tiles. */
@@ -406,11 +404,9 @@
 }
 
 .sv-pending-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--domain-academics-ink);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .sv-pending-heading { font-weight: 600; min-width: 0; }

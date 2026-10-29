@@ -457,11 +457,10 @@
 /* Document Upload Specific Styles */
 .system-message.document-upload {
   background: var(--good-tint);
-  border: 1px solid var(--good);
-  border-left: 4px solid var(--good);
+  border: 0;
+  border-radius: var(--r-md);
   color: var(--good);
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+  font-weight: 600;
   animation: slideInNotification 0.3s ease-out;
 }
 
@@ -857,8 +856,7 @@
   padding: 20px;
   border-radius: 16px;
   max-width: 600px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid var(--ink);
+  box-shadow: var(--shadow-rest);
   position: relative;
   overflow: hidden;
 }

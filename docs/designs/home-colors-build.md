@@ -263,6 +263,7 @@ State: approved
 Actual answer: A, recommended (authorized auto-decision, 2026-10-29)
 Accepted scope: Phase 3 removes `--ink`, `--paper*`, `--accent-*`, `--domain-*`, `--band-*`, `--course-*`, `--difficulty-*` aliases after migrating callers; the token test asserts none remain in src/.
 History: none
+Built (Phase 3): Phase 0 kept `--ink`, `--course-*`, `--difficulty-*` and the `--domain-*-ink/-tint` data tokens as real roles, so the aliases removed were the 45 old names in brand-tokens.css's alias block (`--paper*`, `--ink-soft`, `--accent-*`, bare `--domain-*`, `--bg-*`, `--text-*`, `--border-*`, `--input-*`, the old shadows). The token test fails on any of them, and also on any `var()` that nothing defines, which found five undefined names left from before the redesign.
 
 ### R6: Subset the icon font
 Finding: P1, INFORMATIONAL, 7/10, plan T0.6 (loads Material Symbols Rounded with four axes)

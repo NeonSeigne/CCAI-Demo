@@ -1227,10 +1227,8 @@
 
 .home-section-label {
   margin: 0 0 14px;
-  font-size: 0.75rem;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 

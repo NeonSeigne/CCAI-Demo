@@ -306,10 +306,8 @@
 .cc-list-heading {
   margin: 4px 0 0;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .cc-rows {
