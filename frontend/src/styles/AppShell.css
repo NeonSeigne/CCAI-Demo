@@ -10,6 +10,9 @@
 .cc-shell-rail {
   position: sticky;
   top: 0;
+  /* Sticky makes a stacking context; lift it so the phone header and tab
+     bar inside stay above positioned page content. */
+  z-index: 40;
   flex: 0 0 auto;
   display: flex;
   height: 100vh;
