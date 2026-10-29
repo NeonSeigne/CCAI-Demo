@@ -234,7 +234,7 @@ class TestListEndpoint(EventsApiTestCase):
     async def test_fields(self):
         body = await self.list_events(at(27, 9), window="today")
         jazz = next(e for e in body["events"] if e["title"] == "Jazz Concert")
-        self.assertEqual(set(jazz), {"id", "title", "start", "end", "all_day", "location", "url", "calendar",
+        self.assertEqual(set(jazz), {"id", "title", "start", "end", "all_day", "location", "url", "description", "calendar",
                                      "ongoing", "place_id"})
         self.assertEqual(jazz["place_id"], "macky-auditorium")
 

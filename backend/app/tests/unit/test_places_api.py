@@ -41,6 +41,27 @@ CAMPUS = {
         feature("Norlin Library", -105.2708, 40.0086, "library"),
     ],
 }
+# What scripts/import_places.py writes for a place with OSM details and a photo.
+NORLIN_DETAILS = {
+    "osm": "way/24021733",
+    "website": "https://www.colorado.edu/libraries/norlin",
+    "phone": "+1 303-492-8705",
+    "wheelchair": "yes",
+    "building_levels": 4,
+    "address": "1720 Pleasant Street",
+    "operator": "University of Colorado Boulder Libraries",
+    "wikidata": "Q99990003",
+    "wikipedia": "https://en.wikipedia.org/wiki/Norlin_Library",
+    "photo": {"url": "https://upload.wikimedia.org/x/640px-Norlin.jpg", "author": "A. Photographer",
+              "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Norlin.jpg"},
+}
+CAMPUS["features"][6]["properties"].update(NORLIN_DETAILS)
+# Malformed details on C4C: each one is dropped on its own.
+CAMPUS["features"][2]["properties"].update({
+    "osm": "way/abc", "website": "javascript:alert(1)", "building_levels": "3", "cuisine": "pizza",
+    "photo": {"url": "https://upload.wikimedia.org/x/c4c.jpg", "author": "Someone"},  # no licence
+    "phone": "+1 303-492-0000",
+})
 
 
 class PlacesApiTestCase(unittest.IsolatedAsyncioTestCase):
@@ -167,6 +188,24 @@ class TestDetail(PlacesApiTestCase):
         with self.assertRaises(HTTPException) as ctx:
             await places_api.get_place("nope", from_="", current_user=None)
         self.assertEqual(ctx.exception.status_code, 404)
+
+    async def test_detail_has_osm_fields_and_photo_credit(self):
+        place = (await places_api.get_place("norlin-library", from_="", current_user=None))["place"]
+        for key, value in NORLIN_DETAILS.items():
+            self.assertEqual(place[key], value, key)
+        self.assertEqual(places.public(places.get("norlin-library"))["photo"]["license"], "CC BY 4.0")
+
+    async def test_missing_and_malformed_fields_are_left_out(self):
+        place = (await places_api.get_place("c4c-dining", from_="", current_user=None))["place"]
+        self.assertEqual(place["phone"], "+1 303-492-0000")
+        for key in ("osm", "website", "building_levels", "cuisine", "photo", "wikidata", "description"):
+            self.assertNotIn(key, place)
+        bare = (await places_api.get_place("late-night", from_="", current_user=None))["place"]
+        self.assertFalse(set(places.DETAIL_FIELDS) & set(bare))
+
+    async def test_list_rows_stay_short(self):
+        body = await self.list_places(category="library")
+        self.assertNotIn("photo", body["places"][0])
 
 
 if __name__ == "__main__":

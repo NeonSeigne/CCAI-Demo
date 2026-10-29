@@ -1,0 +1,19 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:recorded from today.wisc.edu/events.ics
+BEGIN:VEVENT
+DTSTAMP;TZID=America/Chicago:20261029T000818
+UID:223929@calendar.wisc.edu
+DTSTART;TZID=America/Chicago:20261103T173000
+DTEND;TZID=America/Chicago:20261103T183000
+DESCRIPTION:This is a virtual ISS Advising Workshop for students about STEM
+  Extension OPT. Are you currently on post-completion Optional Practical Tr
+ aining? Is your degree STEM eligible? Join ISS for a virtual event based o
+ n the steps for applying for the STEM OPT extension. Go through the entire
+  timeline of STEM OPT from application to approval\, to reporting requirem
+ ents.\n\nCONTACT: 262-2044\, issprograms@iss.wisc.edu\n\nONLINE: https://u
+ wmadison.zoom.us/j/99304560832
+LOCATION:  (Online)
+SUMMARY:STEM Extension (OPT): ISS Advising Workshop
+END:VEVENT
+END:VCALENDAR

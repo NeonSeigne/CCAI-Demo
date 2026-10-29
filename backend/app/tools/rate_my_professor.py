@@ -13,7 +13,8 @@ fallback. Use ``scripts/rmp_school_lookup.py`` to find the ID for a school.
 
 import logging
 import re
-from typing import Any, Dict, List
+import time
+from typing import Any, Dict, List, Optional, Tuple
 import httpx
 from app.tools import BROWSER_UA
 from app.config import get_settings
@@ -106,7 +107,32 @@ def _node_to_professor(node: Dict[str, Any]) -> Dict[str, Any]:
         "would_take_again_pct": node.get("wouldTakeAgainPercent", -1),
         "num_ratings": node.get("numRatings", 0),
         "rmp_id": node.get("id", ""),
+        "legacy_id": node.get("legacyId"),
     }
+
+
+# Scraped auth token, kept per process so a lookup is one request, not two.
+FALLBACK_TOKEN = "Basic dGVzdDp0ZXN0"
+TOKEN_TTL_S = 6 * 3600
+FALLBACK_TOKEN_TTL_S = 10 * 60
+_token: Optional[Tuple[str, float]] = None  # (token, expires at, monotonic)
+
+
+def forget_auth_token() -> None:
+    global _token
+    _token = None
+
+
+async def _auth_token(client: httpx.AsyncClient) -> str:
+    """The cached token while fresh, else a newly scraped one."""
+    global _token
+    if _token and _token[1] > time.monotonic():
+        return _token[0]
+    token = await _extract_auth_token(client)
+    ttl = FALLBACK_TOKEN_TTL_S if token == FALLBACK_TOKEN else TOKEN_TTL_S
+    _token = (token, time.monotonic() + ttl)
+    return token
+
 
 
 async def _extract_auth_token(client: httpx.AsyncClient) -> str:
@@ -127,7 +153,7 @@ async def _extract_auth_token(client: httpx.AsyncClient) -> str:
     except Exception as exc:
         logger.debug("RMP auth token extraction failed: %s", exc)
 
-    return "Basic dGVzdDp0ZXN0"
+    return FALLBACK_TOKEN
 
 
 async def execute(
@@ -157,7 +183,7 @@ async def execute(
 
     try:
         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-            auth_token = await _extract_auth_token(client)
+            auth_token = await _auth_token(client)
 
             headers = {
                 "User-Agent": BROWSER_UA,
@@ -186,6 +212,7 @@ async def execute(
 
             if resp.status_code == 403:
                 logger.warning("RMP GraphQL returned 403 — auth may be invalid")
+                forget_auth_token()
                 return {
                     "professors": [],
                     "error": "RateMyProfessors authentication failed",

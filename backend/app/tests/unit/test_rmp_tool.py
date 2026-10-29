@@ -2,6 +2,7 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from app.tools import rate_my_professor
 from app.tools.rate_my_professor import TOOL_DEFINITION, execute
 
 
@@ -74,6 +75,44 @@ def _fake_tool_config(name):
 @patch("app.tools.rate_my_professor.get_settings")
 class TestRMPToolExecutor(unittest.TestCase):
     """Unit tests for rate_my_professor.execute() with mocked HTTP."""
+
+    def setUp(self):
+        rate_my_professor.forget_auth_token()
+
+    def tearDown(self):
+        rate_my_professor.forget_auth_token()
+
+    def test_auth_token_is_scraped_once_per_process(self, mock_get_settings):
+        mock_get_settings.return_value.tools.get_tool_config = _fake_tool_config
+        ctx, client = self._mock_client(
+            get_response='<script>"Authorization":"Basic c2NyYXBlZA=="</script>',
+            post_response=_graphql_success_response([SAMPLE_NODE]),
+        )
+        with patch("httpx.AsyncClient", return_value=ctx):
+            asyncio.run(execute(professor_name="Smith"))
+            asyncio.run(execute(professor_name="Jones"))
+        self.assertEqual(client.get.await_count, 1)  # the landing page
+        self.assertEqual(client.post.await_count, 2)
+        self.assertEqual(client.post.await_args.kwargs["headers"]["Authorization"], "Basic c2NyYXBlZA==")
+
+    def test_a_403_forgets_the_token(self, mock_get_settings):
+        mock_get_settings.return_value.tools.get_tool_config = _fake_tool_config
+        ctx, client = self._mock_client(get_response=None, post_response={})
+        client.post.return_value.status_code = 403
+        with patch("httpx.AsyncClient", return_value=ctx):
+            asyncio.run(execute(professor_name="Smith"))
+            asyncio.run(execute(professor_name="Smith"))
+        self.assertEqual(client.get.await_count, 2)
+
+    def test_an_expired_token_is_scraped_again(self, mock_get_settings):
+        mock_get_settings.return_value.tools.get_tool_config = _fake_tool_config
+        ctx, client = self._mock_client(get_response=None, post_response=_graphql_success_response([]))
+        with patch("httpx.AsyncClient", return_value=ctx):
+            asyncio.run(execute(professor_name="Smith"))
+            later = rate_my_professor.time.monotonic() + rate_my_professor.TOKEN_TTL_S + 1
+            with patch.object(rate_my_professor.time, "monotonic", return_value=later):
+                asyncio.run(execute(professor_name="Smith"))
+        self.assertEqual(client.get.await_count, 2)
 
     def _mock_client(self, get_response, post_response):
         """Build a mock httpx.AsyncClient with canned GET and POST responses."""

@@ -14,6 +14,14 @@ title + start dedupe. Each event carries a stable ``id``:
 ``<start date>:<UID>`` (plus the RECURRENCE-ID for an instance of a repeating
 event), or ``<start date>:<hash>`` when the feed gives no UID. The date lets
 Saved look an event up again within its start day.
+
+Beyond the basics an event may carry ``image_url`` (``IMAGE``, or Trumba's
+"Event image" custom field; http/https only), ``categories``, ``geo``
+(``{lat, lon}``) and, from UVA's ``X-TRUMBA-CUSTOMFIELD`` properties,
+``details`` (event type, audience, cost, sponsor, host, room, registration and
+online links). Each is parsed on its own: a malformed value drops only that
+field, and a field the feed lacks is left out. ``description`` is the full
+text, HTML stripped, with its line breaks kept.
 """
 
 from __future__ import annotations
@@ -157,6 +165,137 @@ def _text(component: Any, key: str) -> str:
     return " ".join(html.unescape(_TAG_RE.sub(" ", str(value))).split())
 
 
+_BREAK_RE = re.compile(r"(?i)<br\s*/?>|</p\s*>|</div\s*>|</li\s*>")
+
+
+def _description(component: Any) -> str:
+    """Full DESCRIPTION as plain text: HTML stripped, entities decoded, line
+    breaks (``\\n`` and ``<br>``) kept, runs of spaces and blank lines collapsed."""
+    value = component.get("DESCRIPTION")
+    if value is None:
+        return ""
+    text = html.unescape(_TAG_RE.sub(" ", _BREAK_RE.sub("\n", str(value))))
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+def _web_url(value: Any) -> Optional[str]:
+    url = str(value or "").strip()
+    parts = urlsplit(url)
+    if parts.scheme in ("http", "https") and parts.netloc and not any(c.isspace() for c in url):
+        return url
+    return None
+
+
+def _ical_unescape(text: str) -> str:
+    """Undo iCal TEXT escaping (``\\,`` ``\\;`` ``\\n`` ``\\\\``) on a raw value."""
+    return re.sub(r"\\([\\,;nN])", lambda m: "\n" if m.group(1) in "nN" else m.group(1), text)
+
+
+_HREF_RE = re.compile(r"""href\s*=\s*["']([^"']+)["']""", re.I)
+
+
+def _link(raw: str) -> Optional[str]:
+    """The URL in a custom field: the first ``href``, else the bare text."""
+    match = _HREF_RE.search(raw)
+    return _web_url(html.unescape(match.group(1)) if match else html.unescape(_TAG_RE.sub(" ", raw)).strip())
+
+
+def _as_list(value: Any) -> List[Any]:
+    if value is None:
+        return []
+    return value if isinstance(value, list) else [value]
+
+
+# Trumba custom-field NAME → details key. Values that only point elsewhere are
+# placeholders, not data.
+_TRUMBA_FIELDS = {
+    "event type": "event_type",
+    "audience": "audience",
+    "audience type": "audience",
+    "cost": "cost",
+    "sponsor": "sponsor",
+    "sponsors": "sponsor",
+    "hosted by": "hosted_by",
+    "room": "room",
+    "registration link": "registration_url",
+    "online location": "online_url",
+}
+_LINK_FIELDS = {"registration_url", "online_url"}
+_PLACEHOLDERS = {"", "n/a", "na", "none", "tbd", "tba", "see event details for more info"}
+
+
+def _custom_fields(component: Any) -> List[Tuple[str, str, str]]:
+    """(NAME, TYPE, raw value) of each ``X-TRUMBA-CUSTOMFIELD``."""
+    out = []
+    for prop in _as_list(component.get("X-TRUMBA-CUSTOMFIELD")):
+        params = getattr(prop, "params", {}) or {}
+        name = str(params.get("NAME") or "").strip()
+        if name:
+            out.append((name, str(params.get("TYPE") or ""), _ical_unescape(str(prop))))
+    return out
+
+
+def _image_url(component: Any) -> Optional[str]:
+    for prop in _as_list(component.get("IMAGE")):
+        url = _web_url(prop)
+        if url:
+            return url
+    for name, _, raw in _custom_fields(component):
+        if name.lower() == "event image":
+            url = _link(raw)
+            if url:
+                return url
+    return None
+
+
+def _categories(component: Any) -> Optional[List[str]]:
+    names: List[str] = []
+    for prop in _as_list(component.get("CATEGORIES")):
+        cats = getattr(prop, "cats", None)
+        for cat in cats if cats is not None else str(prop).split(","):
+            name = " ".join(html.unescape(_TAG_RE.sub(" ", str(cat))).split())
+            if name and name not in names:
+                names.append(name)
+    return names or None
+
+
+def _geo(component: Any) -> Optional[Dict[str, float]]:
+    prop = component.get("GEO")
+    if prop is None:
+        return None
+    lat, lon = (float(prop.latitude), float(prop.longitude)) if hasattr(prop, "latitude") else (
+        float(x) for x in str(prop).split(";")
+    )
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180) or (lat == 0 and lon == 0):
+        return None
+    return {"lat": lat, "lon": lon}
+
+
+def _details(component: Any) -> Optional[Dict[str, str]]:
+    """UVA's Trumba custom fields, by their NAME parameter. "Event Type" also
+    appears as a template name (``TYPE=number``, "Default Template"), skipped."""
+    details: Dict[str, str] = {}
+    for name, kind, raw in _custom_fields(component):
+        key = _TRUMBA_FIELDS.get(name.lower())
+        if not key or key in details or (key == "event_type" and kind.lower() == "number"):
+            continue
+        try:
+            if key in _LINK_FIELDS:
+                value = _link(raw)
+            else:
+                value = " ".join(html.unescape(_TAG_RE.sub(" ", raw)).split())
+                if key == "audience":
+                    value = ", ".join(p.strip() for p in value.split(",") if p.strip())
+                if value.lower().rstrip(".") in _PLACEHOLDERS:
+                    value = None
+        except Exception:  # noqa: BLE001 — one bad field, not the event
+            value = None
+        if value:
+            details[key] = value
+    return details or None
+
+
 def _localize(value: Any, tz: ZoneInfo) -> Tuple[datetime, bool]:
     """Return (aware datetime, all_day) for a DTSTART/DTEND value."""
     if isinstance(value, datetime):
@@ -199,7 +338,7 @@ def _event(
         start + timedelta(days=1) if all_day else start
     )
     title = _text(component, "SUMMARY")
-    return {
+    item: Dict[str, Any] = {
         "id": event_id(
             component, start, title, feed_name, tz,
             repeating=str(component.get("UID") or "").strip() in (repeating_uids or set()),
@@ -210,12 +349,25 @@ def _event(
         "all_day": all_day,
         "location": _text(component, "LOCATION"),
         "url": _text(component, "URL"),
-        "description": _text(component, "DESCRIPTION")[:400],
+        "description": _description(component),
         "calendar": feed_name,
         "ongoing": False,
         "_start": start,
         "_end": end,
     }
+    for key, parse in (
+        ("image_url", _image_url),
+        ("categories", _categories),
+        ("geo", _geo),
+        ("details", _details),
+    ):
+        try:
+            value = parse(component)
+        except Exception:  # noqa: BLE001 — a malformed field drops only that field
+            value = None
+        if value:
+            item[key] = value
+    return item
 
 
 async def events_between(start: datetime, end: datetime) -> Tuple[List[Dict[str, Any]], List[str]]:

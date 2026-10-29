@@ -7,7 +7,9 @@ lines, so walking times are estimates (``sources/routing.py`` has real ones).
 
 Each place gets a stable ``id``: the slug of its name, with ``-2``, ``-3``
 added in file order when names collide. Opening hours are parsed once here
-(``sources/hours.py``).
+(``sources/hours.py``). The OSM ``type/id`` and the import's detail fields
+(``DETAIL_FIELDS``: website, phone, photo with its credit, ...) are kept when
+present and well formed; a missing or malformed one is left out.
 """
 
 from __future__ import annotations
@@ -30,6 +32,58 @@ WALK_METERS_PER_MINUTE = 80  # about 4.8 km/h
 CATEGORIES = ("academic", "library", "dining", "health", "housing", "recreation", "arts", "landmark", "transit", "other")
 
 _loaded: Dict[str, Tuple[List[Dict[str, Any]], Optional[str]]] = {}
+
+DETAIL_FIELDS = (
+    "osm", "website", "phone", "wheelchair", "cuisine", "building_levels", "address",
+    "operator", "description", "wikidata", "wikipedia", "photo",
+)
+_TEXT_FIELDS = ("phone", "wheelchair", "address", "operator", "description", "wikidata")
+_URL_FIELDS = ("website", "wikipedia")
+_OSM_RE = re.compile(r"^(node|way|relation)/\d+$")
+
+
+def _web_url(value: Any) -> Optional[str]:
+    url = value.strip() if isinstance(value, str) else ""
+    return url if re.match(r"^https?://[^\s/]+", url) and not re.search(r"\s", url) else None
+
+
+def _photo(value: Any) -> Optional[Dict[str, str]]:
+    """``{url, license, author?, page?}``; a photo without a licence is dropped."""
+    if not isinstance(value, dict):
+        return None
+    url, license_name = _web_url(value.get("url")), value.get("license")
+    if not url or not isinstance(license_name, str) or not license_name.strip():
+        return None
+    photo = {"url": url, "license": license_name.strip()}
+    if isinstance(value.get("author"), str) and value["author"].strip():
+        photo["author"] = value["author"].strip()
+    if _web_url(value.get("page")):
+        photo["page"] = value["page"].strip()
+    return photo
+
+
+def _details(props: Dict[str, Any]) -> Dict[str, Any]:
+    """The detail fields of one feature that are present and well formed."""
+    out: Dict[str, Any] = {}
+    if isinstance(props.get("osm"), str) and _OSM_RE.match(props["osm"]):
+        out["osm"] = props["osm"]
+    for key in _TEXT_FIELDS:
+        if isinstance(props.get(key), str) and props[key].strip():
+            out[key] = props[key].strip()
+    for key in _URL_FIELDS:
+        url = _web_url(props.get(key))
+        if url:
+            out[key] = url
+    cuisine = props.get("cuisine")
+    if isinstance(cuisine, list) and all(isinstance(c, str) for c in cuisine) and cuisine:
+        out["cuisine"] = [c for c in cuisine if c.strip()]
+    levels = props.get("building_levels")
+    if isinstance(levels, int) and not isinstance(levels, bool) and levels > 0:
+        out["building_levels"] = levels
+    photo = _photo(props.get("photo"))
+    if photo:
+        out["photo"] = photo
+    return out
 
 
 def _normalize(text: str) -> str:
@@ -68,6 +122,7 @@ def _validate(data: Any) -> List[Dict[str, Any]]:
             "hours": props.get("hours"),
             "lat": lat,
             "lon": lon,
+            **_details(props),
             "_keys": [_normalize(n) for n in names],
             "_hours": hours_parser.parse(props.get("hours")),
         })

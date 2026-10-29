@@ -134,4 +134,6 @@ async def get_place(
         await _with_walks([row], origin, [place])
     row["aliases"] = place["aliases"]
     row["map_url"] = places.public(place)["map_url"]
+    # OSM details and the photo credit, only those the place has.
+    row.update({k: place[k] for k in places.DETAIL_FIELDS if k in place})
     return {"place": row}

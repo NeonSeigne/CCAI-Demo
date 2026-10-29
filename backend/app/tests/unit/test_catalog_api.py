@@ -1,5 +1,6 @@
 """Tests for the course catalog API (/api/catalog) and its shared search."""
 
+import asyncio
 import json
 import os
 import tempfile
@@ -21,6 +22,7 @@ from app.tests.unit.test_csv_snapshot import GRADES, GRADES_AS_OF, GRADES_URLS, 
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "uw_coursemap"
 COURSE_PAGE = json.loads((FIXTURES / "COMPSCI_300.json").read_text())
+ECON_PAGE = json.loads((FIXTURES / "ECON_310.json").read_text())
 
 UW = {
     "tools": {"course_search": {"enabled": True, "max_results": 20}},
@@ -32,6 +34,7 @@ UW = {
 }
 CU = {
     "tools": {"search_courses": {"enabled": True, "max_results": 20}},
+    "planner": {"terms": ["Fall 2026", "Spring 2027"], "next_term": "Spring 2027"},
     "homepage": {"starters": [
         {"domain": "academics", "title": "Academics",
          "prompts": ["What sections of CSCI 2270 are offered?", "How do students rate CSCI professors?"]},
@@ -217,6 +220,34 @@ class TestUWSummary(CatalogTestCase):
         self.assertIn("COMPSCI 200", {c["identifier"] for c in body["prerequisites"]["courses"]})
         self.assertIn("COMPSCI 400", {c["identifier"] for c in body["next_courses"]})
 
+    def test_grade_history_oldest_first(self):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
+            body = self.client.get("/api/catalog/COMP SCI 300").json()
+        history = body["grade_history"]
+        self.assertEqual([h["term"] for h in history], ["Spring 2025", "Fall 2025", "Spring 2026"])
+        self.assertEqual(set(history[0]), {"term", "gpa", "students", "pct_a", "pct_df"})
+        self.assertEqual(history[0]["students"], 596)
+        self.assertEqual(history[-1]["gpa"], body["grades"]["gpa"])
+
+    def test_credits_gen_ed_and_prereq_tree_from_course_facts(self):
+        pages = {"/courses/ECON_310.json": ECON_PAGE}
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap(course_pages=pages)):
+            body = self.client.get("/api/catalog/ECON 310").json()
+        self.assertEqual(body["credits"], {"min": 4.0, "max": 4.0})
+        self.assertEqual(body["gen_ed"], ["Core GenEd - Mathematics & Quantitative Reasoning",
+                                          "Comm QR - Quantitative Reasoning B"])
+        tree = body["prereq_tree"]
+        self.assertEqual(tree["kind"], "all")
+        self.assertEqual([c["kind"] for c in tree["children"]], ["any", "any"])
+        self.assertIn({"kind": "course", "course": "ECON 101", "timing": "prior"}, tree["children"][0]["children"])
+
+    def test_missing_credits_and_gen_ed_are_left_out(self):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
+            body = self.client.get("/api/catalog/COMP SCI 300").json()
+        self.assertNotIn("credits", body)
+        self.assertNotIn("gen_ed", body)
+        self.assertNotIn("instructor_grades", body)
+
     def test_unknown_course_is_404(self):
         with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap([[]])):
             self.assertEqual(self.client.get("/api/catalog/BOGUS 999").status_code, 404)
@@ -242,8 +273,48 @@ class TestUWStarters(CatalogTestCase):
         self.assertEqual(self.client.get("/api/catalog/starters").json()["courses"], [])
 
 
+def fose_item(code, no, instr, bldg="", schd="LEC", hours="3", title="Data Structures"):
+    """A raw FOSE search row (what ``fose_sections`` returns)."""
+    return {
+        "code": code, "title": title, "no": no, "crn": f"3{no}", "schd": schd, "instr": instr,
+        "meets": "MWF 9:05-9:55a", "bldg": bldg,
+        "cart_opts": json.dumps({"credit_hrs": {"options": [{"label": hours}]}}),
+    }
+
+
+REAL_FOSE_RESULTS = search_courses._fose_results
+SPRING_2027 = [
+    fose_item("CSCI 2270", "100", "K. Nielsen", "ECCR 265", hours="4"),
+    fose_item("CSCI 2270", "200", "H. Hu", hours="4"),
+    fose_item("CSCI 2270", "210", "", "ECCR 131", schd="REC", hours="0"),
+]
+FALL_2026 = [fose_item("CSCI 3104", "100", "A. Prof", "MATH 100", title="Algorithms")]
+
+
 class TestCU(CatalogTestCase):
     settings = CU
+
+    def setUp(self):
+        super().setUp()
+        search_courses._planner_cache.clear()
+        self.terms = {"Spring 2027": SPRING_2027, "Fall 2026": FALL_2026}
+
+        async def sections(subject, semester):
+            return [r for r in self.terms.get(semester, []) if r["code"].startswith(subject)]
+
+        # No test reaches FOSE itself.
+        self.patches = [
+            patch.object(search_courses, "fose_sections", new=AsyncMock(side_effect=sections)),
+            patch.object(search_courses, "_fose_results", new=AsyncMock(side_effect=AssertionError("live FOSE"))),
+        ]
+        self.fose_sections = self.patches[0].start()
+        self.patches[1].start()
+
+    def tearDown(self):
+        for p in self.patches:
+            p.stop()
+        search_courses._planner_cache.clear()
+        super().tearDown()
 
     def test_keyword_only_query_returns_hint(self):
         response = self.client.get("/api/catalog/search", params={"q": "calculus"})
@@ -253,7 +324,7 @@ class TestCU(CatalogTestCase):
     def test_subject_search_groups_sections_and_filters_level(self):
         with patch.object(search_courses, "fose_search", new=AsyncMock(return_value=fose_rows())) as fose:
             body = self.client.get("/api/catalog/search", params={"q": "csci", "level": 2000}).json()
-        fose.assert_awaited_once_with("CSCI")
+        fose.assert_awaited_once_with("CSCI", "Spring 2027")
         self.assertEqual([c["identifier"] for c in body["courses"]], ["CSCI 2270"])
         self.assertEqual(body["courses"][0]["sections"], 2)
         self.assertFalse(body["capabilities"]["seat_filter"])
@@ -264,9 +335,8 @@ class TestCU(CatalogTestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_summary_has_sections_without_seats_and_no_grades(self):
-        with patch.object(search_courses, "fose_search", new=AsyncMock(return_value=fose_rows())):
-            body = self.client.get("/api/catalog/CSCI 2270").json()
-        self.assertEqual(body["sections"]["term"], "Spring 2026")
+        body = self.client.get("/api/catalog/CSCI 2270").json()
+        self.assertEqual(body["sections"]["term"], "Spring 2027")
         self.assertFalse(body["sections"]["seats_published"])
         self.assertIsNone(body["sections"]["seats_open"])
         self.assertEqual(body["instructors"], ["K. Nielsen", "H. Hu"])
@@ -274,9 +344,68 @@ class TestCU(CatalogTestCase):
             self.assertNotIn(missing, body)
             self.assertFalse(body["capabilities"][missing])
 
+    def test_summary_keeps_bldg_and_credits(self):
+        body = self.client.get("/api/catalog/CSCI 2270").json()
+        rows = body["sections"]["rows"]
+        self.assertEqual([r.get("bldg") for r in rows], ["ECCR 265", None])  # lectures only
+        self.assertEqual([r["instructors"] for r in rows], ["K. Nielsen", "H. Hu"])
+        self.assertEqual(body["credits"], {"min": 4.0, "max": 4.0})
+        for missing in ("gen_ed", "prereq_tree", "grade_history", "instructor_grades"):
+            self.assertNotIn(missing, body)
+        # The summary and the facts read share one cached FOSE read.
+        self.assertEqual({c.args for c in self.fose_sections.await_args_list}, {("CSCI", "Spring 2027")})
+
+    def test_summary_term_comes_from_the_planner_not_a_constant(self):
+        use_settings({**CU, "planner": {"terms": ["Fall 2026"]}})
+        self.terms = {"Fall 2026": SPRING_2027}
+        body = self.client.get("/api/catalog/CSCI 2270").json()
+        self.assertEqual(body["sections"]["term"], "Fall 2026")
+
+    def test_course_not_offered_next_term_shows_its_latest_term(self):
+        body = self.client.get("/api/catalog/CSCI 3104").json()
+        self.assertEqual(body["sections"]["term"], "Fall 2026")
+        self.assertEqual(body["sections"]["rows"][0]["bldg"], "MATH 100")
+
+    def test_search_reads_the_next_term(self):
+        with patch.object(search_courses, "_fose_results", new=AsyncMock(return_value=SPRING_2027)) as raw:
+            body = self.client.get("/api/catalog/search", params={"q": "CSCI"}).json()
+        self.assertEqual(raw.await_args.args, ("CSCI", "Spring 2027"))
+        self.assertEqual([c["identifier"] for c in body["courses"]], ["CSCI 2270"])
+
+    def fose_by_term(self, terms):
+        async def raw(subject, semester):
+            return [r for r in terms.get(semester, []) if r["code"].startswith(subject)]
+
+        return patch.object(search_courses, "_fose_results", new=AsyncMock(side_effect=raw))
+
+    def test_search_falls_back_when_the_next_term_is_empty(self):
+        with self.fose_by_term({"Fall 2026": FALL_2026}) as raw:
+            body = self.client.get("/api/catalog/search", params={"q": "CSCI"}).json()
+        self.assertEqual([c.args for c in raw.await_args_list], [("CSCI", "Spring 2027"), ("CSCI", "Fall 2026")])
+        self.assertEqual([c["identifier"] for c in body["courses"]], ["CSCI 3104"])
+        self.assertEqual(body["courses"][0].get("level"), 3000)
+
+    def test_chat_tool_falls_back_only_without_a_semester(self):
+        with self.fose_by_term({"Fall 2026": FALL_2026}) as raw:
+            result = asyncio.run(search_courses.execute(subject="csci"))
+        self.assertEqual([c["course_code"] for c in result["courses"]], ["CSCI 3104"])
+        self.assertEqual(result["query"]["semester"], "Fall 2026")
+        self.assertEqual(raw.await_count, 2)
+        with self.fose_by_term({"Fall 2026": FALL_2026}) as raw:
+            result = asyncio.run(search_courses.execute(subject="csci", semester="Spring 2027"))
+        self.assertEqual(result["courses"], [])
+        self.assertEqual(raw.await_count, 1)
+
+    def test_co_taught_sections_list_each_instructor(self):
+        self.terms = {"Spring 2027": [fose_item("CSCI 2270", "100", "A. One, B. Two"),
+                                      fose_item("CSCI 2270", "200", "B. Two")]}
+        body = self.client.get("/api/catalog/CSCI 2270").json()
+        self.assertEqual(body["instructors"], ["A. One", "B. Two"])
+        rows = [search_courses.row_to_course(item, "Spring 2027") for item in self.terms["Spring 2027"]]
+        self.assertEqual(academics._fose_courses(rows, "2270", "")[0]["instructors"], ["A. One", "B. Two"])
+
     def test_unknown_course_is_404(self):
-        with patch.object(search_courses, "fose_search", new=AsyncMock(return_value=fose_rows())):
-            self.assertEqual(self.client.get("/api/catalog/CSCI 9999").status_code, 404)
+        self.assertEqual(self.client.get("/api/catalog/CSCI 9999").status_code, 404)
 
     def test_fose_outage_is_502(self):
         response = MagicMock(status_code=503)
@@ -284,7 +413,8 @@ class TestCU(CatalogTestCase):
         client.__aenter__ = AsyncMock(return_value=client)
         client.__aexit__ = AsyncMock(return_value=False)
         client.post = AsyncMock(return_value=response)
-        with patch.object(search_courses.httpx, "AsyncClient", return_value=client):
+        with patch.object(search_courses.httpx, "AsyncClient", return_value=client), \
+                patch.object(search_courses, "_fose_results", new=REAL_FOSE_RESULTS):
             self.assertEqual(self.client.get("/api/catalog/search", params={"q": "CSCI"}).status_code, 502)
 
     def test_starters(self):
@@ -353,6 +483,16 @@ class TestUVA(CatalogTestCase):
         self.assertIn("Briana Morrison", body["instructors"])
         self.assertNotIn("prerequisites", body)
         self.assertNotIn("next_courses", body)
+
+    def test_per_instructor_grades_and_history(self):
+        body = self.client.get("/api/catalog/CS 2100").json()
+        self.assertEqual(body["instructor_grades"], [{"name": "Briana Morrison", "gpa": 3.25, "students": 200}])
+        self.assertEqual([h["term"] for h in body["grade_history"]], ["Fall 2025", "Spring 2026"])
+        self.assertEqual(body["grade_history"][1]["pct_df"], 10.0)
+        self.assertEqual(body["credits"], {"min": 4.0, "max": 4.0})
+        self.assertEqual(body["sections"]["rows"][0]["instructors"], "Briana Morrison")
+        self.assertNotIn("prereq_tree", body)
+        self.assertNotIn("bldg", body["sections"]["rows"][0])
 
     def test_unknown_course_is_404(self):
         self.assertEqual(self.client.get("/api/catalog/CS 9999").status_code, 404)

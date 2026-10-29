@@ -13,6 +13,17 @@ logger = logging.getLogger(__name__)
 
 TOOL_NAME = "events_search"
 
+# The model gets the short form: the Events page has the full description and
+# the image / categories / geo / details fields.
+CHAT_DESCRIPTION_CHARS = 400
+_PAGE_ONLY_FIELDS = ("image_url", "categories", "geo", "details")
+
+
+def _for_chat(event: Dict[str, Any]) -> Dict[str, Any]:
+    item = {k: v for k, v in event.items() if k not in _PAGE_ONLY_FIELDS}
+    item["description"] = " ".join((event.get("description") or "").split())[:CHAT_DESCRIPTION_CHARS]
+    return item
+
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
     "function": {
@@ -72,7 +83,7 @@ async def execute(*, name: str = "", when: str = "today", keyword: str = "") -> 
 
     truncated = len(events) > limit
     return {
-        "events": events[:limit],
+        "events": [_for_chat(e) for e in events[:limit]],
         "total_results": len(events),
         "truncated": truncated,
         "window": {"label": window, "start": start.isoformat(), "end": end.isoformat()},

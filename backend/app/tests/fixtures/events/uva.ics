@@ -1,0 +1,179 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:recorded from www.trumba.com/calendars/university-of-virginia-events.ics
+BEGIN:VEVENT
+SUMMARY:Color is Life: Women&#39\;s Work Today
+LOCATION:Kluge-Ruhe Aboriginal Art Collection
+DTSTART;TZID=America/New_York:20260328T100000
+DTEND;TZID=America/New_York:20270314T160000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+URL:https://kluge-ruhe.org/all-exhibitions/color-is-life-womens-work-tod
+ ay/
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=21;TYPE=number:Default Templat
+ e
+X-TRUMBA-CUSTOMFIELD;NAME="Location";ID=45333;TYPE=CustomAsset:Kluge-Ruh
+ e Aboriginal Art Collection
+X-TRUMBA-CUSTOMFIELD;NAME="Event image";ID=40;TYPE=Image:<a href="https:
+ //www.trumba.com/i/DgDOYpMG3vEdyhPSQwh2rRDq.jpg" target="_blank" rel="no
+ opener" title="https://www.trumba.com/i/DgDOYpMG3vEdyhPSQwh2rRDq.jpg">ww
+ w.trumba.com&#8230\;</a>
+X-TRUMBA-CUSTOMFIELD;NAME="Audience";ID=45044;TYPE=CustomAsset:Undergrad
+ uate\,Graduate\,Professional Students\,Faculty &amp\; Staff\,Alumni\,Pub
+ lic
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=45046;TYPE=CustomAsset:Exhibit
+X-TRUMBA-CUSTOMFIELD;NAME="Type of Event";ID=45334;TYPE=CustomAsset:Ongo
+ ing
+DTSTAMP:20260324T095927Z
+DESCRIPTION:Location: Kluge-Ruhe Aboriginal Art Collection<br>Audience: 
+ Undergraduate\,Graduate\,Professional Students\,Faculty & Staff\,Alumni
+ \,Public<br>Event Type: Exhibit<br>Type of Event: Ongoing<br>Link: https:
+ //kluge-ruhe.org/all-exhibitions/color-is-life-womens-work-today/<br><br
+ >&#39\;Color is Life: Women&#8217\;s Work Today&#39\; is a celebration o
+ f First Nations women artists from across Australia. The artists represe
+ nted here have created bold works of art that vibrantly reflect their li
+ ved experiences and living cultural practices. Artmaking has long been a
+  life force for women and their communities. As the Tiwi artist Jean Bap
+ tiste Apuatimi said\, &#8220\;Painting makes me alive.&#8221\; <br><br>T
+ he artworks in this exhibition are all held in the Kluge-Ruhe collection
+ \, except for the film &#39\;Kala Kunbolk&#39\; (2023)\, which is on loa
+ n from Injalak Arts Centre. The exhibition is supported by UVA Arts.
+CATEGORIES:kluge-ruhe
+IMAGE;VALUE=URI:https://www.trumba.com/i/DgDOYpMG3vEdyhPSQwh2rRDq.jpg
+UID:http://uid.trumba.com/event/198943943
+X-TRUMBA-LINK:https://www.virginia.edu/calendar/?trumbaEmbed=view%3Deven
+ t%26eventid%3D198943943
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Finding My Way: Mentoring Faculty
+LOCATION:Newcomb Hall\, Commonwealth Room (3rd floor)
+DTSTART;TZID=America/New_York:20261110T110000
+DTEND;TZID=America/New_York:20261110T121500
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=21;TYPE=number:Provost Event T
+ emplate
+X-TRUMBA-CUSTOMFIELD;NAME="Audience Type";ID=68285;TYPE=CustomAsset:Facu
+ lty
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=68286;TYPE=CustomAsset:Worksho
+ p
+X-TRUMBA-CUSTOMFIELD;NAME="Hosted by";ID=68287;TYPE=SingleLine:Center fo
+ r Faculty Well-Being and Development
+X-TRUMBA-CUSTOMFIELD;NAME="Type of Event";ID=45334;TYPE=CustomAsset:One-
+ time
+X-TRUMBA-CUSTOMFIELD;NAME="Registration Link";ID=68534;TYPE=MultiLine:<a
+  href="https://virginia.az1.qualtrics.com/jfe/form/SV_74DdhUO6BTkvI1g" t
+ arget="_blank" rel="noopener">Register</a>
+DTSTAMP:20261023T121712Z
+DESCRIPTION:Audience Type: Faculty<br>Event Type: Workshop<br>Hosted by:
+  Center for Faculty Well-Being and Development<br>Type of Event: One-tim
+ e<br>Registration Link: <a href="https://virginia.az1.qualtrics.com/jfe/
+ form/SV_74DdhUO6BTkvI1g" target="_blank" dir="ltr">Register</a><br><br>U
+ VA Acts: Fall 2026 Mentoring Workshop
+CATEGORIES:Center For Faculty Wellbeing and Development
+UID:http://uid.trumba.com/event/211955849
+X-TRUMBA-LINK:https://www.virginia.edu/calendar/?trumbaEmbed=view%3Deven
+ t%26eventid%3D211955849
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:UVA Batten Graduate Certificate Information Session
+LOCATION:Great Hall
+DTSTART;TZID=America/New_York:20261105T120000
+DTEND;TZID=America/New_York:20261105T130000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+URL:https://applycentral.virginia.edu/register/InformationSession1126
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=21;TYPE=number:Batten School E
+ vent Template
+X-TRUMBA-CUSTOMFIELD;NAME="Room";ID=63208;TYPE=CustomAsset:Great Hall (1
+ 00)
+X-TRUMBA-CUSTOMFIELD;NAME="Department/Unit/Group";ID=63240;TYPE=CustomAs
+ set:Admissions
+X-TRUMBA-CUSTOMFIELD;NAME="Audience";ID=45044;TYPE=CustomAsset:Graduate
+ \,Professional Students\,Faculty &amp\; Staff\,Alumni\,Public
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=45046;TYPE=CustomAsset:Admissi
+ ons
+X-TRUMBA-CUSTOMFIELD;NAME="Type of Event";ID=45334;TYPE=CustomAsset:One-
+ time
+X-TRUMBA-CUSTOMFIELD;NAME="Event image";ID=40;TYPE=Image:<a href="https:
+ //www.trumba.com/i/DgCQwztwhy6OFQ0MBOdgIv-4.jpg" target="_blank" rel="no
+ opener" title="https://www.trumba.com/i/DgCQwztwhy6OFQ0MBOdgIv-4.jpg">ww
+ w.trumba.com&#8230\;</a>
+DTSTAMP:20261019T121821Z
+DESCRIPTION:Room: Great Hall (100)<br>Department/Unit/Group: Admissions<
+ br>Audience: Graduate\,Professional Students\,Faculty & Staff\,Alumni\,P
+ ublic<br>Event Type: Admissions<br>Type of Event: One-time<br>Link: http
+ s://applycentral.virginia.edu/register/InformationSession1126<br><br>No 
+ matter your current career path\, whether that is HR\, finance\, IT\, ma
+ rketing\, public service\, or beyond\, Batten&#39\;s <a href="https://ba
+ tten.virginia.edu/programs/graduate-programs/graduate-certificate-in-pub
+ lic-leadership/" target="_blank" rel="noopener"><u><strong><strong>Gradu
+ ate Certificate in Public Leadership</strong></strong></u></a> and <a hr
+ ef="https://batten.virginia.edu/programs/graduate-programs/graduate-cert
+ ificate-public-policy/" target="_blank" rel="noopener"><u><strong><stron
+ g>Graduate Certificate in Public Policy</strong></strong></u></a> help y
+ ou lead with greater clarity\, courage\, and evidence-based skill.<br><b
+ r>Designed for working professionals\, these flexible programs let you d
+ eepen your expertise without stepping away from your career and are elig
+ ible for the use of your UVA Education Benefits. And because the certifi
+ cates stack toward Batten&#39\;s Master of Public Policy\, every course 
+ you complete is a step toward something larger.<br><br>Join us for our i
+ n-person information session to explore our full range of offerings\, in
+ cluding online options\, and find the path that fits your goals. Join us
+  <a href="https://applycentral.virginia.edu/register/GradCertInfoSession
+ November26" target="_blank" rel="noopener"><u><strong><strong>Thursday\,
+  November 5th from 12-1pm</strong></strong></u></a> in the Great Hall of
+  Garrett Hall &#8212\; lunch is provided for all attendees!<br><br>Click
+  <a href="https://applycentral.virginia.edu/register/GradCertInfoSession
+ November26" target="_blank" rel="noopener"><u><strong><strong>HERE</stro
+ ng></strong></u></a> to register!
+CATEGORIES:Public Events
+IMAGE;VALUE=URI:https://www.trumba.com/i/DgCQwztwhy6OFQ0MBOdgIv-4.jpg
+UID:http://uid.trumba.com/event/205685034
+X-TRUMBA-LINK:https://www.virginia.edu/calendar/?trumbaEmbed=view%3Deven
+ t%26eventid%3D205685034
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Managing Anxiety in Uncertain Times
+LOCATION:Webinar
+DTSTART;TZID=America/New_York:20261028T120000
+DTEND;TZID=America/New_York:20261028T130000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=21;TYPE=number:Provost Event T
+ emplate
+X-TRUMBA-CUSTOMFIELD;NAME="Event image";ID=40;TYPE=Image:<a href="https:
+ //www.trumba.com/i/DgBdtptg92mNh0JD3V74C5Hh.jpg" target="_blank" rel="no
+ opener" title="https://www.trumba.com/i/DgBdtptg92mNh0JD3V74C5Hh.jpg">ww
+ w.trumba.com&#8230\;</a>
+X-TRUMBA-CUSTOMFIELD;NAME="Online Location";ID=68284;TYPE=SingleLine:Web
+ inar
+X-TRUMBA-CUSTOMFIELD;NAME="Audience Type";ID=68285;TYPE=CustomAsset:Facu
+ lty
+X-TRUMBA-CUSTOMFIELD;NAME="Event Type";ID=68286;TYPE=CustomAsset:Webinar
+X-TRUMBA-CUSTOMFIELD;NAME="Sponsors";ID=68283;TYPE=SingleLine:UVA Provos
+ t&#8217\;s Faculty Guide Program\, UVA FEAP and Hoos Well&#8217\;s
+X-TRUMBA-CUSTOMFIELD;NAME="Type of Event";ID=45334;TYPE=CustomAsset:One-
+ time
+X-TRUMBA-CUSTOMFIELD;NAME="Registration Link";ID=68534;TYPE=MultiLine:<a
+  href="https://virginia.zoom.us/webinar/register/WN_vD_ovCBOSCCsv3AOojbT
+ Lw" target="_blank" rel="noopener">Webinar Registration</a>
+DTSTAMP:20261023T095922Z
+DESCRIPTION:Online Location: Webinar<br>Audience Type: Faculty<br>Event 
+ Type: Webinar<br>Sponsors: UVA Provost’s Faculty Guide Program\, UVA FEA
+ P and Hoos Well’s<br>Type of Event: One-time<br>Registration Link: <a hr
+ ef="https://virginia.zoom.us/webinar/register/WN_vD_ovCBOSCCsv3AOojbTLw"
+  target="_blank" dir="ltr">Webinar Registration</a><br><br>Join this Hoo
+ s Well reward-eligible webinar\, co-sponsored by the UVA Provost&#8217\;
+ s Faculty Guide Program and part of UVA FEAP and Hoos Well&#8217\;s &quo
+ t\;Thrive Together&quot\; series of monthly webinars on enhancing mental
+  health and social &amp\; emotional well-being.<br><br><strong><strong>L
+ earning Objectives</strong></strong>:<ol><li value="1">Learn how to tole
+ rate uncertainty and not assume the worst</li><li value="2">Learn factor
+ s that maintain anxiety</li><li value="3">Learn how to balance staying i
+ nformed and regulating your distress</li></ol>Presented by Bethany Teach
+ man\, Commonwealth Professor of Psychology and the Director of Clinical 
+ Training at the University of Virginia in the Department of Psychology.
+CATEGORIES:Faculty Affairs
+IMAGE;VALUE=URI:https://www.trumba.com/i/DgBdtptg92mNh0JD3V74C5Hh.jpg
+UID:http://uid.trumba.com/event/189632031
+X-TRUMBA-LINK:https://www.virginia.edu/calendar/?trumbaEmbed=view%3Deven
+ t%26eventid%3D189632031
+END:VEVENT
+END:VCALENDAR
