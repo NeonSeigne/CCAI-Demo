@@ -138,12 +138,37 @@ class BuildVisualsTests(unittest.TestCase):
 
 
 
-class ProviderWithoutCoursePagesTests(unittest.TestCase):
-    def test_snapshot_search_emits_no_course_cards(self):
-        # UVA (csv_snapshot) has no course detail pages; its data_as_of sits on each row.
-        result = {"courses": [{"identifier": "CS 2100", "data_as_of": "2026-09-03"}]}
+class EveryProviderTests(unittest.TestCase):
+    """R7: course cards hydrate from /api/catalog/{id}, served for every school."""
+
+    def test_snapshot_grades_emit_cards_without_course_pages(self):
+        result = {
+            "course_identifier": "CS 2100",
+            "data_as_of": "2026-07-02",
+            "cumulative": {"average_gpa": 3.25, "distribution": {"A+": 30, "A": 60, "DFW": 20}},
+            "terms": [
+                {"term_code": "2026 Spring", "average_gpa": 3.0},
+                {"term_code": "2025 Fall", "average_gpa": 3.5},
+            ],
+        }
         with patch.object(visuals_module.academics, "links_to_course_pages", return_value=False):
-            self.assertEqual(build_visuals([{"name": "course_search", "result": result}]), [])
+            visuals = build_visuals([{"name": "course_grades", "result": result}])
+        self.assertEqual(len(visuals), 6)
+        self.assertEqual({v["term"] for v in visuals}, {"2026 Spring"})
+
+    def test_cu_single_course_emits_schedule_cards(self):
+        result = {"courses": [
+            {"course_code": "CSCI 2270", "section": "100"},
+            {"course_code": "CSCI  2270", "section": "200"},
+        ]}
+        visuals = build_visuals([{"name": "search_courses", "result": result}])
+        self.assertEqual([(v["type"], v["course"]) for v in visuals], [
+            ("course_schedule", "CSCI 2270"), ("course_instructors", "CSCI 2270"),
+        ])
+
+    def test_cu_subject_listing_emits_none(self):
+        result = {"courses": [{"course_code": "CSCI 2270"}, {"course_code": "CSCI 3104"}]}
+        self.assertEqual(build_visuals([{"name": "search_courses", "result": result}]), [])
 
 
 if __name__ == "__main__":

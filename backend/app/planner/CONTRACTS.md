@@ -241,3 +241,15 @@ has no "harder" cutoff. Per school: UVA all three labels; UW "harder" below
 3.4, so with the default easier cutoff a UW course is "harder" or "easier",
 never "typical", until its pack sets `easier_from_gpa`; CU always null (FOSE
 publishes no grades).
+
+## Chat course cards (`api/visuals.py`)
+
+Course card refs (`{type: "course_*", course, term?}`) are emitted for every
+school (eng review R7) and hydrate from `/api/catalog/{id}`; snapshot results
+are no longer skipped, and their summary keeps `as_of` / `sections.as_of` for
+the dated label (R8). Sources: UW `course_grades`, `course_prerequisites`,
+`course_next`, `course_sections`; UVA `course_grades`, `course_sections` (its
+`term` is a label like "2026 Spring", not a number); CU `search_courses`
+(FOSE) gives `course_schedule` and `course_instructors` when its rows are one
+course, nothing for a subject listing (no grades at CU). Course links
+(`course:` markdown) stay UW-only (`academics.links_to_course_pages`).
