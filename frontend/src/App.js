@@ -6,6 +6,7 @@ import { AppConfigProvider } from './contexts/AppConfigContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SavedProvider } from './contexts/SavedContext';
 import { PlannerProvider } from './contexts/PlannerContext';
+import { ChatProvider } from './contexts/ChatContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
@@ -114,14 +115,16 @@ function App() {
             <AuthProvider>
               <SavedProvider>
                 <PlannerProvider>
-                  <ToastProvider>
-                    <SkipLink />
-                    <RouteFocus />
-                    <div className="App">
-                      <AppRoutes />
-                      <UserGuide />
-                    </div>
-                  </ToastProvider>
+                  <ChatProvider>
+                    <ToastProvider>
+                      <SkipLink />
+                      <RouteFocus />
+                      <div className="App">
+                        <AppRoutes />
+                        <UserGuide />
+                      </div>
+                    </ToastProvider>
+                  </ChatProvider>
                 </PlannerProvider>
               </SavedProvider>
             </AuthProvider>
