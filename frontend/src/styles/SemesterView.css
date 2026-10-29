@@ -788,3 +788,7 @@
 .sv-fit { grid-column: 2 / -1; font-size: 12px; font-weight: 600; }
 .sv-fit.is-fits { color: var(--difficulty-easier-ink); }
 .sv-fit.is-clash { color: var(--ink); }
+
+.sv-icon-btn[aria-disabled="true"] { color: var(--ink-soft); opacity: 0.45; cursor: default; }
+.sv-icon-btn[aria-disabled="true"]:hover { background: transparent; color: var(--ink-soft); }
+.sv-pending-error { flex-basis: 100%; color: var(--difficulty-harder-ink); font-size: 12.5px; }

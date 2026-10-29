@@ -21,7 +21,7 @@ const daysText = (meetings) => {
 };
 
 export default function SwapSectionDialog({
-  course, rows, blocks, chosen, loading = false, onApply, onClose,
+  course, rows, blocks, chosen, loading = false, error = false, onRetry, onApply, onClose,
 }) {
   const container = usePageColumn();
   const groups = useMemo(() => sectionOptions(rows || [], blocks || [], course), [rows, blocks, course]);
@@ -33,14 +33,20 @@ export default function SwapSectionDialog({
     groups.forEach((group) => {
       const current = group.options.find((o) => sectionMatches(o.row, chosen));
       const fit = group.options.filter((o) => o.fits);
-      const choice = current || (fit.length === 1 ? fit[0] : null) || (group.options.length === 1 ? group.options[0] : null);
+      // An optional part (SEM, IND…) keeps only what the student already has.
+      const choice = current || (group.required
+        ? (fit.length === 1 ? fit[0] : null) || (group.options.length === 1 ? group.options[0] : null)
+        : null);
       if (choice) out[group.part] = choice.id;
     });
     return out;
   }, [groups, chosen]);
   const picked = { ...defaults, ...chosenNow };
 
-  const complete = groups.length > 0 && groups.every((g) => picked[g.part]);
+  const required = groups.filter((g) => g.required);
+  const complete = groups.length > 0 && (required.length
+    ? required.every((g) => picked[g.part])
+    : groups.some((g) => picked[g.part]));
   const titleId = 'sv-swap-title';
 
   return (
@@ -55,8 +61,15 @@ export default function SwapSectionDialog({
     >
       <DialogTitle id={titleId}>Swap section · {course}</DialogTitle>
       <DialogContent>
-        {loading && <div className="sv-skel sv-skel-row" aria-busy="true" aria-label="Loading sections" />}
-        {!loading && groups.length === 0 && <p className="sv-muted">No sections listed.</p>}
+        {error && (
+          <p className="sv-error" role="alert">
+            Couldn&apos;t load
+            <span aria-hidden="true"> · </span>
+            <button type="button" className="sv-link" onClick={onRetry}>Retry</button>
+          </p>
+        )}
+        {!error && loading && <div className="sv-skel sv-skel-row" aria-busy="true" aria-label="Loading sections" />}
+        {!error && !loading && groups.length === 0 && <p className="sv-muted">No sections listed.</p>}
         {groups.map((group) => (
           <fieldset key={group.part} className="sv-swap-group">
             {groups.length > 1 && <legend>{group.part}</legend>}
@@ -98,7 +111,7 @@ export default function SwapSectionDialog({
           type="button"
           className="sv-btn is-primary"
           disabled={!complete}
-          onClick={() => onApply(groups.map((g) => picked[g.part]))}
+          onClick={() => onApply(groups.map((g) => picked[g.part]).filter(Boolean))}
         >
           Apply
         </button>

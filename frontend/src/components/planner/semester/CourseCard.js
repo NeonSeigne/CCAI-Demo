@@ -82,6 +82,8 @@ function Prereqs({ prereqs }) {
   return null;
 }
 
+const safeKey = (id) => String(id).replace(/[^A-Za-z0-9]+/g, '-');
+
 export default function CourseCard({
   course,
   colour,
@@ -196,6 +198,21 @@ export default function CourseCard({
         )}
       </div>
       <div className="sv-card-side">
+        {!ghost && course.pending && (
+          <div className="sv-acts">
+            <button
+              type="button"
+              className="sv-icon-btn"
+              aria-label={`More for ${id}`}
+              aria-disabled="true"
+              aria-describedby={`sv-saving-${safeKey(id)}`}
+              title="Saving"
+            >
+              <MoreHorizRounded aria-hidden="true" />
+            </button>
+            <span className="sr-only" id={`sv-saving-${safeKey(id)}`}>Saving; available once saved</span>
+          </div>
+        )}
         {actionable && (
           <div className="sv-acts">
             <button

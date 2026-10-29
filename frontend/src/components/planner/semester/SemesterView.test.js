@@ -48,7 +48,7 @@ const lecture = (section, extra = {}) => ({
   section, type: 'LEC', instructors: 'Lee Marsh', enrolled: 78, capacity: 90, seats_open: 12, is_open: true, ...extra,
 });
 
-const SUMMARIES = {
+const summaries = () => ({
   'CHEM 2410': {
     identifier: 'CHEM 2410',
     title: 'Organic Chem I',
@@ -73,7 +73,9 @@ const SUMMARIES = {
       ],
     },
   },
-};
+});
+// Rebuilt before every test, so a test that edits it can't leak into the next.
+let SUMMARIES = summaries();
 
 const box = (left, top, width, height) => ({
   x: left, y: top, left, top, width, height, right: left + width, bottom: top + height, toJSON: () => {},
@@ -108,6 +110,7 @@ const card = (id) => document.querySelector(`article.sv-card[data-course="${id}"
 beforeEach(() => {
   jest.clearAllMocks();
   clearCourseDetailsCache();
+  SUMMARIES = summaries();
   window.matchMedia = (media) => ({
     matches: false, media, addEventListener: () => {}, removeEventListener: () => {},
   });
@@ -312,7 +315,65 @@ describe('drops', () => {
     expect(api.postEdits.mock.calls[0][1].ops).toEqual([{ op: 'add', course: 'ECON 3300', term: 'Spring 2027' }]);
     const dialog = await screen.findByRole('dialog', { name: 'Swap section · ECON 3300' });
     expect(within(dialog).getAllByText('Fits')).toHaveLength(2);
-    SUMMARIES['ECON 3300'].sections.rows[0].meetings = ['MoWe 11:00am - 12:15pm'];
+  });
+
+  test('a week drop whose sections fail to load opens Swap section with Retry, never a silent pick', async () => {
+    campus.getCatalogCourse.mockImplementation(() => Promise.reject(new Error('down')));
+    renderView();
+    await screen.findByRole('region', { name: 'Week' });
+    await dragTo(await searchFor(), 'Week');
+    const dialog = await screen.findByRole('dialog', { name: 'Swap section · ECON 3300' });
+    expect(api.postEdits.mock.calls[0][1].ops).toEqual([{ op: 'add', course: 'ECON 3300', term: 'Spring 2027' }]);
+    expect(await within(dialog).findByText(/Couldn't load/)).toBeInTheDocument();
+
+    // The failure isn't cached: Retry asks again.
+    campus.getCatalogCourse.mockImplementation((token, id) => Promise.resolve(SUMMARIES[id]));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Retry' }));
+    expect(await within(dialog).findByText('Fits')).toBeInTheDocument();
+  });
+
+  test('a second week drop of a course still being looked up springs back', async () => {
+    let release;
+    campus.getCatalogCourse.mockImplementation((token, id) => (id === 'ECON 3300'
+      ? new Promise((resolve) => { release = () => resolve(SUMMARIES[id]); })
+      : Promise.resolve(SUMMARIES[id])));
+    renderView();
+    await screen.findByRole('region', { name: 'Week' });
+    const grip = await searchFor();
+    await dragTo(grip, 'Week');
+    await dragTo(screen.getByRole('button', { name: 'Drag ECON 3300' }), 'Week');
+    await act(async () => { release(); });
+    await waitFor(() => expect(api.postEdits).toHaveBeenCalledTimes(1));
+    await tick();
+    expect(api.postEdits).toHaveBeenCalledTimes(1);
+  });
+
+  test('hovering a target previews credits with the op a drop would send, after a short pause', async () => {
+    api.getPlan.mockResolvedValue(view({
+      plan: plan({ courses: [...plan().courses, { id: 'ECON 3300', term: 'Fall 2027', sections: null }] }),
+    }));
+    renderView();
+    await screen.findByRole('region', { name: 'Week' });
+    const grip = await searchFor();
+    grip.focus();
+    fireEvent.keyDown(grip, { code: 'Space', key: ' ' });
+    await tick();
+    for (let i = 0; i < 3 && !screen.queryByText(/is over Week\.$/); i += 1) {
+      fireEvent.keyDown(document, { code: 'ArrowDown', key: 'ArrowDown' });
+      // eslint-disable-next-line no-await-in-loop
+      await tick();
+    }
+    expect(screen.getByText(/is over Week\.$/)).toBeInTheDocument();
+    expect(api.preview).not.toHaveBeenCalled();
+    await waitFor(() => expect(api.preview).toHaveBeenCalled());
+    expect(api.preview.mock.calls[0][1]).toEqual(expect.objectContaining({
+      ops: [{ op: 'move', course: 'ECON 3300', to_term: 'Spring 2027' }],
+      term: 'Spring 2027',
+    }));
+    await waitFor(() => expect(screen.getByRole('meter', { name: 'Credits' }).getAttribute('aria-valuetext'))
+      .toBe('17 credits, 13 after the change'));
+    fireEvent.keyDown(document, { code: 'Escape', key: 'Escape' });
+    await tick();
   });
 
   test('dropping a course already in the term springs back and pulses its card', async () => {
@@ -347,6 +408,91 @@ test('a pending proposal for this term: ghost cards in and out, ghost gauges and
   expect(within(week).getByText('Mon 9:00–9:50 CHEM 2410 (proposed removal)')).toBeInTheDocument();
   expect(week.querySelector('.sv-block.is-ghost-in')).toHaveTextContent('ECON 3300');
   expect(week.querySelector('.sv-block.is-ghost-out')).toHaveTextContent('CHEM 2410');
+});
+
+test('a stale proposal shows its heading and Discard only, with no ghosts', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal({ base_revision: 3 }) }));
+  renderView();
+  const pending = await screen.findByRole('group', { name: 'Pending change' });
+  expect(pending).toHaveTextContent('Move ECON 3010 to Fall 2027, add ECON 3300');
+  expect(within(pending).getByRole('button', { name: 'Discard' })).toBeInTheDocument();
+  expect(within(pending).queryByRole('button', { name: 'Accept' })).not.toBeInTheDocument();
+  expect(document.querySelector('.sv-card.is-ghost-in, .sv-card.is-ghost-out')).not.toBeInTheDocument();
+});
+
+test('a refused accept shows the reason and drops Accept', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal() }));
+  api.acceptProposal.mockRejectedValue(apiError(409, { status: 'refused', reason: 'ECON 3300 is no longer offered' }));
+  renderView();
+  const pending = await screen.findByRole('group', { name: 'Pending change' });
+  fireEvent.click(within(pending).getByRole('button', { name: 'Accept' }));
+  expect(await within(pending).findByRole('alert')).toHaveTextContent('ECON 3300 is no longer offered');
+  expect(within(pending).queryByRole('button', { name: 'Accept' })).not.toBeInTheDocument();
+  expect(within(pending).getByRole('button', { name: 'Discard' })).toBeInTheDocument();
+});
+
+test('an accept that needs review says so', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal() }));
+  api.acceptProposal.mockRejectedValue(apiError(409, { status: 'needs_review', proposal: proposal() }));
+  renderView();
+  const pending = await screen.findByRole('group', { name: 'Pending change' });
+  fireEvent.click(within(pending).getByRole('button', { name: 'Accept' }));
+  expect(await screen.findByText('Your plan changed, check again')).toBeInTheDocument();
+});
+
+test('after Remove, focus moves to the next card, else the Courses heading', async () => {
+  api.postEdits.mockReturnValue(new Promise(() => {}));
+  renderView();
+  fireEvent.click(await screen.findByRole('button', { name: 'Remove CHEM 2410' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Drag ECON 3720' })).toHaveFocus());
+  fireEvent.click(screen.getByRole('button', { name: 'Remove ECON 3010' }));
+  await waitFor(() => expect(screen.getByRole('heading', { name: 'Courses' })).toHaveFocus());
+});
+
+test('Cmd+Z anywhere on the page undoes, but not in a text field', async () => {
+  api.getPlan.mockResolvedValue(view({ undo_label: 'Undo: removed ECON 3010' }));
+  api.undoEdit.mockResolvedValue({ plan: plan({ revision: 5 }), report: report(), undo_label: null });
+  renderView();
+  const search = await screen.findByRole('searchbox', { name: 'Search courses' });
+  fireEvent.keyDown(search, { key: 'z', metaKey: true });
+  await tick();
+  expect(api.undoEdit).not.toHaveBeenCalled();
+  fireEvent.keyDown(document.body, { key: 'z', metaKey: true });
+  await waitFor(() => expect(api.undoEdit).toHaveBeenCalledTimes(1));
+});
+
+test('a course still saving shows its ⋯ menu disabled', async () => {
+  api.postEdits.mockReturnValue(new Promise(() => {}));
+  renderView();
+  fireEvent.change(await screen.findByRole('searchbox', { name: 'Search courses' }), { target: { value: 'labor' } });
+  fireEvent.click(await screen.findByRole('button', { name: 'Add ECON 3300' }));
+  const more = await screen.findByRole('button', { name: 'More for ECON 3300' });
+  expect(more).toHaveAttribute('aria-disabled', 'true');
+  expect(more).toHaveAccessibleDescription('Saving; available once saved');
+  fireEvent.click(more);
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Remove ECON 3300' })).not.toBeInTheDocument();
+});
+
+test('switching term does not flash the new term\'s cards', async () => {
+  api.getPlan.mockImplementation((token, { term } = {}) => Promise.resolve(term
+    ? view({ report: report({ term: 'Fall 2027' }) })
+    : view()));
+  const { rerender } = renderView();
+  await screen.findByRole('meter', { name: 'Credits' });
+  rerender(
+    <MemoryRouter initialEntries={['/courses?view=semester']}>
+      <ToastProvider>
+        <PlannerProvider retryDelays={[0, 0, 0]}>
+          <DndProvider>
+            <SemesterView term="Fall 2027" />
+          </DndProvider>
+        </PlannerProvider>
+      </ToastProvider>
+    </MemoryRouter>,
+  );
+  await screen.findByRole('heading', { level: 1, name: 'Fall 2027' });
+  expect(document.querySelector('.sv-flash')).not.toBeInTheDocument();
 });
 
 test('a stale proposal card offers Discard only', async () => {

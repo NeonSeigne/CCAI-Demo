@@ -5,8 +5,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 /**
  * Catalog summaries (`/api/catalog/{id}`: grades, sections) and instructor
  * ratings (`/api/catalog/ratings/{id}`) for the semester view's cards, one
- * request per course per session. A failed lookup leaves the card with the
- * report's own fields; nothing is shown in place of missing data (D7).
+ * request per course at a time. A lookup that fails is forgotten, so the
+ * next caller tries again; the card keeps the report's own fields and
+ * shows nothing in place of the missing data (D7).
  */
 const summaries = new Map();
 const ratings = new Map();
@@ -19,13 +20,14 @@ export function clearCourseDetailsCache() {
 
 const once = (cache, key, load) => {
   if (!cache.has(key)) {
-    const run = Promise.resolve().then(load).catch(() => null);
+    const run = Promise.resolve().then(load);
     cache.set(key, run);
+    run.catch(() => { if (cache.get(key) === run) cache.delete(key); });
   }
   return cache.get(key);
 };
 
-/** The catalog summary of `id`, or null when it can't be loaded. */
+/** The catalog summary of `id`; rejects when it can't be loaded (and is not cached). */
 export const loadCourseSummary = (token, id) => once(summaries, id, () => getCatalogCourse(token, id));
 
 const loadRatings = (token, id) => once(ratings, id, () => request(
@@ -33,7 +35,7 @@ const loadRatings = (token, id) => once(ratings, id, () => request(
   `/api/catalog/ratings/${encodeURIComponent(String(id))}`,
 ));
 
-/** `{[id]: {summary, ratings}}` for every id, filled in as each lookup lands. */
+/** `{[id]: {summary, ratings, error}}` for every id, filled in as each lookup lands. */
 export default function useCourseDetails(ids) {
   const { authToken } = useAuth() || {};
   const [details, setDetails] = useState({});
@@ -42,16 +44,14 @@ export default function useCourseDetails(ids) {
   useEffect(() => {
     let alive = true;
     const list = key ? key.split('|') : [];
+    const put = (id, fields) => {
+      if (alive) setDetails((current) => ({ ...current, [id]: { ...current[id], ...fields } }));
+    };
     list.forEach((id) => {
       loadCourseSummary(authToken, id).then((summary) => {
-        if (!alive) return;
-        setDetails((current) => ({ ...current, [id]: { ...current[id], summary } }));
-        if (!summary) return;
-        loadRatings(authToken, id).then((data) => {
-          if (!alive || !data) return;
-          setDetails((current) => ({ ...current, [id]: { ...current[id], ratings: data.ratings || [] } }));
-        });
-      });
+        put(id, { summary, error: false });
+        loadRatings(authToken, id).then((data) => put(id, { ratings: data?.ratings || [] }), () => {});
+      }, () => put(id, { summary: null, error: true }));
     });
     return () => { alive = false; };
   }, [authToken, key]);

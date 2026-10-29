@@ -47,6 +47,7 @@ import '../../../styles/SemesterView.css';
 const FLASH_MS = 600;
 const SEARCH_LIMIT = 8;
 const SEARCH_DELAY = 300;
+const PREVIEW_DELAY = 150;
 
 /** The courses and their sections, so a change can be highlighted (D10). */
 const signatureOf = (rows, planCourses) => {
@@ -54,8 +55,9 @@ const signatureOf = (rows, planCourses) => {
   return new Map(rows.filter((r) => !r.pending).map((r) => [r.id, sections.get(r.id) || 'null']));
 };
 
-function useChangeFlash(signature, ready) {
+function useChangeFlash(signature, ready, termId) {
   const previous = useRef(null);
+  const termRef = useRef(termId);
   const timer = useRef(null);
   const [flash, setFlash] = useState({ ids: new Set(), totals: false });
 
@@ -63,6 +65,12 @@ function useChangeFlash(signature, ready) {
 
   useEffect(() => {
     if (!ready) return;
+    // Another term is a new page, not a change to flash.
+    if (termRef.current !== termId) {
+      termRef.current = termId;
+      previous.current = signature;
+      return;
+    }
     const before = previous.current;
     previous.current = signature;
     if (!before) return;
@@ -72,7 +80,7 @@ function useChangeFlash(signature, ready) {
     clearTimeout(timer.current);
     setFlash({ ids: new Set(changed), totals: true });
     timer.current = setTimeout(() => setFlash({ ids: new Set(), totals: false }), FLASH_MS);
-  }, [signature, ready]);
+  }, [signature, ready, termId]);
 
   return flash;
 }
@@ -121,23 +129,42 @@ function LoadError({ onRetry }) {
   );
 }
 
+/**
+ * Accept / Discard for the pending proposal, with the same outcome states
+ * as the chat card: refused (reason, no Accept), needs review, errors, and
+ * a held save. A stale proposal (D9) offers Discard only.
+ */
 function PendingChange({ proposal, planner, onAccept }) {
   const state = planner.proposalState?.(proposal.id);
-  const busy = state?.status === 'applying' || state?.status === 'discarding';
+  const status = state?.status;
+  const busy = status === 'applying' || status === 'discarding';
+  const reviewed = status === 'needs_review' && state?.proposal ? state.proposal : proposal;
+  const refused = status === 'refused';
+  const canAccept = !proposal.stale && !refused;
+  let message = null;
+  if (refused) message = state?.reason || 'This change can’t be applied.';
+  else if (status === 'needs_review') message = 'Your plan changed, check again';
+  else if (state?.error) message = state.error;
   return (
     <div className="sv-pending" role="group" aria-label="Pending change">
       <span className="sv-pending-label">Preview</span>
-      <span className="sv-pending-heading">{proposal.diff?.heading}</span>
+      <span className="sv-pending-heading">{(reviewed.diff || proposal.diff)?.heading}</span>
       <span className="sv-pending-actions">
-        {!proposal.stale && (
-          <button type="button" className="sv-btn is-primary" disabled={busy} onClick={() => onAccept(proposal)}>
-            {state?.status === 'applying' ? 'Applying…' : 'Accept'}
+        {canAccept && (
+          <button
+            type="button"
+            className="sv-btn is-primary"
+            disabled={busy || !!state?.held}
+            onClick={() => onAccept(reviewed)}
+          >
+            {status === 'applying' ? 'Applying…' : 'Accept'}
           </button>
         )}
         <button type="button" className="sv-btn" disabled={busy} onClick={() => planner.discard(proposal)}>
           Discard
         </button>
       </span>
+      {message && <span className="sv-pending-error" role="alert">{message}</span>}
     </div>
   );
 }
@@ -188,7 +215,11 @@ export default function SemesterView({ term }) {
   // D9: a pending proposal drawn for this term.
   const proposal = planner?.pendingProposal || null;
   const touches = !!proposal?.diff && termKey(proposal.term || plan?.term) === termKey(shownTerm);
-  const preview = useMemo(() => (touches ? previewOf(proposal) : null), [touches, proposal]);
+  // A stale proposal (an edit landed after it) draws no ghosts (D9).
+  const preview = useMemo(
+    () => (touches && !proposal.stale ? previewOf(proposal) : null),
+    [touches, proposal],
+  );
   const ghostRows = useMemo(() => {
     if (!preview) return [];
     const incoming = [
@@ -216,8 +247,12 @@ export default function SemesterView({ term }) {
   const ghostBlocksIn = preview ? (proposal.diff.schedule?.blocks_in || proposal.diff.schedule?.blocks || []) : [];
   const ghostBlocksOut = preview ? (proposal.diff.schedule?.blocks_out || []) : [];
 
+  const latest = useRef({});
+  latest.current.ids = ids;
+  const inFlight = useRef(new Set());
+
   const signature = useMemo(() => signatureOf(rows, planCourses), [rows, planCourses]);
-  const flash = useChangeFlash(signature, !!view);
+  const flash = useChangeFlash(signature, !!view, termKey(shownTerm));
 
   // ---- edits -------------------------------------------------------------
   const undo = useCallback(() => {
@@ -245,7 +280,7 @@ export default function SemesterView({ term }) {
 
   const addCourse = useCallback((item, sections = null) => {
     if (!planner || !plan) return null;
-    if (ids.includes(item.id)) {
+    if ((latest.current.ids || ids).includes(item.id)) {
       pulse(item.id);
       return null;
     }
@@ -257,20 +292,39 @@ export default function SemesterView({ term }) {
     return runEdit([op], `${elsewhere ? 'Moved' : 'Added'} to ${shownTerm}`);
   }, [planner, plan, ids, pulse, shownTerm, runEdit]);
 
+  latest.current.addCourse = addCourse;
+  latest.current.blocks = blocks;
+
+  // D4: the week adds the course with the section that fits. A second drop
+  // of a course still being looked up springs back like a duplicate (D8).
   const dropOnWeek = useCallback(async (item) => {
-    if (ids.includes(item.id)) {
+    const busy = inFlight.current;
+    if (latest.current.ids.includes(item.id) || busy.has(item.id)) {
       pulse(item.id);
       return;
     }
-    const summary = await loadCourseSummary(authToken, item.id);
-    const pick = fittingPick(summary?.sections?.rows || [], blocks, item.id);
-    if (pick.sections) {
-      addCourse(item, pick.sections);
+    busy.add(item.id);
+    let pick;
+    try {
+      const summary = await loadCourseSummary(authToken, item.id);
+      pick = fittingPick(summary?.sections?.rows || [], latest.current.blocks, item.id);
+    } catch {
+      // No sections to check: never add silently; Swap section loads again with Retry.
+      pick = { choose: true };
+    } finally {
+      busy.delete(item.id);
+    }
+    if (latest.current.ids.includes(item.id)) {
+      pulse(item.id);
       return;
     }
-    addCourse(item);
+    if (pick.sections) {
+      latest.current.addCourse(item, pick.sections);
+      return;
+    }
+    latest.current.addCourse(item);
     if (pick.choose) setSwap(item.id);
-  }, [ids, pulse, authToken, blocks, addCourse]);
+  }, [pulse, authToken]);
 
   const listTarget = useDropTarget({
     id: 'semester-list',
@@ -292,29 +346,56 @@ export default function SemesterView({ term }) {
       return undefined;
     }
     let alive = true;
-    requestPreview([{ op: 'add', course: hoverId, term: shownTerm }], shownTerm)
-      .then((data) => {
-        const after = data?.diff?.credits?.after;
-        if (alive && after) setHoverCredits({ min: after[0], max: after[1] });
-      })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [hoverId, requestPreview, shownTerm]);
+    const elsewhere = (plan?.courses || []).some((c) => c.id === hoverId);
+    const op = elsewhere
+      ? { op: 'move', course: hoverId, to_term: shownTerm }
+      : { op: 'add', course: hoverId, term: shownTerm };
+    const timer = setTimeout(() => {
+      requestPreview([op], shownTerm)
+        .then((data) => {
+          const after = data?.diff?.credits?.after;
+          if (alive && after) setHoverCredits({ min: after[0], max: after[1] });
+        })
+        .catch(() => {});
+    }, PREVIEW_DELAY);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [hoverId, requestPreview, shownTerm, plan]);
 
-  const removeCourse = (id) => runEdit([{ op: 'remove', course: id }], `Removed from ${shownTerm}`);
+  // After Remove, focus the next card's grip, else the Courses heading.
+  const [focusAfter, setFocusAfter] = useState(null);
+  const removeCourse = (id) => {
+    const index = ids.indexOf(id);
+    setFocusAfter({ next: ids[index + 1] || null, removed: id });
+    return runEdit([{ op: 'remove', course: id }], `Removed from ${shownTerm}`);
+  };
+  useEffect(() => {
+    if (!focusAfter || ids.includes(focusAfter.removed)) return;
+    setFocusAfter(null);
+    const card = focusAfter.next
+      && [...document.querySelectorAll('article.sv-card')].find((el) => el.dataset.course === focusAfter.next);
+    const grip = card?.querySelector('.sv-grip');
+    const fallback = document.getElementById('sv-courses-h') || document.querySelector('.sv-undo button');
+    (grip || fallback)?.focus();
+  }, [focusAfter, ids]);
   const moveCourse = (id, to) => runEdit([{ op: 'move', course: id, to_term: to }], `Moved to ${to}`);
   const pickSection = (id, sections) => runEdit([{ op: 'pick_section', course: id, sections }], 'Section changed');
 
   // Swap section reads the course's sections, even before its card has them.
+  const [swapRun, setSwapRun] = useState(0);
   useEffect(() => {
     setSwapSummary(null);
     if (!swap) return undefined;
     let alive = true;
     loadCourseSummary(authToken, swap).then((summary) => {
       if (alive) setSwapSummary({ id: swap, summary });
+    }, () => {
+      if (alive) setSwapSummary({ id: swap, summary: null, error: true });
     });
     return () => { alive = false; };
-  }, [swap, authToken]);
+  }, [swap, authToken, swapRun]);
 
   // ---- search ------------------------------------------------------------
   useEffect(() => {
@@ -344,6 +425,21 @@ export default function SemesterView({ term }) {
   };
   const closeSearch = () => setSearch({ open: false, status: 'idle', results: [] });
 
+  // Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z anywhere on the page, never in a text field.
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.defaultPrevented) return;
+      if (!(event.metaKey || event.ctrlKey) || String(event.key).toLowerCase() !== 'z') return;
+      const target = event.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      event.preventDefault();
+      if (event.shiftKey) redo(); else undo();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [undo, redo]);
+
   // ---- render ------------------------------------------------------------
   if (!planner) return null;
 
@@ -354,15 +450,6 @@ export default function SemesterView({ term }) {
   };
   const previous = shiftTerm(shownTerm, -1);
   const following = shiftTerm(shownTerm, 1);
-
-  const onKeyDown = (event) => {
-    const tag = event.target?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') {
-      event.preventDefault();
-      if (event.shiftKey) redo(); else undo();
-    }
-  };
 
   const header = (
     <header className="sv-head">
@@ -492,7 +579,7 @@ export default function SemesterView({ term }) {
             aria-labelledby="sv-courses-h"
           >
             <div className="sv-courses-head">
-              <h2 id="sv-courses-h">Courses</h2>
+              <h2 id="sv-courses-h" tabIndex={-1}>Courses</h2>
               {!empty && (
                 <span className="sv-courses-count">
                   {rows.length} {rows.length === 1 ? 'course' : 'courses'} · {totalText} credits
@@ -592,6 +679,8 @@ export default function SemesterView({ term }) {
             course={swap}
             rows={swapDetail?.sections?.rows || []}
             loading={swapSummary?.id !== swap}
+            error={swapSummary?.id === swap && !!swapSummary.error}
+            onRetry={() => setSwapRun((n) => n + 1)}
             blocks={blocks}
             chosen={planCourses.find((c) => c.id === swap)?.sections || null}
             onClose={() => setSwap(null)}
@@ -607,7 +696,7 @@ export default function SemesterView({ term }) {
   }
 
   return (
-    <div className="semester-view" role="region" aria-label={shownTerm} onKeyDown={onKeyDown}>
+    <div className="semester-view" role="region" aria-label={shownTerm}>
       {header}
       {notices}
       {body}

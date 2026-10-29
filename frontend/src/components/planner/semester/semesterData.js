@@ -77,10 +77,20 @@ export function parseMeeting(text) {
   return days.map((day) => ({ day, start, end }));
 }
 
-/** Every meeting of a catalog section row; [] when the school gives no times. */
-export const meetingsOf = (row) => (row?.meetings || []).flatMap((text) => (
-  typeof text === 'string' ? parseMeeting(text) : []
-));
+/**
+ * Every meeting of a catalog section row: [] when the school gives no times,
+ * null when a time is given but can't be read (never guess around it).
+ */
+export const meetingsOf = (row) => {
+  const texts = (row?.meetings || []).filter((text) => typeof text === 'string' && text.trim());
+  const out = [];
+  for (const text of texts) {
+    const parsed = parseMeeting(text);
+    if (!parsed.length) return null;
+    out.push(...parsed);
+  }
+  return out;
+};
 
 /**
  * The id the planner knows a catalog section by: `id` (or `class_number`)
@@ -160,40 +170,73 @@ export function clashesWith(meetings, blocks, course) {
   return [...hit];
 }
 
+const KIND_PARTS = {
+  lecture: 'LEC', lab: 'LAB', laboratory: 'LAB', discussion: 'DIS', seminar: 'SEM',
+};
+const CORE_PARTS = new Set(['LEC', 'LAB', 'DIS']);
+
+/**
+ * The parts a full enrolment takes: from the rows' `requires` (the
+ * backend's bundle data) when any row carries it, else lecture plus lab /
+ * discussion. Optional kinds (SEM, IND…) are left out.
+ */
+export function requiredParts(rows) {
+  const list = rows || [];
+  const parts = new Set(list.map(partLabel));
+  if (list.some((row) => Array.isArray(row?.requires))) {
+    const out = new Set(list.filter(isPrimary).map(partLabel));
+    if (!out.size) list.filter((row) => Array.isArray(row?.requires)).forEach((row) => out.add(partLabel(row)));
+    list.forEach((row) => (row?.requires || []).forEach((kind) => {
+      const part = KIND_PARTS[String(kind).toLowerCase()] || String(kind).toUpperCase();
+      if (parts.has(part)) out.add(part);
+    }));
+    return out;
+  }
+  return new Set([...parts].filter((part) => CORE_PARTS.has(part)));
+}
+
 /**
  * Sections of a course grouped by part, each with its meetings and whether
  * it fits the week's other blocks. `fits` is null where the section has no
- * published times (D23: no Fits or Clash then).
+ * published times, or times that can't be read (D23: no Fits or Clash then).
+ * `required` marks the parts a full enrolment takes.
  */
 export function sectionOptions(rows, blocks, course) {
   const groups = new Map();
+  const required = requiredParts(rows);
   (rows || []).forEach((row) => {
     const meetings = meetingsOf(row);
-    const clash = meetings.length ? clashesWith(meetings, blocks, course) : [];
+    const known = meetings && meetings.length ? meetings : null;
+    const clash = known ? clashesWith(known, blocks, course) : [];
     const option = {
       id: sectionId(row),
       row,
-      meetings,
+      meetings: known || [],
       clash,
-      fits: meetings.length ? clash.length === 0 : null,
+      fits: known ? clash.length === 0 : null,
     };
     const part = partLabel(row);
     if (!groups.has(part)) groups.set(part, []);
     groups.get(part).push(option);
   });
-  return [...groups.entries()].map(([part, options]) => ({ part, options }));
+  return [...groups.entries()].map(([part, options]) => ({ part, options, required: required.has(part) }));
 }
 
 /**
  * Where a dropped course goes in the week (D4): `{sections}` when exactly one
- * section of every part fits, else `{choose: true}` (several fit, or none).
- * Without times anywhere: `{sections: null}` (nothing to pick from).
+ * section of every required part fits and every one of them has readable
+ * times; else `{choose: true}` (several fit, none fit, or a time we can't
+ * read). Without any times at all: `{sections: null}` (nothing to pick from).
  */
 export function fittingPick(rows, blocks, course) {
-  const groups = sectionOptions(rows, blocks, course);
-  if (!groups.length || groups.every((g) => g.options.every((o) => o.fits === null))) return { sections: null };
+  const list = rows || [];
+  const anyTimes = list.some((row) => (row?.meetings || []).some((text) => typeof text === 'string' && text.trim()));
+  if (!list.length || !anyTimes) return { sections: null };
+  const groups = sectionOptions(list, blocks, course).filter((g) => g.required);
+  if (!groups.length) return { choose: true };
   const picked = [];
   for (const group of groups) {
+    if (group.options.some((o) => o.fits === null)) return { choose: true };
     const fit = group.options.filter((o) => o.fits);
     if (fit.length !== 1) return { choose: true };
     picked.push(fit[0].id);
