@@ -129,12 +129,15 @@ export default function SetupDialog({
   const termDirty = Boolean(term) && term !== plan.term;
   const dirty = [programDirty, completedDirty, termDirty][step];
 
+  // Transcript rows first, under "Found N"; then the program's checklist and added courses.
+  const foundIds = Object.keys(found);
   const courses = [...new Set([
+    ...foundIds,
     ...checklistCourses(programId ? [programId] : [], programs, planner?.view?.report, completed),
     ...extra,
   ])];
   const titleOf = (id) => names[id] || titles[id] || null;
-  const foundCount = Object.keys(found).length;
+  const foundCount = foundIds.length;
 
   /** A row as it was saved, else as the transcript read it, so re-ticking restores it. */
   const restoredRow = (id) => saved.get(id) || entryOf({ id, ...(found[id] || {}) });
@@ -266,7 +269,9 @@ export default function SetupDialog({
 
   const catalogYear = program?.catalog_year || (programId === savedProgramId ? profile.catalog_year : null);
   const groups = programGroups(programs);
-  const shownTerms = [...new Set([plan.term, ...terms].filter(Boolean))];
+  // Terms set_term accepts (R1): the plan's term, and board terms the school's data covers or that hold courses.
+  const known = new Set((degree?.terms || []).filter((t) => t.covered || (t.courses || []).length).map((t) => t.term));
+  const shownTerms = [...new Set([plan.term, ...terms.filter((name) => known.has(name))].filter(Boolean))];
   const busy = saving;
 
   const body = [

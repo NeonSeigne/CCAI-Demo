@@ -666,6 +666,8 @@ describe('Setup dialog', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
     dialog = await screen.findByRole('dialog', { name: 'First term' });
     expect(within(dialog).getByRole('radio', { name: 'Spring 2027' })).toBeChecked();
+    // The board's trailing empty term isn't one set_term accepts.
+    expect(within(dialog).queryByRole('radio', { name: 'Spring 2028' })).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('radio', { name: 'Fall 2027' }));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Done' }));
     await waitFor(() => expect(planner.edit).toHaveBeenCalledWith(
