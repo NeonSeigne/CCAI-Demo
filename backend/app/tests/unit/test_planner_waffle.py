@@ -44,6 +44,25 @@ class WaffleTests(unittest.TestCase):
         result = waffle(plan(completed=[("ECON 2010", None), ("ECON 2020", "B")]))
         self.assertEqual(result["groups"][0]["unknown_grade"], 1)
 
+    def test_unknown_grade_credits_per_group(self):
+        result = waffle(plan(completed=[("ECON 2010", None), ("MATH 1310", None), ("ECON 2020", "B")]))
+        intro, math = result["groups"][:2]
+        self.assertEqual((intro["unknown_grade"], intro["unknown_grade_credits"]), (1, 3.0))
+        self.assertEqual((math["unknown_grade"], math["unknown_grade_credits"]), (1, 4.0))
+
+    def test_ungraded_courses_counted_elsewhere_are_not_hatched_again(self):
+        program = Program("econ-ba", "Economics B.A.", total_credits=18, rules=(
+            Rule("intro", "Introductory economics", "all_of", courses=("ECON 3010", "ECON 3020")),
+            Rule("upper", "Upper-level electives", "level", subjects=("ECON",), min_level=3000, n=2,
+                 double_count=True),
+        ))
+        result = waffle(plan(completed=[("ECON 3010", None), ("ECON 3020", "A")]), program)
+        intro, upper, other = result["groups"]
+        self.assertEqual((intro["unknown_grade"], intro["unknown_grade_credits"]), (1, 3.0))
+        self.assertIn("ECON 3010", upper["counted_elsewhere"])
+        self.assertEqual((upper["unknown_grade"], upper["unknown_grade_credits"]), (0, 0))
+        self.assertEqual((other["unknown_grade"], other["unknown_grade_credits"]), (0, 0))
+
     def test_no_total_credits_means_no_other_credit_group(self):
         result = waffle(plan(courses=["ECON 3010"]), dataclasses.replace(PROGRAM, total_credits=None))
         self.assertEqual([g["title"] for g in result["groups"]][-1], "Upper-level electives")

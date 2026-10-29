@@ -1,6 +1,8 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  MemoryRouter, Route, Routes, useLocation, useNavigationType,
+} from 'react-router-dom';
 import CoursesPage from './CoursesPage';
 import { SavedContext } from '../contexts/SavedContext';
 import { PlannerContext } from '../contexts/PlannerContext';
@@ -298,6 +300,10 @@ test('the Browse tab is selected and ticks restore from an earlier visit', async
   expect(await screen.findByRole('checkbox', { name: /COMP SCI 400/ })).toBeChecked();
 });
 
+function NavTypeProbe() {
+  return <output data-testid="nav-type">{useNavigationType()}</output>;
+}
+
 describe('Browse | My degree (D5)', () => {
   const plannerWith = (courses, status = 'ready') => ({
     status,
@@ -313,6 +319,7 @@ describe('Browse | My degree (D5)', () => {
             <Route path="/courses" element={<CoursesPage />} />
           </Routes>
           <LocationProbe />
+          <NavTypeProbe />
         </SavedContext.Provider>
       </PlannerContext.Provider>
     </MemoryRouter>,
@@ -361,11 +368,29 @@ describe('Browse | My degree (D5)', () => {
     expect(await screen.findByTestId('semester-view')).toHaveTextContent('Fall 2027');
   });
 
-  test('clicking a Browse row opens the course pop-up through ?course=', async () => {
+  test('clicking a Browse row previews it inline and replaces ?selected=, without ?course=', async () => {
     uwStarters();
     renderWithPlanner(plannerWith([]));
     fireEvent.click(await screen.findByRole('button', { name: /^COMP SCI 400 Programming III/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent('course=COMP+SCI+400');
+    expect(await screen.findByRole('heading', { level: 2, name: 'Programming III' })).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('selected=COMP+SCI+400');
+    expect(screen.getByTestId('location')).not.toHaveTextContent('course=');
+    expect(screen.getByTestId('nav-type')).toHaveTextContent('REPLACE');
+  });
+
+  test('Details in the preview opens the course pop-up with a pushed ?course=', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([]));
+    fireEvent.click(await screen.findByRole('button', { name: 'Details COMP SCI 300' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('course=COMP+SCI+300');
+    expect(screen.getByTestId('nav-type')).toHaveTextContent('PUSH');
+  });
+
+  test('a ?selected= link lands in Browse even when the plan has courses', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([{ id: 'ECON 3020', term: 'Spring 2027' }]), '/courses?selected=COMP%20SCI%20400');
+    expect(screen.getByRole('tab', { name: 'Browse' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByRole('heading', { level: 2, name: 'Programming III' })).toBeInTheDocument();
   });
 
   test('Browse rows are drag sources with a labelled grip', async () => {

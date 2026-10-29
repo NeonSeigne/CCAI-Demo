@@ -108,9 +108,15 @@ def _credit_value(course_id: str, facts: Dict[str, CourseFacts]) -> float:
     return float(fact.credits[0]) if _usable(fact) and fact.credits else COURSE_CREDITS
 
 
-def _group(title: str, earned: float, planned: float, open_: float, unknown_grade: int, **ids: Any) -> Dict[str, Any]:
+def _group(
+    title: str, earned: float, planned: float, open_: float, unknown_grade: int, unknown_grade_credits: float,
+    **ids: Any,
+) -> Dict[str, Any]:
+    """``unknown_grade`` / ``unknown_grade_credits``: the group's own earned
+    courses with no grade on record (not ones counted by an earlier group)."""
     return {**ids, "title": title, "size": earned + planned + open_, "earned": earned, "planned": planned,
-            "open": open_, "unknown_grade": unknown_grade}
+            "open": open_, "unknown_grade": unknown_grade,
+            "unknown_grade_credits": min(earned, unknown_grade_credits)}
 
 
 def _rule_group(
@@ -128,8 +134,10 @@ def _rule_group(
     else:
         open_ = max(0, rule["needed"] - len(taken)) * COURSE_CREDITS
     shared = [c for c in taken if c in counted]
+    ungraded = [c for c in done if c not in counted and grades.get(c) is None]
     counted.update(taken)
-    return _group(rule["title"], earned, planning, open_, sum(1 for c in done if grades.get(c) is None),
+    return _group(rule["title"], earned, planning, open_, len(ungraded),
+                  sum(_credit_value(c, facts) for c in ungraded),
                   program_id=rule["program_id"], rule_id=rule["rule_id"], status=rule["status"],
                   courses=taken, counted_elsewhere=shared)
 
@@ -145,8 +153,9 @@ def _other_group(
     rest = [c["id"] for c in checker.planned_courses(plan) if c["id"] not in counted and c["id"] not in grades]
     earned = min(size, sum(_credit_value(c, facts) for c in done))
     planned = min(size - earned, sum(_credit_value(c, facts) for c in rest))
+    ungraded = [c for c in done if grades[c] is None]
     return _group(OTHER_CREDIT, earned, planned, size - earned - planned,
-                  sum(1 for c in done if grades[c] is None),
+                  len(ungraded), sum(_credit_value(c, facts) for c in ungraded),
                   program_id=None, rule_id=None, status=None, courses=done + rest, counted_elsewhere=[])
 
 

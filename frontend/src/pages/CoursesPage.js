@@ -132,7 +132,9 @@ function SectionsBlock({ data, school }) {
   );
 }
 
-function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
+function CoursePreview({
+  data, school, onSelectCourse, onAsk, onDetails, headingRef,
+}) {
   const caps = data.capabilities || {};
   const source = data.source;
   const code = data.identifier;
@@ -153,6 +155,10 @@ function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
         </div>
         <div className="cc-preview-actions">
           <SaveButton item={{ kind: 'course', key: code, display_name: title ? `${code} ${title}` : code }} />
+          <button type="button" className="cc-btn" onClick={() => onDetails(code)}>
+            Details
+            <span className="sr-only"> {code}</span>
+          </button>
           <button type="button" className="cc-btn cc-btn-primary" onClick={() => onAsk(code, title)}>
             <MessageSquare size={16} aria-hidden="true" /> Ask about it
             <span className="sr-only"> {code}</span>
@@ -447,17 +453,27 @@ function BrowseView({ tabs }) {
 
   const openPreview = (id) => {
     setSelectedId(id);
+    // The inline preview follows the row; the URL keeps it without a history entry.
     setParams((current) => {
       const next = new URLSearchParams(current);
-      next.set('course', id);
+      next.set('selected', id);
       return next;
-    });
+    }, { replace: true });
     if (isPhone()) {
       listScroll.current = window.scrollY;
       setPhoneView('preview');
       window.scrollTo?.(0, 0);
       setTimeout(() => headingRef.current?.focus(), 0);
     }
+  };
+
+  /** The full course pop-up (app-wide host, `?course=`), as a new history entry. */
+  const openDetails = (id) => {
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('course', id);
+      return next;
+    });
   };
 
   const backToResults = () => {
@@ -556,6 +572,7 @@ function BrowseView({ tabs }) {
         headingRef={headingRef}
         onSelectCourse={(id) => setSelectedId(id)}
         onAsk={ask}
+        onDetails={openDetails}
       />
     );
   } else {
@@ -697,6 +714,8 @@ export default function CoursesPage() {
   useEffect(() => { ensureLoaded?.(); }, [ensureLoaded]);
 
   let mode = MODES.includes(explicit) ? explicit : null;
+  // Links into Browse (a course to preview, a search) land in Browse.
+  if (!mode && (params.has('selected') || params.has('q'))) mode = 'browse';
   if (!mode) {
     if (!planner || !authToken) decided.current = decided.current || 'browse';
     else if (!decided.current && (planner.status === 'ready' || planner.status === 'error')) {

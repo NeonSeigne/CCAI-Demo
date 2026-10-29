@@ -58,62 +58,68 @@ export function groupTone(group, index) {
   return `c${(index % 6) + 1}`;
 }
 
-const round = (value) => Math.max(0, Math.round(Number(value) || 0));
+const num = (value) => Math.max(0, Number(value) || 0);
 
 /**
- * Credits of a group's completed courses with no grade on record, so the
- * waffle can hatch those squares. Counted-elsewhere courses add nothing.
+ * The waffle in whole squares (one per credit). Every group's parts, in
+ * order (earned without a grade, earned, planned, open), are laid end to
+ * end and cut at rounded running totals, so the squares add up to the
+ * rounded total and every count shown (key, summary, table) matches them.
+ * Hatched credits come from the server (`unknown_grade_credits`: the
+ * group's own ungraded courses, never ones counted elsewhere).
  */
-export function ungradedCredits(group, completed) {
-  if (!group?.unknown_grade) return 0;
-  const elsewhere = new Set(group.counted_elsewhere || []);
-  const byId = new Map((completed || []).map((c) => [c.id, c]));
-  let total = 0;
-  let found = 0;
-  (group.courses || []).forEach((id) => {
-    const course = byId.get(id);
-    if (!course || elsewhere.has(id) || course.grade) return;
-    found += 1;
-    total += creditMin(course.credits) ?? 3;
+export function waffleModel(waffle) {
+  let running = 0;
+  let edge = 0;
+  const cut = (value) => {
+    running += num(value);
+    const next = Math.round(running);
+    const count = next - edge;
+    edge = next;
+    return count;
+  };
+  const groups = (waffle?.groups || []).map((group, index) => {
+    const earned = num(group.earned);
+    const ungraded = Math.min(earned, num(group.unknown_grade_credits));
+    const hatched = cut(ungraded);
+    const graded = cut(earned - ungraded);
+    const planned = cut(group.planned);
+    const open = cut(group.open);
+    return {
+      ...group,
+      index,
+      tone: groupTone(group, index),
+      hatched,
+      earned: hatched + graded,
+      planned,
+      open,
+      size: hatched + graded + planned + open,
+    };
   });
-  if (!found) total = group.unknown_grade * 3;
-  return Math.min(round(group.earned), round(total));
+  const totals = groups.reduce((sum, g) => ({
+    earned: sum.earned + g.earned, planned: sum.planned + g.planned, open: sum.open + g.open,
+  }), { earned: 0, planned: 0, open: 0 });
+  totals.size = totals.earned + totals.planned + totals.open;
+  return { groups, totals };
 }
 
-/**
- * One square per credit, group after group: earned, earned without a grade
- * (hatched), planned, open. Sizes are whole credits.
- */
-export function waffleSquares(waffle, completed) {
+/** One square per credit, group after group: ungraded (hatched), earned, planned, open. */
+export function waffleSquares(waffle) {
   const squares = [];
-  (waffle?.groups || []).forEach((group, index) => {
-    const tone = groupTone(group, index);
-    const earned = round(group.earned);
-    const hatched = ungradedCredits(group, completed);
-    const planned = round(group.planned);
-    const open = round(group.open);
+  waffleModel(waffle).groups.forEach((g) => {
     const push = (count, state) => {
-      for (let i = 0; i < count; i += 1) squares.push({ group: index, tone, state });
+      for (let i = 0; i < count; i += 1) squares.push({ group: g.index, tone: g.tone, state });
     };
-    push(hatched, 'unknown');
-    push(earned - hatched, 'earned');
-    push(planned, 'planned');
-    push(open, 'open');
+    push(g.hatched, 'unknown');
+    push(g.earned - g.hatched, 'earned');
+    push(g.planned, 'planned');
+    push(g.open, 'open');
   });
   return squares;
 }
 
-/** Totals across the waffle's groups. */
-export function waffleTotals(waffle) {
-  const totals = { earned: 0, planned: 0, open: 0 };
-  (waffle?.groups || []).forEach((group) => {
-    totals.earned += round(group.earned);
-    totals.planned += round(group.planned);
-    totals.open += round(group.open);
-  });
-  totals.size = waffle?.total_credits ?? totals.earned + totals.planned + totals.open;
-  return totals;
-}
+/** Totals across the waffle's groups, in whole squares. */
+export const waffleTotals = (waffle) => waffleModel(waffle).totals;
 
 /** Rule groups not yet met: the count shown when there's no Finish date (D13). */
 export const openRequirements = (waffle) => (waffle?.groups || [])
@@ -121,11 +127,11 @@ export const openRequirements = (waffle) => (waffle?.groups || [])
 
 /** "Economics B.A.: 70 earned, 44 planned, 6 open; Statistics 0 of 1" (D22). */
 export function waffleSummary(name, waffle) {
-  const totals = waffleTotals(waffle);
+  const { groups, totals } = waffleModel(waffle);
   const head = `${name ? `${name}: ` : ''}${totals.earned} earned, ${totals.planned} planned, ${totals.open} open`;
-  const short = (waffle?.groups || [])
-    .filter((group) => group.rule_id && group.status !== 'met')
-    .map((group) => `${group.title} ${round(group.earned) + round(group.planned)} of ${round(group.size)}`);
+  const short = groups
+    .filter((g) => g.rule_id && g.status !== 'met')
+    .map((g) => `${g.title} ${g.earned + g.planned} of ${g.size}`);
   return [head, ...short].join('; ');
 }
 

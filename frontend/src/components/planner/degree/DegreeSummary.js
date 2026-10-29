@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  groupTone, openRequirements, ungradedCredits, waffleSquares, waffleSummary, waffleTotals,
+  openRequirements, waffleModel, waffleSquares, waffleSummary,
 } from './degreeFormat';
 
 const ROWS = 8;
@@ -22,10 +22,10 @@ function FinishDate({ term }) {
  * totals; the waffle (one square per credit, filled column by column,
  * group after group) with its key, an accessible summary and a hidden table.
  */
-export default function DegreeSummary({ name, waffle, completed }) {
-  const groups = waffle?.groups || [];
-  const totals = waffleTotals(waffle);
-  const squares = waffleSquares(waffle, completed);
+export default function DegreeSummary({ name, waffle }) {
+  // Whole squares; every number below is read from the same rounding.
+  const { groups, totals } = waffleModel(waffle);
+  const squares = waffleSquares(waffle);
   const summary = waffleSummary(name, waffle);
   const openCount = openRequirements(waffle);
 
@@ -48,7 +48,7 @@ export default function DegreeSummary({ name, waffle, completed }) {
             <dt>Credits</dt>
             <dd>
               {totals.earned + totals.planned}
-              {waffle?.total_credits != null && <span className="dg-of"> / {waffle.total_credits}</span>}
+              {waffle?.total_credits != null && <span className="dg-of"> / {totals.size}</span>}
             </dd>
           </div>
           <div>
@@ -87,9 +87,8 @@ export default function DegreeSummary({ name, waffle, completed }) {
 
       <ul className="dg-key" aria-hidden="true">
         {groups.map((group, index) => {
-          const tone = groupTone(group, index);
-          const have = Math.round((group.earned || 0) + (group.planned || 0));
-          const hatched = ungradedCredits(group, completed);
+          const { tone, hatched } = group;
+          const have = group.earned + group.planned;
           return (
             <li key={group.rule_id || `other-${index}`} className="dg-key-row">
               <span className={`dg-key-dot tone-${tone}`} />
@@ -101,8 +100,8 @@ export default function DegreeSummary({ name, waffle, completed }) {
                     {group.unknown_grade}
                   </span>
                 )}
-                {have}/{Math.round(group.size || 0)}
-                {group.open > 0 && <span className="dg-key-left"> · {Math.round(group.open)} left</span>}
+                {have}/{group.size}
+                {group.open > 0 && <span className="dg-key-left"> · {group.open} left</span>}
               </span>
             </li>
           );
@@ -126,11 +125,11 @@ export default function DegreeSummary({ name, waffle, completed }) {
             {groups.map((group, index) => (
               <tr key={group.rule_id || `other-${index}`}>
                 <th scope="row">{group.title}</th>
-                <td>{Math.round(group.earned || 0)}</td>
-                <td>{Math.round(group.planned || 0)}</td>
-                <td>{Math.round(group.open || 0)}</td>
+                <td>{group.earned}</td>
+                <td>{group.planned}</td>
+                <td>{group.open}</td>
                 <td>{group.unknown_grade || 0}</td>
-                <td>{Math.round(group.size || 0)}</td>
+                <td>{group.size}</td>
               </tr>
             ))}
           </tbody>

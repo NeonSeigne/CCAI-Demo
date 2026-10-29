@@ -313,14 +313,19 @@ export default function CourseComparePage() {
             <p className="cc-kicker">{school}</p>
             <h1>Compare courses</h1>
           </div>
-          <CoursesTabs active="compare" count={ids.length} onBrowse={() => navigate('/courses')} />
+          <CoursesTabs
+            active="compare"
+            count={ids.length}
+            onBrowse={() => navigate('/courses?view=browse')}
+            onDegree={() => navigate('/courses?view=degree')}
+          />
         </header>
 
         {!enough ? (
           <div className="cmp-layout">
             <div className="cmp-empty">
               <p>Tick at least 2 courses to compare.</p>
-              <Link className="cc-btn" to="/courses">Back to Browse</Link>
+              <Link className="cc-btn" to="/courses?view=browse">Back to Browse</Link>
             </div>
             {addPanel}
           </div>

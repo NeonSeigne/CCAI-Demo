@@ -78,24 +78,21 @@ export default function CourseCard({
         </ul>
       )}
 
+      {/* One menu whose items switch lists, so focus returns to ⋯ on close. */}
       <Menu
         anchorEl={menuButton.current}
-        open={menu === 'main'}
+        open={Boolean(menu)}
         onClose={close}
-        slotProps={{ list: { 'aria-label': `${course.id} actions` } }}
+        slotProps={{ list: { 'aria-label': menu === 'move' ? `Move ${course.id} to` : `${course.id} actions` } }}
       >
-        <MenuItem disabled={!others.length} onClick={() => setMenu('move')}>Move to…</MenuItem>
-        <MenuItem onClick={() => { close(); onRemove(course); }}>Remove</MenuItem>
-      </Menu>
-      <Menu
-        anchorEl={menuButton.current}
-        open={menu === 'move'}
-        onClose={close}
-        slotProps={{ list: { 'aria-label': `Move ${course.id} to` } }}
-      >
-        {others.map((t) => (
-          <MenuItem key={t} onClick={() => { close(); onMove(course, t); }}>{t}</MenuItem>
-        ))}
+        {menu === 'move'
+          ? others.map((t, index) => (
+            <MenuItem key={t} autoFocus={index === 0} onClick={() => { close(); onMove(course, t); }}>{t}</MenuItem>
+          ))
+          : [
+            <MenuItem key="move" disabled={!others.length} onClick={() => setMenu('move')}>Move to…</MenuItem>,
+            <MenuItem key="remove" onClick={() => { close(); onRemove(course); }}>Remove</MenuItem>,
+          ]}
       </Menu>
     </li>
   );

@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import AppDialog from '../../AppDialog';
+import ConfirmDialog from '../../ConfirmDialog';
 import { usePageColumn } from '../../shell/PageColumnContext';
 import { InlineError, useDebounced } from '../../catalog/CatalogParts';
 import { searchCatalog } from '../../../api/campus';
@@ -31,6 +34,9 @@ export default function CompletedEditor({
   const [results, setResults] = useState({ status: 'idle', courses: [] });
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  // The ops of this editor's last failed save, so only its own error is cleared.
+  const ownFailure = useRef(null);
 
   // Start from the saved list each time it opens.
   useEffect(() => {
@@ -39,6 +45,7 @@ export default function CompletedEditor({
     setExtra([]);
     setQuery('');
     setFailed(false);
+    setConfirming(false);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -64,12 +71,30 @@ export default function CompletedEditor({
   ])];
   const titleOf = (id) => names[id] || titles[id] || null;
 
+  const saved = useMemo(() => new Map(completed.map((c) => [c.id, c])), [completed]);
+  const savedRow = (id) => {
+    const c = saved.get(id);
+    return { id, grade: c?.grade ?? null, term: c?.term ?? null };
+  };
+
+  // Re-ticking a course brings back its saved grade and term.
   const toggle = (id) => setRows((current) => {
     const next = new Map(current);
     if (next.has(id)) next.delete(id);
-    else next.set(id, { id, grade: null, term: null });
+    else next.set(id, savedRow(id));
     return next;
   });
+
+  const dirty = rows.size !== saved.size || [...rows.values()].some((row) => {
+    const c = saved.get(row.id);
+    return !c || (c.grade ?? null) !== row.grade || (c.term ?? null) !== row.term;
+  });
+
+  /** Close at once when nothing changed; otherwise confirm discarding. */
+  const requestClose = () => {
+    if (dirty) setConfirming(true);
+    else onClose();
+  };
 
   const setGrade = (id, grade) => setRows((current) => {
     const next = new Map(current);
@@ -82,18 +107,37 @@ export default function CompletedEditor({
     if (!norm) return;
     if (title) setNames((current) => ({ ...current, [norm]: title }));
     setExtra((current) => (current.includes(norm) ? current : [...current, norm]));
-    setRows((current) => (current.has(norm) ? current : new Map(current).set(norm, { id: norm, grade: null, term: null })));
+    setRows((current) => (current.has(norm) ? current : new Map(current).set(norm, savedRow(norm))));
     setQuery('');
   };
 
+  /** Enter adds the result the text names exactly, else the first result; never free text. */
+  const addFromSearch = () => {
+    if (results.status !== 'ready' || !results.courses.length) return;
+    const typed = normalizeCourseId(query);
+    const match = results.courses.find((c) => normalizeCourseId(c.identifier) === typed) || results.courses[0];
+    add(match.identifier, match.title);
+  };
+
   const save = async () => {
+    // The queue is holding another save: say so here, don't queue behind it.
+    if (planner.queueHeld) {
+      setFailed(true);
+      return;
+    }
+    const error = planner.saveError;
+    if (error && !error.held && ownFailure.current && error.ops === ownFailure.current) {
+      planner.dismissSaveError?.();
+    }
+    const ops = [{ op: 'set_profile', completed: [...rows.values()] }];
     setSaving(true);
     setFailed(false);
-    planner.dismissSaveError?.();
     try {
-      await planner.edit([{ op: 'set_profile', completed: [...rows.values()] }]);
+      await planner.edit(ops);
+      ownFailure.current = null;
       onClose();
     } catch {
+      ownFailure.current = ops;
       setFailed(true);
     } finally {
       setSaving(false);
@@ -101,18 +145,18 @@ export default function CompletedEditor({
   };
 
   const retry = () => {
-    if (planner.saveError?.held) {
+    if (planner.queueHeld) {
       planner.retry();
-      onClose();
+      setFailed(false);
     } else {
       save();
     }
   };
 
-  return (
+  const dialog = (
     <AppDialog
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       container={container}
       aria-labelledby="dg-completed-h"
       fullWidth
@@ -121,7 +165,7 @@ export default function CompletedEditor({
     >
       <header className="dg-editor-head">
         <h2 id="dg-completed-h">Completed</h2>
-        <button type="button" className="dg-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
+        <button type="button" className="dg-icon-btn" aria-label="Close" title="Close" onClick={requestClose}>
           <CloseRounded fontSize="small" aria-hidden="true" />
         </button>
       </header>
@@ -138,7 +182,7 @@ export default function CompletedEditor({
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              add(query);
+              addFromSearch();
             }
           }}
         />
@@ -199,5 +243,20 @@ export default function CompletedEditor({
         </button>
       </footer>
     </AppDialog>
+  );
+
+  return (
+    <>
+      {dialog}
+      <ConfirmDialog
+        isOpen={confirming}
+        title="Discard changes?"
+        confirmLabel="Discard"
+        cancelLabel="Keep editing"
+        tone="danger"
+        onConfirm={() => { setConfirming(false); onClose(); }}
+        onCancel={() => setConfirming(false)}
+      />
+    </>
   );
 }

@@ -13,7 +13,7 @@ import { PastColumn, PastTermColumn } from './PastColumn';
 import ProgramPicker from './ProgramPicker';
 import CompletedEditor from './CompletedEditor';
 import {
-  creditsOf, groupTone, nextTerm, pastTerms, sortTerms,
+  creditsOf, groupTone, nextTerm, parseTerm, pastTerms, sortTerms, termOrder,
 } from './degreeFormat';
 import '../../../styles/DegreeBoard.css';
 
@@ -21,17 +21,28 @@ const PULSE_MS = 700;
 
 const sameIds = (a, b) => a.length === b.length && a.every((id) => b.includes(id));
 
-/** Term names on the board: the plan's term, every planned term, then one empty term after the last. */
-function boardTerms(degree, planCourses) {
+/**
+ * Term names on the board: the plan's term and every planned term, every
+ * regular term between the first and the last, then one empty term after.
+ */
+export function boardTerms(degree, planCourses) {
   const names = new Set([
     ...(degree?.terms || []).map((t) => t.term),
     ...planCourses.map((c) => c.term).filter(Boolean),
   ]);
   if (degree?.term) names.add(degree.term);
-  const sorted = sortTerms([...names]);
-  const after = sorted.length ? nextTerm(sorted[sorted.length - 1]) : null;
-  if (after && !names.has(after)) sorted.push(after);
-  return sorted;
+  const known = sortTerms([...names]).filter((t) => parseTerm(t));
+  if (known.length) {
+    const last = termOrder(known[known.length - 1]);
+    let term = known[0];
+    for (let i = 0; i < 40 && term && termOrder(term) < last; i += 1) {
+      term = nextTerm(term);
+      if (term && termOrder(term) < last) names.add(term);
+    }
+    const after = nextTerm(known[known.length - 1]);
+    if (after) names.add(after);
+  }
+  return sortTerms([...names]);
 }
 
 /**
@@ -76,10 +87,28 @@ export default function DegreeBoard({ head = null }) {
   useEffect(() => { ensureLoaded?.(); }, [ensureLoaded]);
 
   const revision = view?.plan?.revision;
-  const fetchDegree = useCallback((force = false) => {
+  const revisionRef = useRef(revision);
+  revisionRef.current = revision;
+  const catchUps = useRef(0);
+
+  /**
+   * Read the degree. A read joined while edits kept landing can settle on an
+   * older revision than the plan's; then read again (a few times at most).
+   */
+  const fetchDegree = useCallback(function read(force = false) {
     if (!haveDegree) setLoadState('loading');
     return refreshDegree({ force }).then(
-      () => setLoadState('ready'),
+      (data) => {
+        setLoadState('ready');
+        const latest = revisionRef.current;
+        const behind = data && latest != null && (data.revision ?? -1) < latest;
+        if (behind && catchUps.current < 3) {
+          catchUps.current += 1;
+          read();
+        } else if (!behind) {
+          catchUps.current = 0;
+        }
+      },
       () => setLoadState((current) => (haveDegree ? current : 'error')),
     );
   }, [haveDegree, refreshDegree]);
@@ -211,7 +240,7 @@ export default function DegreeBoard({ head = null }) {
   else if (hasPrograms && !programIds.length) {
     top = <ProgramPicker programs={programs} onChoose={chooseProgram} onEditCompleted={() => setEditorOpen(true)} />;
   } else if (hasPrograms && waffle && groups.length) {
-    top = <DegreeSummary name={program?.name || null} waffle={waffle} completed={completed} />;
+    top = <DegreeSummary name={program?.name || null} waffle={waffle} />;
   }
 
   let board;
