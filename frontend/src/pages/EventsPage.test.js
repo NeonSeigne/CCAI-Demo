@@ -2,7 +2,9 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import EventsPage from './EventsPage';
-import { getCampusOrigin, listEvents, listPlaces, setCampusOrigin } from '../api/campus';
+import {
+  getCampusOrigin, getEvent, listEvents, listPlaces, setCampusOrigin,
+} from '../api/campus';
 import { addDays, dayKey, rangeLabel, windowDays } from '../utils/eventWindows';
 
 jest.mock('../api/campus', () => ({
@@ -10,7 +12,10 @@ jest.mock('../api/campus', () => ({
   getCampusOrigin: jest.fn(),
   setCampusOrigin: jest.fn(),
   listPlaces: jest.fn(),
+  getEvent: jest.fn(),
+  getPlace: jest.fn(),
 }));
+jest.mock('../hooks/useAsk', () => () => jest.fn());
 jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'test-token', user: { firstName: 'Dev' } }),
 }));
@@ -302,5 +307,31 @@ describe('EventsPage', () => {
     fireEvent.keyDown(screen.getByLabelText('Search campus places'), { key: 'Escape' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(change).toHaveFocus();
+  });
+
+  it('a title opens the event pop-up over the page (?event=), and Close removes it', async () => {
+    const jazz = event({ title: 'Jazz Night', categories: ['Music'] });
+    listEvents.mockResolvedValue(body([jazz]));
+    getEvent.mockResolvedValue({ event: { ...jazz, description: 'Big band night.' }, timezone: TZ });
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Jazz Night' }));
+    expect(params().get('event')).toBe('Jazz Night-id');
+    const dialog = await screen.findByRole('dialog', { name: 'Jazz Night' });
+    expect(await within(dialog).findByText('Big band night.')).toBeInTheDocument();
+    expect(getEvent).toHaveBeenCalledWith('test-token', 'Jazz Night-id', expect.objectContaining({ from: 'origin-1' }));
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(params().get('event')).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('a calendar block opens the event pop-up too', async () => {
+    const jazz = event({ title: 'Jazz Night', start: at(today(), '15:00'), end: at(today(), '16:00') });
+    listEvents.mockResolvedValue(body([jazz]));
+    getEvent.mockResolvedValue({ event: jazz, timezone: TZ });
+    renderPage('/events?view=calendar');
+    const [block] = await screen.findAllByTestId('events-calendar-block');
+    fireEvent.click(block);
+    expect(params().get('event')).toBe('Jazz Night-id');
   });
 });

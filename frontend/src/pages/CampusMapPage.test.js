@@ -10,6 +10,7 @@ jest.mock('../api/campus', () => ({
   getRoute: jest.fn(),
   getCampusOrigin: jest.fn(),
   setCampusOrigin: jest.fn(),
+  listEvents: jest.fn(() => Promise.resolve({ events: [] })),
 }));
 
 // Leaflet needs a real layout engine; the map is aria-hidden and the list is
@@ -32,6 +33,8 @@ jest.mock('../contexts/AppConfigContext', () => ({
   }),
 }));
 jest.mock('../components/CampusRail', () => () => <nav aria-label="Main" />);
+const mockAsk = jest.fn();
+jest.mock('../hooks/useAsk', () => () => mockAsk);
 jest.mock('../components/SettingsModal', () => () => null);
 jest.mock('../components/SaveButton', () => ({ item }) => (
   <button type="button" aria-label={`Save ${item.display_name}`}>Save</button>
@@ -87,6 +90,8 @@ function renderPage(entry = '/map') {
 }
 
 const rowButton = (name) => screen.getByRole('button', { name: new RegExp(`^${name}`) });
+// With the place sheet open the list is hidden, but it keeps its selection (D21).
+const hiddenRow = (name) => screen.getByRole('button', { name: new RegExp(`^${name}`), hidden: true });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -152,8 +157,8 @@ test('clicking a row selects it, redraws the route and updates the panel', async
   await screen.findByText('412 m along paths');
   campus.getRoute.mockResolvedValueOnce({ ...ROUTE, minutes: 16, distance_m: 1200 });
   fireEvent.click(rowButton('Steenbock Library'));
-  expect(rowButton('Steenbock Library')).toHaveAttribute('aria-pressed', 'true');
-  expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'false');
+  expect(hiddenRow('Steenbock Library')).toHaveAttribute('aria-pressed', 'true');
+  expect(hiddenRow('Memorial Library')).toHaveAttribute('aria-pressed', 'false');
   expect(await screen.findByText('1.2 km along paths')).toBeInTheDocument();
   expect(screen.getByText('Walking to Steenbock Library')).toBeInTheDocument();
   expect(screen.queryByText('Nearest open library')).not.toBeInTheDocument();
@@ -173,17 +178,23 @@ test('a failed route shows "Walking route unavailable" and drops the old line an
   expect(within(panel).queryByText(/\d+ min/)).not.toBeInTheDocument();
 });
 
-test('Ask about this route opens a new chat prefilled, not sent', async () => {
+test('a row or pin opens the place sheet in place of the list; Ask attaches; closing restores the list', async () => {
   renderPage();
   await screen.findByText('Nearest open library');
-  fireEvent.click(screen.getByRole('button', { name: 'Ask about this route' }));
-  const state = JSON.parse(screen.getByTestId('location').textContent);
-  expect(state.pathname).toBe('/chat');
-  expect(state.state).toEqual({
-    startNew: true,
-    pendingPrompt: 'How do I get from College Library to Memorial Library?',
-  });
-  expect(state.state.autoSend).toBeUndefined();
+  campus.getPlace.mockResolvedValue({ place: { ...LIBRARIES[1], address: '728 State St' } });
+  fireEvent.click(rowButton('Memorial Library'));
+
+  const sheet = await screen.findByRole('region', { name: 'Memorial Library' });
+  expect(within(sheet).getByText('728 State St')).toBeInTheDocument();
+  expect(screen.queryByRole('region', { name: /nearest first/ })).not.toBeInTheDocument();
+  // D21: no header Ask button; the sheet has Ask.
+  expect(screen.queryByRole('button', { name: /Ask about this route/ })).not.toBeInTheDocument();
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Ask about Memorial Library' }));
+  expect(mockAsk).toHaveBeenCalledWith({ type: 'place', id: 'memorial', title: 'Memorial Library' });
+
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
+  expect(screen.queryByRole('region', { name: 'Memorial Library' })).not.toBeInTheDocument();
+  expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('Change opens a place search; picking saves the start with PUT; Escape closes', async () => {
