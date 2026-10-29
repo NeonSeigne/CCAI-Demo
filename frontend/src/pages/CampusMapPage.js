@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapContainer, TileLayer, CircleMarker, Polyline, useMap } from 'react-leaflet';
-import { ExternalLink } from '../components/icons';
+import { MapContainer, TileLayer, CircleMarker, Marker, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { ExternalLink, Icon } from '../components/icons';
 import 'leaflet/dist/leaflet.css';
 import CampusRail from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';
-import PlaceSheet from '../components/map/PlaceSheet';
+import PlaceSheet, { CATEGORY_ICONS } from '../components/map/PlaceSheet';
 import useAsk from '../hooks/useAsk';
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -57,6 +58,24 @@ function useDelayedFlag(active, ms = PLACEHOLDER_DELAY_MS) {
 }
 
 const isAbort = (error) => error?.name === 'AbortError';
+
+const iconName = (category) => CATEGORY_ICONS[category] || 'location_on';
+
+/** A round pin with the category's icon; the selected pin is large, in signal (DESIGN.md "Map"). */
+const pinIcons = new Map();
+function pinIcon(category, selected) {
+  const key = `${category || 'other'}-${selected ? 'on' : 'off'}`;
+  if (!pinIcons.has(key)) {
+    const size = selected ? 46 : 34;
+    pinIcons.set(key, L.divIcon({
+      className: `map-pin map-pin--${category || 'other'} ${selected ? 'is-selected' : ''}`.trim(),
+      html: `<span class="ms ms-fill">${iconName(category)}</span>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+    }));
+  }
+  return pinIcons.get(key);
+}
 
 export function formatDistance(metres) {
   if (typeof metres !== 'number' || Number.isNaN(metres)) return '';
@@ -147,18 +166,18 @@ function CampusMap({
       <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
       <MapViewport points={fitPoints} />
       {places.filter(hasPoint).map((place) => (
-        <CircleMarker
-          // Leaflet sets className only on creation: remount when selection changes.
-          key={`${place.id}-${selected?.id === place.id ? 'on' : 'off'}`}
-          center={[place.lat, place.lon]}
-          radius={selected?.id === place.id ? 9 : 6}
-          className={`map-pin ${selected?.id === place.id ? 'is-selected' : ''}`.trim()}
+        <Marker
+          key={place.id}
+          position={[place.lat, place.lon]}
+          icon={pinIcon(place.category, selected?.id === place.id)}
+          zIndexOffset={selected?.id === place.id ? 1000 : 0}
+          keyboard={false}
           // Pins are the pointer path; the list is the keyboard path (D22).
           eventHandlers={onPickPlace ? { click: () => onPickPlace(place) } : undefined}
         />
       ))}
       {hasPoint(selected) && !places.some((p) => p.id === selected.id) && (
-        <CircleMarker center={[selected.lat, selected.lon]} radius={9} className="map-pin is-selected" />
+        <Marker position={[selected.lat, selected.lon]} icon={pinIcon(selected.category, true)} keyboard={false} />
       )}
       {line.length > 1 && (
         <Polyline
@@ -366,6 +385,8 @@ const CampusMapPage = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [route, setRoute] = useState({ status: 'idle', data: null });
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [query, setQuery] = useState('');
   const pendingSelect = useRef({ to: initial.to, suggest: true });
   const startButtonRef = useRef(null);
 
@@ -403,7 +424,9 @@ const CampusMapPage = () => {
         setCategory(probe?.default_category || '');
         return;
       }
-      const data = await listPlaces(authToken, { category, from: originId, limit: LIST_LIMIT }, opts);
+      const params = { category, from: originId, limit: LIST_LIMIT };
+      if (query) params.q = query;
+      const data = await listPlaces(authToken, params, opts);
       const places = data?.places || [];
       setList({
         status: 'ok',
@@ -444,7 +467,15 @@ const CampusMapPage = () => {
       setList((prev) => ({ ...prev, status: 'error' }));
     });
     return () => controller.abort();
-  }, [authToken, originResolved, originId, category, reloadKey]);
+  }, [authToken, originResolved, originId, category, query, reloadKey]);
+
+  // ---- Search box: the list follows the typed name after a pause.
+  useEffect(() => {
+    const text = draft.trim();
+    if (text === query) return undefined;
+    const timer = setTimeout(() => setQuery(text), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [draft, query]);
 
   // ---- Walking route for the selection (R4: failure → no line, no time).
   const selectedId = selected?.place?.id || '';
@@ -516,7 +547,7 @@ const CampusMapPage = () => {
   // ---- List rows: 3 nearest, the selection kept visible, "See N more".
   const places = list.places;
   const selectedIndex = places.findIndex((p) => p.id === selectedId);
-  const visible = expanded ? places : places.filter((p, i) => i < NEAREST_SHOWN || i === selectedIndex);
+  const visible = expanded || query ? places : places.filter((p, i) => i < NEAREST_SHOWN || i === selectedIndex);
   const moreCount = places.length - visible.length;
 
   const chips = useMemo(() => {
@@ -551,15 +582,13 @@ const CampusMapPage = () => {
       />
 
       <main className="campus-main map-main" id="main-content">
-        <div className="map-column">
-          <header className="map-header">
-            <div>
+        <div className="map-layout">
+          <div className="map-side">
+            <header className="map-header">
               <p className="campus-kicker">{school}</p>
               <h1>Campus map</h1>
-            </div>
-          </header>
+            </header>
 
-          <div className="map-top">
             {originStatus === 'loading' && originSlow ? (
               <section className="map-panel" aria-label="Walking route">
                 <span className="map-placeholder-line" />
@@ -577,7 +606,122 @@ const CampusMapPage = () => {
                 picker={picker}
               />
             )}
-            {/* The list below is the accessible equivalent of the map (28A). */}
+
+            <form className="map-search" role="search" onSubmit={(event) => { event.preventDefault(); setQuery(draft.trim()); }}>
+              <Icon name="search" size={20} />
+              <label htmlFor="map-search-input" className="sr-only">Search places</label>
+              <input
+                id="map-search-input"
+                type="search"
+                value={draft}
+                placeholder="Search places"
+                autoComplete="off"
+                onChange={(event) => setDraft(event.target.value)}
+              />
+            </form>
+
+            <div className="map-filters" role="group" aria-label="Place categories">
+              {chips.map((chip) => (
+                <button
+                  type="button"
+                  key={chip.id || 'all'}
+                  className={`map-chip ${chip.id === category ? 'is-on' : ''}`.trim()}
+                  aria-pressed={chip.id === category}
+                  onClick={() => chooseCategory(chip.id)}
+                >
+                  <Icon name={chip.id ? iconName(chip.id) : 'apps'} size={18} filled={chip.id === category} />
+                  {chipLabel(chip.id)}
+                  <span className="map-chip-count">{chip.count}</span>
+                </button>
+              ))}
+            </div>
+
+            <section className="map-list" aria-label={`${chipLabel(category ?? '')} nearest first`}>
+              {list.status === 'error' && (
+                <div className="map-state" role="alert">
+                  <p>Couldn't load places</p>
+                  <button type="button" className="map-btn" onClick={() => setReloadKey((k) => k + 1)}>Retry</button>
+                </div>
+              )}
+
+              {list.status === 'loading' && list.places.length === 0 && listSlow && (
+                <ul className="map-rows" aria-hidden="true">
+                  {[0, 1, 2].map((i) => (
+                    <li className="map-row is-placeholder" key={i}>
+                      <span className="map-row-main"><span className="map-row-name">–</span></span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {list.status === 'ok' && places.length === 0 && (
+                <div className="map-state">
+                  <p>{query ? `No places match “${query}”` : `No ${pluralName(category)} on the campus map`}</p>
+                  {category && (
+                    <button type="button" className="map-btn" onClick={() => chooseCategory('')}>Show all</button>
+                  )}
+                </div>
+              )}
+
+              {list.status !== 'error' && places.length > 0 && (
+                <>
+                  <ul className="map-rows">
+                    {visible.map((place) => {
+                      const isSelected = place.id === selectedId;
+                      return (
+                        <li className={`map-row ${isSelected ? 'is-selected' : ''}`.trim()} key={place.id}>
+                          <button
+                            type="button"
+                            className="map-row-main"
+                            aria-pressed={isSelected}
+                            data-place-row={place.id}
+                            onClick={() => openSheet(place)}
+                          >
+                            <span className="map-row-icon" aria-hidden="true">
+                              <Icon name={iconName(place.category)} size={20} filled={isSelected} />
+                            </span>
+                            <span className="map-row-text">
+                              <span className="map-row-name">{place.name}</span>
+                              <span className="map-row-hours">{hoursLine(place, timezone)}</span>
+                            </span>
+                            {place.walk_minutes === 0 && place.distance_m === 0 ? (
+                              <span className="map-row-walk">
+                                <span className="map-row-distance">Your starting place</span>
+                              </span>
+                            ) : typeof place.walk_minutes === 'number' && (
+                              <span className="map-row-walk">
+                                <span className="map-row-minutes">{place.walk_minutes} min</span>
+                                {typeof place.distance_m === 'number' && (
+                                  <span className="map-row-distance">{formatDistance(place.distance_m)} walk</span>
+                                )}
+                              </span>
+                            )}
+                          </button>
+                          <SaveButton item={{ kind: 'place', key: place.id, display_name: place.name }} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {moreCount > 0 && (
+                    <button type="button" className="map-btn map-more" onClick={() => setExpanded(true)}>
+                      See {moreCount} more {pluralName(category)}
+                    </button>
+                  )}
+                </>
+              )}
+            </section>
+
+            <p className="map-footnote">
+              Places and walking routes from OpenStreetMap. Map data{' '}
+              <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+                {OSM_ATTRIBUTION}
+              </a>
+              {routeAttribution ? `. ${routeAttribution}` : ''}
+            </p>
+          </div>
+
+          <div className="map-stage">
+            {/* The list is the accessible equivalent of the map (28A). */}
             <div className="map-frame" aria-hidden="true">
               {originResolved && !(list.status === 'loading' && listSlow) ? (
                 <CampusMap
@@ -591,122 +735,24 @@ const CampusMapPage = () => {
                 <div className="map-canvas map-canvas-empty" />
               )}
             </div>
-          </div>
 
-          <div className="map-filters" role="group" aria-label="Place categories">
-            {chips.map((chip) => (
-              <button
-                type="button"
-                key={chip.id || 'all'}
-                className={`map-chip ${chip.id === category ? 'is-on' : ''}`.trim()}
-                aria-pressed={chip.id === category}
-                onClick={() => chooseCategory(chip.id)}
-              >
-                {chipLabel(chip.id)}
-                <span className="map-chip-count">{chip.count}</span>
-              </button>
-            ))}
-          </div>
-
-          {sheetOpen && selected && (
-            <PlaceSheet
-              key={selected.place.id}
-              placeId={selected.place.id}
-              place={selected.place}
-              from={originId || undefined}
-              timezone={timezone}
-              onClose={closeSheet}
-              onAsk={ask}
-              onDirections={directions}
-              titleId="map-place-title"
-              autoFocus
-            />
-          )}
-
-          <section
-            className="map-list"
-            aria-label={`${chipLabel(category ?? '')} nearest first`}
-            hidden={sheetOpen && Boolean(selected)}
-          >
-            {list.status === 'error' && (
-              <div className="map-state" role="alert">
-                <p>Couldn't load places</p>
-                <button type="button" className="map-btn" onClick={() => setReloadKey((k) => k + 1)}>Retry</button>
+            {sheetOpen && selected && (
+              <div className="map-card">
+                <PlaceSheet
+                  key={selected.place.id}
+                  placeId={selected.place.id}
+                  place={selected.place}
+                  from={originId || undefined}
+                  timezone={timezone}
+                  onClose={closeSheet}
+                  onAsk={ask}
+                  onDirections={directions}
+                  titleId="map-place-title"
+                  autoFocus
+                />
               </div>
             )}
-
-            {list.status === 'loading' && list.places.length === 0 && listSlow && (
-              <ul className="map-rows" aria-hidden="true">
-                {[0, 1, 2].map((i) => (
-                  <li className="map-row is-placeholder" key={i}>
-                    <span className="map-row-main"><span className="map-row-name">–</span></span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {list.status === 'ok' && places.length === 0 && (
-              <div className="map-state">
-                <p>No {pluralName(category)} on the campus map</p>
-                {category && (
-                  <button type="button" className="map-btn" onClick={() => chooseCategory('')}>Show all</button>
-                )}
-              </div>
-            )}
-
-            {list.status !== 'error' && places.length > 0 && (
-              <>
-                <ul className="map-rows">
-                  {visible.map((place) => {
-                    const isSelected = place.id === selectedId;
-                    return (
-                      <li className={`map-row ${isSelected ? 'is-selected' : ''}`.trim()} key={place.id}>
-                        <button
-                          type="button"
-                          className="map-row-main"
-                          aria-pressed={isSelected}
-                          data-place-row={place.id}
-                          onClick={() => openSheet(place)}
-                        >
-                          <span className="map-row-dot" aria-hidden="true" />
-                          <span className="map-row-text">
-                            <span className="map-row-name">{place.name}</span>
-                            <span className="map-row-hours">{hoursLine(place, timezone)}</span>
-                          </span>
-                          {place.walk_minutes === 0 && place.distance_m === 0 ? (
-                            <span className="map-row-walk">
-                              <span className="map-row-distance">Your starting place</span>
-                            </span>
-                          ) : typeof place.walk_minutes === 'number' && (
-                            <span className="map-row-walk">
-                              <span className="map-row-minutes">{place.walk_minutes} min</span>
-                              {typeof place.distance_m === 'number' && (
-                                <span className="map-row-distance">{formatDistance(place.distance_m)} walk</span>
-                              )}
-                            </span>
-                          )}
-                        </button>
-                        <SaveButton item={{ kind: 'place', key: place.id, display_name: place.name }} />
-                      </li>
-                    );
-                  })}
-                </ul>
-                {moreCount > 0 && (
-                  <button type="button" className="map-btn map-more" onClick={() => setExpanded(true)}>
-                    See {moreCount} more {pluralName(category)}
-                  </button>
-                )}
-              </>
-            )}
-          </section>
-
-          <p className="map-footnote">
-            Places and walking routes from OpenStreetMap. Map data{' '}
-            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
-              {OSM_ATTRIBUTION}
-            </a>
-            {routeAttribution ? `. ${routeAttribution}` : ''}
-          </p>
+          </div>
         </div>
       </main>
 
