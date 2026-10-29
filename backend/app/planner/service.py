@@ -147,11 +147,17 @@ async def _view(plan: Dict[str, Any], school: str, term: Optional[str] = None) -
         "report": await report_for(plan, school, term),
         "proposal": store.public_proposal(store.pending_proposal(plan)),
         "undo_label": store.current_undo_label(plan),
+        "redo_label": store.current_redo_label(plan),
     }
 
 
+def _changed(view_: Dict[str, Any]) -> Dict[str, Any]:
+    """What a write returns: the view without the proposal."""
+    return {key: view_[key] for key in ("plan", "report", "undo_label", "redo_label")}
+
+
 async def view(user_id: str, school: str, term: Optional[str] = None) -> Dict[str, Any]:
-    """``{plan, report, proposal, undo_label}`` for the plan panel and page;
+    """``{plan, report, proposal, undo_label, redo_label}`` for the plan panel and page;
     ``term`` checks the plan as the semester view of that term (R13)."""
     return await _view(await _plan(get_database(), user_id, school), school, term)
 
@@ -218,8 +224,7 @@ async def apply_edit(
     plan, _ = await store.commit_edit(
         db, str(user_id), school, ops, expected_revision=expected_revision, idempotency_key=idempotency_key
     )
-    view_ = await _view(plan, school)
-    return {"plan": view_["plan"], "report": view_["report"], "undo_label": view_["undo_label"], "notes": notes}
+    return dict(_changed(await _view(plan, school)), notes=notes)
 
 
 async def preview(
@@ -278,8 +283,7 @@ async def accept(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:
         return await _validated_diff(plan, proposal["ops"], school)
 
     plan = await store.accept(db, str(user_id), school, proposal_id, recheck=recheck)
-    view_ = await _view(plan, school)
-    return {"plan": view_["plan"], "report": view_["report"], "undo_label": view_["undo_label"]}
+    return _changed(await _view(plan, school))
 
 
 async def discard(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:
@@ -292,8 +296,19 @@ async def undo(user_id: str, school: str, *, expected_revision: int) -> Dict[str
     db = get_database()
     await _plan(db, user_id, school)
     plan = await store.undo(db, str(user_id), school, expected_revision=expected_revision)
-    view_ = await _view(plan, school)
-    return {"plan": view_["plan"], "report": view_["report"], "undo_label": view_["undo_label"]}
+    return _changed(await _view(plan, school))
+
+
+async def redo(user_id: str, school: str, *, expected_revision: int) -> Dict[str, Any]:
+    """Re-apply the step after the undo pointer, checked like a new edit (R4)."""
+    db = get_database()
+    await _plan(db, user_id, school)
+
+    async def validate(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> None:
+        edits.validate_ops(plan, ops, by_term=await _facts_by_term(edits.verify_by_term(plan, ops), school))
+
+    plan = await store.redo(db, str(user_id), school, expected_revision=expected_revision, validate=validate)
+    return _changed(await _view(plan, school))
 
 
 async def suggestions(user_id: str, school: str, q: str, term: Optional[str] = None) -> Dict[str, Any]:

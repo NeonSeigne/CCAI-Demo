@@ -9,7 +9,7 @@ plan id is ever taken from the client. The work happens in
 - ``unknown_course`` / ``couldnt_verify_course`` / other edit errors (422).
 - Accept that needs a second look (409 ``needs_review`` with the refreshed
   proposal) or can't go ahead (409 ``refused`` with the reason); a refused
-  undo uses the same ``refused`` shape.
+  undo or redo uses the same ``refused`` shape.
 """
 
 from typing import Annotated, Any, Awaitable, Dict, Optional
@@ -129,6 +129,12 @@ async def discard_proposal(proposal_id: str, current_user: User = Depends(get_cu
 @router.post("/undo")
 async def post_undo(body: UndoRequest, current_user: User = Depends(get_current_active_user)):
     return await _run(service.undo(str(current_user.id), _school(), expected_revision=body.expected_revision))
+
+
+@router.post("/redo")
+async def post_redo(body: UndoRequest, current_user: User = Depends(get_current_active_user)):
+    """Re-apply the step Undo walked back; 409 ``refused`` with the reason when it no longer applies."""
+    return await _run(service.redo(str(current_user.id), _school(), expected_revision=body.expected_revision))
 
 
 @router.get("/suggestions")

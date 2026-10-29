@@ -153,15 +153,16 @@ already holds.
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
+| GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label, redo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | GET | `/api/planner/degree` | | `degree` (above) |
-| POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
+| POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label, redo_label, notes}`; 409 `revision_conflict` |
 | POST | `/api/planner/preview` | `{ops, expected_revision, term?}` | `{diff, revision}`: the diff a proposal of `ops` would carry, seen in `term` (default the plan's); writes nothing, a pending proposal is untouched; 409 `revision_conflict`, 422 edit errors |
 | POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
-| POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label}` |
+| POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
+| POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
