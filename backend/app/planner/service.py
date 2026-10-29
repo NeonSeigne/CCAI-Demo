@@ -222,6 +222,24 @@ async def apply_edit(
     return {"plan": view_["plan"], "report": view_["report"], "undo_label": view_["undo_label"], "notes": notes}
 
 
+async def preview(
+    user_id: str,
+    school: str,
+    ops: List[Dict[str, Any]],
+    *,
+    expected_revision: int,
+    term: Optional[str] = None,
+) -> Dict[str, Any]:
+    """The diff a proposal of ``ops`` would carry, seen in ``term`` (eng review R2).
+
+    Writes nothing: no revision bump, and a pending proposal stays as it is.
+    """
+    plan = await _plan(get_database(), user_id, school)
+    if plan["revision"] != expected_revision:
+        raise store.RevisionConflict(plan["revision"])
+    return {"diff": await _validated_diff(plan, ops, school, term=term), "revision": plan["revision"]}
+
+
 async def propose(
     user_id: str, school: str, ops: List[Dict[str, Any]], *, expected_revision: int, asked: Optional[str] = None
 ) -> Dict[str, Any]:

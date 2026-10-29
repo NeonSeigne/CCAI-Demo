@@ -18,7 +18,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 
 from app.config import get_settings
 from app.core.auth import get_current_active_user
-from app.models.planner import EditRequest, ProposalRequest, UndoRequest
+from app.models.planner import EditRequest, PreviewRequest, ProposalRequest, UndoRequest
 from app.models.user import User
 from app.planner import service, store
 from app.planner.edits import EditError
@@ -91,6 +91,14 @@ async def post_edits(body: EditRequest, current_user: User = Depends(get_current
     return await _run(service.apply_edit(
         str(current_user.id), _school(), body.ops,
         expected_revision=body.expected_revision, idempotency_key=body.idempotency_key,
+    ))
+
+
+@router.post("/preview")
+async def post_preview(body: PreviewRequest, current_user: User = Depends(get_current_active_user)):
+    """The diff these ops would make, seen in ``term``; nothing is stored."""
+    return await _run(service.preview(
+        str(current_user.id), _school(), body.ops, expected_revision=body.expected_revision, term=body.term,
     ))
 
 

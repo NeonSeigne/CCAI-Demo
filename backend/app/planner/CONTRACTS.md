@@ -153,6 +153,7 @@ already holds.
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | GET | `/api/planner/degree` | | `degree` (above) |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
+| POST | `/api/planner/preview` | `{ops, expected_revision, term?}` | `{diff, revision}`: the diff a proposal of `ops` would carry, seen in `term` (default the plan's); writes nothing, a pending proposal is untouched; 409 `revision_conflict`, 422 edit errors |
 | POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
