@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { DOMAIN_COLORS } from './domainColors';
 import { formatEventTime, hasPhysicalLocation } from './visuals/EventListCard';
-import '../styles/AnswerPanel.css';
+import { Icon } from './icons';
+
+const DOMAIN_ICONS = { academics: 'school', student_life: 'event', campus: 'map' };
 
 const API_URL = process.env.REACT_APP_API_URL;
 const ALSO_TODAY_LIMIT = 4;
@@ -90,12 +92,14 @@ export default function AnswerPanel({ visuals = [], authToken, timezone, onAsk }
 
       {checked.length > 0 && (
         <Section title="Checked">
-          {checked.map((domain) => (
-            <div className="answer-panel-row" key={domain.id}>
-              <span className="answer-panel-dot" style={{ background: DOMAIN_COLORS[domain.id] }} aria-hidden="true" />
-              {domain.label}
-            </div>
-          ))}
+          <div className="answer-panel-chips">
+            {checked.map((domain) => (
+              <span className="vc-src" key={domain.id}>
+                <Icon name={DOMAIN_ICONS[domain.id] || 'check'} size={16} />
+                {domain.label}
+              </span>
+            ))}
+          </div>
         </Section>
       )}
 

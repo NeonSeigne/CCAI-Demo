@@ -1218,3 +1218,132 @@
     transition: none;
   }
 }
+/* ---- Home Colors: the conversation (C.2) --------------------------------- */
+.chat-frame .user-message.vc-ubub {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 22px 22px 8px 22px;
+  font-size: 15.5px;
+}
+
+.chat-frame .answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
+
+@media (max-width: 767px) {
+  .chat-frame .user-message.vc-ubub { max-width: 88%; }
+}
+
+/* ---- "This answer" panel, right of the conversation ---------------------- */
+.answer-panel {
+  flex: 0 0 300px;
+  width: 300px;
+  box-sizing: border-box;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 22px 20px 32px;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font-app);
+}
+
+.answer-panel h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.answer-panel-section h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.answer-panel-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.answer-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.answer-panel-row + .answer-panel-row { border-top: 1px solid var(--rule); }
+
+.answer-panel-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.answer-panel-text {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.answer-panel-link {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.answer-panel-link:hover { background: var(--tint); color: var(--tint-ink); }
+
+.answer-panel-event {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.answer-panel-event + .answer-panel-event { border-top: 1px solid var(--rule); }
+.answer-panel-event:hover .answer-panel-text { text-decoration: underline; text-underline-offset: 3px; }
+
+.answer-panel-time {
+  width: 72px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.03em;
+}
+
+.answer-panel-empty {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.answer-panel :focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
