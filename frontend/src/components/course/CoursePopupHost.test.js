@@ -5,7 +5,11 @@ import {
 import {
   MemoryRouter, Route, Routes, useLocation,
 } from 'react-router-dom';
-import CoursePopupHost, { requirementLabels, useCloseOnce } from './CoursePopupHost';
+import CoursePopupHost, { requirementLabels } from './CoursePopupHost';
+import { useCloseOnce } from '../../utils/openCourse';
+import { ChatContext } from '../../contexts/ChatContext';
+import { ChatDockContext } from '../../contexts/ChatDockContext';
+import { PlannerContext } from '../../contexts/PlannerContext';
 import CourseChip from '../visuals/CourseChip';
 import CourseRedirect from './CourseRedirect';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
@@ -81,4 +85,79 @@ it("labels requirement chips from the student's programs", () => {
     { id: 'math', name: 'Math B.S.', rules: [{ id: 'el', title: 'Electives', courses: ['COMP SCI 400'] }] },
   ];
   expect(requirementLabels('COMP SCI 400', programs, ['cs'])).toEqual(['Comp Sci B.S. · Core']);
+});
+
+describe('Ask from the course pop-up', () => {
+  function renderAt(entry, { dock = null, chat = { attach: jest.fn() } } = {}) {
+    const utils = render(
+      <MemoryRouter initialEntries={[entry]}>
+        <ChatContext.Provider value={chat}>
+          <ChatDockContext.Provider value={dock}>
+            <Routes>
+              <Route
+                path="*"
+                element={(
+                  <>
+                    <CourseChip identifier="COMP SCI 400" />
+                    <div className="chat-frame"><textarea aria-label="Composer" /></div>
+                    <CoursePopupHost />
+                    <LocationProbe />
+                  </>
+                )}
+              />
+            </Routes>
+          </ChatDockContext.Provider>
+        </ChatContext.Provider>
+      </MemoryRouter>,
+    );
+    return { ...utils, chat };
+  }
+
+  const openAndAsk = async () => {
+    fireEvent.click(screen.getByRole('button', { name: /comp sci 400/i }));
+    await screen.findByRole('dialog', { name: 'Programming III' });
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+  };
+
+  it('with the dock beside the page, keeps the pop-up open and opens the dock', async () => {
+    const dock = { available: true, openDock: jest.fn(), requestComposerFocus: jest.fn() };
+    const { chat } = renderAt('/map', { dock });
+    await openAndAsk();
+    expect(chat.attach).toHaveBeenCalledWith({ type: 'course', id: 'COMP SCI 400', title: 'Programming III' });
+    expect(dock.openDock).toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Programming III' })).toBeInTheDocument();
+  });
+
+  it('on /chat, closes the pop-up, then attaches and focuses the visible composer', async () => {
+    const { chat } = renderAt('/chat', { dock: { available: false } });
+    await openAndAsk();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/);
+    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'COMP SCI 400' }));
+    await waitFor(() => expect(screen.getByLabelText('Composer')).toHaveFocus());
+  });
+
+  it('on /home, closes the pop-up, then goes to /chat with the item attached', async () => {
+    const { chat } = renderAt('/home', { dock: { available: false } });
+    await openAndAsk();
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'COMP SCI 400' }));
+  });
+});
+
+it('loads the plan once per course, not on every planner change', async () => {
+  const ensureLoaded = jest.fn();
+  const planner = () => ({ ensureLoaded, view: null, programs: [] });
+  const tree = (value) => (
+    <MemoryRouter initialEntries={['/map?course=COMP+SCI+400']}>
+      <PlannerContext.Provider value={value}><CoursePopupHost /></PlannerContext.Provider>
+    </MemoryRouter>
+  );
+  const { rerender } = render(tree(planner()));
+  await screen.findByRole('dialog', { name: 'Programming III' });
+  // A failed load hands out a new planner object each time; that must not reload.
+  rerender(tree(planner()));
+  rerender(tree(planner()));
+  expect(ensureLoaded).toHaveBeenCalledTimes(1);
 });

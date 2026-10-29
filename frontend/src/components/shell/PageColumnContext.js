@@ -7,7 +7,8 @@ import { createContext, useContext } from 'react';
  * `railSlot` is where CampusRail portals its rail, outside the page column.
  * Both are null outside the shell.
  */
-export const PageColumnContext = createContext({ pageColumn: null, railSlot: null });
+const OUTSIDE_SHELL = { pageColumn: null, railSlot: null };
+export const PageColumnContext = createContext(OUTSIDE_SHELL);
 
 /** The page-column element, or null outside the app shell. */
 export function usePageColumn() {
@@ -17,4 +18,16 @@ export function usePageColumn() {
 /** Where the rail renders, or null (the rail then renders in place). */
 export function useRailSlot() {
   return useContext(PageColumnContext).railSlot;
+}
+
+/**
+ * Where a pop-up renders: `{container, ready}`. Inside the shell, `ready`
+ * waits for the page column, so a dialog never mounts on the body first
+ * (which would aria-hide the rail and the dock). Outside the shell it renders
+ * on the body at once.
+ */
+export function usePopupContainer() {
+  const slots = useContext(PageColumnContext);
+  const inShell = slots !== OUTSIDE_SHELL;
+  return { container: slots.pageColumn || undefined, ready: !inShell || Boolean(slots.pageColumn) };
 }

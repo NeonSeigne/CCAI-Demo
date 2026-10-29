@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AppDialog from '../AppDialog';
 import CoursePopup from './CoursePopup';
 import { usePlanner } from '../../contexts/PlannerContext';
-import { usePageColumn } from '../shell/PageColumnContext';
+import { usePopupContainer } from '../shell/PageColumnContext';
 import { useToast } from '../Toast';
-import useAsk from '../../hooks/useAsk';
-import { COURSE_PARAM, useCloseCourse, useOpenCourse } from '../../utils/openCourse';
+import usePopupAsk from '../../hooks/usePopupAsk';
+import {
+  COURSE_PARAM, useCloseCourse, useCloseOnce, useOpenCourse,
+} from '../../utils/openCourse';
 
 /** "Comp Sci B.S. · Core" for each rule of the student's programs that lists `id`. */
 export function requirementLabels(id, programs, programIds) {
@@ -22,21 +24,6 @@ export function requirementLabels(id, programs, programIds) {
 }
 
 /**
- * `close` that runs once per open value: Escape, the scrim and the Close
- * button can all fire before the location changes, and a second
- * `navigate(-1)` would leave the page.
- */
-export function useCloseOnce(value, close) {
-  const closingRef = useRef(false);
-  useEffect(() => { closingRef.current = false; }, [value]);
-  return useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    close();
-  }, [close]);
-}
-
-/**
  * Reads `?course=ID` on any signed-in route and shows the course pop-up over
  * the page column, so the rail and the chat dock stay live (eng R8, R15, D3).
  */
@@ -45,10 +32,18 @@ export default function CoursePopupHost() {
   const courseId = (params.get(COURSE_PARAM) || '').trim();
   const close = useCloseOnce(courseId, useCloseCourse());
   const openCourse = useOpenCourse();
-  const ask = useAsk();
+  const ask = usePopupAsk(courseId, close);
   const planner = usePlanner();
   const toast = useToast();
-  const pageColumn = usePageColumn();
+  const { container, ready } = usePopupContainer();
+
+  // The plan for Fits and Add, once per course: the planner object changes
+  // with every load, and a failing load would otherwise retry in a loop.
+  const plannerRef = useRef(planner);
+  plannerRef.current = planner;
+  useEffect(() => {
+    if (courseId) plannerRef.current?.ensureLoaded?.();
+  }, [courseId]);
 
   const plan = planner?.view?.plan || null;
   const term = plan?.term || null;
@@ -57,11 +52,7 @@ export default function CoursePopupHost() {
     [courseId, planner?.programs, plan?.profile?.program_ids],
   );
 
-  useEffect(() => {
-    if (courseId) planner?.ensureLoaded?.();
-  }, [courseId, planner]);
-
-  if (!courseId) return null;
+  if (!courseId || !ready) return null;
 
   const onAdd = planner && term ? (id) => {
     planner.edit([{ op: 'add', course: id }])
@@ -76,7 +67,7 @@ export default function CoursePopupHost() {
   return (
     <AppDialog
       open
-      container={pageColumn || undefined}
+      container={container}
       onClose={close}
       maxWidth={false}
       aria-labelledby="course-popup-title"

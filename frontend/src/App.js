@@ -30,8 +30,9 @@ const SavedPage = lazy(() => import('./pages/SavedPage'));
 const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
 const CoursesPage = lazy(() => import('./pages/CoursesPage'));
 const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
-// One course pop-up host for every signed-in page (eng R8); cytoscape and
-// recharts load with it, not with the first page.
+// One course pop-up host for every signed-in page (eng R8). Lazy so the shell
+// doesn't wait for it; CoursePopup itself also reaches the main bundle through
+// the chat course cards, so this doesn't split it out.
 const CoursePopupHost = lazy(() => import('./components/course/CoursePopupHost'));
 
 const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;

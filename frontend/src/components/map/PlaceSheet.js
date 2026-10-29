@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import {
   Accessibility, Bookmark, ChevronLeft, ChevronRight, Footprints, Globe, MapPin, MessageSquare, Phone,
@@ -26,6 +28,7 @@ import '../../styles/Popups.css';
  *   onSave(item), saved   optional; without onSave the shared SaveButton is used
  *   onOpenEvent(event)    a row in Today
  *   titleId               id for the name, for aria-labelledby
+ *   autoFocus             move focus to the name when the sheet opens
  */
 
 const CATEGORY_LABELS = {
@@ -215,6 +218,7 @@ export default function PlaceSheet({
   saved,
   onOpenEvent,
   titleId = 'place-sheet-title',
+  autoFocus = false,
 }) {
   const id = placeId || seed?.id;
   const detail = usePlaceDetail(id, { from });
@@ -228,6 +232,13 @@ export default function PlaceSheet({
 
   const drag = usePopupDrag({ type: 'place', id: place?.id, title: place?.name });
 
+  // Opening the sheet replaces what had focus (a list row or a pin), so focus
+  // moves to the place's name; the page returns it when the sheet closes.
+  const headingRef = useRef(null);
+  useEffect(() => {
+    if (autoFocus) headingRef.current?.focus();
+  }, [autoFocus, id]);
+
   const back = onClose && (
     <button type="button" className="ps-back" aria-label="Close" title="Close" onClick={onClose}>
       <ChevronLeft size={18} aria-hidden="true" />
@@ -237,7 +248,7 @@ export default function PlaceSheet({
   if (!place && detail.error) {
     return (
       <section className="pop-sheet ps" aria-labelledby={titleId}>
-        <div className="ps-head">{back}<h2 id={titleId} className="sr-only">Place</h2></div>
+        <div className="ps-head">{back}<h2 id={titleId} ref={headingRef} tabIndex={-1} className="sr-only">Place</h2></div>
         <div className="ps-scroll"><CouldntLoad onRetry={detail.retry} /></div>
       </section>
     );
@@ -248,7 +259,7 @@ export default function PlaceSheet({
       <section className="pop-sheet ps" aria-labelledby={titleId} aria-busy="true">
         <div className="ps-head">{back}</div>
         <div className="ps-scroll">
-          <h2 id={titleId} className="ps-name"><span className="sr-only">Place</span><span className="pop-skel pop-skel--title is-light" /></h2>
+          <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name"><span className="sr-only">Place</span><span className="pop-skel pop-skel--title is-light" /></h2>
           <div className="ps-tiles is-single" aria-hidden="true">
             <div className="ps-tile"><span className="pop-skel pop-skel--label is-light" /><span className="pop-skel pop-skel--number is-light" /></div>
           </div>
@@ -271,7 +282,7 @@ export default function PlaceSheet({
         <div className="ps-content">
           <div ref={drag.ref} className={`ps-title ${drag.className}`}>
             <DragGrip drag={drag} label={`Drag ${place.name}`} className="pop-grip--light" />
-            <h2 id={titleId} className="ps-name">{place.name}</h2>
+            <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name">{place.name}</h2>
           </div>
           {(category || place.operator) && (
             <p className="ps-kind">

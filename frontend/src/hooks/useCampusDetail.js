@@ -11,9 +11,9 @@ import { previewEdits } from '../api/planner';
  * answers, `error` is the thrown `ApiError` (D7: a failed request is shown,
  * a missing field is not). A changed key aborts the previous request.
  *
- * `useCourseDetail` here reads `/api/catalog/{id}` (every school). The chat
- * cards' `hooks/useCourseDetail.js` (default export) still reads the UW-only
- * `/api/courses/{id}` payload.
+ * `useCourseDetail` here is the pop-up's. The chat cards use
+ * `hooks/useCourseDetail.js` (default export): the same `/api/catalog/{id}`
+ * payload, cached so an answer's cards share one request.
  */
 
 const isAbort = (error) => error?.name === 'AbortError';

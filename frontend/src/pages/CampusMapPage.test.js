@@ -18,7 +18,16 @@ jest.mock('../api/campus', () => ({
 jest.mock('react-leaflet', () => ({
   MapContainer: ({ children }) => <div data-testid="leaflet-map">{children}</div>,
   TileLayer: ({ attribution }) => <div data-testid="tiles">{attribution}</div>,
-  CircleMarker: ({ className }) => <div data-testid="map-marker" className={className} />,
+  // Pins are mouse-only in the app; the stub exposes Leaflet's click handler as a button.
+  CircleMarker: ({ className, center, eventHandlers }) => (
+    <button
+      type="button"
+      data-testid="map-marker"
+      data-center={center.join(',')}
+      className={className}
+      onClick={eventHandlers?.click}
+    />
+  ),
   Polyline: ({ positions }) => <div data-testid="route-line" data-points={positions.length} />,
   useMap: () => ({ fitBounds: jest.fn(), setView: jest.fn(), getContainer: () => global.document.createElement('div') }),
 }));
@@ -178,7 +187,7 @@ test('a failed route shows "Walking route unavailable" and drops the old line an
   expect(within(panel).queryByText(/\d+ min/)).not.toBeInTheDocument();
 });
 
-test('a row or pin opens the place sheet in place of the list; Ask attaches; closing restores the list', async () => {
+test('a row opens the place sheet in place of the list; Ask attaches; closing restores the list', async () => {
   renderPage();
   await screen.findByText('Nearest open library');
   campus.getPlace.mockResolvedValue({ place: { ...LIBRARIES[1], address: '728 State St' } });
@@ -195,6 +204,7 @@ test('a row or pin opens the place sheet in place of the list; Ask attaches; clo
   fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
   expect(screen.queryByRole('region', { name: 'Memorial Library' })).not.toBeInTheDocument();
   expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'true');
+  await waitFor(() => expect(rowButton('Memorial Library')).toHaveFocus());
 });
 
 test('Change opens a place search; picking saves the start with PUT; Escape closes', async () => {
@@ -289,4 +299,26 @@ test('the starting place\'s own row reads "Your starting place", not 0 min', asy
   const row = rowButton('College Library');
   expect(within(row).getByText('Your starting place')).toBeInTheDocument();
   expect(within(row).queryByText('0 min')).not.toBeInTheDocument();
+});
+
+test('clicking a pin opens its place sheet and moves focus to the name', async () => {
+  renderPage();
+  await screen.findByText('Nearest open library');
+  campus.getPlace.mockResolvedValue({ place: LIBRARIES[0] });
+  const pin = screen.getAllByTestId('map-marker')
+    .find((marker) => marker.dataset.center === `${LIBRARIES[0].lat},${LIBRARIES[0].lon}`);
+  fireEvent.click(pin);
+  const heading = await screen.findByRole('heading', { name: 'Geography Library' });
+  await waitFor(() => expect(heading).toHaveFocus());
+  expect(hiddenRow('Geography Library')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('changing the category closes the place sheet', async () => {
+  renderPage();
+  await screen.findByText('Nearest open library');
+  campus.getPlace.mockResolvedValue({ place: LIBRARIES[1] });
+  fireEvent.click(rowButton('Memorial Library'));
+  expect(await screen.findByRole('region', { name: 'Memorial Library' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^Dining/ }));
+  await waitFor(() => expect(screen.queryByRole('region', { name: 'Memorial Library' })).not.toBeInTheDocument());
 });

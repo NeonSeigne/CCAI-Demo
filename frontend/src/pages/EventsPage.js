@@ -9,10 +9,11 @@ import {
 import AppDialog from '../components/AppDialog';
 import CampusRail from '../components/CampusRail';
 import EventPopup from '../components/events/EventPopup';
-import { usePageColumn } from '../components/shell/PageColumnContext';
-import { useCloseOnce } from '../components/course/CoursePopupHost';
-import useAsk from '../hooks/useAsk';
-import { EVENT_PARAM, useCloseParam, useOpenParam } from '../utils/openCourse';
+import { usePopupContainer } from '../components/shell/PageColumnContext';
+import usePopupAsk from '../hooks/usePopupAsk';
+import {
+  EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
+} from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
 import SettingsModal from '../components/SettingsModal';
 import { formatEventRange, formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
@@ -837,8 +838,8 @@ const EventsPage = () => {
   const openParam = useOpenParam(EVENT_PARAM);
   const openEvent = useCallback((event) => openParam(event?.id), [openParam]);
   const closeEvent = useCloseOnce(eventId, useCloseParam(EVENT_PARAM));
-  const pageColumn = usePageColumn();
-  const ask = useAsk();
+  const popup = usePopupContainer();
+  const ask = usePopupAsk(eventId, closeEvent);
   const seedEvent = eventId ? events.find((event) => event.id === eventId) : null;
 
   let body;
@@ -1053,10 +1054,10 @@ const EventsPage = () => {
           />
         )}
 
-        {eventId && (
+        {eventId && popup.ready && (
           <AppDialog
             open
-            container={pageColumn || undefined}
+            container={popup.container}
             onClose={closeEvent}
             maxWidth={false}
             aria-labelledby="event-popup-title"

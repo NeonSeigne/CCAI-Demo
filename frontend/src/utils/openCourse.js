@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 /** The query parameters the pop-up hosts read (eng R8): `?course=`, `?event=`. */
@@ -59,3 +59,18 @@ export const useOpenCourse = () => useOpenParam(COURSE_PARAM);
 
 /** `closeCourse()` removes `?course=`. */
 export const useCloseCourse = () => useCloseParam(COURSE_PARAM);
+
+/**
+ * `close` that runs once per open value: Escape, the scrim and the Close
+ * button can all fire before the location changes, and a second
+ * `navigate(-1)` would leave the page.
+ */
+export function useCloseOnce(value, close) {
+  const closingRef = useRef(false);
+  useEffect(() => { closingRef.current = false; }, [value]);
+  return useCallback(() => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    close();
+  }, [close]);
+}

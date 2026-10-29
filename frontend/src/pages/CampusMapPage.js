@@ -361,6 +361,9 @@ const CampusMapPage = () => {
   const [reloadKey, setReloadKey] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(null); // {place, label}
+  // The place sheet replaces the list (D21); the list stays mounted, so its
+  // selection and scroll position survive closing the sheet.
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [route, setRoute] = useState({ status: 'idle', data: null });
   const [pickerOpen, setPickerOpen] = useState(false);
   const pendingSelect = useRef({ to: initial.to, suggest: true });
@@ -469,6 +472,8 @@ const CampusMapPage = () => {
 
   const chooseCategory = (next) => {
     if (next === category) return;
+    // A new category reselects its suggestion; the sheet would swap places under the student.
+    setSheetOpen(false);
     pendingSelect.current = { to: '', suggest: true };
     setExpanded(false);
     setList((prev) => ({ ...prev, places: [], suggested: null }));
@@ -487,9 +492,6 @@ const CampusMapPage = () => {
     closePicker();
   };
 
-  // The place sheet replaces the list (D21); the list stays mounted, so its
-  // selection and scroll position survive closing the sheet.
-  const [sheetOpen, setSheetOpen] = useState(false);
   const ask = useAsk();
   const openSheet = useCallback((place) => {
     setSelected({ place, label: null });
@@ -617,6 +619,7 @@ const CampusMapPage = () => {
               onAsk={ask}
               onDirections={directions}
               titleId="map-place-title"
+              autoFocus
             />
           )}
 

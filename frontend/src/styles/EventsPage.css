@@ -355,7 +355,7 @@ a.ev-title:hover { text-decoration: underline; }
   cursor: pointer;
 }
 .ev-title-btn:hover { text-decoration: underline; }
-button.ev-block { display: block; font: inherit; text-align: left; cursor: pointer; }
+button.ev-block { display: block; font-family: inherit; text-align: left; cursor: pointer; }
 
 /* ---- Rows ------------------------------------------------------------------- */
 .ev-day { display: flex; flex-direction: column; gap: 8px; }

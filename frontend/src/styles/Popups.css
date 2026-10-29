@@ -805,6 +805,8 @@ div.ep-list-row { cursor: default; }
 
 .ps-content { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
 
+.ps-name:focus { outline: none; }
+.ps-name:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 .ps-name { margin: 0; font-size: 1.35rem; font-weight: 800; line-height: 1.2; }
 
 .ps-kind { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -6px 0 0; font-size: 0.85rem; color: var(--ink-soft); }
