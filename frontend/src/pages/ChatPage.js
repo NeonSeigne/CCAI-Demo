@@ -80,9 +80,8 @@ const ChatPageView = () => {
   const [planSnap, setPlanSnap] = useState('half');
   const [planCourse, setPlanCourse] = useState(null);
   const planToggleRef = useRef(null);
-  // undefined until mount: a proposal already in a conversation the page
-  // reopens was handled when it arrived.
-  const lastProposalRef = useRef(undefined);
+  // A proposal handed to the planner before this page opened isn't reopened.
+  const lastProposalRef = useRef(chat.liveProposalId);
 
 
 
@@ -413,8 +412,6 @@ const ChatPageView = () => {
       pendingProposal ? '1 proposal' : null,
     ].filter(Boolean).join(' · ')
     : null;
-  const latestProposal = answerVisuals.find((v) => v?.type === 'proposed_change');
-  const latestProposalId = latestProposal?.proposal?.id || latestProposal?.id || null;
   const suggestions = buildSuggestions({
     visuals: answerVisuals,
     starters: config?.homepage?.starters || [],
@@ -433,21 +430,18 @@ const ChatPageView = () => {
     />
   );
 
-  // A new proposal in the latest answer goes to the panel; on phones the
-  // sheet rises to 45% so the card and the changed rows show together (15A).
+  // ChatProvider hands a streamed proposal to the planner; here it opens the
+  // panel. On phones the sheet rises to 45% so the card and the changed rows
+  // show together (15A).
+  const { liveProposalId } = chat;
   useEffect(() => {
-    if (lastProposalRef.current === undefined) {
-      lastProposalRef.current = latestProposalId;
-      return;
-    }
-    if (!latestProposalId || lastProposalRef.current === latestProposalId) return;
-    lastProposalRef.current = latestProposalId;
-    planner?.receiveProposal(latestProposal.proposal || latestProposal);
+    if (!liveProposalId || lastProposalRef.current === liveProposalId) return;
+    lastProposalRef.current = liveProposalId;
     if (planPlacement === 'tablet') return;
     setIsPlanOpen(true);
     setPlanSnap((snap) => (isPlanOpen ? snap : 'half'));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latestProposalId]);
+  }, [liveProposalId]);
 
   return (
     <OnboardingTour>
@@ -718,7 +712,7 @@ const ChatPageView = () => {
               onMessageChange={setComposerMessage}
               selectedAdvisorIds={selectedAdvisorIds}
               onSelectedAdvisorIdsChange={setSelectedAdvisorIds}
-              attachments={chat.attachments}
+              attachments={replyingTo ? [] : chat.attachments}
               onRemoveAttachment={chat.removeAttachment}
               isLanding={chatPhase !== 'active'}
               placeholder={
