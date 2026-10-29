@@ -459,6 +459,8 @@
 
 .user-message p {
   margin: 0;
+  /* Attachment lines ("Course: …") arrive as their own lines. */
+  white-space: pre-line;
 }
 
 .reply-indicator {
