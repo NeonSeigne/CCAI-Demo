@@ -1,6 +1,6 @@
 {
  "type": "FeatureCollection",
- "source": "OpenStreetMap contributors (ODbL), via Overpass API",
+ "source": "OpenStreetMap contributors (ODbL), via Overpass API; photos from Wikimedia Commons",
  "osm_area": "relation/4218705",
  "features": [
   {
@@ -336,7 +336,8 @@
     "name": "11th Street Parking Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/221228138"
+    "osm": "way/221228138",
+    "building_levels": 5
    }
   },
   {
@@ -544,7 +545,8 @@
     "name": "2476 Old Ivy Road",
     "aliases": [],
     "category": "academic",
-    "osm": "way/129883758"
+    "osm": "way/129883758",
+    "address": "2476 Old Ivy Road"
    }
   },
   {
@@ -1344,7 +1346,8 @@
     "name": "Aerospace Research Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528477"
+    "osm": "way/44528477",
+    "address": "570 Edgemont Road"
    }
   },
   {
@@ -1392,7 +1395,8 @@
     "name": "Aersopace Research Quonset #2",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528572"
+    "osm": "way/44528572",
+    "address": "559 Edgemont Road"
    }
   },
   {
@@ -1408,7 +1412,8 @@
     "name": "Aersopace Research Quonset #3",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528150"
+    "osm": "way/44528150",
+    "address": "561 Edgemont Road"
    }
   },
   {
@@ -1424,7 +1429,9 @@
     "name": "Albert H. Small Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/341569773"
+    "osm": "way/341569773",
+    "building_levels": 2,
+    "address": "2020 Whitehead Rd."
    }
   },
   {
@@ -1440,7 +1447,8 @@
     "name": "Alden House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528543"
+    "osm": "way/44528543",
+    "address": "610 Mccormick Road"
    }
   },
   {
@@ -1456,7 +1464,8 @@
     "name": "Alumni Hall - University of Virginia",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/9390079"
+    "osm": "relation/9390079",
+    "address": "211 Emmet Street South"
    }
   },
   {
@@ -1488,7 +1497,8 @@
     "name": "Army Judge Advocate General School",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/4218680"
+    "osm": "relation/4218680",
+    "address": "600 Massie Road"
    }
   },
   {
@@ -1504,7 +1514,9 @@
     "name": "Astronomy Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528604"
+    "osm": "way/44528604",
+    "building_levels": 2,
+    "address": "530 McCormick Road"
    }
   },
   {
@@ -1552,7 +1564,10 @@
     "name": "Battle Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/254297278"
+    "osm": "way/254297278",
+    "website": "https://uvahealth.com/locations/profile/battle-building",
+    "building_levels": 6,
+    "address": "1204 West Main Street"
    }
   },
   {
@@ -1568,7 +1583,9 @@
     "name": "Bavaro Hall / School of Education",
     "aliases": [],
     "category": "academic",
-    "osm": "way/240441117"
+    "osm": "way/240441117",
+    "building_levels": 4,
+    "address": "Emmet Street South"
    }
   },
   {
@@ -1584,7 +1601,8 @@
     "name": "Bemiss House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528185"
+    "osm": "way/44528185",
+    "address": "210 Sprigg Lane"
    }
   },
   {
@@ -1600,7 +1618,8 @@
     "name": "Benjamin Franklin Dewees Runk Dining Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528590"
+    "osm": "way/44528590",
+    "address": "265 Hereford Drive"
    }
   },
   {
@@ -1616,7 +1635,9 @@
     "name": "Biology Greenhouse",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528246"
+    "osm": "way/44528246",
+    "building_levels": 1,
+    "address": "646 Gilmer Drive"
    }
   },
   {
@@ -1632,7 +1653,9 @@
     "name": "Biomedical Engineering and Medical Science Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/344842951"
+    "osm": "way/344842951",
+    "building_levels": 6,
+    "address": "415 Lane Road"
    }
   },
   {
@@ -1648,7 +1671,8 @@
     "name": "Brooks Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528321"
+    "osm": "way/44528321",
+    "website": "https://anthropology.as.virginia.edu/brooks-hall"
    }
   },
   {
@@ -1712,7 +1736,9 @@
     "name": "C Ray Smith Alumni Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676195970"
+    "osm": "way/676195970",
+    "building_levels": 2,
+    "address": "20 Duffy Boulevard"
    }
   },
   {
@@ -1728,7 +1754,8 @@
     "name": "Campbell Hall - School of Architecture",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528176"
+    "osm": "way/44528176",
+    "address": "1940 Carr'South Hill Road"
    }
   },
   {
@@ -1776,7 +1803,9 @@
     "name": "Carter-Harrison Research Building",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/19068641"
+    "osm": "relation/19068641",
+    "building_levels": 5,
+    "address": "345 Crispell Drive"
    }
   },
   {
@@ -1792,7 +1821,8 @@
     "name": "Central Grounds Parking",
     "aliases": [],
     "category": "academic",
-    "osm": "way/342870532"
+    "osm": "way/342870532",
+    "building_levels": 2
    }
   },
   {
@@ -1824,7 +1854,8 @@
     "name": "Chemistry Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528749"
+    "osm": "way/44528749",
+    "building_levels": 3
    }
   },
   {
@@ -1840,7 +1871,8 @@
     "name": "Chi Phi",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528146"
+    "osm": "way/44528146",
+    "address": "161 Rugby Road"
    }
   },
   {
@@ -1856,7 +1888,15 @@
     "name": "Clark Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528589"
+    "osm": "way/44528589",
+    "building_levels": 2,
+    "wikidata": "Q5127252",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/UVA_Clark_Hall.JPG/960px-UVA_Clark_Hall.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:UVA_Clark_Hall.JPG",
+     "author": "Vtn5n"
+    }
    }
   },
   {
@@ -1872,7 +1912,9 @@
     "name": "Claude Moore Medical Education Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/223462136"
+    "osm": "way/223462136",
+    "building_levels": 4,
+    "address": "200 Jeanette Lancaster Way"
    }
   },
   {
@@ -1888,7 +1930,8 @@
     "name": "Claude Moore Nursing Education Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/240403215"
+    "osm": "way/240403215",
+    "address": "225 Jeanette Lancaster Way"
    }
   },
   {
@@ -1955,7 +1998,8 @@
     "name": "Coal Unloading Facility",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528120"
+    "osm": "way/44528120",
+    "address": "1309 Lee Street"
    }
   },
   {
@@ -1971,7 +2015,8 @@
     "name": "Cobb Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1290085119"
+    "osm": "way/1290085119",
+    "address": "135 Hospital Drive"
    }
   },
   {
@@ -2035,7 +2080,8 @@
     "name": "Corner Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528258"
+    "osm": "way/44528258",
+    "address": "1400 University Avenue"
    }
   },
   {
@@ -2051,7 +2097,8 @@
     "name": "Culbreth Road Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/202761346"
+    "osm": "way/202761346",
+    "address": "130 Culbreth Road"
    }
   },
   {
@@ -2083,7 +2130,8 @@
     "name": "Darden Graduate Housing A",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1527243337"
+    "osm": "way/1527243337",
+    "address": "122 Darden Boulevard"
    }
   },
   {
@@ -2099,7 +2147,8 @@
     "name": "Darden Graduate Housing B",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1527243344"
+    "osm": "way/1527243344",
+    "address": "128 Darden Boulevard"
    }
   },
   {
@@ -2131,7 +2180,8 @@
     "name": "Davis Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430118"
+    "osm": "way/338430118",
+    "building_levels": 4
    }
   },
   {
@@ -2147,7 +2197,8 @@
     "name": "Dean Commons",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153041027"
+    "osm": "way/153041027",
+    "building_levels": 3
    }
   },
   {
@@ -2195,7 +2246,8 @@
     "name": "Drama Building and Theatre",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528168"
+    "osm": "way/44528168",
+    "address": "109 Culbreth Road"
    }
   },
   {
@@ -2211,7 +2263,8 @@
     "name": "Drama Building and Theatre Addition",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1382907199"
+    "osm": "way/1382907199",
+    "address": "109 Culbreth Road"
    }
   },
   {
@@ -2227,7 +2280,8 @@
     "name": "E3 Permit",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339412259"
+    "osm": "way/339412259",
+    "wheelchair": "yes"
    }
   },
   {
@@ -2243,7 +2297,8 @@
     "name": "East Chiller Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/588650580"
+    "osm": "way/588650580",
+    "description": "Chiller unit several stories tall"
    }
   },
   {
@@ -2259,7 +2314,8 @@
     "name": "East Lawn Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528191"
+    "osm": "way/44528191",
+    "building_levels": 1
    }
   },
   {
@@ -2275,7 +2331,8 @@
     "name": "Elson Builiding",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528527"
+    "osm": "way/44528527",
+    "address": "400 Brandon Avenue"
    }
   },
   {
@@ -2291,7 +2348,9 @@
     "name": "Emergency Communications Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528678"
+    "osm": "way/44528678",
+    "website": "https://cua911.gov/",
+    "address": "2306 Ivy Road"
    }
   },
   {
@@ -2307,7 +2366,8 @@
     "name": "Emily Couric Clinical Cancer Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528227"
+    "osm": "way/44528227",
+    "building_levels": 4
    }
   },
   {
@@ -2323,7 +2383,8 @@
     "name": "Emmet / Ivy Parking Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528199"
+    "osm": "way/44528199",
+    "address": "123 Emmet Street North"
    }
   },
   {
@@ -2339,7 +2400,8 @@
     "name": "Environmental Sciences Shop",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528586"
+    "osm": "way/44528586",
+    "address": "563 Edgemont Road"
    }
   },
   {
@@ -2355,7 +2417,8 @@
     "name": "Ern Commons",
     "aliases": [],
     "category": "academic",
-    "osm": "way/273581511"
+    "osm": "way/273581511",
+    "building_levels": 2
    }
   },
   {
@@ -2371,7 +2434,9 @@
     "name": "Eunoia Creative Community",
     "aliases": [],
     "category": "academic",
-    "osm": "way/735380879"
+    "osm": "way/735380879",
+    "building_levels": 2,
+    "address": "1500 Jefferson Park Avenue"
    }
   },
   {
@@ -2387,7 +2452,8 @@
     "name": "Facilities Management Garages",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528705"
+    "osm": "way/44528705",
+    "address": "1455 Leake Drive"
    }
   },
   {
@@ -2467,7 +2533,8 @@
     "name": "Fayerweather Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528244"
+    "osm": "way/44528244",
+    "address": "151 Rugby Road"
    }
   },
   {
@@ -2499,7 +2566,8 @@
     "name": "Fontaine Central Energy Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1524720704"
+    "osm": "way/1524720704",
+    "address": "502 Ray C Hunt Drive"
    }
   },
   {
@@ -2515,7 +2583,8 @@
     "name": "Fontaine Research Park Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1431722083"
+    "osm": "way/1431722083",
+    "address": "1055 Natural Resources Drive"
    }
   },
   {
@@ -2531,7 +2600,8 @@
     "name": "Fontana Food Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528452"
+    "osm": "way/44528452",
+    "address": "2454 Old Ivy Road"
    }
   },
   {
@@ -2547,23 +2617,8 @@
     "name": "Forestry Building Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528085"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     -78.5030756,
-     38.0382772
-    ]
-   },
-   "properties": {
-    "name": "Fralin Museum of Art",
-    "aliases": [],
-    "category": "academic",
-    "osm": "way/44528133"
+    "osm": "way/44528085",
+    "address": "570 McCormick Road"
    }
   },
   {
@@ -2579,7 +2634,8 @@
     "name": "Frank C McCue III Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528175"
+    "osm": "way/44528175",
+    "address": "290 Massie Road"
    }
   },
   {
@@ -2595,7 +2651,15 @@
     "name": "Garrett Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528592"
+    "osm": "way/44528592",
+    "address": "235 Mccormick Road",
+    "wikidata": "Q4869710",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Garrett_Hall_-_the_University_of_Virginia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Garrett_Hall_-_the_University_of_Virginia.jpg",
+     "author": "CharNewcomb"
+    }
    }
   },
   {
@@ -2611,7 +2675,8 @@
     "name": "Gibson Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153041024"
+    "osm": "way/153041024",
+    "building_levels": 4
    }
   },
   {
@@ -2627,7 +2692,8 @@
     "name": "Gildersleeve Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430133"
+    "osm": "way/338430133",
+    "building_levels": 4
    }
   },
   {
@@ -2643,7 +2709,8 @@
     "name": "Gilmer Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528558"
+    "osm": "way/44528558",
+    "building_levels": 2
    }
   },
   {
@@ -2675,7 +2742,8 @@
     "name": "Harrison Institute and Small Special Collections Library",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528691"
+    "osm": "way/44528691",
+    "address": "170 Mccormick Road"
    }
   },
   {
@@ -2691,7 +2759,8 @@
     "name": "Harrison Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430134"
+    "osm": "way/338430134",
+    "building_levels": 4
    }
   },
   {
@@ -2723,7 +2792,8 @@
     "name": "High Energy Physics Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528511"
+    "osm": "way/44528511",
+    "address": "605 Old Reservoir Road"
    }
   },
   {
@@ -2739,7 +2809,8 @@
     "name": "Holmes Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430193"
+    "osm": "way/338430193",
+    "building_levels": 4
    }
   },
   {
@@ -2771,7 +2842,8 @@
     "name": "Hotel A",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528211"
+    "osm": "way/44528211",
+    "building_levels": 1
    }
   },
   {
@@ -2803,7 +2875,14 @@
     "name": "Hotel C - Jefferson Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528636"
+    "osm": "way/44528636",
+    "wikidata": "Q1686402",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Jefferson_Hall%2C_UVA.jpg/960px-Jefferson_Hall%2C_UVA.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC0",
+     "page": "https://commons.wikimedia.org/wiki/File:Jefferson_Hall,_UVA.jpg",
+     "author": "Packer1028"
+    }
    }
   },
   {
@@ -2867,7 +2946,8 @@
     "name": "Hoxton House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528270"
+    "osm": "way/44528270",
+    "address": "205 Sprigg Lane"
    }
   },
   {
@@ -2915,7 +2995,8 @@
     "name": "Ivy Mountain Central Utility Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1314260083"
+    "osm": "way/1314260083",
+    "address": "305 Stillfried Lane"
    }
   },
   {
@@ -2931,7 +3012,8 @@
     "name": "Ivy Stacks",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528488"
+    "osm": "way/44528488",
+    "address": "2450 Old Ivy Road"
    }
   },
   {
@@ -2947,7 +3029,8 @@
     "name": "James C Slaughter Recreation Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528718"
+    "osm": "way/44528718",
+    "address": "505 Edgemont Road"
    }
   },
   {
@@ -2963,7 +3046,8 @@
     "name": "James Monroe Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/4167951"
+    "osm": "relation/4167951",
+    "address": "248 McCormick Road"
    }
   },
   {
@@ -2979,7 +3063,9 @@
     "name": "Jefferson Park Medical Office Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528560"
+    "osm": "way/44528560",
+    "building_levels": 5,
+    "address": "1222 Jefferson Park Avenue"
    }
   },
   {
@@ -3011,7 +3097,9 @@
     "name": "Jesser Hall (formerly Materials Science)",
     "aliases": [],
     "category": "academic",
-    "osm": "way/341688937"
+    "osm": "way/341688937",
+    "building_levels": 4,
+    "address": "2090 Whitehead Rd."
    }
   },
   {
@@ -3027,7 +3115,8 @@
     "name": "John W. Warner Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528685"
+    "osm": "way/44528685",
+    "address": "128 Amphitheatre Way"
    }
   },
   {
@@ -3043,7 +3132,8 @@
     "name": "Josephine McLeod Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/344842958"
+    "osm": "way/344842958",
+    "building_levels": 4
    }
   },
   {
@@ -3059,7 +3149,8 @@
     "name": "Kappa Sigma",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528661"
+    "osm": "way/44528661",
+    "address": "165 Rugby Road"
    }
   },
   {
@@ -3075,7 +3166,8 @@
     "name": "Kerchof Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528119"
+    "osm": "way/44528119",
+    "building_levels": 2
    }
   },
   {
@@ -3091,7 +3183,8 @@
     "name": "Lacy Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/380604628"
+    "osm": "way/380604628",
+    "building_levels": 4
    }
   },
   {
@@ -3107,7 +3200,8 @@
     "name": "Lane Road Modular Unit",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1382896242"
+    "osm": "way/1382896242",
+    "address": "420 Lane Road"
    }
   },
   {
@@ -3141,7 +3235,20 @@
      "McCormick Observatory"
     ],
     "category": "academic",
-    "osm": "way/673015937"
+    "osm": "way/673015937",
+    "website": "https://astronomy.as.virginia.edu/public-outreach/observatory-public-night-program",
+    "phone": "+1 434 243-1885",
+    "wheelchair": "no",
+    "address": "600 Mccormick Road",
+    "operator": "University of Virginia, Department of Astronomy",
+    "wikidata": "Q947962",
+    "wikipedia": "https://en.wikipedia.org/wiki/McCormick_Observatory",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Leander_McCormick_Observatory.jpg/960px-Leander_McCormick_Observatory.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Leander_McCormick_Observatory.jpg",
+     "author": "Rob"
+    }
    }
   },
   {
@@ -3157,7 +3264,8 @@
     "name": "Lee Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/382400466"
+    "osm": "way/382400466",
+    "address": "999 Grove Street"
    }
   },
   {
@@ -3173,7 +3281,8 @@
     "name": "Lewis House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676197655"
+    "osm": "way/676197655",
+    "address": "207 Sprigg Lane"
    }
   },
   {
@@ -3189,7 +3298,8 @@
     "name": "Long Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430120"
+    "osm": "way/338430120",
+    "building_levels": 4
    }
   },
   {
@@ -3205,7 +3315,8 @@
     "name": "Lorna Sundberg International Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528470"
+    "osm": "way/44528470",
+    "address": "21 University Circle"
    }
   },
   {
@@ -3221,7 +3332,8 @@
     "name": "Madison Hall - President's Office",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528323"
+    "osm": "way/44528323",
+    "address": "1827 University Avenue"
    }
   },
   {
@@ -3237,7 +3349,8 @@
     "name": "Main Heat Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528278"
+    "osm": "way/44528278",
+    "address": "1321 Lee Street"
    }
   },
   {
@@ -3253,7 +3366,8 @@
     "name": "Mallet Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430119"
+    "osm": "way/338430119",
+    "building_levels": 4
    }
   },
   {
@@ -3269,7 +3383,8 @@
     "name": "Mary Munford House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676197629"
+    "osm": "way/676197629",
+    "address": "108 Emmet Street South"
    }
   },
   {
@@ -3301,7 +3416,9 @@
     "name": "McGuffey Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430135"
+    "osm": "way/338430135",
+    "building_levels": 4,
+    "address": "72 Monroe Hill Road"
    }
   },
   {
@@ -3317,7 +3434,8 @@
     "name": "McKim Hall (School of Medicine Administration)",
     "aliases": [],
     "category": "academic",
-    "osm": "way/344842954"
+    "osm": "way/344842954",
+    "building_levels": 4
    }
   },
   {
@@ -3333,7 +3451,9 @@
     "name": "Mechanical and Aerospace Engineering Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528421"
+    "osm": "way/44528421",
+    "building_levels": 4,
+    "address": "2080 Whitehead Rd."
    }
   },
   {
@@ -3349,7 +3469,8 @@
     "name": "Medical Research Building 4",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528354"
+    "osm": "way/44528354",
+    "building_levels": 5
    }
   },
   {
@@ -3365,7 +3486,16 @@
     "name": "Memorial Gymnasium",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528512"
+    "osm": "way/44528512",
+    "building_levels": 3,
+    "address": "210 Emmet Street South",
+    "wikidata": "Q14712831",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Memorial_Gymnasium%2C_University_of_Virginia_-_2006.jpg/960px-Memorial_Gymnasium%2C_University_of_Virginia_-_2006.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Memorial_Gymnasium,_University_of_Virginia_-_2006.jpg",
+     "author": "Greenstrat"
+    }
    }
   },
   {
@@ -3413,7 +3543,8 @@
     "name": "Minor Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528476"
+    "osm": "way/44528476",
+    "address": "Amphitheater Way"
    }
   },
   {
@@ -3445,7 +3576,8 @@
     "name": "Monroe Hill Houses",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528735"
+    "osm": "way/44528735",
+    "address": "252 Mccormick Road"
    }
   },
   {
@@ -3461,7 +3593,8 @@
     "name": "Montesano Center For Politics",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676194654"
+    "osm": "way/676194654",
+    "address": "655 Leonard Sandridge Drive"
    }
   },
   {
@@ -3493,7 +3626,15 @@
     "name": "Morea House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528638"
+    "osm": "way/44528638",
+    "address": "209 Sprigg Lane",
+    "wikidata": "Q15256184",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/Morea.jpg/960px-Morea.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Morea.jpg",
+     "author": "Dsewell"
+    }
    }
   },
   {
@@ -3509,7 +3650,9 @@
     "name": "National Radio Astronomy Observatory/Stone Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528490"
+    "osm": "way/44528490",
+    "building_levels": 3,
+    "address": "520 Edgemont Road"
    }
   },
   {
@@ -3525,7 +3668,9 @@
     "name": "Nau Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153041025"
+    "osm": "way/153041025",
+    "building_levels": 4,
+    "address": "1540 Jefferson Park Avenue"
    }
   },
   {
@@ -3541,7 +3686,8 @@
     "name": "New Cabell Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339366929"
+    "osm": "way/339366929",
+    "building_levels": 6
    }
   },
   {
@@ -3559,7 +3705,9 @@
      "Newcomb"
     ],
     "category": "academic",
-    "osm": "way/44528295"
+    "osm": "way/44528295",
+    "building_levels": 3,
+    "address": "180 Mccormick Road"
    }
   },
   {
@@ -3575,7 +3723,8 @@
     "name": "Newcomb Road Chiller Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/553840969"
+    "osm": "way/553840969",
+    "address": "310 Emmet Street South"
    }
   },
   {
@@ -3591,7 +3740,8 @@
     "name": "North Chiller Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1382902947"
+    "osm": "way/1382902947",
+    "address": "1315 Lee Street"
    }
   },
   {
@@ -3623,7 +3773,8 @@
     "name": "Observatory Hill Dining",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528179"
+    "osm": "way/44528179",
+    "building_levels": 3
    }
   },
   {
@@ -3639,7 +3790,8 @@
     "name": "Observatory Mountain Engineering Research Facility",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528715"
+    "osm": "way/44528715",
+    "address": "675 Old Reservoir Road"
    }
   },
   {
@@ -3655,7 +3807,8 @@
     "name": "Office of African American",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528656"
+    "osm": "way/44528656",
+    "building_levels": 2
    }
   },
   {
@@ -3687,7 +3840,8 @@
     "name": "Old Ivy Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1049684300"
+    "osm": "way/1049684300",
+    "address": "2420 Old Ivy Road"
    }
   },
   {
@@ -3721,7 +3875,9 @@
      "Sture G Olsson Hall"
     ],
     "category": "academic",
-    "osm": "way/44528325"
+    "osm": "way/44528325",
+    "building_levels": 3,
+    "address": "151 Engineer's Way"
    }
   },
   {
@@ -3753,7 +3909,8 @@
     "name": "Parking & Transportation",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528471"
+    "osm": "way/44528471",
+    "address": "1101 Millmont Street"
    }
   },
   {
@@ -3769,7 +3926,8 @@
     "name": "Patient and Patient Visitor Parking",
     "aliases": [],
     "category": "academic",
-    "osm": "way/223457676"
+    "osm": "way/223457676",
+    "building_levels": 4
    }
   },
   {
@@ -3801,7 +3959,8 @@
     "name": "Pavillion II",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339377823"
+    "osm": "way/339377823",
+    "building_levels": 3
    }
   },
   {
@@ -3817,7 +3976,8 @@
     "name": "Pavillion III",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339379983"
+    "osm": "way/339379983",
+    "building_levels": 3
    }
   },
   {
@@ -3833,7 +3993,8 @@
     "name": "Pavillion IV",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339377824"
+    "osm": "way/339377824",
+    "building_levels": 3
    }
   },
   {
@@ -3849,7 +4010,8 @@
     "name": "Pavillion IX",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339379984"
+    "osm": "way/339379984",
+    "building_levels": 1
    }
   },
   {
@@ -3865,7 +4027,8 @@
     "name": "Pavillion V",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339377819"
+    "osm": "way/339377819",
+    "building_levels": 2
    }
   },
   {
@@ -3881,7 +4044,8 @@
     "name": "Pavillion VI",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339377826"
+    "osm": "way/339377826",
+    "building_levels": 3
    }
   },
   {
@@ -3897,7 +4061,8 @@
     "name": "Pavillion VII",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339379986"
+    "osm": "way/339379986",
+    "building_levels": 3
    }
   },
   {
@@ -3913,7 +4078,8 @@
     "name": "Pavillion VIII",
     "aliases": [],
     "category": "academic",
-    "osm": "way/341692884"
+    "osm": "way/341692884",
+    "building_levels": 3
    }
   },
   {
@@ -3929,7 +4095,8 @@
     "name": "Pavillion X",
     "aliases": [],
     "category": "academic",
-    "osm": "way/339377827"
+    "osm": "way/339377827",
+    "building_levels": 2
    }
   },
   {
@@ -3945,7 +4112,9 @@
     "name": "Peabody Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528653"
+    "osm": "way/44528653",
+    "building_levels": 2,
+    "address": "190 Mccormick Road"
    }
   },
   {
@@ -3961,7 +4130,8 @@
     "name": "Peters Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430197"
+    "osm": "way/338430197",
+    "building_levels": 4
    }
   },
   {
@@ -3977,7 +4147,8 @@
     "name": "Peyton House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528440"
+    "osm": "way/44528440",
+    "address": "164 Rugby Road"
    }
   },
   {
@@ -4009,7 +4180,9 @@
     "name": "Peyton House Modular Unit",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676432354"
+    "osm": "way/676432354",
+    "building_levels": 1,
+    "address": "164 Rugby Road"
    }
   },
   {
@@ -4025,7 +4198,8 @@
     "name": "Phi Kappa Psi",
     "aliases": [],
     "category": "academic",
-    "osm": "way/483759573"
+    "osm": "way/483759573",
+    "address": "159 Madison Lane"
    }
   },
   {
@@ -4041,7 +4215,8 @@
     "name": "Physical and Life Sciences Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/273581534"
+    "osm": "way/273581534",
+    "building_levels": 4
    }
   },
   {
@@ -4057,7 +4232,9 @@
     "name": "Physics Building / Jesse Beams Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528404"
+    "osm": "way/44528404",
+    "building_levels": 4,
+    "address": "382 McCormick Road"
    }
   },
   {
@@ -4075,7 +4252,8 @@
      "Jordan Hall"
     ],
     "category": "academic",
-    "osm": "way/344842947"
+    "osm": "way/344842947",
+    "building_levels": 8
    }
   },
   {
@@ -4091,7 +4269,8 @@
     "name": "President's House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528143"
+    "osm": "way/44528143",
+    "address": "1900 Carr'South Hill Road"
    }
   },
   {
@@ -4125,7 +4304,8 @@
     "name": "Reacting Flow Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528304"
+    "osm": "way/44528304",
+    "address": "570 Edgemont Road"
    }
   },
   {
@@ -4141,7 +4321,8 @@
     "name": "Rice Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528406"
+    "osm": "way/44528406",
+    "building_levels": 5
    }
   },
   {
@@ -4160,7 +4341,8 @@
      "William H Ruffner Hall"
     ],
     "category": "academic",
-    "osm": "way/44528335"
+    "osm": "way/44528335",
+    "building_levels": 2
    }
   },
   {
@@ -4176,7 +4358,8 @@
     "name": "Roberta Gwathmey House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676197451"
+    "osm": "way/676197451",
+    "address": "108 Emmet Street South"
    }
   },
   {
@@ -4208,7 +4391,8 @@
     "name": "Rogers Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430195"
+    "osm": "way/338430195",
+    "building_levels": 4
    }
   },
   {
@@ -4224,7 +4408,15 @@
     "name": "Rotunda",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/4809573"
+    "osm": "relation/4809573",
+    "building_levels": 1,
+    "wikidata": "Q7761603",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Rotunda_UVa_from_the_south_east.jpg/960px-Rotunda_UVa_from_the_south_east.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Rotunda_UVa_from_the_south_east.jpg",
+     "author": "terren in Virginia"
+    }
    }
   },
   {
@@ -4240,7 +4432,14 @@
     "name": "Rouss Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528563"
+    "osm": "way/44528563",
+    "wikidata": "Q14712814",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/Rouss_Hall_at_the_University_of_Virginia.jpg/960px-Rouss_Hall_at_the_University_of_Virginia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Rouss_Hall_at_the_University_of_Virginia.jpg",
+     "author": "Joel Pattison"
+    }
    }
   },
   {
@@ -4256,7 +4455,8 @@
     "name": "Ruffin Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/889297488"
+    "osm": "way/889297488",
+    "address": "179 Culbreth Road"
    }
   },
   {
@@ -4290,7 +4490,17 @@
      "University of Virginia School of Data Science"
     ],
     "category": "academic",
-    "osm": "way/1291005629"
+    "osm": "way/1291005629",
+    "building_levels": 4,
+    "address": "1919 Ivy Road",
+    "wikidata": "Q68489500",
+    "wikipedia": "https://en.wikipedia.org/wiki/School_of_Data_Science",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/School_of_Data_Science_-_University_of_Virginia.jpg/960px-School_of_Data_Science_-_University_of_Virginia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 4.0",
+     "page": "https://commons.wikimedia.org/wiki/File:School_of_Data_Science_-_University_of_Virginia.jpg",
+     "author": "School of Data Science at the University of Virginia"
+    }
    }
   },
   {
@@ -4306,7 +4516,8 @@
     "name": "Shelburne Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528253"
+    "osm": "way/44528253",
+    "address": "530 Edgemont Road"
    }
   },
   {
@@ -4322,7 +4533,8 @@
     "name": "Sheridan G. Snyder Translational Research",
     "aliases": [],
     "category": "academic",
-    "osm": "way/157034594"
+    "osm": "way/157034594",
+    "address": "480 Ray C Hunt Drive"
    }
   },
   {
@@ -4338,7 +4550,8 @@
     "name": "Shumway Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1290085120"
+    "osm": "way/1290085120",
+    "address": "111 Breeden Way"
    }
   },
   {
@@ -4354,7 +4567,8 @@
     "name": "Sigma Phi",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528435"
+    "osm": "way/44528435",
+    "address": "163 Rugby Road"
    }
   },
   {
@@ -4370,7 +4584,8 @@
     "name": "Skipwith Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/553840963"
+    "osm": "way/553840963",
+    "building_levels": 2
    }
   },
   {
@@ -4386,7 +4601,8 @@
     "name": "Slaughter Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/9390046"
+    "osm": "relation/9390046",
+    "address": "570 Massie Road"
    }
   },
   {
@@ -4402,7 +4618,8 @@
     "name": "Small Observatory (Student Observatory, Doghouse)",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528184"
+    "osm": "way/44528184",
+    "building_levels": 1
    }
   },
   {
@@ -4418,7 +4635,8 @@
     "name": "Smith Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430124"
+    "osm": "way/338430124",
+    "building_levels": 4
    }
   },
   {
@@ -4434,7 +4652,8 @@
     "name": "South Chiller Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/19068640"
+    "osm": "relation/19068640",
+    "address": "341 Crispell Drive"
    }
   },
   {
@@ -4450,7 +4669,8 @@
     "name": "South Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528187"
+    "osm": "way/44528187",
+    "building_levels": 5
    }
   },
   {
@@ -4466,7 +4686,8 @@
     "name": "South Lawn Commons Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153041032"
+    "osm": "way/153041032",
+    "building_levels": 2
    }
   },
   {
@@ -4482,7 +4703,8 @@
     "name": "Special Materials Handling Facility",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/4812055"
+    "osm": "relation/4812055",
+    "address": "515 Edgemont Road"
    }
   },
   {
@@ -4498,7 +4720,8 @@
     "name": "Sprigg Lane House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676197665"
+    "osm": "way/676197665",
+    "address": "214 Sprigg Lane"
    }
   },
   {
@@ -4530,7 +4753,8 @@
     "name": "Student Activities Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528376"
+    "osm": "way/44528376",
+    "address": "800 Alderman Road"
    }
   },
   {
@@ -4546,7 +4770,8 @@
     "name": "Student-Faculty Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/676196035"
+    "osm": "way/676196035",
+    "address": "685 Nash Drive"
    }
   },
   {
@@ -4562,7 +4787,9 @@
     "name": "Telephone Exchange",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528082"
+    "osm": "way/44528082",
+    "building_levels": 1,
+    "address": "110 Breeden Way"
    }
   },
   {
@@ -4594,7 +4821,8 @@
     "name": "The Crackerbox",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528252"
+    "osm": "way/44528252",
+    "building_levels": 2
    }
   },
   {
@@ -4610,7 +4838,9 @@
     "name": "The Forum Hotel",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/17859973"
+    "osm": "relation/17859973",
+    "website": "https://forumhotelcharlottesville.com/",
+    "address": "540 Massie Road"
    }
   },
   {
@@ -4626,7 +4856,8 @@
     "name": "The Rotunda",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1042675571"
+    "osm": "way/1042675571",
+    "address": "1826 University Avenue"
    }
   },
   {
@@ -4642,7 +4873,8 @@
     "name": "The Wedge",
     "aliases": [],
     "category": "academic",
-    "osm": "way/138989826"
+    "osm": "way/138989826",
+    "address": "416 Monroe Lane"
    }
   },
   {
@@ -4658,7 +4890,8 @@
     "name": "Thornton Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/330904"
+    "osm": "relation/330904",
+    "address": "351 McCormick Road"
    }
   },
   {
@@ -4690,7 +4923,8 @@
     "name": "Tucker Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430130"
+    "osm": "way/338430130",
+    "building_levels": 4
    }
   },
   {
@@ -4706,7 +4940,8 @@
     "name": "UVA Print and Mail Services",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/17945769"
+    "osm": "relation/17945769",
+    "address": "2474 Old Ivy Road"
    }
   },
   {
@@ -4722,7 +4957,9 @@
     "name": "UVA Recycling Sorting Facility",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1309926723"
+    "osm": "way/1309926723",
+    "address": "2456 Old Ivy Road",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -4754,7 +4991,10 @@
     "name": "University Bookstore",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528552"
+    "osm": "way/44528552",
+    "building_levels": 4,
+    "address": "400 Emmet Street South",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -4770,7 +5010,8 @@
     "name": "University Chapel",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528532"
+    "osm": "way/44528532",
+    "address": "145 McCormick Road"
    }
   },
   {
@@ -4802,7 +5043,8 @@
     "name": "University of Virginia Hospital",
     "aliases": [],
     "category": "academic",
-    "osm": "way/344842960"
+    "osm": "way/344842960",
+    "building_levels": 3
    }
   },
   {
@@ -4818,7 +5060,8 @@
     "name": "Varsity Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528713"
+    "osm": "way/44528713",
+    "building_levels": 3
    }
   },
   {
@@ -4834,7 +5077,8 @@
     "name": "Vaughan House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528594"
+    "osm": "way/44528594",
+    "building_levels": 3
    }
   },
   {
@@ -4850,7 +5094,9 @@
     "name": "Venable Portal",
     "aliases": [],
     "category": "academic",
-    "osm": "way/338430128"
+    "osm": "way/338430128",
+    "building_levels": 4,
+    "address": "80 Monroe Hill Road"
    }
   },
   {
@@ -4866,7 +5112,9 @@
     "name": "Virginia Guesthouse",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1049684282"
+    "osm": "way/1049684282",
+    "website": "https://www.virginiaguesthouse.com/",
+    "address": "2017 Ivy Road"
    }
   },
   {
@@ -4882,7 +5130,8 @@
     "name": "Vyssotsky Cottage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528411"
+    "osm": "way/44528411",
+    "address": "602 Mccormick Road"
    }
   },
   {
@@ -4898,7 +5147,8 @@
     "name": "W E B Dubois Tutorial Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528334"
+    "osm": "way/44528334",
+    "building_levels": 1
    }
   },
   {
@@ -4914,7 +5164,8 @@
     "name": "West Complex",
     "aliases": [],
     "category": "academic",
-    "osm": "way/344842965"
+    "osm": "way/344842965",
+    "building_levels": 8
    }
   },
   {
@@ -4946,7 +5197,8 @@
     "name": "William A Lambeth House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528694"
+    "osm": "way/44528694",
+    "address": "1914 Thomson Road"
    }
   },
   {
@@ -4964,7 +5216,16 @@
      "Heinz and Doris Kuhlmann-Wilsdorf Hall"
     ],
     "category": "academic",
-    "osm": "way/44528451"
+    "osm": "way/44528451",
+    "building_levels": 3,
+    "address": "2065 Whitehead Rd.",
+    "wikidata": "Q112000842",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Wilsdorf_Hall.JPG/960px-Wilsdorf_Hall.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Wilsdorf_Hall.JPG",
+     "author": "Vtn5n"
+    }
    }
   },
   {
@@ -4996,7 +5257,9 @@
     "name": "Zehmer Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/44528394"
+    "osm": "way/44528394",
+    "building_levels": 2,
+    "address": "104 Midmont Lane"
    }
   },
   {
@@ -5012,7 +5275,8 @@
     "name": "Zeta Psi",
     "aliases": [],
     "category": "academic",
-    "osm": "way/889297489"
+    "osm": "way/889297489",
+    "address": "169 Rugby Road"
    }
   },
   {
@@ -5044,7 +5308,8 @@
     "name": "Luther P. Jackson Cultural Center",
     "aliases": [],
     "category": "arts",
-    "osm": "way/44528716"
+    "osm": "way/44528716",
+    "building_levels": 1
    }
   },
   {
@@ -5060,7 +5325,9 @@
     "name": "McIntire Amphitheatre",
     "aliases": [],
     "category": "arts",
-    "osm": "way/44528583"
+    "osm": "way/44528583",
+    "building_levels": 2,
+    "address": "151 Amphitheater Way"
    }
   },
   {
@@ -5108,7 +5375,10 @@
     "name": "Bento Sushi",
     "aliases": [],
     "category": "dining",
-    "osm": "node/6879654785"
+    "osm": "node/6879654785",
+    "cuisine": [
+     "sushi"
+    ]
    }
   },
   {
@@ -5124,7 +5394,11 @@
     "name": "Chick-fil-A",
     "aliases": [],
     "category": "dining",
-    "osm": "node/6879655085"
+    "osm": "node/6879655085",
+    "website": "https://www.chick-fil-a.com/locations/va/university-of-virginia",
+    "cuisine": [
+     "chicken"
+    ]
    }
   },
   {
@@ -5143,7 +5417,12 @@
     ],
     "category": "dining",
     "osm": "node/6977920272",
-    "hours": "Mo-Fr 08:00-14:00"
+    "hours": "Mo-Fr 08:00-14:00",
+    "website": "https://locations.einsteinbros.com/us/va/charlottesville/85-engineers-way",
+    "cuisine": [
+     "bagel"
+    ],
+    "address": "85 Engineers Way"
    }
   },
   {
@@ -5175,7 +5454,11 @@
     "name": "Grit Coffee",
     "aliases": [],
     "category": "dining",
-    "osm": "node/12182836164"
+    "osm": "node/12182836164",
+    "website": "https://gritcoffee.com/",
+    "cuisine": [
+     "coffee shop"
+    ]
    }
   },
   {
@@ -5193,7 +5476,13 @@
      "Starbucks Coffee"
     ],
     "category": "dining",
-    "osm": "node/11649758429"
+    "osm": "node/11649758429",
+    "website": "https://www.starbucks.com/store-locator/store/55340-283868/university-of-virginia-newcomb-180-mc-cormick-road-charlottesville-va-22903-us",
+    "phone": "+1 804-590-8790",
+    "cuisine": [
+     "coffee shop"
+    ],
+    "address": "180 McCormick Road"
    }
   },
   {
@@ -5210,7 +5499,12 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/6879654685",
-    "hours": "Mo-Fr 11:00-20:00"
+    "hours": "Mo-Fr 11:00-20:00",
+    "website": "https://restaurants.subway.com/united-states/va/charlottesville/400-emmet-st-north-pavillion",
+    "phone": "+1 434-924-7901",
+    "cuisine": [
+     "sandwich"
+    ]
    }
   },
   {
@@ -5227,7 +5521,11 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/3455072148",
-    "hours": "Mo-Th 11:00-18:30; Fr 11:00-17:00"
+    "hours": "Mo-Th 11:00-18:30; Fr 11:00-17:00",
+    "cuisine": [
+     "mediterranean"
+    ],
+    "address": "10 Bonnycastle Drive"
    }
   },
   {
@@ -5243,7 +5541,8 @@
     "name": "West Range Cafe",
     "aliases": [],
     "category": "dining",
-    "osm": "node/3499497265"
+    "osm": "node/3499497265",
+    "operator": "UVA"
    }
   },
   {
@@ -5275,7 +5574,8 @@
     "name": "Primary Care Center",
     "aliases": [],
     "category": "health",
-    "osm": "way/44528240"
+    "osm": "way/44528240",
+    "building_levels": 5
    }
   },
   {
@@ -5308,7 +5608,8 @@
     "name": "UVA Children's Hospital Clinics",
     "aliases": [],
     "category": "health",
-    "osm": "node/3058211402"
+    "osm": "node/3058211402",
+    "operator": "University of Virginia Health System"
    }
   },
   {
@@ -5326,7 +5627,9 @@
      "Ivy Mountain Musculoskeletal Center"
     ],
     "category": "health",
-    "osm": "way/1049684298"
+    "osm": "way/1049684298",
+    "address": "2280 Ivy Road",
+    "operator": "UVA Health"
    }
   },
   {
@@ -5342,7 +5645,12 @@
     "name": "UVA HealthSouth Rehabilitation Hospital",
     "aliases": [],
     "category": "health",
-    "osm": "way/157034592"
+    "osm": "way/157034592",
+    "website": "http://www.uvahealthsouth.com/",
+    "phone": "+1 434 244 2000",
+    "wheelchair": "yes",
+    "address": "515 Ray C Hunt Drive",
+    "operator": "Encompass Health"
    }
   },
   {
@@ -5358,7 +5666,8 @@
     "name": "UVA Outpatient Surgery Center",
     "aliases": [],
     "category": "health",
-    "osm": "node/3058211403"
+    "osm": "node/3058211403",
+    "operator": "University of Virginia Health System"
    }
   },
   {
@@ -5374,7 +5683,8 @@
     "name": "UVA Pharmacy",
     "aliases": [],
     "category": "health",
-    "osm": "node/11401514757"
+    "osm": "node/11401514757",
+    "wheelchair": "limited"
    }
   },
   {
@@ -5391,7 +5701,18 @@
     "aliases": [],
     "category": "health",
     "osm": "way/517817443",
-    "hours": "24/7"
+    "hours": "24/7",
+    "website": "https://uvahealth.com/",
+    "phone": "+1 434 924 0000",
+    "wheelchair": "yes",
+    "address": "1215 Lee Street",
+    "operator": "University of Virginia Health System",
+    "wikidata": "Q7896537",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/2/20/Uvahospital-aerial.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Uvahospital-aerial.jpg"
+    }
    }
   },
   {
@@ -5407,7 +5728,10 @@
     "name": "University of Virginia Northridge Medical Office Building",
     "aliases": [],
     "category": "health",
-    "osm": "node/10949903753"
+    "osm": "node/10949903753",
+    "website": "https://uvahealth.com/locations/Northridge-Medical-Park-Building-2965-5869580",
+    "address": "2955 Ivy Road",
+    "operator": "University of Virginia Health System"
    }
   },
   {
@@ -5423,7 +5747,8 @@
     "name": "Abbott House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528401"
+    "osm": "way/44528401",
+    "address": "530 Buckler Drive"
    }
   },
   {
@@ -5439,7 +5764,8 @@
     "name": "Balz - Dobie House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/210899373"
+    "osm": "way/210899373",
+    "building_levels": 6
    }
   },
   {
@@ -5455,7 +5781,8 @@
     "name": "Bice House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528357"
+    "osm": "way/44528357",
+    "address": "583 Brandon Avenue"
    }
   },
   {
@@ -5471,7 +5798,9 @@
     "name": "Bond House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/856078339"
+    "osm": "way/856078339",
+    "building_levels": 6,
+    "address": "600 Brandon Avenue"
    }
   },
   {
@@ -5487,7 +5816,8 @@
     "name": "Bonnycastle House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528229"
+    "osm": "way/44528229",
+    "building_levels": 2
    }
   },
   {
@@ -5503,7 +5833,8 @@
     "name": "Boyd House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528630"
+    "osm": "way/44528630",
+    "address": "514 Buckler Drive"
    }
   },
   {
@@ -5535,7 +5866,8 @@
     "name": "Cauthen House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528664"
+    "osm": "way/44528664",
+    "building_levels": 5
    }
   },
   {
@@ -5551,7 +5883,8 @@
     "name": "Courtenay House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528266"
+    "osm": "way/44528266",
+    "building_levels": 3
    }
   },
   {
@@ -5583,7 +5916,8 @@
     "name": "Dillard Houses",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528238"
+    "osm": "way/44528238",
+    "building_levels": 4
    }
   },
   {
@@ -5599,7 +5933,9 @@
     "name": "Dunglison House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528756"
+    "osm": "way/44528756",
+    "building_levels": 3,
+    "address": "Alderman Road"
    }
   },
   {
@@ -5663,7 +5999,8 @@
     "name": "Fitzhugh House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528095"
+    "osm": "way/44528095",
+    "building_levels": 3
    }
   },
   {
@@ -5679,7 +6016,8 @@
     "name": "Gaston House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/1316238491"
+    "osm": "way/1316238491",
+    "building_levels": 5
    }
   },
   {
@@ -5711,7 +6049,8 @@
     "name": "Glenn House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528646"
+    "osm": "way/44528646",
+    "address": "504 Buckler Drive"
    }
   },
   {
@@ -5727,7 +6066,8 @@
     "name": "Gooch Houses",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528276"
+    "osm": "way/44528276",
+    "building_levels": 4
    }
   },
   {
@@ -5743,7 +6083,8 @@
     "name": "Hancock House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528094"
+    "osm": "way/44528094",
+    "building_levels": 2
    }
   },
   {
@@ -5791,7 +6132,8 @@
     "name": "Johnson House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528599"
+    "osm": "way/44528599",
+    "building_levels": 4
    }
   },
   {
@@ -5807,7 +6149,8 @@
     "name": "Kellogg House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/121836436"
+    "osm": "way/121836436",
+    "building_levels": 5
    }
   },
   {
@@ -5887,7 +6230,8 @@
     "name": "Lile - Maupin House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/339417458"
+    "osm": "way/339417458",
+    "building_levels": 5
    }
   },
   {
@@ -5903,7 +6247,9 @@
     "name": "Malone House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528260"
+    "osm": "way/44528260",
+    "building_levels": 4,
+    "address": "215 Hereford Drive"
    }
   },
   {
@@ -5951,7 +6297,8 @@
     "name": "Monroe Hill",
     "aliases": [],
     "category": "housing",
-    "osm": "way/684834656"
+    "osm": "way/684834656",
+    "address": "420 Monroe Lane"
    }
   },
   {
@@ -5967,7 +6314,16 @@
     "name": "Montebello",
     "aliases": [],
     "category": "housing",
-    "osm": "way/378065644"
+    "osm": "way/378065644",
+    "building_levels": 1,
+    "address": "1700 Stadium Road",
+    "wikidata": "Q15255695",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/Montebello_in_Charlottesville%2C_eastern_side.jpg/960px-Montebello_in_Charlottesville%2C_eastern_side.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Montebello_in_Charlottesville,_eastern_side.jpg",
+     "author": "Nyttend"
+    }
    }
   },
   {
@@ -5983,7 +6339,9 @@
     "name": "Norris House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528550"
+    "osm": "way/44528550",
+    "building_levels": 4,
+    "address": "225 Hereford Drive"
    }
   },
   {
@@ -6015,7 +6373,8 @@
     "name": "Ramazani House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/1316238492"
+    "osm": "way/1316238492",
+    "building_levels": 6
    }
   },
   {
@@ -6031,7 +6390,8 @@
     "name": "Ribble House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528126"
+    "osm": "way/44528126",
+    "address": "568 Buckler Drive"
    }
   },
   {
@@ -6047,7 +6407,8 @@
     "name": "Russian House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/676197574"
+    "osm": "way/676197574",
+    "address": "102 Cresap Road"
    }
   },
   {
@@ -6063,7 +6424,8 @@
     "name": "Shannon House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/339417460"
+    "osm": "way/339417460",
+    "building_levels": 5
    }
   },
   {
@@ -6095,7 +6457,8 @@
     "name": "Snavely House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528352"
+    "osm": "way/44528352",
+    "address": "524 Buckler Drive"
    }
   },
   {
@@ -6111,7 +6474,8 @@
     "name": "The Barringer",
     "aliases": [],
     "category": "housing",
-    "osm": "way/683378586"
+    "osm": "way/683378586",
+    "address": "428 Monroe Lane"
    }
   },
   {
@@ -6127,7 +6491,8 @@
     "name": "The Monroe",
     "aliases": [],
     "category": "housing",
-    "osm": "way/683378589"
+    "osm": "way/683378589",
+    "address": "429 Monroe Lane"
    }
   },
   {
@@ -6143,7 +6508,8 @@
     "name": "Tuttle-Dunnington House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/339417462"
+    "osm": "way/339417462",
+    "building_levels": 5
    }
   },
   {
@@ -6159,7 +6525,8 @@
     "name": "Watson - Webb House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/210899372"
+    "osm": "way/210899372",
+    "building_levels": 6
    }
   },
   {
@@ -6175,7 +6542,9 @@
     "name": "Weedon House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528647"
+    "osm": "way/44528647",
+    "building_levels": 4,
+    "address": "235 Hereford Drive"
    }
   },
   {
@@ -6191,7 +6560,9 @@
     "name": "Whyburn House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528700"
+    "osm": "way/44528700",
+    "building_levels": 4,
+    "address": "245 Hereford Drive"
    }
   },
   {
@@ -6207,7 +6578,8 @@
     "name": "Woody House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/44528364"
+    "osm": "way/44528364",
+    "building_levels": 5
    }
   },
   {
@@ -6231,6 +6603,679 @@
    "geometry": {
     "type": "Point",
     "coordinates": [
+     -78.5050909,
+     38.0359351
+    ]
+   },
+   "properties": {
+    "name": "Anatomical Theater Marker",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12803373869"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5019044,
+     38.0395819
+    ]
+   },
+   "properties": {
+    "name": "Beta Bridge",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/11896888529"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144552,
+     38.0520856
+    ]
+   },
+   "properties": {
+    "name": "Courtnay's Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1341880110",
+    "operator": "University of Virginia"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5098607,
+     38.0330014
+    ]
+   },
+   "properties": {
+    "name": "Darden Court",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/44528271"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5106509,
+     38.0539932
+    ]
+   },
+   "properties": {
+    "name": "Down The Nile",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12078573085"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5148927,
+     38.0519827
+    ]
+   },
+   "properties": {
+    "name": "Flagler Court",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1341880115",
+    "operator": "University of Virginia"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5030756,
+     38.0382772
+    ]
+   },
+   "properties": {
+    "name": "Fralin Museum of Art",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/44528133",
+    "website": "https://www.virginia.edu/artmuseum/",
+    "phone": "+1-434-924-3592",
+    "address": "155 Rugby Road",
+    "operator": "University of Virginia",
+    "wikidata": "Q8565299",
+    "wikipedia": "https://en.wikipedia.org/wiki/Fralin_Museum_of_Art",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Fralin_Museum_Feb2013.jpg/960px-Fralin_Museum_Feb2013.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC0",
+     "page": "https://commons.wikimedia.org/wiki/File:Fralin_Museum_Feb2013.jpg",
+     "author": "SharpCrumbs"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5040057,
+     38.0335858
+    ]
+   },
+   "properties": {
+    "name": "George Washington Statue",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/3485420128"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5146839,
+     38.0320163
+    ]
+   },
+   "properties": {
+    "name": "George Welsh",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/6899219901",
+    "description": "Head Football Coach, University of Virginia 1982-2000 Winningest coach in ACC & Virginia football history with a record of 134-86-3 in nineteen seasons"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.517882,
+     38.0292244
+    ]
+   },
+   "properties": {
+    "name": "Graveyard Site",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/6981426893"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5046756,
+     38.0332601
+    ]
+   },
+   "properties": {
+    "name": "Homer",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/3327828481",
+    "wikidata": "Q16972956",
+    "wikipedia": "https://en.wikipedia.org/wiki/Blind_Homer_with_His_Student_Guide",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Old_Cabell_Hall_and_Homer_University_of_Virginia.jpg/960px-Old_Cabell_Hall_and_Homer_University_of_Virginia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Old_Cabell_Hall_and_Homer_University_of_Virginia.jpg",
+     "author": "Philip Larson"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5147376,
+     38.0516234
+    ]
+   },
+   "properties": {
+    "name": "Keunen Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1341880111",
+    "operator": "University of Virginia"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5045827,
+     38.031477
+    ]
+   },
+   "properties": {
+    "name": "Kitty Foster Cemetery",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1382854811"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5043025,
+     38.0317311
+    ]
+   },
+   "properties": {
+    "name": "Kitty Foster Homestead",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1382854809"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5014819,
+     38.0353066
+    ]
+   },
+   "properties": {
+    "name": "Memorial to Enslaved Laborers",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/15550258",
+    "wikidata": "Q65065216",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Memorial-to-enslaved-laborers-07.jpg/960px-Memorial-to-enslaved-laborers-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 4.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Memorial-to-enslaved-laborers-07.jpg",
+     "author": "WomenArtistUpdates"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5124076,
+     38.0528819
+    ]
+   },
+   "properties": {
+    "name": "Moving Forward",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12065405545"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5062901,
+     38.0375317
+    ]
+   },
+   "properties": {
+    "name": "Nameless Field",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/240430245",
+    "website": "https://advising.virginia.edu/resources/nameless-field/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5034079,
+     38.0396105
+    ]
+   },
+   "properties": {
+    "name": "November 13, 2022 Memorial Tree and Plaque",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12803491336"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5043184,
+     38.0356968
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden I",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809667"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5026578,
+     38.0351496
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden II",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809414"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5044419,
+     38.0354319
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden III",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809664"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5050399,
+     38.0343503
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden IX",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809663"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5046144,
+     38.0351038
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden V",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809665"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5029909,
+     38.0345633
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden VI",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809415"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5048622,
+     38.0347641
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden VII",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809666"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5031757,
+     38.0342104
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden VIII",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809206"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5033854,
+     38.0338135
+    ]
+   },
+   "properties": {
+    "name": "Pavilion Garden X",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4809207"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5100067,
+     38.0532911
+    ]
+   },
+   "properties": {
+    "name": "Spies Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/676194815"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5144093,
+     38.035395
+    ]
+   },
+   "properties": {
+    "name": "Student Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/2784141811"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.505799,
+     38.036369
+    ]
+   },
+   "properties": {
+    "name": "The Aviator Statue - James Rogers McConnell",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/2105949495",
+    "wikidata": "Q14713293",
+    "wikipedia": "https://en.wikipedia.org/wiki/The_Aviator_%28Charlottesville%2C_Virginia%29",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/The_Aviator_statue_outside_Clemons_Library.JPG/960px-The_Aviator_statue_outside_Clemons_Library.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:The_Aviator_statue_outside_Clemons_Library.JPG",
+     "author": "Semclaughlin"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5096366,
+     38.0525802
+    ]
+   },
+   "properties": {
+    "name": "The Field",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/470204900",
+    "hours": "24/7"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5041387,
+     38.0342541
+    ]
+   },
+   "properties": {
+    "name": "The Lawn",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/339379987",
+    "wikidata": "Q2412432",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Lawn_UVa_looking_south_fall_2010.jpg/960px-Lawn_UVa_looking_south_fall_2010.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Lawn_UVa_looking_south_fall_2010.jpg",
+     "author": "Karen Blaha"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5122933,
+     38.0530411
+    ]
+   },
+   "properties": {
+    "name": "The Tahija Arboretum & Lacross Botanical Gardens",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1301320564",
+    "website": "https://atlas.fm.virginia.edu/portal/apps/storymaps/collections/1c344c1b8a1b4ba68593368656eb9fe3"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5067423,
+     38.0349723
+    ]
+   },
+   "properties": {
+    "name": "The Whispering Well",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/4785298"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5152563,
+     38.0513814
+    ]
+   },
+   "properties": {
+    "name": "Thomas Jefferson",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12148014749"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503182,
+     38.036044
+    ]
+   },
+   "properties": {
+    "name": "Thomas Jefferson Statue",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/3465746548"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.503641,
+     38.044764
+    ]
+   },
+   "properties": {
+    "name": "University Gardens Playground",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/461646424"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5039012,
+     38.0345834
+    ]
+   },
+   "properties": {
+    "name": "University of Virginia Historic District",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/356592481"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -78.5047195,
+     38.036094
+    ]
+   },
+   "properties": {
+    "name": "University of Virginia Historic Marker",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/585530878"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
      -78.505741,
      38.0361361
     ]
@@ -6239,7 +7284,15 @@
     "name": "Albert and Shirley Small Special Collections Library",
     "aliases": [],
     "category": "library",
-    "osm": "node/367988049"
+    "osm": "node/367988049",
+    "address": "160 McCormick Road",
+    "wikidata": "Q15179080",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/The_Albert_and_Shirley_Small_Special_Collections_Library%2C_University_of_Virginia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:The_Albert_and_Shirley_Small_Special_Collections_Library,_University_of_Virginia.jpg",
+     "author": "Leofstan"
+    }
    }
   },
   {
@@ -6255,7 +7308,10 @@
     "name": "Arthur J. Morris Law Library",
     "aliases": [],
     "category": "library",
-    "osm": "node/8942441849"
+    "osm": "node/8942441849",
+    "website": "https://www.law.virginia.edu/library",
+    "address": "580 Massie Road",
+    "operator": "UVA"
    }
   },
   {
@@ -6271,7 +7327,9 @@
     "name": "Claude Moore Health Sciences Library",
     "aliases": [],
     "category": "library",
-    "osm": "way/344842944"
+    "osm": "way/344842944",
+    "website": "https://guides.hsl.virginia.edu/home",
+    "building_levels": 2
    }
   },
   {
@@ -6287,7 +7345,9 @@
     "name": "Darden Library",
     "aliases": [],
     "category": "library",
-    "osm": "way/676195987"
+    "osm": "way/676195987",
+    "website": "https://www.darden.virginia.edu/current-students/camp-library",
+    "building_levels": 2
    }
   },
   {
@@ -6303,7 +7363,11 @@
     "name": "Fiske Kimball Fine Arts Library",
     "aliases": [],
     "category": "library",
-    "osm": "node/367988317"
+    "osm": "node/367988317",
+    "website": "https://library.virginia.edu/locations/fine-arts",
+    "phone": "+1 434 924 6938",
+    "address": "160 McCormick Road",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -6319,7 +7383,9 @@
     "name": "Ivy Stacks Reading Room",
     "aliases": [],
     "category": "library",
-    "osm": "node/12128346527"
+    "osm": "node/12128346527",
+    "website": "https://library.virginia.edu/renovation/ivy-stacks",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -6335,7 +7401,12 @@
     "name": "Scholars' Lab",
     "aliases": [],
     "category": "library",
-    "osm": "node/570088901"
+    "osm": "node/570088901",
+    "website": "http://www.scholarslab.org",
+    "phone": "+1-434-243-8800",
+    "address": "160 McCormick Road",
+    "operator": "UVA",
+    "description": "The Scholars' Lab caters to the digital research and scholarly analysis needs of faculty and advanced students in the humanities and social sciences."
    }
   },
   {
@@ -6353,7 +7424,11 @@
      "Alderman Library"
     ],
     "category": "library",
-    "osm": "relation/4866579"
+    "osm": "relation/4866579",
+    "website": "https://www.library.virginia.edu/",
+    "building_levels": 4,
+    "address": "160 Mccormick Road",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -6369,7 +7444,9 @@
     "name": "Aquatic and Fitness Center",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/44528462"
+    "osm": "way/44528462",
+    "building_levels": 2,
+    "address": "450 Whitehead Road"
    }
   },
   {
@@ -6385,7 +7462,8 @@
     "name": "Davenport Field at Disharoon Park",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/44528309"
+    "osm": "way/44528309",
+    "website": "https://virginiasports.com/"
    }
   },
   {
@@ -6403,7 +7481,14 @@
      "JPJ"
     ],
     "category": "recreation",
-    "osm": "way/44528080"
+    "osm": "way/44528080",
+    "wikidata": "Q3182265",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/John_Paul_Jones_Arena_HDR.jpg/960px-John_Paul_Jones_Arena_HDR.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:John_Paul_Jones_Arena_HDR.jpg",
+     "author": "Bob Mical"
+    }
    }
   },
   {
@@ -6419,7 +7504,14 @@
     "name": "Klockner Stadium",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/44528286"
+    "osm": "way/44528286",
+    "wikidata": "Q6421625",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Kl%C3%B6ckner_Stadium_%28Charlottesville%2C_Va.%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Kl%C3%B6ckner_Stadium_(Charlottesville,_Va.).jpg",
+     "author": "Virginia Athletics Media Relations"
+    }
    }
   },
   {
@@ -6435,7 +7527,8 @@
     "name": "Lambeth Field Stands",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/975849541"
+    "osm": "way/975849541",
+    "operator": "University of Virginia"
    }
   },
   {
@@ -6502,7 +7595,15 @@
      "Carl Smith Center, Home of David A. Harrison III Field at Scott Stadium"
     ],
     "category": "recreation",
-    "osm": "way/242316963"
+    "osm": "way/242316963",
+    "wikidata": "Q1133538",
+    "wikipedia": "https://en.wikipedia.org/wiki/Scott_Stadium",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Scott_Stadium_UVa.jpg/960px-Scott_Stadium_UVa.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Scott_Stadium_UVa.jpg",
+     "author": "Mak7912"
+    }
    }
   },
   {
@@ -6518,7 +7619,9 @@
     "name": "Wilson Collegiate Tennis Camps University of Virginia",
     "aliases": [],
     "category": "recreation",
-    "osm": "node/1645809134"
+    "osm": "node/1645809134",
+    "address": "290 Massie Rd",
+    "wikidata": "Q6800735"
    }
   },
   {

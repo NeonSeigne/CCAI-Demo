@@ -1,6 +1,6 @@
 {
  "type": "FeatureCollection",
- "source": "OpenStreetMap contributors (ODbL), via Overpass API",
+ "source": "OpenStreetMap contributors (ODbL), via Overpass API; photos from Wikimedia Commons",
  "osm_area": "relation/7144092",
  "features": [
   {
@@ -16,7 +16,9 @@
     "name": "1610 University Ave.",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153660098"
+    "osm": "way/153660098",
+    "building_levels": 1,
+    "address": "1610 University Avenue"
    }
   },
   {
@@ -32,7 +34,8 @@
     "name": "1910 Linden Dr.",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37691885"
+    "osm": "way/37691885",
+    "address": "1910 Linden Drive"
    }
   },
   {
@@ -48,7 +51,8 @@
     "name": "1932 Linden Drive",
     "aliases": [],
     "category": "academic",
-    "osm": "way/907777252"
+    "osm": "way/907777252",
+    "address": "1932 Linden Drive"
    }
   },
   {
@@ -64,7 +68,8 @@
     "name": "206 Bernard Ct.",
     "aliases": [],
     "category": "academic",
-    "osm": "way/173996945"
+    "osm": "way/173996945",
+    "address": "206 Bernard Court"
    }
   },
   {
@@ -80,7 +85,8 @@
     "name": "502 Herrick Dr.",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38311318"
+    "osm": "way/38311318",
+    "address": "2105 Linden Dr."
    }
   },
   {
@@ -96,7 +102,8 @@
     "name": "Agricultural Dean's Residence",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37965202"
+    "osm": "way/37965202",
+    "address": "620 Babcock Drive"
    }
   },
   {
@@ -112,7 +119,16 @@
     "name": "Agricultural Engineering",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856046"
+    "osm": "way/38856046",
+    "address": "460 Henry Mall",
+    "wikidata": "Q4693892",
+    "wikipedia": "https://en.wikipedia.org/wiki/Agricultural_Engineering_Building",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Agricultural_Engineering.jpg/960px-Agricultural_Engineering.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Agricultural_Engineering.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -128,7 +144,8 @@
     "name": "Agricultural Engineering Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37550804"
+    "osm": "way/37550804",
+    "address": "540 Elm Drive"
    }
   },
   {
@@ -144,7 +161,18 @@
     "name": "Agricultural Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953076"
+    "osm": "way/38953076",
+    "building_levels": 4,
+    "address": "1450 Linden Drive",
+    "operator": "UW-Madison",
+    "wikidata": "Q4693993",
+    "wikipedia": "https://en.wikipedia.org/wiki/Agriculture_Hall_%28Madison%2C_Wisconsin%29",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Agriculture_Hall_Madison.jpg/960px-Agriculture_Hall_Madison.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Agriculture_Hall_Madison.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -162,7 +190,18 @@
      "Agricultural Bulletin Building"
     ],
     "category": "academic",
-    "osm": "way/38953058"
+    "osm": "way/38953058",
+    "building_levels": 3,
+    "address": "1535 Observatory Drive",
+    "operator": "UW-Madison",
+    "wikidata": "Q54952767",
+    "wikipedia": "https://en.wikipedia.org/wiki/Agricultural_Heating_Station",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/University_of_Wisconsin_Agricultural_Heating_Station.jpg/960px-University_of_Wisconsin_Agricultural_Heating_Station.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:University_of_Wisconsin_Agricultural_Heating_Station.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -178,7 +217,8 @@
     "name": "Animal Science Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37550805"
+    "osm": "way/37550805",
+    "address": "1675 Observatory Drive"
    }
   },
   {
@@ -228,7 +268,17 @@
      "Red Gym"
     ],
     "category": "academic",
-    "osm": "way/37804098"
+    "osm": "way/37804098",
+    "building_levels": 6,
+    "address": "716 Langdon Street",
+    "wikidata": "Q7896625",
+    "wikipedia": "https://en.wikipedia.org/wiki/University_of_Wisconsin_Armory_and_Gymnasium",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/University_of_Wisconsin_Armory_and_Gymnasium_%28Red_Gym%29%2C_University_of_Wisconsin%2C_Langdon_Street%2C_Madison%2C_WI_-_54302241387.jpg/960px-University_of_Wisconsin_Armory_and_Gymnasium_%28Red_Gym%29%2C_University_of_Wisconsin%2C_Langdon_Street%2C_Madison%2C_WI_-_54302241387.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:University_of_Wisconsin_Armory_and_Gymnasium_(Red_Gym),_University_of_Wisconsin,_Langdon_Street,_Madison,_WI_-_54302241387.jpg",
+     "author": "w_lemay"
+    }
    }
   },
   {
@@ -244,7 +294,9 @@
     "name": "Art Lofts",
     "aliases": [],
     "category": "academic",
-    "osm": "way/102234779"
+    "osm": "way/102234779",
+    "building_levels": 2,
+    "address": "111 North Frances Street"
    }
   },
   {
@@ -260,7 +312,8 @@
     "name": "Arthur D. Hasler Laboratory of Limnology",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37749302"
+    "osm": "way/37749302",
+    "address": "680 North Park Street"
    }
   },
   {
@@ -276,7 +329,9 @@
     "name": "Athletic Operations Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/175344876"
+    "osm": "way/175344876",
+    "building_levels": 1,
+    "address": "25 North Breese Terrace"
    }
   },
   {
@@ -292,7 +347,10 @@
     "name": "Atmospheric & Oceanic Sciences",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153660089"
+    "osm": "way/153660089",
+    "building_levels": 15,
+    "address": "1225 West Dayton Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -308,7 +366,9 @@
     "name": "Babcock Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856035"
+    "osm": "way/38856035",
+    "building_levels": 5,
+    "address": "1605 Linden Drive"
    }
   },
   {
@@ -324,7 +384,10 @@
     "name": "Bakke Recreation & Wellbeing Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/916831421"
+    "osm": "way/916831421",
+    "website": "https://recwell.wisc.edu/bakke/",
+    "address": "1976 Observatory Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -340,7 +403,8 @@
     "name": "Bardeen Medical Laboratories",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855411"
+    "osm": "way/38855411",
+    "address": "1215 Linden Drive"
    }
   },
   {
@@ -356,7 +420,16 @@
     "name": "Bascom Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/17672451"
+    "osm": "relation/17672451",
+    "building_levels": 4,
+    "address": "500 Lincoln Drive",
+    "wikidata": "Q109349240",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Bascom_Hall_Sunset.jpg/960px-Bascom_Hall_Sunset.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 4.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Bascom_Hall_Sunset.jpg",
+     "author": "Akira CA"
+    }
    }
   },
   {
@@ -372,7 +445,9 @@
     "name": "Bernie's Place",
     "aliases": [],
     "category": "academic",
-    "osm": "way/300842389"
+    "osm": "way/300842389",
+    "website": "https://berniesplaceuw.wordpress.com/",
+    "address": "39 University Houses"
    }
   },
   {
@@ -388,7 +463,8 @@
     "name": "Biotron Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37691896"
+    "osm": "way/37691896",
+    "address": "2115 Observatory Drive"
    }
   },
   {
@@ -404,7 +480,9 @@
     "name": "Birge Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855394"
+    "osm": "way/38855394",
+    "building_levels": 6,
+    "address": "430 Bascom Mall"
    }
   },
   {
@@ -420,7 +498,8 @@
     "name": "Botany Greenhouse",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39201160"
+    "osm": "way/39201160",
+    "operator": "University Of Wisconsin Botany"
    }
   },
   {
@@ -436,7 +515,8 @@
     "name": "Bradley Memorial Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855410"
+    "osm": "way/38855410",
+    "address": "1225 Linden Drive"
    }
   },
   {
@@ -452,7 +532,8 @@
     "name": "Brogden Psychology Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153063309"
+    "osm": "way/153063309",
+    "address": "1202 West Johnson Street"
    }
   },
   {
@@ -500,7 +581,10 @@
     "name": "Carillon Tower",
     "aliases": [],
     "category": "academic",
-    "osm": "way/158973590"
+    "osm": "way/158973590",
+    "building_levels": 5,
+    "address": "1160 Observatory Drive",
+    "operator": "University of Wisconsin"
    }
   },
   {
@@ -534,24 +618,9 @@
      "Thomas C. Chamberlin Hall"
     ],
     "category": "academic",
-    "osm": "way/39201159"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     -89.3987712,
-     43.0739028
-    ]
-   },
-   "properties": {
-    "name": "Chazen Museum of Art",
-    "aliases": [],
-    "category": "academic",
-    "osm": "way/295708135",
-    "hours": "Mo-Fr 10:00-19:00; Sa,Su 11:00-17:00; PH off"
+    "osm": "way/39201159",
+    "building_levels": 5,
+    "address": "1150 University Avenue"
    }
   },
   {
@@ -567,7 +636,9 @@
     "name": "Chemistry Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153060482"
+    "osm": "way/153060482",
+    "website": "http://chem.wisc.edu/",
+    "address": "1101 University Avenue"
    }
   },
   {
@@ -583,23 +654,9 @@
     "name": "Computer Sceinces Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153660099"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     -89.3994226,
-     43.0739047
-    ]
-   },
-   "properties": {
-    "name": "Conrad A. Elvehjem Building",
-    "aliases": [],
-    "category": "academic",
-    "osm": "relation/18849422"
+    "osm": "way/153660099",
+    "building_levels": 7,
+    "address": "1210 West Dayton Street"
    }
   },
   {
@@ -615,7 +672,8 @@
     "name": "D.C. Smith Greenhouse",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856039"
+    "osm": "way/38856039",
+    "address": "465 Babcock Drive"
    }
   },
   {
@@ -631,7 +689,16 @@
     "name": "Dairy Barn",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38263368"
+    "osm": "way/38263368",
+    "address": "1915 Linden Drive",
+    "wikidata": "Q7896629",
+    "wikipedia": "https://en.wikipedia.org/wiki/University_of_Wisconsin_Dairy_Barn",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Dairy_Barn.jpg/960px-Dairy_Barn.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Dairy_Barn.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -647,7 +714,8 @@
     "name": "Dairy Cattle Instruction & Research Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38263360"
+    "osm": "way/38263360",
+    "address": "1815 Linden Drive"
    }
   },
   {
@@ -663,7 +731,8 @@
     "name": "DeLuca Biochemical Sciences Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/173506603"
+    "osm": "way/173506603",
+    "address": "440 Henry Mall"
    }
   },
   {
@@ -679,7 +748,16 @@
     "name": "DeLuca Biochemistry Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/412585896"
+    "osm": "way/412585896",
+    "address": "420 Henry Mall",
+    "wikidata": "Q18739425",
+    "wikipedia": "https://en.wikipedia.org/wiki/DeLuca_Biochemistry_Building",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Agricultural_Chemistry_Building%2C_University_of_Wisconsin.jpg/960px-Agricultural_Chemistry_Building%2C_University_of_Wisconsin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Agricultural_Chemistry_Building,_University_of_Wisconsin.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -695,7 +773,8 @@
     "name": "DeLuca Biochemistry Laboratories",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37516023"
+    "osm": "way/37516023",
+    "address": "433 Babcock Drive"
    }
   },
   {
@@ -712,7 +791,9 @@
     "aliases": [],
     "category": "academic",
     "osm": "way/36969789",
-    "hours": "Mo,Tu,Th,Fr 08:00-18:00; We 08:00-20:00; Sa 09:30-12:30; Su off"
+    "hours": "Mo,Tu,Th,Fr 08:00-18:00; We 08:00-20:00; Sa 09:30-12:30; Su off",
+    "address": "611 Eagle Heights Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -728,7 +809,9 @@
     "name": "Education Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37751914"
+    "osm": "way/37751914",
+    "building_levels": 4,
+    "address": "1000 Bascom Mall"
    }
   },
   {
@@ -744,7 +827,9 @@
     "name": "Educational Sciences",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153640720"
+    "osm": "way/153640720",
+    "website": "http://education.wisc.edu/",
+    "address": "1025 West Johnson Street"
    }
   },
   {
@@ -760,7 +845,9 @@
     "name": "Engineering Centers Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/56997836"
+    "osm": "way/56997836",
+    "building_levels": 3,
+    "address": "1550 Engineering Drive"
    }
   },
   {
@@ -776,7 +863,9 @@
     "name": "Engineering Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/56997838"
+    "osm": "way/56997838",
+    "building_levels": 5,
+    "address": "1415 Engineering Drive"
    }
   },
   {
@@ -792,7 +881,9 @@
     "name": "Engineering Research Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/56997837"
+    "osm": "way/56997837",
+    "building_levels": 13,
+    "address": "1500 Engineering Drive"
    }
   },
   {
@@ -808,7 +899,9 @@
     "name": "Environmental Health and Safety Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/102234778"
+    "osm": "way/102234778",
+    "building_levels": 2,
+    "address": "30 East Campus Mall"
    }
   },
   {
@@ -840,7 +933,9 @@
     "name": "Extension Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/101606150"
+    "osm": "way/101606150",
+    "building_levels": 8,
+    "address": "432 North Lake Street"
    }
   },
   {
@@ -856,7 +951,9 @@
     "name": "Fleet and Service Garage",
     "aliases": [],
     "category": "academic",
-    "osm": "way/172980981"
+    "osm": "way/172980981",
+    "address": "27 North Charter Street",
+    "operator": "University of Wisconsin"
    }
   },
   {
@@ -888,7 +985,9 @@
     "name": "Genetics-Biotechnology Center Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39015620"
+    "osm": "way/39015620",
+    "building_levels": 4,
+    "address": "425 Henry Mall"
    }
   },
   {
@@ -904,7 +1003,8 @@
     "name": "Goodnight Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37862323"
+    "osm": "way/37862323",
+    "address": "1975 Willow Drive"
    }
   },
   {
@@ -920,7 +1020,9 @@
     "name": "Gordon Dining and Event Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/193492268"
+    "osm": "way/193492268",
+    "building_levels": 3,
+    "address": "770 West Dayton Street"
    }
   },
   {
@@ -936,7 +1038,11 @@
     "name": "Grainger Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153060483"
+    "osm": "way/153060483",
+    "website": "https://www.bus.wisc.edu/",
+    "building_levels": 6,
+    "address": "975 University Avenue",
+    "wikidata": "Q8027269"
    }
   },
   {
@@ -968,7 +1074,8 @@
     "name": "Harlow Primate Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/172980982"
+    "osm": "way/172980982",
+    "address": "22 North Charter Street"
    }
   },
   {
@@ -986,7 +1093,10 @@
      "HSLC"
     ],
     "category": "academic",
-    "osm": "way/107463323"
+    "osm": "way/107463323",
+    "website": "https://www.med.wisc.edu/facilities/hslc/health-sciences-learning-center/980",
+    "address": "750 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1002,7 +1112,9 @@
     "name": "Helen C. White Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37749300"
+    "osm": "way/37749300",
+    "building_levels": 7,
+    "address": "600 North Park Street"
    }
   },
   {
@@ -1018,7 +1130,9 @@
     "name": "Hiram Smith Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953056"
+    "osm": "way/38953056",
+    "address": "1545 Observatory Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1034,7 +1148,17 @@
     "name": "Hiram Smith Hall Annex",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953057"
+    "osm": "way/38953057",
+    "address": "1555 Observatory Drive",
+    "operator": "UW-Madison",
+    "wikidata": "Q54952950",
+    "wikipedia": "https://en.wikipedia.org/wiki/Hiram_Smith_Hall_and_Annex",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Hiram_Smith_Hall_and_Annex.jpg/960px-Hiram_Smith_Hall_and_Annex.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Hiram_Smith_Hall_and_Annex.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -1050,7 +1174,9 @@
     "name": "Hoofers Sailing Club",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1292203496"
+    "osm": "way/1292203496",
+    "website": "https://www.hoofersailing.org/",
+    "operator": "University of Wisconsin - Madison"
    }
   },
   {
@@ -1066,7 +1192,8 @@
     "name": "Horse Barn",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38019749"
+    "osm": "way/38019749",
+    "address": "520 Elm Drive"
    }
   },
   {
@@ -1082,7 +1209,8 @@
     "name": "Horticulture",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856040"
+    "osm": "way/38856040",
+    "address": "1575 Linden Drive"
    }
   },
   {
@@ -1100,7 +1228,9 @@
      "Mark H. Ingraham Hall"
     ],
     "category": "academic",
-    "osm": "way/38855397"
+    "osm": "way/38855397",
+    "building_levels": 4,
+    "address": "1155 Observatory Drive"
    }
   },
   {
@@ -1148,7 +1278,9 @@
     "name": "Kellner Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/175346221"
+    "osm": "way/175346221",
+    "building_levels": 5,
+    "address": "1440 Monroe Street"
    }
   },
   {
@@ -1164,7 +1296,9 @@
     "name": "King Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953060"
+    "osm": "way/38953060",
+    "address": "1475 Observatory Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1180,7 +1314,14 @@
     "name": "LaBahn Arena",
     "aliases": [],
     "category": "academic",
-    "osm": "way/193494687"
+    "osm": "way/193494687",
+    "wikidata": "Q6460666",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/Labahn_Arena_June_2017.jpg/960px-Labahn_Arena_June_2017.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC0",
+     "page": "https://commons.wikimedia.org/wiki/File:Labahn_Arena_June_2017.jpg",
+     "author": "Kyvuh"
+    }
    }
   },
   {
@@ -1196,7 +1337,17 @@
     "name": "Lathrop Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39201161"
+    "osm": "way/39201161",
+    "building_levels": 3,
+    "address": "1050 University Avenue",
+    "wikidata": "Q6495960",
+    "wikipedia": "https://en.wikipedia.org/wiki/Lathrop_Hall",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Lathrop_Hall.jpg/960px-Lathrop_Hall.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Lathrop_Hall.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -1212,7 +1363,10 @@
     "name": "Law Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855393"
+    "osm": "way/38855393",
+    "address": "975 Bascom Mall",
+    "wikidata": "Q16982645",
+    "wikipedia": "https://en.wikipedia.org/wiki/University_of_Wisconsin_Madison_Law_Building"
    }
   },
   {
@@ -1244,7 +1398,10 @@
     "name": "Linden Drive Ramp",
     "aliases": [],
     "category": "academic",
-    "osm": "way/894733524"
+    "osm": "way/894733524",
+    "website": "https://transportation.wisc.edu/parking-lots/",
+    "address": "2002 Linden Drive",
+    "operator": "University of Wisconsin-Madison"
    }
   },
   {
@@ -1260,7 +1417,8 @@
     "name": "Livestock Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37722267"
+    "osm": "way/37722267",
+    "address": "1810 Linden Drive"
    }
   },
   {
@@ -1276,7 +1434,16 @@
     "name": "Luther Memorial Church",
     "aliases": [],
     "category": "academic",
-    "osm": "way/412588608"
+    "osm": "way/412588608",
+    "website": "https://luthermem.org/",
+    "address": "1021 University Avenue",
+    "wikidata": "Q17009034",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/7/70/Luther_Memorial_Church.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Luther_Memorial_Church.jpg",
+     "author": "Wormser Edikt"
+    }
    }
   },
   {
@@ -1294,7 +1461,8 @@
      "Below Alumni Center"
     ],
     "category": "academic",
-    "osm": "relation/18858953"
+    "osm": "relation/18858953",
+    "address": "650 North Lake Street"
    }
   },
   {
@@ -1310,7 +1478,9 @@
     "name": "Materials Science and Engineering",
     "aliases": [],
     "category": "academic",
-    "osm": "way/60320800"
+    "osm": "way/60320800",
+    "building_levels": 3,
+    "address": "1509 University Avenue"
    }
   },
   {
@@ -1326,7 +1496,8 @@
     "name": "McArdle Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39015616"
+    "osm": "way/39015616",
+    "address": "1400 University Avenue"
    }
   },
   {
@@ -1358,7 +1529,9 @@
     "name": "Meat Science and Animal Biologics Discovery",
     "aliases": [],
     "category": "academic",
-    "osm": "way/490171328"
+    "osm": "way/490171328",
+    "building_levels": 2,
+    "address": "1933 Observatory Drive"
    }
   },
   {
@@ -1374,7 +1547,9 @@
     "name": "Mechanical Engineering Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/56997835"
+    "osm": "way/56997835",
+    "building_levels": 3,
+    "address": "1513 University Avenue"
    }
   },
   {
@@ -1390,7 +1565,8 @@
     "name": "Medical Sciences",
     "aliases": [],
     "category": "academic",
-    "osm": "way/172992066"
+    "osm": "way/172992066",
+    "address": "1215 Linden Drive"
    }
   },
   {
@@ -1406,23 +1582,9 @@
     "name": "Medical Sciences Center",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/19566386"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     -89.4093769,
-     43.0710919
-    ]
-   },
-   "properties": {
-    "name": "Memorial Arch",
-    "aliases": [],
-    "category": "academic",
-    "osm": "way/382670809"
+    "osm": "relation/19566386",
+    "building_levels": 5,
+    "address": "1300 University Avenue"
    }
   },
   {
@@ -1441,7 +1603,9 @@
      "the Union"
     ],
     "category": "academic",
-    "osm": "relation/19355831"
+    "osm": "relation/19355831",
+    "building_levels": 4,
+    "address": "800 Langdon Street"
    }
   },
   {
@@ -1457,7 +1621,10 @@
     "name": "Microbial Sciences Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855860"
+    "osm": "way/38855860",
+    "building_levels": 6,
+    "address": "1550 Linden Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1473,7 +1640,8 @@
     "name": "Moore Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856041"
+    "osm": "way/38856041",
+    "address": "1575 Linden Drive"
    }
   },
   {
@@ -1489,7 +1657,9 @@
     "name": "Morgridge Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/1391651477"
+    "osm": "way/1391651477",
+    "building_levels": 7,
+    "address": "1205 University Avenue"
    }
   },
   {
@@ -1505,7 +1675,9 @@
     "name": "Mosse Humanities Building",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/2075103"
+    "osm": "relation/2075103",
+    "building_levels": 6,
+    "address": "455 North Park Street"
    }
   },
   {
@@ -1521,7 +1693,8 @@
     "name": "Muscle & Meat Science Research Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38263351"
+    "osm": "way/38263351",
+    "address": "1805 Linden Drive"
    }
   },
   {
@@ -1537,7 +1710,9 @@
     "name": "Music Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39201163"
+    "osm": "way/39201163",
+    "building_levels": 2,
+    "address": "925 Bascom Mall"
    }
   },
   {
@@ -1553,7 +1728,10 @@
     "name": "Nancy Nicholas Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855398"
+    "osm": "way/38855398",
+    "building_levels": 4,
+    "address": "1300 Linden Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1569,7 +1747,9 @@
     "name": "Noland Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/139958467"
+    "osm": "way/139958467",
+    "website": "https://zoology.wisc.edu/",
+    "address": "250 North Mills Street"
    }
   },
   {
@@ -1585,7 +1765,17 @@
     "name": "North Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37751913"
+    "osm": "way/37751913",
+    "building_levels": 4,
+    "address": "1050 Bascom Mall",
+    "wikidata": "Q7055524",
+    "wikipedia": "https://en.wikipedia.org/wiki/North_Hall_%28University_of_Wisconsin%29",
+    "photo": {
+     "url": "https://upload.wikimedia.org/wikipedia/commons/0/06/North_Hall%2C_UW_Madison.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:North_Hall,_UW_Madison.jpg",
+     "author": "Slambo"
+    }
    }
   },
   {
@@ -1601,7 +1791,8 @@
     "name": "Nutritional Sciences",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855842"
+    "osm": "way/38855842",
+    "address": "1415 Linden Drive"
    }
   },
   {
@@ -1617,7 +1808,8 @@
     "name": "Picnic Point Beach House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/565639544"
+    "osm": "way/565639544",
+    "building_levels": 1
    }
   },
   {
@@ -1633,7 +1825,8 @@
     "name": "Plant Sciences",
     "aliases": [],
     "category": "academic",
-    "osm": "way/173508078"
+    "osm": "way/173508078",
+    "address": "1575 Linden Drive"
    }
   },
   {
@@ -1649,7 +1842,8 @@
     "name": "Porter Boathouse",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38019748"
+    "osm": "way/38019748",
+    "address": "680 Babcock Drive"
    }
   },
   {
@@ -1665,7 +1859,8 @@
     "name": "Poultry Research Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37691887"
+    "osm": "way/37691887",
+    "address": "1925 Observatory Drive"
    }
   },
   {
@@ -1681,7 +1876,14 @@
     "name": "Pres House",
     "aliases": [],
     "category": "academic",
-    "osm": "way/360719077"
+    "osm": "way/360719077",
+    "wikidata": "Q7894888",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/University_Presbyterian_Church_and_Student_Center.jpg/960px-University_Presbyterian_Church_and_Student_Center.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:University_Presbyterian_Church_and_Student_Center.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -1699,7 +1901,9 @@
      "University of Wisconsin Extension"
     ],
     "category": "academic",
-    "osm": "way/37965574"
+    "osm": "way/37965574",
+    "building_levels": 3,
+    "address": "702 Langdon Street"
    }
   },
   {
@@ -1715,7 +1919,9 @@
     "name": "Radio Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37723613"
+    "osm": "way/37723613",
+    "building_levels": 1,
+    "address": "975 Observatory Drive"
    }
   },
   {
@@ -1733,7 +1939,9 @@
      "UW Madison School of Pharmacy"
     ],
     "category": "academic",
-    "osm": "way/107463313"
+    "osm": "way/107463313",
+    "address": "777 Highland Ave",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1749,7 +1957,8 @@
     "name": "Robert M. Bock Laboratories",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38856044"
+    "osm": "way/38856044",
+    "address": "1525 Linden Drive"
    }
   },
   {
@@ -1765,7 +1974,12 @@
     "name": "Robert M. Lafollette School of Public Affairs",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953095"
+    "osm": "way/38953095",
+    "building_levels": 2,
+    "address": "1225 Observatory Drive",
+    "operator": "UW-Madison",
+    "wikidata": "Q7347147",
+    "wikipedia": "https://en.wikipedia.org/wiki/Robert_M._La_Follette_School_of_Public_Affairs"
    }
   },
   {
@@ -1781,7 +1995,8 @@
     "name": "Russell Laboratories",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37516020"
+    "osm": "way/37516020",
+    "address": "Linden Drive"
    }
   },
   {
@@ -1797,7 +2012,8 @@
     "name": "Rust-Schreiner Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/173499562"
+    "osm": "way/173499562",
+    "address": "115 North Orchard Street"
    }
   },
   {
@@ -1813,7 +2029,11 @@
     "name": "Saint Paul University Catholic Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/360719081"
+    "osm": "way/360719081",
+    "website": "https://uwcatholic.org/",
+    "phone": "+1 608 258 3140",
+    "wheelchair": "yes",
+    "address": "723 State Street"
    }
   },
   {
@@ -1829,7 +2049,8 @@
     "name": "School of Social Work Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39015624"
+    "osm": "way/39015624",
+    "address": "1350 University Avenue"
    }
   },
   {
@@ -1845,7 +2066,16 @@
     "name": "Science Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37723611"
+    "osm": "way/37723611",
+    "address": "550 North Park Street",
+    "wikidata": "Q7896635",
+    "wikipedia": "https://en.wikipedia.org/wiki/University_of_Wisconsin_Science_Hall",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/99/Science_Hall.jpg/960px-Science_Hall.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Science_Hall.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -1861,7 +2091,8 @@
     "name": "Service Memorial Institute",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39015623"
+    "osm": "way/39015623",
+    "address": "470 North Charter Street"
    }
   },
   {
@@ -1879,7 +2110,9 @@
      "UW Madison School of Nursing"
     ],
     "category": "academic",
-    "osm": "way/174188355"
+    "osm": "way/174188355",
+    "address": "701 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -1895,7 +2128,9 @@
     "name": "Soils Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38953059"
+    "osm": "way/38953059",
+    "building_levels": 4,
+    "address": "1525 Observatory Drive"
    }
   },
   {
@@ -1911,7 +2146,9 @@
     "name": "South Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39201168"
+    "osm": "way/39201168",
+    "building_levels": 4,
+    "address": "1055 Bascom Mall"
    }
   },
   {
@@ -1928,7 +2165,8 @@
     "aliases": [],
     "category": "academic",
     "osm": "way/103242253",
-    "hours": "24/7"
+    "hours": "24/7",
+    "wheelchair": "yes"
    }
   },
   {
@@ -1944,7 +2182,8 @@
     "name": "Sterling Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39201158"
+    "osm": "way/39201158",
+    "address": "475 North Charter Street"
    }
   },
   {
@@ -1960,7 +2199,17 @@
     "name": "Stock Pavilion",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37516017"
+    "osm": "way/37516017",
+    "building_levels": 2,
+    "address": "1675 Linden Drive",
+    "wikidata": "Q54952977",
+    "wikipedia": "https://en.wikipedia.org/wiki/Stock_Pavilion",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Stock_pavilion.jpg/960px-Stock_pavilion.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Stock_pavilion.jpg",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -1976,7 +2225,8 @@
     "name": "Stovall Building (Wisconsin State Laboratory of Hygiene)",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855843"
+    "osm": "way/38855843",
+    "address": "465 Henry Mall"
    }
   },
   {
@@ -1992,7 +2242,8 @@
     "name": "Taylor Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/39015618"
+    "osm": "way/39015618",
+    "address": "427 Lorch Court"
    }
   },
   {
@@ -2008,7 +2259,9 @@
     "name": "Teacher Education",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153640719"
+    "osm": "way/153640719",
+    "building_levels": 5,
+    "address": "225 North Mills Street"
    }
   },
   {
@@ -2056,7 +2309,8 @@
     "name": "US Dairy Forage Research Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38019750"
+    "osm": "way/38019750",
+    "address": "1925 Linden Drive"
    }
   },
   {
@@ -2072,7 +2326,9 @@
     "name": "UW Foundation",
     "aliases": [],
     "category": "academic",
-    "osm": "way/173503696"
+    "osm": "way/173503696",
+    "building_levels": 4,
+    "address": "1848 University Avenue"
    }
   },
   {
@@ -2091,7 +2347,11 @@
      "UWMF"
     ],
     "category": "academic",
-    "osm": "way/108065778"
+    "osm": "way/108065778",
+    "website": "https://www.uwhealth.org/locations/university-of-wisconsin-medical-foundation-centennial-building-261",
+    "wheelchair": "yes",
+    "address": "1685 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2110,7 +2370,14 @@
     ],
     "category": "academic",
     "osm": "way/153660065",
-    "hours": "Su-Th 07:00-24:00; Fr-Sa 07:00-01:00"
+    "hours": "Su-Th 07:00-24:00; Fr-Sa 07:00-01:00",
+    "website": "https://union.wisc.edu/visit-unionsouth.htm",
+    "phone": "+1 608 890 3000",
+    "building_levels": 4,
+    "address": "1308 West Dayton Street",
+    "operator": "University of Wisconsin",
+    "wikidata": "Q7886025",
+    "wikipedia": "https://en.wikipedia.org/wiki/Union_South_%28Wisconsin%29"
    }
   },
   {
@@ -2142,7 +2409,10 @@
     "name": "University Club",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/18793475"
+    "osm": "relation/18793475",
+    "website": "https://uclub.wisc.edu/",
+    "phone": "+1 608 262 5023",
+    "address": "803;432 State Street;East Campus Mall"
    }
   },
   {
@@ -2158,7 +2428,10 @@
     "name": "Van Hise Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37727228"
+    "osm": "way/37727228",
+    "building_levels": 19,
+    "address": "1220 Linden Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2174,7 +2447,9 @@
     "name": "Van Vleck Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/19576438"
+    "osm": "relation/19576438",
+    "building_levels": 3,
+    "address": "480 Lincoln Drive"
    }
   },
   {
@@ -2190,7 +2465,9 @@
     "name": "Veterans Administration Hospital",
     "aliases": [],
     "category": "academic",
-    "osm": "way/870590630"
+    "osm": "way/870590630",
+    "address": "2500 Overlook Terrace",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2206,7 +2483,10 @@
     "name": "Veterinary Medicine North",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/17899257"
+    "osm": "relation/17899257",
+    "building_levels": 3,
+    "address": "515 Easterday Lane",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2222,7 +2502,9 @@
     "name": "Veterinary Medicine South",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38019751"
+    "osm": "way/38019751",
+    "address": "2015 Linden Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2238,7 +2520,9 @@
     "name": "Vilas Communication Hall",
     "aliases": [],
     "category": "academic",
-    "osm": "way/153060489"
+    "osm": "way/153060489",
+    "building_levels": 7,
+    "address": "821 University Avenue"
    }
   },
   {
@@ -2270,23 +2554,8 @@
     "name": "Walnut Street Heating & Cooling Plant",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38311386"
-   }
-  },
-  {
-   "type": "Feature",
-   "geometry": {
-    "type": "Point",
-    "coordinates": [
-     -89.4089491,
-     43.0761909
-    ]
-   },
-   "properties": {
-    "name": "Washburn Observatory",
-    "aliases": [],
-    "category": "academic",
-    "osm": "way/37751417"
+    "osm": "way/38311386",
+    "address": "505 Walnut Street"
    }
   },
   {
@@ -2302,7 +2571,8 @@
     "name": "Water Science & Engineering Laboratory",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37749299"
+    "osm": "way/37749299",
+    "address": "660 North Park Street"
    }
   },
   {
@@ -2320,7 +2590,8 @@
      "Weeks Hall"
     ],
     "category": "academic",
-    "osm": "relation/2071317"
+    "osm": "relation/2071317",
+    "address": "1215 West Dayton Street"
    }
   },
   {
@@ -2336,7 +2607,8 @@
     "name": "Well #19",
     "aliases": [],
     "category": "academic",
-    "osm": "way/41783803"
+    "osm": "way/41783803",
+    "operator": "City of Madison"
    }
   },
   {
@@ -2354,7 +2626,9 @@
      "Kurt Frank Wendt Commons"
     ],
     "category": "academic",
-    "osm": "way/37257115"
+    "osm": "way/37257115",
+    "building_levels": 4,
+    "address": "215 North Randall Avenue"
    }
   },
   {
@@ -2370,7 +2644,10 @@
     "name": "West Campus Cogeneration Facility",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38311387"
+    "osm": "way/38311387",
+    "website": "https://www.mge.com/about-mge/power-plants/west-campus-cogen/",
+    "address": "515 Walnut Street",
+    "operator": "Madison Gas and Electric"
    }
   },
   {
@@ -2386,7 +2663,10 @@
     "name": "William H. Sewell Social Sciences Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/37749296"
+    "osm": "way/37749296",
+    "website": "https://ssc.wisc.edu/",
+    "building_levels": 8,
+    "address": "1180 Observatory Drive"
    }
   },
   {
@@ -2402,7 +2682,8 @@
     "name": "William S. Middleton Office Building",
     "aliases": [],
     "category": "academic",
-    "osm": "way/38855412"
+    "osm": "way/38855412",
+    "address": "1305 Linden Drive"
    }
   },
   {
@@ -2420,7 +2701,10 @@
      "WARF Office Building"
     ],
     "category": "academic",
-    "osm": "way/37256547"
+    "osm": "way/37256547",
+    "building_levels": 14,
+    "address": "610 Walnut Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2436,7 +2720,9 @@
     "name": "Wisconsin Energy Institute",
     "aliases": [],
     "category": "academic",
-    "osm": "way/193490363"
+    "osm": "way/193490363",
+    "building_levels": 4,
+    "address": "1552 University Avenue"
    }
   },
   {
@@ -2452,7 +2738,12 @@
     "name": "Wisconsin Institute for Discovery",
     "aliases": [],
     "category": "academic",
-    "osm": "relation/21721799"
+    "osm": "relation/21721799",
+    "website": "https://www.discovery.wisc.edu/",
+    "building_levels": 4,
+    "address": "330 North Orchard Street",
+    "wikidata": "Q8027209",
+    "wikipedia": "https://en.wikipedia.org/wiki/Wisconsin_Institutes_for_Discovery"
    }
   },
   {
@@ -2468,7 +2759,9 @@
     "name": "Wisconsin Institutes for Medical Research",
     "aliases": [],
     "category": "academic",
-    "osm": "way/175079855"
+    "osm": "way/175079855",
+    "address": "1111 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -2484,7 +2777,8 @@
     "name": "Wisconsin National Primate Research Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/172980984"
+    "osm": "way/172980984",
+    "address": "1220 Capitol Court"
    }
   },
   {
@@ -2500,7 +2794,8 @@
     "name": "Wisconsin Primate Center",
     "aliases": [],
     "category": "academic",
-    "osm": "way/172980983"
+    "osm": "way/172980983",
+    "address": "1223 Capitol Court"
    }
   },
   {
@@ -2533,7 +2828,8 @@
     "aliases": [],
     "category": "arts",
     "osm": "way/783129314",
-    "hours": "Fr-Su unknown \"Only For Showings\""
+    "hours": "Fr-Su unknown \"Only For Showings\"",
+    "website": "https://cinema.wisc.edu/"
    }
   },
   {
@@ -2549,7 +2845,8 @@
     "name": "Fredric March Play Circle",
     "aliases": [],
     "category": "arts",
-    "osm": "node/5448561145"
+    "osm": "node/5448561145",
+    "wheelchair": "yes"
    }
   },
   {
@@ -2565,7 +2862,8 @@
     "name": "Hamel Music Center",
     "aliases": [],
     "category": "arts",
-    "osm": "way/484383229"
+    "osm": "way/484383229",
+    "address": "740 University Avenue"
    }
   },
   {
@@ -2581,7 +2879,8 @@
     "name": "Mitchell Theater",
     "aliases": [],
     "category": "arts",
-    "osm": "node/5584566094"
+    "osm": "node/5584566094",
+    "wheelchair": "yes"
    }
   },
   {
@@ -2597,7 +2896,8 @@
     "name": "Shannon Hall",
     "aliases": [],
     "category": "arts",
-    "osm": "node/5448561144"
+    "osm": "node/5448561144",
+    "wheelchair": "yes"
    }
   },
   {
@@ -2613,7 +2913,10 @@
     "name": "The Marquee",
     "aliases": [],
     "category": "arts",
-    "osm": "node/2969024345"
+    "osm": "node/2969024345",
+    "website": "https://union.wisc.edu/marquee.htm",
+    "wheelchair": "yes",
+    "wikidata": "Q43335409"
    }
   },
   {
@@ -2630,7 +2933,12 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2522840410",
-    "hours": "Mo-Fr 07:00-17:00"
+    "hours": "Mo-Fr 07:00-17:00",
+    "wheelchair": "yes",
+    "cuisine": [
+     "coffee shop"
+    ],
+    "address": "330 North Orchard Street"
    }
   },
   {
@@ -2646,7 +2954,11 @@
     "name": "Brat Stand",
     "aliases": [],
     "category": "dining",
-    "osm": "way/565832283"
+    "osm": "way/565832283",
+    "cuisine": [
+     "burger",
+     "sausage"
+    ]
    }
   },
   {
@@ -2679,7 +2991,13 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/12757595298",
-    "hours": "Mo-Fr 08:30-14:30"
+    "hours": "Mo-Fr 08:30-14:30",
+    "website": "https://union.wisc.edu/dine/find-food-and-drink/chazen-cafe",
+    "phone": "+1-608-890-1202",
+    "cuisine": [
+     "breakfast"
+    ],
+    "address": "750 University Avenue"
    }
   },
   {
@@ -2695,7 +3013,12 @@
     "name": "Der Rathskeller",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2522802450"
+    "osm": "node/2522802450",
+    "wheelchair": "yes",
+    "cuisine": [
+     "sandwich",
+     "german"
+    ]
    }
   },
   {
@@ -2711,7 +3034,10 @@
     "name": "E2 - Engineering Eatery",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2178448357"
+    "osm": "node/2178448357",
+    "cuisine": [
+     "coffee shop"
+    ]
    }
   },
   {
@@ -2728,7 +3054,14 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/3451966921",
-    "hours": "Mo-Su 12:00-00:00"
+    "hours": "Mo-Su 12:00-00:00",
+    "website": "https://www.eatthebestpizza.com",
+    "phone": "+1-608-819-6019",
+    "wheelchair": "no",
+    "cuisine": [
+     "pizza"
+    ],
+    "address": "711 State Street"
    }
   },
   {
@@ -2744,7 +3077,9 @@
     "name": "Four Lakes Market",
     "aliases": [],
     "category": "dining",
-    "osm": "node/3702223839"
+    "osm": "node/3702223839",
+    "wheelchair": "yes",
+    "operator": "University of Wisconsin- Madison"
    }
   },
   {
@@ -2760,7 +3095,12 @@
     "name": "Ginger Root",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2969013747"
+    "osm": "node/2969013747",
+    "website": "https://union.wisc.edu/gingerroot.htm",
+    "wheelchair": "yes",
+    "cuisine": [
+     "asian"
+    ]
    }
   },
   {
@@ -2776,7 +3116,14 @@
     "name": "Harvest Grains",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2969012433"
+    "osm": "node/2969012433",
+    "website": "https://union.wisc.edu/harvestgrains.htm",
+    "wheelchair": "yes",
+    "cuisine": [
+     "soup",
+     "salad",
+     "sandwich"
+    ]
    }
   },
   {
@@ -2792,7 +3139,10 @@
     "name": "Java Den",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2522840408"
+    "osm": "node/2522840408",
+    "cuisine": [
+     "coffee shop"
+    ]
    }
   },
   {
@@ -2808,7 +3158,11 @@
     "name": "MOKA",
     "aliases": [],
     "category": "dining",
-    "osm": "way/1430461217"
+    "osm": "way/1430461217",
+    "cuisine": [
+     "coffee shop"
+    ],
+    "address": "711 State Street"
    }
   },
   {
@@ -2827,7 +3181,11 @@
     ],
     "category": "dining",
     "osm": "node/5584566088",
-    "hours": "Su-We 10:00-24:00; Th-Sa 10:00-03:00"
+    "hours": "Su-We 10:00-24:00; Th-Sa 10:00-03:00",
+    "cuisine": [
+     "sandwich"
+    ],
+    "address": "377 East Campus Mall"
    }
   },
   {
@@ -2843,7 +3201,10 @@
     "name": "Peet's Coffee",
     "aliases": [],
     "category": "dining",
-    "osm": "node/5448561146"
+    "osm": "node/5448561146",
+    "cuisine": [
+     "coffee shop"
+    ]
    }
   },
   {
@@ -2859,7 +3220,12 @@
     "name": "Prairie Fire",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2969000796"
+    "osm": "node/2969000796",
+    "website": "https://union.wisc.edu/prairiefire.htm",
+    "wheelchair": "yes",
+    "cuisine": [
+     "coffee shop"
+    ]
    }
   },
   {
@@ -2876,7 +3242,10 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2522840411",
-    "hours": "Mo-Fr 10:30-21:30; Sa-Su 11:00-21:30"
+    "hours": "Mo-Fr 10:30-21:30; Sa-Su 11:00-21:30",
+    "cuisine": [
+     "asian"
+    ]
    }
   },
   {
@@ -2893,7 +3262,8 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/13929143204",
-    "hours": "Mo-Fr 07:00-20:00; Sa off; Su 11:00-14:00,16:00-20:00; May 15-Sep 01 07:00-09:00,11:00-13:30,16:30-18:30"
+    "hours": "Mo-Fr 07:00-20:00; Sa off; Su 11:00-14:00,16:00-20:00; May 15-Sep 01 07:00-09:00,11:00-13:30,16:30-18:30",
+    "website": "https://www.housing.wisc.edu/dining/locations/rhetas/"
    }
   },
   {
@@ -2909,7 +3279,11 @@
     "name": "Saigon Sandwich",
     "aliases": [],
     "category": "dining",
-    "osm": "node/14313871765"
+    "osm": "node/14313871765",
+    "website": "https://saigonsandwichwi.square.site/",
+    "cuisine": [
+     "vietnamese"
+    ]
    }
   },
   {
@@ -2926,7 +3300,11 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/5584566086",
-    "hours": "Mo-Su 11:00-21:00"
+    "hours": "Mo-Su 11:00-21:00",
+    "cuisine": [
+     "chinese"
+    ],
+    "address": "785 University Avenue"
    }
   },
   {
@@ -2943,7 +3321,12 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2768622488",
-    "hours": "Mo 18:15-20:00; We 11:30-13:30"
+    "hours": "Mo 18:15-20:00; We 11:30-13:30",
+    "website": "https://slowfood-uw.org/",
+    "cuisine": [
+     "regional"
+    ],
+    "address": "1127 University Avenue"
    }
   },
   {
@@ -2959,7 +3342,12 @@
     "name": "South Cantina",
     "aliases": [],
     "category": "dining",
-    "osm": "node/2969004826"
+    "osm": "node/2969004826",
+    "website": "https://union.wisc.edu/dine/find-food-and-drink/urban-slice/",
+    "wheelchair": "yes",
+    "cuisine": [
+     "mexican"
+    ]
    }
   },
   {
@@ -2978,7 +3366,13 @@
     ],
     "category": "dining",
     "osm": "node/2522840409",
-    "hours": "Mo-Fr 11:00-19:00"
+    "hours": "Mo-Fr 11:00-19:00",
+    "website": "https://www.steenbocksonorchard.com/",
+    "wheelchair": "yes",
+    "cuisine": [
+     "american"
+    ],
+    "address": "330 North Orchard Street"
    }
   },
   {
@@ -2995,7 +3389,12 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2522802448",
-    "hours": "Su-Th 11:00-21:00; Fr,Sa 11:00-22:00"
+    "hours": "Su-Th 11:00-21:00; Fr,Sa 11:00-22:00",
+    "wheelchair": "yes",
+    "cuisine": [
+     "italian",
+     "pizza"
+    ]
    }
   },
   {
@@ -3012,7 +3411,12 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2522840412",
-    "hours": "Mo-Th 07:00-20:30; Fr 07:00-20:00; Sa-Su 10:00-19:00"
+    "hours": "Mo-Th 07:00-20:30; Fr 07:00-20:00; Sa-Su 10:00-19:00",
+    "phone": "+1 608-251-0090",
+    "cuisine": [
+     "sandwich"
+    ],
+    "address": "1401 University Avenue"
    }
   },
   {
@@ -3028,7 +3432,12 @@
     "name": "The Bean and Creamery at Four Lakes Market",
     "aliases": [],
     "category": "dining",
-    "osm": "node/3702223841"
+    "osm": "node/3702223841",
+    "wheelchair": "yes",
+    "cuisine": [
+     "coffee shop"
+    ],
+    "operator": "University of Wisconsin- Madison"
    }
   },
   {
@@ -3045,7 +3454,9 @@
     "aliases": [],
     "category": "dining",
     "osm": "node/2522840402",
-    "hours": "Mo-Fr 07:00-15:00; Sa,Su 07:00-14:00; May 15 - Sep 1 Mo-Fr 07:00-14:00; May 15 - Sep 1 Sa-Su 08:00-13:00"
+    "hours": "Mo-Fr 07:00-15:00; Sa,Su 07:00-14:00; May 15 - Sep 1 Mo-Fr 07:00-14:00; May 15 - Sep 1 Sa-Su 08:00-13:00",
+    "website": "https://www.valentiacoffee.com/",
+    "address": "799 University Square"
    }
   },
   {
@@ -3062,7 +3473,19 @@
     "aliases": [],
     "category": "health",
     "osm": "way/107463303",
-    "hours": "24/7"
+    "hours": "24/7",
+    "website": "https://www.uwhealthkids.org/",
+    "phone": "+1 608 890 5437",
+    "wheelchair": "yes",
+    "address": "1675 Highland Avenue",
+    "operator": "University of Wisconsin Hospital and Clinics Authority",
+    "wikidata": "Q30254156",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/American_Family_Children%27s_Hospital_-_panoramio_%281%29.jpg/960px-American_Family_Children%27s_Hospital_-_panoramio_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:American_Family_Children%27s_Hospital_-_panoramio_(1).jpg",
+     "author": "Corey Coyle"
+    }
    }
   },
   {
@@ -3081,7 +3504,20 @@
     ],
     "category": "health",
     "osm": "way/870590639",
-    "hours": "24/7"
+    "hours": "24/7",
+    "website": "https://www.uwhealth.org/",
+    "phone": "+1 608 263 6400",
+    "wheelchair": "yes",
+    "building_levels": 8,
+    "address": "600 Highland Avenue",
+    "operator": "UW-Madison",
+    "wikidata": "Q7896631",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/UW_Health_and_UWSMPH.jpg/960px-UW_Health_and_UWSMPH.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 4.0",
+     "page": "https://commons.wikimedia.org/wiki/File:UW_Health_and_UWSMPH.jpg",
+     "author": "Av9"
+    }
    }
   },
   {
@@ -3098,7 +3534,8 @@
     "aliases": [],
     "category": "health",
     "osm": "node/6886520174",
-    "hours": "09:00-17:00"
+    "hours": "09:00-17:00",
+    "phone": "+1-608-263-1280"
    }
   },
   {
@@ -3115,7 +3552,12 @@
     "aliases": [],
     "category": "health",
     "osm": "way/107463295",
-    "hours": "Mo-Fr 09:00-17:00; Sa,Su off"
+    "hours": "Mo-Fr 09:00-17:00; Sa,Su off",
+    "website": "https://www.waisman.wisc.edu/",
+    "phone": "+1 608 263 1656",
+    "wheelchair": "yes",
+    "address": "1500 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3132,7 +3574,8 @@
     "aliases": [],
     "category": "health",
     "osm": "node/2522840407",
-    "hours": "07:00-23:00"
+    "hours": "07:00-23:00",
+    "wheelchair": "yes"
    }
   },
   {
@@ -3148,7 +3591,9 @@
     "name": "Adams Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/173710620"
+    "osm": "way/173710620",
+    "address": "1520 Tripp Circle",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3164,7 +3609,8 @@
     "name": "Allen D. Conover Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37902549"
+    "osm": "way/37902549",
+    "address": "1650 Kronshage Drive"
    }
   },
   {
@@ -3180,7 +3626,10 @@
     "name": "Barnard Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/39201162"
+    "osm": "way/39201162",
+    "building_levels": 5,
+    "address": "970 University Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3196,7 +3645,9 @@
     "name": "Bradley Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37862321"
+    "osm": "way/37862321",
+    "address": "650 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3212,7 +3663,9 @@
     "name": "Carson Gulley Center",
     "aliases": [],
     "category": "housing",
-    "osm": "way/38953112"
+    "osm": "way/38953112",
+    "address": "1515 Tripp Circle",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3228,7 +3681,10 @@
     "name": "Chadbourne Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/39201164"
+    "osm": "way/39201164",
+    "building_levels": 11,
+    "address": "420 North Park Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3244,7 +3700,9 @@
     "name": "Chamberlin House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37862319"
+    "osm": "way/37862319",
+    "address": "665 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3260,7 +3718,9 @@
     "name": "Cole Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37970663"
+    "osm": "way/37970663",
+    "address": "625 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3276,7 +3736,10 @@
     "name": "Dejope Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/173709889"
+    "osm": "way/173709889",
+    "building_levels": 4,
+    "address": "640 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3292,7 +3755,9 @@
     "name": "Gilman House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37970666"
+    "osm": "way/37970666",
+    "address": "1610 Kronshage Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3308,7 +3773,10 @@
     "name": "Grand Central",
     "aliases": [],
     "category": "housing",
-    "osm": "way/153640727"
+    "osm": "way/153640727",
+    "website": "https://grandcentralmadison.com/",
+    "building_levels": 13,
+    "address": "1022 West Johnson Street"
    }
   },
   {
@@ -3324,7 +3792,8 @@
     "name": "Grant Showerman Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/38060695"
+    "osm": "way/38060695",
+    "address": "1650 Kronshage Drive"
    }
   },
   {
@@ -3340,7 +3809,8 @@
     "name": "Holt Center",
     "aliases": [],
     "category": "housing",
-    "osm": "way/38226215"
+    "osm": "way/38226215",
+    "address": "1650 Kronshage Drive"
    }
   },
   {
@@ -3356,7 +3826,9 @@
     "name": "Humphrey Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/38060693"
+    "osm": "way/38060693",
+    "address": "640 Babcock Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3372,7 +3844,9 @@
     "name": "Jones House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37550631"
+    "osm": "way/37550631",
+    "address": "655 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3388,7 +3862,10 @@
     "name": "Jorns Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/38060694"
+    "osm": "way/38060694",
+    "building_levels": 4,
+    "address": "650 Babcock Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3404,7 +3881,10 @@
     "name": "Leopold Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/193571969"
+    "osm": "way/193571969",
+    "building_levels": 4,
+    "address": "1635 Kronshage Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3420,7 +3900,9 @@
     "name": "Mack House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37970664"
+    "osm": "way/37970664",
+    "address": "650 Babcock Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3436,7 +3918,8 @@
     "name": "Meiklejohn House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/173500044"
+    "osm": "way/173500044",
+    "building_levels": 2
    }
   },
   {
@@ -3454,7 +3937,9 @@
      "Merit House"
     ],
     "category": "housing",
-    "osm": "way/102201656"
+    "osm": "way/102201656",
+    "address": "919 West Dayton Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3472,7 +3957,10 @@
      "Frederic Ogg Residence Hall"
     ],
     "category": "housing",
-    "osm": "way/107584430"
+    "osm": "way/107584430",
+    "building_levels": 6,
+    "address": "835 West Dayton Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3490,7 +3978,10 @@
      "Friedrick Hall"
     ],
     "category": "housing",
-    "osm": "way/37862322"
+    "osm": "way/37862322",
+    "building_levels": 3,
+    "address": "1950 Willow Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3506,7 +3997,9 @@
     "name": "Pres House Apartments",
     "aliases": [],
     "category": "housing",
-    "osm": "way/338130757"
+    "osm": "way/338130757",
+    "building_levels": 6,
+    "address": "439 East Campus Mall"
    }
   },
   {
@@ -3522,7 +4015,10 @@
     "name": "Sellery Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/153640713"
+    "osm": "way/153640713",
+    "building_levels": 10,
+    "address": "821 West Johnson Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3538,7 +4034,9 @@
     "name": "Slichter Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37965212"
+    "osm": "way/37965212",
+    "address": "625 Babcock Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3556,7 +4054,10 @@
      "Newell Smith Residence Hall"
     ],
     "category": "housing",
-    "osm": "way/102239119"
+    "osm": "way/102239119",
+    "building_levels": 7,
+    "address": "35 North Park Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3572,7 +4073,9 @@
     "name": "Sullivan Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37550632"
+    "osm": "way/37550632",
+    "address": "635 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3588,7 +4091,9 @@
     "name": "Swenson House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37862320"
+    "osm": "way/37862320",
+    "address": "645 Elm Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3620,7 +4125,9 @@
     "name": "Turner House",
     "aliases": [],
     "category": "housing",
-    "osm": "way/37970665"
+    "osm": "way/37970665",
+    "address": "1620 Kronshage Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3636,7 +4143,17 @@
     "name": "University Square",
     "aliases": [],
     "category": "housing",
-    "osm": "way/153063316"
+    "osm": "way/153063316",
+    "building_levels": 13,
+    "address": "324 N Lake St",
+    "wikidata": "Q7894936",
+    "wikipedia": "https://en.wikipedia.org/wiki/University_Square_%28Madison%29",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Lucky_apts.JPG/960px-Lucky_apts.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Lucky_apts.JPG",
+     "author": "James Steakley"
+    }
    }
   },
   {
@@ -3655,7 +4172,11 @@
      "Liz Waters"
     ],
     "category": "housing",
-    "osm": "way/37751511"
+    "osm": "way/37751511",
+    "website": "https://www.housing.wisc.edu/residence-halls/halls/waters/",
+    "building_levels": 4,
+    "address": "1200 Observatory Drive",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3671,7 +4192,10 @@
     "name": "Witte Residence Hall",
     "aliases": [],
     "category": "housing",
-    "osm": "way/153630414"
+    "osm": "way/153630414",
+    "building_levels": 10,
+    "address": "615 West Johnson Street",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3687,7 +4211,770 @@
     "name": "X01",
     "aliases": [],
     "category": "housing",
-    "osm": "way/360724943"
+    "osm": "way/360724943",
+    "website": "https://x01oncampus.com/",
+    "building_levels": 8,
+    "address": "1001 University Avenue"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4003099,
+     43.0727703
+    ]
+   },
+   "properties": {
+    "name": "9XM-WHA",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/4743792006"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4001942,
+     43.0759704
+    ]
+   },
+   "properties": {
+    "name": "A Stage For All",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12013024571"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4036901,
+     43.0753179
+    ]
+   },
+   "properties": {
+    "name": "Abraham Lincoln",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/461492091",
+    "website": "https://publicart.wisc.edu/adolph-weinman-abraham-lincoln/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4133354,
+     43.0769188
+    ]
+   },
+   "properties": {
+    "name": "Allen Centennial Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/37965201",
+    "wikidata": "Q18377922",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Agricultural_Dean%27s_House_Madison.jpg/960px-Agricultural_Dean%27s_House_Madison.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Agricultural_Dean%27s_House_Madison.jpg",
+     "author": "James Steakley"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3986233,
+     43.0764321
+    ]
+   },
+   "properties": {
+    "name": "Alumni Park",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/367889213",
+    "website": "https://www.alumnipark.com/",
+    "address": "724 Langdon Street",
+    "operator": "Wisconsin Foundation and Alumni Association"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3995146,
+     43.0741582
+    ]
+   },
+   "properties": {
+    "name": "Awakening",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/9899947944",
+    "website": "https://publicart.wisc.edu/george-cramer-awakening/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4118996,
+     43.0689564
+    ]
+   },
+   "properties": {
+    "name": "Barry Alvarez",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5446794555"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3993635,
+     43.0707046
+    ]
+   },
+   "properties": {
+    "name": "Basis",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1570985145"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3989108,
+     43.0748806
+    ]
+   },
+   "properties": {
+    "name": "Both / And — Tolerance / Innovation",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/11997525031",
+    "website": "https://www.codaworx.com/projects/both-and-tolerance-innovation/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4098041,
+     43.0703699
+    ]
+   },
+   "properties": {
+    "name": "Camp Randall Memorial Park",
+    "aliases": [
+     "G.A.R. Park"
+    ],
+    "category": "landmark",
+    "osm": "way/99961517",
+    "wikidata": "Q12054109",
+    "wikipedia": "https://en.wikipedia.org/wiki/Camp_Randall",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Camp_Randall_arch_%282%29.jpg/960px-Camp_Randall_arch_%282%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Camp_Randall_arch_(2).jpg",
+     "author": "James Steakley"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3987712,
+     43.0739028
+    ]
+   },
+   "properties": {
+    "name": "Chazen Museum of Art",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/295708135",
+    "hours": "Mo-Fr 10:00-19:00; Sa,Su 11:00-17:00; PH off",
+    "website": "https://chazen.wisc.edu/",
+    "address": "750 University Avenue",
+    "wikidata": "Q3666871",
+    "wikipedia": "https://en.wikipedia.org/wiki/Chazen_Museum_of_Art",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Chazen_Museum_of_Art_-_exterior.jpg/960px-Chazen_Museum_of_Art_-_exterior.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 3.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Chazen_Museum_of_Art_-_exterior.jpg",
+     "author": "James Steakley"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.410046,
+     43.0708672
+    ]
+   },
+   "properties": {
+    "name": "Civil War Cannon",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/6758175063"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3994077,
+     43.0742784
+    ]
+   },
+   "properties": {
+    "name": "Class of 1920 Memorial Plaza",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1308929337",
+    "operator": "University of Wisconsin-Madison"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3994226,
+     43.0739047
+    ]
+   },
+   "properties": {
+    "name": "Conrad A. Elvehjem Building",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/18849422",
+    "building_levels": 4,
+    "address": "800 University Avenue"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988176,
+     43.0764765
+    ]
+   },
+   "properties": {
+    "name": "Creativity Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1293112210"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3989963,
+     43.0764323
+    ]
+   },
+   "properties": {
+    "name": "Discovery Gardens",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "relation/17714436"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4116771,
+     43.0717838
+    ]
+   },
+   "properties": {
+    "name": "Engineering Hall Park",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/469706835"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.431018,
+     43.0927225
+    ]
+   },
+   "properties": {
+    "name": "Frautschi (Second) Point",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/451510108"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4103123,
+     43.0742826
+    ]
+   },
+   "properties": {
+    "name": "Henry Mall",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/265146783",
+    "wikidata": "Q49500014",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/University_of_Wisconsin%E2%80%93Madison_August_2022_34_%28Henry_Mall%29.jpg/960px-University_of_Wisconsin%E2%80%93Madison_August_2022_34_%28Henry_Mall%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 4.0",
+     "page": "https://commons.wikimedia.org/wiki/File:University_of_Wisconsin%E2%80%93Madison_August_2022_34_(Henry_Mall).jpg",
+     "author": "Michael Barera"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3984013,
+     43.0765552
+    ]
+   },
+   "properties": {
+    "name": "Inspiration Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1293112207"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4054156,
+     43.0736469
+    ]
+   },
+   "properties": {
+    "name": "L.R. Ingersoll Physics Museum",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/3100613313",
+    "hours": "Mo-Fr 08:00-16:00; PH off; SH off",
+    "website": "https://www.physics.wisc.edu/ingersollmuseum/",
+    "phone": "+1-608-262-3898",
+    "address": "1150 University Avenue",
+    "operator": "University of Wisconsin- Madison",
+    "wikidata": "Q18749057",
+    "wikipedia": "https://en.wikipedia.org/wiki/L._R._Ingersoll_Physics_Museum"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.398995,
+     43.0752775
+    ]
+   },
+   "properties": {
+    "name": "Library Mall",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/571412883"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4093769,
+     43.0710919
+    ]
+   },
+   "properties": {
+    "name": "Memorial Arch",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/382670809",
+    "wheelchair": "yes"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3995066,
+     43.0742613
+    ]
+   },
+   "properties": {
+    "name": "Mother and Child",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/9899947943",
+    "website": "https://publicart.wisc.edu/william-zorach-mother-and-child/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.40296,
+     43.0762832
+    ]
+   },
+   "properties": {
+    "name": "Muir Knoll",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5462593283"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4088401,
+     43.0766483
+    ]
+   },
+   "properties": {
+    "name": "Observatory Hill Overlook",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/1752049549",
+    "wheelchair": "yes"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4119533,
+     43.0689255
+    ]
+   },
+   "properties": {
+    "name": "Pat Richter",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5446794556"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.415194,
+     43.0897699
+    ]
+   },
+   "properties": {
+    "name": "Picnic Point",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/4055654336"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3987916,
+     43.0767455
+    ]
+   },
+   "properties": {
+    "name": "Progress Point",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/12729581437"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4400193,
+     43.0890521
+    ]
+   },
+   "properties": {
+    "name": "Raymer's Cove",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/3759046780"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4399794,
+     43.0889186
+    ]
+   },
+   "properties": {
+    "name": "Raymer's Ravine",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5472064698"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3973847,
+     43.0769817
+    ]
+   },
+   "properties": {
+    "name": "Retro Bucky",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/13241365692"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4027128,
+     43.0766214
+    ]
+   },
+   "properties": {
+    "name": "Robert E. Gard Storyteller's Circle",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/313892113"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3995103,
+     43.0753257
+    ]
+   },
+   "properties": {
+    "name": "State Historical Society",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/4742273287"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4112745,
+     43.0689018
+    ]
+   },
+   "properties": {
+    "name": "The Fighting Wisconsin Badger",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5444109906"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4103238,
+     43.0735495
+    ]
+   },
+   "properties": {
+    "name": "The Henry Quadrangle",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/9709136366"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3988067,
+     43.0763851
+    ]
+   },
+   "properties": {
+    "name": "The Lantern",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5445910806",
+    "website": "https://www.alumnipark.com/exhibits/lantern/"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4059387,
+     43.0705257
+    ]
+   },
+   "properties": {
+    "name": "UW Geology Museum",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/2708020790",
+    "hours": "Mo-Fr 08:30-16:30; Sa 09:00-13:00",
+    "website": "https://geoscience.wisc.edu/museum/",
+    "address": "1215 West Dayton Street",
+    "operator": "University of Wisconsin- Madison",
+    "wikidata": "Q14714618",
+    "wikipedia": "https://en.wikipedia.org/wiki/UW%E2%80%93Madison_Geology_Museum"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4040975,
+     43.0737656
+    ]
+   },
+   "properties": {
+    "name": "UW Madison Botany Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/364709438",
+    "operator": "UW-Madison Department of Botany"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4089491,
+     43.0761909
+    ]
+   },
+   "properties": {
+    "name": "Washburn Observatory",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/37751417",
+    "address": "1401 Observatory Drive",
+    "operator": "UW-Madison",
+    "wikidata": "Q7971453",
+    "wikipedia": "https://en.wikipedia.org/wiki/Washburn_Observatory",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Washburn_Observatory_%2853325395055%29.jpg/960px-Washburn_Observatory_%2853325395055%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:Washburn_Observatory_(53325395055).jpg",
+     "author": "Chris Rycroft from Madison, Wisconsin, United States"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3989213,
+     43.0762338
+    ]
+   },
+   "properties": {
+    "name": "Welcome Garden",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1292203516"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.3985563,
+     43.0768671
+    ]
+   },
+   "properties": {
+    "name": "Well Red",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "node/5444472571"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -89.4102855,
+     43.0749821
+    ]
+   },
+   "properties": {
+    "name": "William Dempster Hoard",
+    "aliases": [],
+    "category": "landmark",
+    "osm": "way/1187743729"
    }
   },
   {
@@ -3706,7 +4993,8 @@
      "Helen C. White"
     ],
     "category": "library",
-    "osm": "node/1173065967"
+    "osm": "node/1173065967",
+    "wheelchair": "yes"
    }
   },
   {
@@ -3722,7 +5010,12 @@
     "name": "Ebling Library",
     "aliases": [],
     "category": "library",
-    "osm": "node/3680614959"
+    "osm": "node/3680614959",
+    "website": "https://ebling.library.wisc.edu/",
+    "phone": "+1-608-262-2020",
+    "wheelchair": "yes",
+    "address": "750 Highland Avenue",
+    "operator": "University of Wisconsin-Madison"
    }
   },
   {
@@ -3755,7 +5048,13 @@
     "aliases": [],
     "category": "library",
     "osm": "way/101606146",
-    "hours": "Mo-Fr 08:00-21:45; Sa,Su 10:00-21:45"
+    "hours": "Mo-Fr 08:00-21:45; Sa,Su 10:00-21:45",
+    "website": "https://www.library.wisc.edu/memorial/",
+    "phone": "+1-608-262-3343",
+    "wheelchair": "yes",
+    "building_levels": 7,
+    "address": "728 State Street",
+    "operator": "University of Wisconsin"
    }
   },
   {
@@ -3787,7 +5086,9 @@
     "name": "Steenbock Memorial Library",
     "aliases": [],
     "category": "library",
-    "osm": "way/37550815"
+    "osm": "way/37550815",
+    "wheelchair": "yes",
+    "address": "550 Babcock Drive"
    }
   },
   {
@@ -3804,7 +5105,19 @@
     "aliases": [],
     "category": "library",
     "osm": "way/37804099",
-    "hours": "May-Sep: Mo-Th 08:00-19:00; May-Sep: Fr,Sa 08:00-17:00; Sep-May: Mo-Th 08:00-21:00; Sep-May: Fr,Sa 08:00-17:00; PH closed"
+    "hours": "May-Sep: Mo-Th 08:00-19:00; May-Sep: Fr,Sa 08:00-17:00; Sep-May: Mo-Th 08:00-21:00; Sep-May: Fr,Sa 08:00-17:00; PH closed",
+    "website": "https://www.wisconsinhistory.org",
+    "building_levels": 4,
+    "address": "816 State Street",
+    "operator": "Wisconsin Historical Society",
+    "wikidata": "Q321717",
+    "wikipedia": "https://en.wikipedia.org/wiki/Wisconsin_Historical_Society",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/27/State_Historical_Society_Library%2C_University_of_Wisconsin%2C_State_Street_and_Campus_Mall%2C_Madison%2C_WI_-_54303357393.jpg/960px-State_Historical_Society_Library%2C_University_of_Wisconsin%2C_State_Street_and_Campus_Mall%2C_Madison%2C_WI_-_54303357393.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "CC BY-SA 2.0",
+     "page": "https://commons.wikimedia.org/wiki/File:State_Historical_Society_Library,_University_of_Wisconsin,_State_Street_and_Campus_Mall,_Madison,_WI_-_54303357393.jpg",
+     "author": "w_lemay"
+    }
    }
   },
   {
@@ -3821,7 +5134,10 @@
     "aliases": [],
     "category": "recreation",
     "osm": "node/5584566092",
-    "hours": "24/7"
+    "hours": "24/7",
+    "website": "https://www.anytimefitness.com/gyms/2104/madison-wi-53715/",
+    "phone": "+1 608-237-2717",
+    "address": "301 East Campus Mall Unit 203"
    }
   },
   {
@@ -3837,7 +5153,17 @@
     "name": "Camp Randall Stadium",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/1542809955"
+    "osm": "way/1542809955",
+    "address": "1440 Monroe Street",
+    "operator": "University of Wisconsin",
+    "wikidata": "Q1029941",
+    "wikipedia": "https://en.wikipedia.org/wiki/Camp_Randall_Stadium",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Camp_Randall_Stadium_aerial_%28cropped%29.jpg/960px-Camp_Randall_Stadium_aerial_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Camp_Randall_Stadium_aerial_(cropped).jpg",
+     "author": "Carol M. Highsmith"
+    }
    }
   },
   {
@@ -3853,7 +5179,8 @@
     "name": "Dan McClimon Memorial Track & Soccer Complex",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/119881009"
+    "osm": "way/119881009",
+    "address": "702 Walnut Street"
    }
   },
   {
@@ -3869,7 +5196,17 @@
     "name": "Field House",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/175346220"
+    "osm": "way/175346220",
+    "building_levels": 5,
+    "address": "1450 Monroe Street",
+    "wikidata": "Q8027171",
+    "wikipedia": "https://en.wikipedia.org/wiki/Wisconsin_Field_House",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/UWFieldhouse2.jpg/960px-UWFieldhouse2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:UWFieldhouse2.jpg",
+     "author": "Greenstrat"
+    }
    }
   },
   {
@@ -3885,7 +5222,18 @@
     "name": "Kohl Center",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/49982700"
+    "osm": "way/49982700",
+    "wheelchair": "yes",
+    "building_levels": 4,
+    "address": "601 West Dayton Street",
+    "wikidata": "Q1578408",
+    "wikipedia": "https://en.wikipedia.org/wiki/Kohl_Center",
+    "photo": {
+     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Kohl_Center.jpg/960px-Kohl_Center.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "license": "Public domain",
+     "page": "https://commons.wikimedia.org/wiki/File:Kohl_Center.jpg",
+     "author": "Pbrown111 at English Wikipedia"
+    }
    }
   },
   {
@@ -3901,7 +5249,9 @@
     "name": "McClain Athletic Facility",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/58675200"
+    "osm": "way/58675200",
+    "address": "1436 Monroe Street",
+    "operator": "University of Wisconsin"
    }
   },
   {
@@ -3917,7 +5267,9 @@
     "name": "Nicholas Recreation Center",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/1000383053"
+    "osm": "way/1000383053",
+    "building_levels": 4,
+    "address": "797 West Dayton Street"
    }
   },
   {
@@ -3933,7 +5285,8 @@
     "name": "Nicholas-Johnson Pavilion and Plaza",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/175151219"
+    "osm": "way/175151219",
+    "wheelchair": "yes"
    }
   },
   {
@@ -3949,7 +5302,9 @@
     "name": "Nielsen Tennis Stadium",
     "aliases": [],
     "category": "recreation",
-    "osm": "way/38064535"
+    "osm": "way/38064535",
+    "address": "1000 Highland Avenue",
+    "operator": "UW-Madison"
    }
   },
   {
@@ -3965,7 +5320,9 @@
     "name": "Babcock & Linden (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/439726515"
+    "osm": "node/439726515",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -3981,7 +5338,9 @@
     "name": "Campus & Babcock (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/434091082"
+    "osm": "node/434091082",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -3997,7 +5356,9 @@
     "name": "Eagle Heights & Lot E (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/431368596"
+    "osm": "node/431368596",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4013,7 +5374,9 @@
     "name": "Eagle Heights & Lot F (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/432770749"
+    "osm": "node/432770749",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4029,7 +5392,9 @@
     "name": "Eagle Heights & Lot M (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/435821603"
+    "osm": "node/435821603",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4045,7 +5410,9 @@
     "name": "Eagle Heights & Shelter (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/429881317"
+    "osm": "node/429881317",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4061,7 +5428,8 @@
     "name": "East Campus",
     "aliases": [],
     "category": "transit",
-    "osm": "way/1310762534"
+    "osm": "way/1310762534",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4077,7 +5445,9 @@
     "name": "Highland & Marsh (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/445916576"
+    "osm": "node/445916576",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4093,7 +5463,9 @@
     "name": "Highland & Marsh (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/3801168133"
+    "osm": "node/3801168133",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4109,7 +5481,9 @@
     "name": "Highland & Observatory (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/1848954669"
+    "osm": "node/1848954669",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4125,7 +5499,9 @@
     "name": "Highland & Observatory (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/3026533251"
+    "osm": "node/3026533251",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4141,7 +5517,8 @@
     "name": "Highland & University Bay (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/10981191110"
+    "osm": "node/10981191110",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4157,7 +5534,9 @@
     "name": "Highland & Waisman (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/1850579229"
+    "osm": "node/1850579229",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4173,7 +5552,9 @@
     "name": "Highland & Waisman (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/1850579197"
+    "osm": "node/1850579197",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4189,7 +5570,9 @@
     "name": "Lake Mendota & Eagle Heights (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/430034732"
+    "osm": "node/430034732",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4205,7 +5588,9 @@
     "name": "Lake Mendota & Lot N (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/435821604"
+    "osm": "node/435821604",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4221,7 +5606,9 @@
     "name": "Lake Mendota & Lot P (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693259681"
+    "osm": "node/5693259681",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4237,7 +5624,9 @@
     "name": "Lake Mendota & Lot Q (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/434946054"
+    "osm": "node/434946054",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4253,7 +5642,9 @@
     "name": "Lake Mendota & Lot R (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/434946053"
+    "osm": "node/434946053",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4269,7 +5660,9 @@
     "name": "Lake Mendota & University Bay (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/431371497"
+    "osm": "node/431371497",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4285,7 +5678,9 @@
     "name": "Lake Mendota & University Bay (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/430034733"
+    "osm": "node/430034733",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4301,7 +5696,9 @@
     "name": "Langdon & N Park (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693553770"
+    "osm": "node/5693553770",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4317,7 +5714,9 @@
     "name": "Langdon & N Park (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297032"
+    "osm": "node/711297032",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4333,7 +5732,9 @@
     "name": "Linden & Babcock (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5692115107"
+    "osm": "node/5692115107",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4349,7 +5750,9 @@
     "name": "Linden & Henry (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449913"
+    "osm": "node/461449913",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4365,7 +5768,9 @@
     "name": "Linden & Henry (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449911"
+    "osm": "node/461449911",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4381,7 +5786,9 @@
     "name": "Linden & N Charter (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5691828125"
+    "osm": "node/5691828125",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4397,7 +5804,9 @@
     "name": "Linden & N Charter (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5691828126"
+    "osm": "node/5691828126",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4413,7 +5822,9 @@
     "name": "Marsh & Highland (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461488633"
+    "osm": "node/461488633",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4429,7 +5840,9 @@
     "name": "Marsh & Lot 60 (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/441517412"
+    "osm": "node/441517412",
+    "wheelchair": "no",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4445,7 +5858,9 @@
     "name": "Marsh & Lot 76 (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693232170"
+    "osm": "node/5693232170",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4461,7 +5876,9 @@
     "name": "N Charter & University (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693407740"
+    "osm": "node/5693407740",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4477,7 +5894,9 @@
     "name": "N Charter & University (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449919"
+    "osm": "node/461449919",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4493,7 +5912,9 @@
     "name": "N Charter at W Johnson",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297002"
+    "osm": "node/711297002",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4509,7 +5930,9 @@
     "name": "N Lake & University (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693553773"
+    "osm": "node/5693553773",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4525,7 +5948,9 @@
     "name": "N Lake & W Johnson (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297080"
+    "osm": "node/711297080",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4541,7 +5966,9 @@
     "name": "N Lake & W Johnson (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693553772"
+    "osm": "node/5693553772",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4557,7 +5984,8 @@
     "name": "N Monroe & Randall (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/10981541927"
+    "osm": "node/10981541927",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4573,7 +6001,9 @@
     "name": "N Park & State (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449928"
+    "osm": "node/461449928",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4589,7 +6019,9 @@
     "name": "N Park at W Dayton",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693553776"
+    "osm": "node/5693553776",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4605,7 +6037,9 @@
     "name": "N Randall & Engineering (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/1859366363"
+    "osm": "node/1859366363",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4621,7 +6055,9 @@
     "name": "N Randall & Engineering (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297103"
+    "osm": "node/711297103",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4637,7 +6073,8 @@
     "name": "North Brooks & West Johnson (Northbound)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/10998035929"
+    "osm": "node/10998035929",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4653,7 +6090,9 @@
     "name": "Observatory & Babcock (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/439726516"
+    "osm": "node/439726516",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4669,7 +6108,9 @@
     "name": "Observatory & Babcock (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/439726517"
+    "osm": "node/439726517",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4685,7 +6126,9 @@
     "name": "Observatory & Bascom (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5691828128"
+    "osm": "node/5691828128",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4701,7 +6144,9 @@
     "name": "Observatory & Elm (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/433483073"
+    "osm": "node/433483073",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4717,7 +6162,9 @@
     "name": "Observatory & Elm (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/433483074"
+    "osm": "node/433483074",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4733,7 +6180,9 @@
     "name": "Observatory & Highland (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/445916581"
+    "osm": "node/445916581",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4749,7 +6198,9 @@
     "name": "Observatory & Liz Waters (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693407739"
+    "osm": "node/5693407739",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4765,7 +6216,9 @@
     "name": "Observatory & N Charter (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5691828127"
+    "osm": "node/5691828127",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4781,7 +6234,9 @@
     "name": "Observatory & Natatorium (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/441517221"
+    "osm": "node/441517221",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4797,7 +6252,9 @@
     "name": "Observatory & Natatorium (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/2988956357"
+    "osm": "node/2988956357",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4813,7 +6270,9 @@
     "name": "Observatory & Walnut (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/433483072"
+    "osm": "node/433483072",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4829,7 +6288,9 @@
     "name": "Observatory & Walnut (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/1848954661"
+    "osm": "node/1848954661",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4845,7 +6306,8 @@
     "name": "Orchard",
     "aliases": [],
     "category": "transit",
-    "osm": "way/1311341980"
+    "osm": "way/1311341980",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4861,7 +6323,10 @@
     "name": "UW-Madison Intercity Bus",
     "aliases": [],
     "category": "transit",
-    "osm": "node/7175265285"
+    "osm": "node/7175265285",
+    "wheelchair": "yes",
+    "address": "250 North Lake Street",
+    "operator": "Stagecoach Group"
    }
   },
   {
@@ -4877,7 +6342,9 @@
     "name": "University & N Breese (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5692115103"
+    "osm": "node/5692115103",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4893,7 +6360,9 @@
     "name": "University & N Breese (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5692115104"
+    "osm": "node/5692115104",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4909,7 +6378,9 @@
     "name": "University & N Mills (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711296998"
+    "osm": "node/711296998",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4925,7 +6396,9 @@
     "name": "University & N Orchard (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5691828124"
+    "osm": "node/5691828124",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4941,7 +6414,8 @@
     "name": "University Bay & Highland (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/10981191111"
+    "osm": "node/10981191111",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4957,7 +6431,9 @@
     "name": "University Bay & Lot 60 (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449904"
+    "osm": "node/461449904",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4973,7 +6449,9 @@
     "name": "University Bay & Lot 76 (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449907"
+    "osm": "node/461449907",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -4989,7 +6467,9 @@
     "name": "University Bay & Picnic Point (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/431371498"
+    "osm": "node/431371498",
+    "wheelchair": "no",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5005,7 +6485,9 @@
     "name": "University Bay & Picnic Point (WB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461488634"
+    "osm": "node/461488634",
+    "wheelchair": "no",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5021,7 +6503,9 @@
     "name": "University at East Campus",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297042"
+    "osm": "node/711297042",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5037,7 +6521,11 @@
     "name": "W Dayton & N Orchard (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/711297072"
+    "osm": "node/711297072",
+    "website": "https://www.cityofmadison.com/metro/",
+    "phone": "+1-608-266-4466",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5053,7 +6541,8 @@
     "name": "W Dayton & N Park (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/11016379017"
+    "osm": "node/11016379017",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5069,7 +6558,9 @@
     "name": "W Dayton at N Mills",
     "aliases": [],
     "category": "transit",
-    "osm": "node/4207940120"
+    "osm": "node/4207940120",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5085,7 +6576,9 @@
     "name": "W Johnson & N Mills (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/461449923"
+    "osm": "node/461449923",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5101,7 +6594,9 @@
     "name": "W Johnson & N Orchard (EB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/2968129986"
+    "osm": "node/2968129986",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5117,7 +6612,9 @@
     "name": "W Johnson at E Campus",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5693553777"
+    "osm": "node/5693553777",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5133,7 +6630,8 @@
     "name": "Walnut & G Pinchot (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/11016379020"
+    "osm": "node/11016379020",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5149,7 +6647,9 @@
     "name": "Walnut & Observatory (NB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/5692115108"
+    "osm": "node/5692115108",
+    "wheelchair": "yes",
+    "operator": "City of Madison"
    }
   },
   {
@@ -5165,7 +6665,8 @@
     "name": "Walnut & Observatory (SB)",
     "aliases": [],
     "category": "transit",
-    "osm": "node/11016379019"
+    "osm": "node/11016379019",
+    "operator": "City of Madison"
    }
   }
  ]

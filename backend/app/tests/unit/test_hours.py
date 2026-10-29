@@ -38,6 +38,8 @@ TABLE = {
     "Mo-Fr 09:00-17:00; Sa,Su off": (True, False),
     "Mo-Fr 10:00-19:00; Sa,Su 11:00-17:00; PH off": (None, None),
     "Mo-Fr 10:30-21:30; Sa-Su 11:00-21:30": (True, False),
+    "Mo-Fr 08:00-16:00; PH off; SH off": (None, None),
+    "Mo-Fr 08:30-16:30; Sa 09:00-13:00": (True, False),
     "Mo-Fr 11:00-17:00": (True, False),
     "Mo-Fr 11:00-19:00": (True, False),
     "Mo-Fr 11:00-20:00": (True, False),
@@ -71,7 +73,7 @@ class TestShippedHoursTable(unittest.TestCase):
             for feature in json.loads(path.read_text())["features"]:
                 if feature["properties"].get("hours"):
                     shipped.add(feature["properties"]["hours"])
-        self.assertEqual(len(shipped), 42)
+        self.assertEqual(len(shipped), 44)
         self.assertEqual(shipped, set(TABLE))
 
     def test_open_now_for_each_string(self):
