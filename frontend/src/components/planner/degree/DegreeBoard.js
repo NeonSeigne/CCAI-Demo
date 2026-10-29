@@ -35,6 +35,19 @@ function boardTerms(degree, planCourses) {
 }
 
 /**
+ * What a course dropped on `term` does (D8): a board card moves, a new
+ * course is added, and one already planned (or already taken) springs back.
+ */
+export function dropAction(item, term, planCourses, completedIds = new Set()) {
+  if (item?.type !== 'course' || !item.id) return null;
+  const placed = planCourses.find((c) => c.id === item.id);
+  if (placed && placed.term === term) return 'spring';
+  if (placed && item.extra?.from === 'board') return 'move';
+  if (placed || completedIds.has(item.id)) return 'spring';
+  return 'add';
+}
+
+/**
  * My degree (design D4, D5, D8, D13, D17–D19, D22; eng R12–R14; CEO O2):
  * the waffle and totals on top, then term columns that scroll sideways.
  * Courses drag between terms and onto "+" slots, Browse rows drag in, and
@@ -171,21 +184,10 @@ export default function DegreeBoard({ head = null }) {
 
   /** A course dropped on a term (D8): move a card, add a new course, or spring back. */
   const onDrop = useCallback((item, term) => {
-    if (item?.type !== 'course' || !item.id) return;
-    const placed = planCourses.find((c) => c.id === item.id);
-    if (placed && placed.term === term) {
-      pulse(item.id);
-      return;
-    }
-    if (placed && item.extra?.from === 'board') {
-      move(item.id, term);
-      return;
-    }
-    if (placed || completedIds.has(item.id)) {
-      pulse(item.id);
-      return;
-    }
-    add(item.id, term);
+    const action = dropAction(item, term, planCourses, completedIds);
+    if (action === 'move') move(item.id, term);
+    else if (action === 'add') add(item.id, term);
+    else if (action === 'spring') pulse(item.id);
   }, [planCourses, completedIds, pulse, move, add]);
 
   const openCourse = useCallback((id) => {

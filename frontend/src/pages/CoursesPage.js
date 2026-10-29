@@ -217,7 +217,7 @@ function CoursePreview({ data, school, onSelectCourse, onAsk, headingRef }) {
  * A Browse row: a draggable course source (D4). The grip is the keyboard
  * handle; a pointer drag can start anywhere on the row.
  */
-function BrowseRow({
+export function BrowseRow({
   course, isTicked, isSelected, full, onTick, onOpen,
 }) {
   const rowId = `cc-row-${safeId(course.identifier)}`;

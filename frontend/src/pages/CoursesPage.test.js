@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import CoursesPage from './CoursesPage';
 import { SavedContext } from '../contexts/SavedContext';
+import { PlannerContext } from '../contexts/PlannerContext';
 import { getCatalogCourse, getCatalogStarters, searchCatalog } from '../api/campus';
 import {
   CU_CAPS, CU_SOURCE, UVA_CAPS, UVA_SOURCE, UW_CAPS, UW_SOURCE, cuCourse, row, uvaCourse, uwCourse,
@@ -21,6 +22,12 @@ jest.mock('../contexts/AppConfigContext', () => ({
 }));
 jest.mock('../components/catalog/CampusPageShell', () => ({ children, className }) => (
   <main id="main-content" className={className}>{children}</main>
+));
+jest.mock('../components/planner/degree/DegreeBoard', () => ({ head }) => (
+  <div data-testid="degree-board">{head}</div>
+));
+jest.mock('../components/planner/semester/SemesterView', () => ({ term }) => (
+  <div data-testid="semester-view">{term}</div>
 ));
 
 const UW_STARTERS = [
@@ -289,4 +296,82 @@ test('the Browse tab is selected and ticks restore from an earlier visit', async
   expect(screen.getByRole('tab', { name: /Compare/ })).toHaveAttribute('aria-selected', 'false');
   expect(screen.getByText('2 courses ticked')).toBeInTheDocument();
   expect(await screen.findByRole('checkbox', { name: /COMP SCI 400/ })).toBeChecked();
+});
+
+describe('Browse | My degree (D5)', () => {
+  const plannerWith = (courses, status = 'ready') => ({
+    status,
+    view: { plan: { revision: 1, term: 'Spring 2027', courses, profile: {} } },
+    ensureLoaded: jest.fn(),
+  });
+
+  const renderWithPlanner = (planner, path = '/courses') => render(
+    <MemoryRouter initialEntries={[path]}>
+      <PlannerContext.Provider value={planner}>
+        <SavedContext.Provider value={{ items: [], count: 0, isSaved: () => false }}>
+          <Routes>
+            <Route path="/courses" element={<CoursesPage />} />
+          </Routes>
+          <LocationProbe />
+        </SavedContext.Provider>
+      </PlannerContext.Provider>
+    </MemoryRouter>,
+  );
+
+  test('opens in Browse while the plan is empty', async () => {
+    uwStarters();
+    const planner = plannerWith([]);
+    renderWithPlanner(planner);
+    expect(planner.ensureLoaded).toHaveBeenCalled();
+    expect(screen.getByRole('tab', { name: 'Browse' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByTestId('degree-board')).not.toBeInTheDocument();
+    await screen.findByRole('checkbox', { name: /COMP SCI 300/ });
+  });
+
+  test('opens in My degree once the plan has a course', () => {
+    renderWithPlanner(plannerWith([{ id: 'ECON 3020', term: 'Spring 2027' }]));
+    expect(screen.getByTestId('degree-board')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'My degree' })).toHaveAttribute('aria-selected', 'true');
+    expect(getCatalogStarters).not.toHaveBeenCalled();
+  });
+
+  test('waits for the plan before choosing', () => {
+    renderWithPlanner(plannerWith([], 'loading'));
+    expect(screen.queryByTestId('degree-board')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Browse' })).not.toBeInTheDocument();
+  });
+
+  test('an explicit ?view= wins', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([{ id: 'ECON 3020', term: 'Spring 2027' }]), '/courses?view=browse');
+    expect(screen.getByRole('tab', { name: 'Browse' })).toHaveAttribute('aria-selected', 'true');
+    await screen.findByRole('checkbox', { name: /COMP SCI 300/ });
+  });
+
+  test('the tabs switch views through ?view=', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([]));
+    fireEvent.click(screen.getByRole('tab', { name: 'My degree' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/courses?view=degree');
+    expect(screen.getByTestId('degree-board')).toBeInTheDocument();
+  });
+
+  test('?view=semester renders the semester view for the term', async () => {
+    renderWithPlanner(plannerWith([]), '/courses?view=semester&term=Fall%202027');
+    expect(await screen.findByTestId('semester-view')).toHaveTextContent('Fall 2027');
+  });
+
+  test('clicking a Browse row opens the course pop-up through ?course=', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([]));
+    fireEvent.click(await screen.findByRole('button', { name: /^COMP SCI 400 Programming III/ }));
+    expect(screen.getByTestId('location')).toHaveTextContent('course=COMP+SCI+400');
+  });
+
+  test('Browse rows are drag sources with a labelled grip', async () => {
+    uwStarters();
+    renderWithPlanner(plannerWith([]));
+    const grip = await screen.findByRole('button', { name: 'Drag COMP SCI 300' });
+    expect(grip).toHaveAttribute('aria-roledescription', 'draggable');
+  });
 });
