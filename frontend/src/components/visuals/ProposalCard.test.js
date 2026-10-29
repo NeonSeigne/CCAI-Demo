@@ -99,7 +99,29 @@ test('Applying, then Applied · Undo while it is the latest edit; the panel agre
 
   fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
   expect(await screen.findByText('Undone')).toBeInTheDocument();
-  expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 5 });
+  expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 5 }, expect.anything());
+});
+
+test('an accept with no answer at all shows "Couldn\'t save · Retry"; Retry applies it', async () => {
+  const down = () => Object.assign(new Error('Network request failed'), { status: 0, network: true });
+  api.acceptProposal
+    .mockRejectedValueOnce(down())
+    .mockResolvedValueOnce({ plan: plan({ revision: 5 }), report: report() });
+  api.getPlan
+    .mockResolvedValueOnce(view({ proposal: proposal() }))
+    .mockRejectedValueOnce(down())
+    .mockRejectedValueOnce(down())
+    .mockRejectedValueOnce(down());
+  render(<PlannerProvider retryDelays={[0, 0, 0]}><ProposalCard visual={card()} /></PlannerProvider>);
+  await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
+
+  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  expect(await screen.findByText(/Couldn't save/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  expect(await screen.findByText('Applied')).toBeInTheDocument();
+  expect(api.acceptProposal).toHaveBeenCalledTimes(2);
 });
 
 test('Discarded: one muted line', async () => {

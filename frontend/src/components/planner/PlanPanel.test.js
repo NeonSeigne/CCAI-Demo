@@ -142,8 +142,28 @@ test('the header names the undo, and Undo and Cmd+Z walk the edit back', async (
 
   const undo = await screen.findByRole('button', { name: 'Undo: removed ECON 3010' });
   fireEvent.keyDown(undo, { key: 'z', metaKey: true });
-  await waitFor(() => expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 4 }));
+  await waitFor(() => expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 4 }, expect.anything()));
   await waitFor(() => expect(screen.queryByRole('button', { name: /^Undo:/ })).not.toBeInTheDocument());
+});
+
+test('a save with no answer shows "Couldn\'t save · Retry"; Retry resends the same edit', async () => {
+  api.getPlan.mockResolvedValue(view());
+  api.postEdits.mockRejectedValue(apiError(503, 'down'));
+  render(<PlannerProvider retryDelays={[0, 0, 0]}><PlanPanel /></PlannerProvider>);
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Remove ECON 3720' }));
+  expect(await screen.findByText("Couldn't save")).toBeInTheDocument();
+  expect(api.postEdits).toHaveBeenCalledTimes(4);
+
+  api.postEdits.mockResolvedValue({
+    ...view({ plan: plan({ revision: 5, courses: plan().courses.filter((c) => c.id !== 'ECON 3720') }) }),
+    notes: [],
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  await waitFor(() => expect(screen.queryByText("Couldn't save")).not.toBeInTheDocument());
+  expect(api.postEdits).toHaveBeenCalledTimes(5);
+  const keys = new Set(api.postEdits.mock.calls.map((call) => call[1].idempotency_key));
+  expect(keys.size).toBe(1);
 });
 
 test('a 409 on an edit refetches and shows "Updated from another window"', async () => {
@@ -195,7 +215,7 @@ test('a pending proposal can be accepted or discarded from the panel', async () 
   const pending = await screen.findByRole('group', { name: 'Pending change' });
   expect(pending).toHaveTextContent('Move ECON 3010 to Fall 2027, add ECON 3300');
   fireEvent.click(within(pending).getByRole('button', { name: 'Accept' }));
-  await waitFor(() => expect(api.acceptProposal).toHaveBeenCalledWith('token', 'p1'));
+  await waitFor(() => expect(api.acceptProposal).toHaveBeenCalledWith('token', 'p1', expect.anything()));
   expect(await screen.findByRole('button', { name: 'Undo: added ECON 3300' })).toBeInTheDocument();
   expect(screen.queryByText('Preview · not applied')).not.toBeInTheDocument();
 });

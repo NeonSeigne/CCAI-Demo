@@ -149,6 +149,7 @@ export default function ProposalCard({ visual }) {
   const [lead, ...rest] = rows;
   const applying = state === 'applying';
   const discarding = outcome?.status === 'discarding';
+  const held = !!outcome?.held;
   const busy = applying || discarding || literalBusy;
   const canAct = !!planner && state !== 'refused';
 
@@ -188,12 +189,19 @@ export default function ProposalCard({ visual }) {
       {(outcome?.error || localError) && state !== 'refused' && (
         <p className="pc-refused" role="alert">{outcome?.error || localError}</p>
       )}
+      {held && (
+        <p className="pc-refused" role="alert">
+          Couldn't save <span aria-hidden="true">·</span>
+          {' '}
+          <button type="button" className="pp-link" onClick={planner.retry}>Retry</button>
+        </p>
+      )}
       {canAct && (
         <div className="pc-actions">
           <button
             type="button"
             className="pp-btn is-primary"
-            disabled={busy}
+            disabled={busy || held}
             onClick={() => planner.accept(reviewed)}
           >
             {applying && <span className="pc-spinner" aria-hidden="true" />}
