@@ -21,7 +21,6 @@ import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
-import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 
@@ -351,7 +350,6 @@ const ChatPageView = () => {
   });
 
   return (
-    <OnboardingTour>
     <div className={`chat-frame ${isMobileMenuOpen ? 'rail-open' : ''}`}>
       <CampusRail
         className="chat-rail"
@@ -623,7 +621,6 @@ const ChatPageView = () => {
         />
       )}
     </div>
-    </OnboardingTour>
   );
 };
 
