@@ -1,10 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
+} from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock, List as ListIcon, MapPin, Navigation, RefreshCw,
   Search, X,
 } from 'lucide-react';
+import AppDialog from '../components/AppDialog';
 import CampusRail from '../components/CampusRail';
+import EventPopup from '../components/events/EventPopup';
+import { usePopupContainer } from '../components/shell/PageColumnContext';
+import usePopupAsk from '../hooks/usePopupAsk';
+import {
+  EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
+} from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
 import SettingsModal from '../components/SettingsModal';
 import { formatEventRange, formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
@@ -77,6 +86,9 @@ function useDelayedFlag(active, delay) {
 // Event helpers
 
 const byStart = (a, b) => new Date(a.start) - new Date(b.start);
+
+/** `open(event)` shows the event pop-up (`?event=ID`); null outside the page. */
+const EventOpenContext = createContext(null);
 
 const eventKey = (event) => event.id || `${event.title}-${event.start}`;
 
@@ -173,6 +185,14 @@ function CalendarButton({ event, compact = false }) {
 }
 
 function EventTitle({ event }) {
+  const open = useContext(EventOpenContext);
+  if (open && event.id) {
+    return (
+      <button type="button" className="ev-title ev-title-btn" onClick={() => open(event)}>
+        {event.title}
+      </button>
+    );
+  }
   if (!event.url) return <span className="ev-title">{event.title}</span>;
   return (
     <a className="ev-title" href={event.url} target="_blank" rel="noopener noreferrer">
@@ -328,6 +348,7 @@ function HourList({ day, hour, events, timezone, onClose }) {
 }
 
 function CalendarWeek({ days, windowSet, events, timezone, todayKey, now, heading }) {
+  const openEvent = useContext(EventOpenContext);
   const [expanded, setExpanded] = useState(false);
   const [hourOpen, setHourOpen] = useState(null);
   useEffect(() => { setHourOpen(null); setExpanded(false); }, [days[0]]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -424,17 +445,21 @@ function CalendarWeek({ days, windowSet, events, timezone, todayKey, now, headin
                 const height = Math.max(24, ((item.end - item.start) / 60) * HOUR_PX - 2);
                 const width = 100 / item.laneCount;
                 return (
-                  <div
+                  // Hidden from assistive tech and the tab order: the agenda below is that path.
+                  <button
+                    type="button"
+                    tabIndex={-1}
                     key={eventKey(item.event)}
                     className="ev-block"
                     data-testid="events-calendar-block"
                     aria-hidden="true"
                     title={`${item.event.title} · ${formatEventRange(item.event, timezone)}`}
                     style={{ top, height, left: `${item.lane * width}%`, width: `calc(${width}% - 2px)` }}
+                    onClick={openEvent && item.event.id ? () => openEvent(item.event) : undefined}
                   >
                     <span className="ev-block-title">{item.event.title}</span>
                     {height >= 52 && <span className="ev-block-time">{formatEventTime(item.event, timezone)}</span>}
-                  </div>
+                  </button>
                 );
               })}
               {[...layout.moreByHour.entries()].map(([hour, count]) => (
@@ -808,6 +833,15 @@ const EventsPage = () => {
     navigate('/', { replace: true });
   };
 
+  // The event pop-up (?event=ID) over the page column (D3).
+  const eventId = params.get(EVENT_PARAM) || '';
+  const openParam = useOpenParam(EVENT_PARAM);
+  const openEvent = useCallback((event) => openParam(event?.id), [openParam]);
+  const closeEvent = useCloseOnce(eventId, useCloseParam(EVENT_PARAM));
+  const popup = usePopupContainer();
+  const ask = usePopupAsk(eventId, closeEvent);
+  const seedEvent = eventId ? events.find((event) => event.id === eventId) : null;
+
   let body;
   if (result.status === 'error') {
     body = (
@@ -870,155 +904,179 @@ const EventsPage = () => {
   const tzName = zoneName(timezone);
 
   return (
-    <div className="campus-home ev-page">
-      <CampusRail
-        onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-        onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-        onShowAllChats={() => navigate('/search')}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onSignOut={handleSignOutClick}
-      />
+    <EventOpenContext.Provider value={openEvent}>
+      <div className="campus-home ev-page">
+        <CampusRail
+          onNewChat={() => navigate('/chat', { state: { startNew: true } })}
+          onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
+          onShowAllChats={() => navigate('/search')}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onSignOut={handleSignOutClick}
+        />
 
-      <main className="campus-main ev-main" id="main-content">
-        <div className="ev-column">
-          <header className="ev-header">
-            <div className="ev-title-row">
-              <div>
-                <p className="campus-kicker">{school}</p>
-                <h1>Events</h1>
+        <main className="campus-main ev-main" id="main-content">
+          <div className="ev-column">
+            <header className="ev-header">
+              <div className="ev-title-row">
+                <div>
+                  <p className="campus-kicker">{school}</p>
+                  <h1>Events</h1>
+                </div>
+                <div className="ev-tabs" role="tablist" aria-label="Events view">
+                  {VIEWS.map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      id={`ev-tab-${id}`}
+                      ref={(node) => { tabRefs.current[id] = node; }}
+                      type="button"
+                      role="tab"
+                      aria-selected={view === id}
+                      aria-controls="ev-panel"
+                      tabIndex={view === id ? 0 : -1}
+                      className={`ev-tab ${view === id ? 'is-current' : ''}`}
+                      onClick={() => update({ view: id === 'next' ? '' : id })}
+                      onKeyDown={onTabKey}
+                    >
+                      <Icon size={15} aria-hidden="true" /> {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="ev-tabs" role="tablist" aria-label="Events view">
-                {VIEWS.map(({ id, label, icon: Icon }) => (
+              <StartPlace
+                origin={origin}
+                authToken={authToken}
+                onPick={(place) => setOrigin({ status: 'ready', place })}
+              />
+            </header>
+
+            <div className="ev-controls">
+              <div className="ev-chips" role="group" aria-label="When">
+                {WINDOWS.map((w) => (
                   <button
-                    key={id}
-                    id={`ev-tab-${id}`}
-                    ref={(node) => { tabRefs.current[id] = node; }}
+                    key={w.id}
                     type="button"
-                    role="tab"
-                    aria-selected={view === id}
-                    aria-controls="ev-panel"
-                    tabIndex={view === id ? 0 : -1}
-                    className={`ev-tab ${view === id ? 'is-current' : ''}`}
-                    onClick={() => update({ view: id === 'next' ? '' : id })}
-                    onKeyDown={onTabKey}
+                    className={`ev-chip-btn ${windowId === w.id ? 'is-current' : ''}`}
+                    aria-pressed={windowId === w.id}
+                    onClick={() => update({ window: w.id === 'today' ? '' : w.id })}
                   >
-                    <Icon size={15} aria-hidden="true" /> {label}
+                    {w.label}
                   </button>
                 ))}
               </div>
+              <form
+                className="ev-search"
+                role="search"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  lastSent.current = draft.trim();
+                  update({ q: draft.trim() }, { replace: true });
+                }}
+              >
+                <Search size={16} aria-hidden="true" />
+                <label htmlFor="ev-search-input" className="sr-only">Search events</label>
+                <input
+                  id="ev-search-input"
+                  type="search"
+                  value={draft}
+                  placeholder="Search events"
+                  onChange={(event) => setDraft(event.target.value)}
+                />
+              </form>
             </div>
-            <StartPlace
-              origin={origin}
-              authToken={authToken}
-              onPick={(place) => setOrigin({ status: 'ready', place })}
-            />
-          </header>
 
-          <div className="ev-controls">
-            <div className="ev-chips" role="group" aria-label="When">
-              {WINDOWS.map((w) => (
-                <button
-                  key={w.id}
-                  type="button"
-                  className={`ev-chip-btn ${windowId === w.id ? 'is-current' : ''}`}
-                  aria-pressed={windowId === w.id}
-                  onClick={() => update({ window: w.id === 'today' ? '' : w.id })}
-                >
-                  {w.label}
-                </button>
-              ))}
-            </div>
-            <form
-              className="ev-search"
-              role="search"
-              onSubmit={(event) => {
-                event.preventDefault();
-                lastSent.current = draft.trim();
-                update({ q: draft.trim() }, { replace: true });
-              }}
+            <section
+              id="ev-panel"
+              role="tabpanel"
+              aria-labelledby={`ev-tab-${view}`}
+              aria-busy={loading}
+              className="ev-panel"
             >
-              <Search size={16} aria-hidden="true" />
-              <label htmlFor="ev-search-input" className="sr-only">Search events</label>
-              <input
-                id="ev-search-input"
-                type="search"
-                value={draft}
-                placeholder="Search events"
-                onChange={(event) => setDraft(event.target.value)}
-              />
-            </form>
-          </div>
-
-          <section
-            id="ev-panel"
-            role="tabpanel"
-            aria-labelledby={`ev-tab-${view}`}
-            aria-busy={loading}
-            className="ev-panel"
-          >
-            <div className="ev-results-head">
-              {view === 'calendar' && !phone && (
-                <button
-                  type="button"
-                  className="ev-icon-btn"
-                  disabled={windowIndex <= 0}
-                  aria-label={windowIndex > 0 ? `Previous: ${windowLabel(WINDOW_IDS[windowIndex - 1])}` : 'Previous'}
-                  onClick={() => update({ window: WINDOW_IDS[windowIndex - 1] === 'today' ? '' : WINDOW_IDS[windowIndex - 1] })}
-                >
-                  <ChevronLeft size={18} aria-hidden="true" />
-                </button>
-              )}
-              <h2 className="ev-heading">{heading}</h2>
-              {view === 'calendar' && !phone && (
-                <button
-                  type="button"
-                  className="ev-icon-btn"
-                  disabled={windowIndex >= WINDOW_IDS.length - 1}
-                  aria-label={windowIndex < WINDOW_IDS.length - 1 ? `Next: ${windowLabel(WINDOW_IDS[windowIndex + 1])}` : 'Next'}
-                  onClick={() => update({ window: WINDOW_IDS[windowIndex + 1] })}
-                >
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              )}
-              {tzName && <span className="ev-tz">Times in {tzName}</span>}
-            </div>
-
-            {partialError && (
-              <div className="ev-banner" role="status">
-                <span>{result.data.error}</span>
-                <button type="button" className="ev-link-btn" onClick={() => setAttempt((n) => n + 1)}>
-                  <RefreshCw size={14} aria-hidden="true" /> Retry
-                </button>
+              <div className="ev-results-head">
+                {view === 'calendar' && !phone && (
+                  <button
+                    type="button"
+                    className="ev-icon-btn"
+                    disabled={windowIndex <= 0}
+                    aria-label={windowIndex > 0 ? `Previous: ${windowLabel(WINDOW_IDS[windowIndex - 1])}` : 'Previous'}
+                    onClick={() => update({ window: WINDOW_IDS[windowIndex - 1] === 'today' ? '' : WINDOW_IDS[windowIndex - 1] })}
+                  >
+                    <ChevronLeft size={18} aria-hidden="true" />
+                  </button>
+                )}
+                <h2 className="ev-heading">{heading}</h2>
+                {view === 'calendar' && !phone && (
+                  <button
+                    type="button"
+                    className="ev-icon-btn"
+                    disabled={windowIndex >= WINDOW_IDS.length - 1}
+                    aria-label={windowIndex < WINDOW_IDS.length - 1 ? `Next: ${windowLabel(WINDOW_IDS[windowIndex + 1])}` : 'Next'}
+                    onClick={() => update({ window: WINDOW_IDS[windowIndex + 1] })}
+                  >
+                    <ChevronRight size={18} aria-hidden="true" />
+                  </button>
+                )}
+                {tzName && <span className="ev-tz">Times in {tzName}</span>}
               </div>
+
+              {partialError && (
+                <div className="ev-banner" role="status">
+                  <span>{result.data.error}</span>
+                  <button type="button" className="ev-link-btn" onClick={() => setAttempt((n) => n + 1)}>
+                    <RefreshCw size={14} aria-hidden="true" /> Retry
+                  </button>
+                </div>
+              )}
+              {result.status === 'ready' && events.length > 0 && listedInside && <ListedThrough date={listedThrough} />}
+
+              <p className="sr-only" role="status" aria-live="polite">
+                {result.status === 'ready' ? `${events.length} ${events.length === 1 ? 'event' : 'events'} for ${windowPhrase(windowId, todayKey)}` : ''}
+              </p>
+
+              {body}
+            </section>
+
+            {sourceText && (
+              <p className="campus-footnote ev-foot">
+                From {sourceText} · Add to calendar downloads an .ics file for Google, Apple or Outlook Calendar
+              </p>
             )}
-            {result.status === 'ready' && events.length > 0 && listedInside && <ListedThrough date={listedThrough} />}
+          </div>
+        </main>
 
-            <p className="sr-only" role="status" aria-live="polite">
-              {result.status === 'ready' ? `${events.length} ${events.length === 1 ? 'event' : 'events'} for ${windowPhrase(windowId, todayKey)}` : ''}
-            </p>
+        {isSettingsOpen && (
+          <SettingsModal
+            user={user}
+            authToken={authToken}
+            onUserUpdate={handleUserUpdate}
+            onSignOut={handleSignOutClick}
+            advisors={advisors}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        )}
 
-            {body}
-          </section>
-
-          {sourceText && (
-            <p className="campus-footnote ev-foot">
-              From {sourceText} · Add to calendar downloads an .ics file for Google, Apple or Outlook Calendar
-            </p>
-          )}
-        </div>
-      </main>
-
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={handleUserUpdate}
-          onSignOut={handleSignOutClick}
-          advisors={advisors}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      )}
-    </div>
+        {eventId && popup.ready && (
+          <AppDialog
+            open
+            container={popup.container}
+            onClose={closeEvent}
+            maxWidth={false}
+            aria-labelledby="event-popup-title"
+            slotProps={{ paper: { className: 'pop-dialog-paper' } }}
+          >
+            <EventPopup
+              eventId={eventId}
+              event={seedEvent}
+              from={originId || undefined}
+              timezone={timezone}
+              onAsk={ask}
+              onClose={closeEvent}
+              onOpenEvent={openEvent}
+              titleId="event-popup-title"
+            />
+          </AppDialog>
+        )}
+      </div>
+    </EventOpenContext.Provider>
   );
 };
 

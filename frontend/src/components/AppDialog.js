@@ -75,6 +75,9 @@ const AppDialog = forwardRef(function AppDialog(
 
   return (
     <Dialog
+      // A new container remounts the dialog, so MUI never keeps the body as its
+      // container (and the rail and dock aria-hidden) after the column arrives.
+      key={inColumn ? 'col' : 'body'}
       ref={ref}
       {...(inColumn ? { container, disableEnforceFocus: true, 'aria-modal': 'false' } : {})}
       {...props}

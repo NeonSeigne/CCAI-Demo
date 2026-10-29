@@ -11,9 +11,11 @@ jest.mock('../api/planner', () => ({
   listPrograms: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+let mockLocation = { pathname: '/chat', search: '', state: null };
 jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
-  useLocation: () => ({ state: null }),
+  useNavigate: () => mockNavigate,
+  useLocation: () => mockLocation,
 }));
 
 jest.mock('../contexts/AuthContext', () => ({
@@ -64,6 +66,7 @@ jest.mock('../components/EnhancedChatInput', () => (props) => (
 ));
 
 beforeEach(() => {
+  mockLocation = { pathname: '/chat', search: '', state: null };
   jest.useFakeTimers();
   Element.prototype.scrollIntoView = jest.fn();
   global.fetch = jest.fn(() => new Promise(() => {}));
@@ -215,5 +218,24 @@ describe('chat flow (characterization)', () => {
       chat_session_id: 'session-1',
     });
     expect(callsTo('/chat-stream')).toHaveLength(1);
+  });
+});
+
+describe('navigation intent', () => {
+  test('a pop-up history marker is not an intent: the query and state stay', async () => {
+    mockLocation = { pathname: '/chat', search: '?course=COMP+SCI+400', state: { ccPopup: 'course' } };
+    render(<ChatPage />);
+    await act(async () => { await Promise.resolve(); });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  test('clearing a handled intent keeps ?course=', async () => {
+    mockLocation = { pathname: '/chat', search: '?course=COMP+SCI+400', state: { pendingPrompt: 'Is ECON 2010 hard?' } };
+    render(<ChatPage />);
+    await act(async () => { await Promise.resolve(); });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      { pathname: '/chat', search: '?course=COMP+SCI+400' },
+      { replace: true, state: null },
+    );
   });
 });

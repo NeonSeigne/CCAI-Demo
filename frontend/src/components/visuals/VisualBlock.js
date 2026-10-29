@@ -17,7 +17,7 @@ import '../../styles/CampusCards.css';
  *
  * Legacy `gpa_chart` specs (persisted in older sessions) map onto the shared
  * CourseGradeDistribution card using embedded distribution data — no fetch.
- * New `course_*` refs hydrate from /api/courses via CourseVisualCard.
+ * New `course_*` refs hydrate from /api/catalog/{id} via CourseVisualCard.
  */
 
 function LegacyGpaChart({ visual }) {

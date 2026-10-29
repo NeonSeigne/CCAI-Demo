@@ -1,17 +1,12 @@
 import React, { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useOpenCourse } from '../../utils/openCourse';
 import { ArrowRight, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';
-import {
-  calculateCompletionRate,
-  calculateGpa,
-  courseLabel,
-  courseRoute,
-  resolveGradeContext,
-} from '../course/courseUtils';
+import { gradeSegments, primarySections, sectionName } from '../catalog/catalogFormat';
+import { useCourseRatings } from '../../hooks/useCampusDetail';
 
 const GRADE_TYPES = new Set([
   'course_gpa',
@@ -26,15 +21,22 @@ const GRADE_TYPES = new Set([
 export const COURSE_ANSWER_TYPES = new Set([...GRADE_TYPES, 'course_instructors', 'course_schedule']);
 
 // Darkest for the best grade, orange for D and F so they read apart by lightness too.
-const GRADE_BARS = [
-  { key: 'a', label: 'A', bg: '#0B3D91', fg: '#FFFFFF' },
-  { key: 'ab', label: 'AB', bg: '#1A5CC8', fg: '#FFFFFF' },
-  { key: 'b', label: 'B', bg: '#4C86E0', fg: '#FFFFFF' },
-  { key: 'bc', label: 'BC', bg: '#8DB3EE', fg: '#0B2559' },
-  { key: 'c', label: 'C', bg: '#BCD2F5', fg: '#0B2559' },
-  { key: 'd', label: 'D', bg: '#F2B48A', fg: '#5A2A05' },
-  { key: 'f', label: 'F', bg: '#D9692B', fg: '#FFFFFF' },
-];
+const GRADE_COLORS = {
+  a: { bg: '#0B3D91', fg: '#FFFFFF' },
+  ab: { bg: '#1A5CC8', fg: '#FFFFFF' },
+  b: { bg: '#4C86E0', fg: '#FFFFFF' },
+  bc: { bg: '#8DB3EE', fg: '#0B2559' },
+  c: { bg: '#BCD2F5', fg: '#0B2559' },
+  d: { bg: '#F2B48A', fg: '#5A2A05' },
+  f: { bg: '#D9692B', fg: '#FFFFFF' },
+};
+// Other schools' buckets (UVA's A+..C-, DFW) take their letter's shade.
+const gradeColor = (bucket) => {
+  const key = String(bucket).toLowerCase();
+  if (GRADE_COLORS[key]) return GRADE_COLORS[key];
+  if (key === 'dfw') return GRADE_COLORS.f;
+  return GRADE_COLORS[key.charAt(0)] || GRADE_COLORS.c;
+};
 
 /**
  * Collapses an answer's course refs into one `course_answer` item per course,
@@ -75,24 +77,20 @@ export function titleCase(text = '') {
 
 const percent = (part, total) => (total ? (part * 100) / total : 0);
 
-function GradeBar({ grades, termLabel }) {
-  const total = Number(grades?.total || 0);
-  const rows = GRADE_BARS
-    .map((bar) => ({ ...bar, pct: percent(Number(grades?.[bar.key] || 0), total) }))
-    .filter((bar) => bar.pct > 0);
-  if (!total || !rows.length) return null;
-  const gpa = calculateGpa(grades);
-  const completion = calculateCompletionRate(grades);
+function GradeBar({ grades }) {
+  const rows = gradeSegments(grades?.distribution).map((row) => ({ ...row, ...gradeColor(row.key) }));
+  if (!rows.length) return null;
   const rounded = (value) => `${Math.round(value)}%`;
+  const students = Number(grades.students || 0);
 
   return (
     <div className="cc-grades">
       <div className="cc-grades-head">
-        <strong>Grades{termLabel ? `, ${termLabel}` : ''}</strong>
+        <strong>Grades{grades.term ? `, ${grades.term}` : ''}</strong>
         <span>
-          {gpa != null && `GPA ${gpa.toFixed(2)} · `}
-          {completion != null && `${rounded(completion)} completed · `}
-          {total.toLocaleString()} students
+          {grades.gpa != null && `GPA ${Number(grades.gpa).toFixed(2)}`}
+          {grades.gpa != null && students > 0 && ' · '}
+          {students > 0 && `${students.toLocaleString()} students`}
         </span>
       </div>
       <div
@@ -119,25 +117,24 @@ function GradeBar({ grades, termLabel }) {
   );
 }
 
-function InstructorTile({ instructors, onMore }) {
-  const rated = instructors.filter((instructor) => instructor?.rmp_data?.average_rating != null);
-  const [top] = rated.length ? rated : instructors;
+function InstructorTile({ names, ratings, source, onMore }) {
+  const rated = [...(ratings || [])].filter((r) => r?.rating != null).sort((a, b) => b.rating - a.rating);
+  const top = rated[0] || (names[0] ? { name: names[0] } : null);
   if (!top) return null;
-  const rmp = top.rmp_data;
-  const others = instructors.length - 1;
+  const others = Math.max(names.length, rated.length) - 1;
 
   return (
     <div className="cc-tile">
       <span className="cc-tile-label">Instructor</span>
       <strong>{top.name}</strong>
-      {rmp?.average_rating != null && (
+      {top.rating != null && (
         <>
           <span>
-            {rmp.average_rating.toFixed(1)} quality
-            {rmp.average_difficulty != null && ` · ${rmp.average_difficulty.toFixed(1)} difficulty`}
-            {rmp.num_ratings != null && ` · ${rmp.num_ratings} reviews`}
+            {Number(top.rating).toFixed(1)} quality
+            {top.difficulty != null && ` · ${Number(top.difficulty).toFixed(1)} difficulty`}
+            {top.num_ratings != null && ` · ${top.num_ratings} reviews`}
           </span>
-          <small>Rate My Professors, out of 5</small>
+          {source?.name && <small>{`${source.name}, out of 5`}</small>}
         </>
       )}
       {others > 0 && (
@@ -149,20 +146,20 @@ function InstructorTile({ instructors, onMore }) {
   );
 }
 
-function SeatsTile({ meetings }) {
-  const sections = meetings.filter((meeting) => meeting?.location?.capacity);
-  if (!sections.length) return null;
+function SeatsTile({ sections }) {
+  const rows = primarySections(sections?.rows || []).filter((row) => row?.capacity);
+  if (!rows.length) return null;
 
   return (
     <div className="cc-tile">
       <span className="cc-tile-label">Seats</span>
-      {sections.slice(0, 4).map((meeting, index) => {
-        const capacity = meeting.location.capacity;
-        const taken = Number(meeting.current_enrollment || 0);
-        const full = taken >= capacity;
+      {rows.slice(0, 4).map((row, index) => {
+        const capacity = Number(row.capacity);
+        const taken = Number(row.enrolled || 0);
+        const full = taken >= capacity || row.is_open === false;
         return (
-          <div className="cc-seat" key={`${meeting.name}-${index}`}>
-            <span className="cc-seat-name">{meeting.name}</span>
+          <div className="cc-seat" key={`${row.section}-${index}`}>
+            <span className="cc-seat-name">{sectionName(row)}</span>
             <span className="cc-seat-track" aria-hidden="true">
               <span style={{ width: `${Math.min(100, percent(taken, capacity))}%` }} className={full ? 'is-full' : ''} />
             </span>
@@ -178,16 +175,18 @@ function SeatsTile({ meetings }) {
 
 /** One card per course in an answer: grades, then instructor and seats. */
 export default function CourseAnswerCard({ visual, onSelectCourse }) {
-  const navigate = useNavigate();
+  const openPopup = useOpenCourse();
   const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
   const types = visual?.types || [];
-  const { data, error, loading, retry } = useCourseDetail(courseId, authToken, visual?.term);
+  const { data, error, loading, retry } = useCourseDetail(courseId, authToken);
+  const wantsInstructors = types.includes('course_instructors');
+  const ratings = useCourseRatings(data?.identifier || courseId, Boolean(data) && wantsInstructors);
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
-    else navigate(courseRoute(identifier));
-  }, [navigate, onSelectCourse]);
+    else openPopup(identifier);
+  }, [openPopup, onSelectCourse]);
 
   if (!courseId) return null;
   if (loading) {
@@ -204,18 +203,20 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
     );
   }
 
-  const { selectedGrades, termLabel } = resolveGradeContext(data);
-  const label = courseLabel(data.course?.course_reference) || courseId;
+  const label = data.identifier || courseId;
   const showGrades = types.some((type) => GRADE_TYPES.has(type));
-  const instructors = types.includes('course_instructors') ? data.instructors || [] : [];
-  const meetings = types.includes('course_schedule') ? data.meetings || [] : [];
+  const names = wantsInstructors ? data.instructors || [] : [];
+  const rated = wantsInstructors ? ratings.data?.ratings || [] : [];
+  const sections = types.includes('course_schedule') ? data.sections : null;
+  const showInstructor = names.length > 0 || rated.length > 0;
+  const showSeats = primarySections(sections?.rows || []).some((row) => row?.capacity);
 
   return (
     <section className="cc-card cc-course" aria-label={label}>
       <div className="cc-course-head">
         <div>
           <span className="cc-course-code">{label}</span>
-          <strong>{titleCase(data.course?.course_title || '')}</strong>
+          <strong>{titleCase(data.title || '')}</strong>
         </div>
         <div className="cc-course-actions">
           <button type="button" className="cc-soft-btn" onClick={() => openCourse(label)}>
@@ -224,11 +225,16 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
           <SaveButton item={{ kind: 'course', key: label, display_name: label }} />
         </div>
       </div>
-      {showGrades && <GradeBar grades={selectedGrades} termLabel={termLabel} />}
-      {(instructors.length > 0 || meetings.length > 0) && (
+      {showGrades && <GradeBar grades={data.grades} />}
+      {(showInstructor || showSeats) && (
         <div className="cc-tiles">
-          <InstructorTile instructors={instructors} onMore={() => openCourse(label)} />
-          <SeatsTile meetings={meetings} />
+          <InstructorTile
+            names={names}
+            ratings={rated}
+            source={ratings.data?.source}
+            onMore={() => openCourse(label)}
+          />
+          <SeatsTile sections={sections} />
         </div>
       )}
       <ContextLink className="cc-context-link" to={`/courses?selected=${encodeURIComponent(label)}`}>

@@ -74,6 +74,13 @@ html[data-theme="light"],
   --band-text: #FFFFFF;
   --band-text-soft: rgba(255, 255, 255, 0.66);
   --band-line: rgba(255, 255, 255, 0.12);
+  --band-raised: rgba(255, 255, 255, 0.1);
+  /* Coloured text on the band (4.5:1 on --band-bg); the -ink shades are for white. */
+  --band-easier-text: #3DD07A;
+  --band-typical-text: #F59E4C;
+  --band-harder-text: #F97066;
+  --band-a-text: #8AB4F8;
+  --band-df-text: #FF8F8F;
 
   --font-app: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;

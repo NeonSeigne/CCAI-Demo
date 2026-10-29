@@ -16,6 +16,7 @@ import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
+import { useOpenCourse } from '../utils/openCourse';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
@@ -24,10 +25,14 @@ import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 
+/** location.state keys that carry a one-shot intent from another page. */
+const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
+
 const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
 
 const ChatPageView = () => {
   const navigate = useNavigate();
+  const openCourse = useOpenCourse();
   const location = useLocation();
   const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
   const { config, advisors } = useAppConfig();
@@ -201,7 +206,8 @@ const ChatPageView = () => {
   useEffect(() => {
     if (!authToken || intentConsumedRef.current) return;
     const intent = location.state;
-    if (!intent || (typeof intent === 'object' && Object.keys(intent).length === 0)) {
+    // Only the known intent keys; other state (a pop-up's history marker) is not an intent.
+    if (!intent || typeof intent !== 'object' || !INTENT_KEYS.some((key) => intent[key])) {
       return;
     }
 
@@ -225,7 +231,8 @@ const ChatPageView = () => {
           setComposerMessage(intent.pendingPrompt);
         }
       } finally {
-        navigate('/chat', { replace: true, state: null });
+        // Keep the query (?course= keeps its pop-up open).
+        navigate({ pathname: '/chat', search: location.search }, { replace: true, state: null });
       }
     };
 
@@ -249,7 +256,7 @@ const ChatPageView = () => {
   const handleCourseSelect = (identifier) => {
     const course = (identifier || '').trim();
     if (!course) return;
-    navigate(`/courses/${encodeURIComponent(course)}`);
+    openCourse(course);
   };
 
   const handleSendMessage = async (inputMessage, activeAdvisorIds = null, options) => {

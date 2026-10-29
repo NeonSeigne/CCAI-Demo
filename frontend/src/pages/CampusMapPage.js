@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Polyline, useMap } from 'react-leaflet';
-import { ExternalLink, MessageCircle } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import CampusRail from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';
+import PlaceSheet from '../components/map/PlaceSheet';
+import useAsk from '../hooks/useAsk';
 import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -110,7 +112,9 @@ function MapViewport({ points }) {
   return null;
 }
 
-function CampusMap({ origin, places, selected, route }) {
+function CampusMap({
+  origin, places, selected, route, onPickPlace,
+}) {
   const center = useMemo(() => {
     const first = [origin, selected, ...places].find(hasPoint);
     return first ? [first.lat, first.lon] : null;
@@ -149,6 +153,8 @@ function CampusMap({ origin, places, selected, route }) {
           center={[place.lat, place.lon]}
           radius={selected?.id === place.id ? 9 : 6}
           className={`map-pin ${selected?.id === place.id ? 'is-selected' : ''}`.trim()}
+          // Pins are the pointer path; the list is the keyboard path (D22).
+          eventHandlers={onPickPlace ? { click: () => onPickPlace(place) } : undefined}
         />
       ))}
       {hasPoint(selected) && !places.some((p) => p.id === selected.id) && (
@@ -355,6 +361,9 @@ const CampusMapPage = () => {
   const [reloadKey, setReloadKey] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(null); // {place, label}
+  // The place sheet replaces the list (D21); the list stays mounted, so its
+  // selection and scroll position survive closing the sheet.
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [route, setRoute] = useState({ status: 'idle', data: null });
   const [pickerOpen, setPickerOpen] = useState(false);
   const pendingSelect = useRef({ to: initial.to, suggest: true });
@@ -439,6 +448,8 @@ const CampusMapPage = () => {
 
   // ---- Walking route for the selection (R4: failure → no line, no time).
   const selectedId = selected?.place?.id || '';
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
   useEffect(() => {
     if (!authToken || !originId || !selectedId) {
       setRoute({ status: 'idle', data: null });
@@ -461,6 +472,8 @@ const CampusMapPage = () => {
 
   const chooseCategory = (next) => {
     if (next === category) return;
+    // A new category reselects its suggestion; the sheet would swap places under the student.
+    setSheetOpen(false);
     pendingSelect.current = { to: '', suggest: true };
     setExpanded(false);
     setList((prev) => ({ ...prev, places: [], suggested: null }));
@@ -479,16 +492,21 @@ const CampusMapPage = () => {
     closePicker();
   };
 
-  const ask = () => {
-    if (!selected) {
-      navigate('/chat', { state: { startNew: true } });
-      return;
-    }
-    const pendingPrompt = origin
-      ? `How do I get from ${origin.name} to ${selected.place.name}?`
-      : `How do I get to ${selected.place.name}?`;
-    navigate('/chat', { state: { startNew: true, pendingPrompt } });
-  };
+  const ask = useAsk();
+  const openSheet = useCallback((place) => {
+    setSelected({ place, label: null });
+    setSheetOpen(true);
+  }, []);
+  const closeSheet = useCallback(() => {
+    setSheetOpen(false);
+    const id = selectedIdRef.current;
+    setTimeout(() => {
+      [...document.querySelectorAll('[data-place-row]')].find((row) => row.dataset.placeRow === id)?.focus();
+    }, 0);
+  }, []);
+  const directions = useCallback((place) => {
+    window.open(openStreetMapUrl(place, origin), '_blank', 'noopener,noreferrer');
+  }, [origin]);
 
   const handleSignOutClick = () => {
     handleSignOut();
@@ -539,10 +557,6 @@ const CampusMapPage = () => {
               <p className="campus-kicker">{school}</p>
               <h1>Campus map</h1>
             </div>
-            <button type="button" className="map-ask" onClick={ask}>
-              <MessageCircle size={16} aria-hidden="true" />
-              {selected ? 'Ask about this route' : 'Ask Campus Companion'}
-            </button>
           </header>
 
           <div className="map-top">
@@ -571,6 +585,7 @@ const CampusMapPage = () => {
                   places={places}
                   selected={selected?.place || null}
                   route={route.status === 'ok' ? route.data : null}
+                  onPickPlace={openSheet}
                 />
               ) : (
                 <div className="map-canvas map-canvas-empty" />
@@ -593,7 +608,26 @@ const CampusMapPage = () => {
             ))}
           </div>
 
-          <section className="map-list" aria-label={`${chipLabel(category ?? '')} nearest first`}>
+          {sheetOpen && selected && (
+            <PlaceSheet
+              key={selected.place.id}
+              placeId={selected.place.id}
+              place={selected.place}
+              from={originId || undefined}
+              timezone={timezone}
+              onClose={closeSheet}
+              onAsk={ask}
+              onDirections={directions}
+              titleId="map-place-title"
+              autoFocus
+            />
+          )}
+
+          <section
+            className="map-list"
+            aria-label={`${chipLabel(category ?? '')} nearest first`}
+            hidden={sheetOpen && Boolean(selected)}
+          >
             {list.status === 'error' && (
               <div className="map-state" role="alert">
                 <p>Couldn't load places</p>
@@ -631,7 +665,8 @@ const CampusMapPage = () => {
                           type="button"
                           className="map-row-main"
                           aria-pressed={isSelected}
-                          onClick={() => setSelected({ place, label: null })}
+                          data-place-row={place.id}
+                          onClick={() => openSheet(place)}
                         >
                           <span className="map-row-dot" aria-hidden="true" />
                           <span className="map-row-text">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { changedRowKeys, consequenceRows, literalOps } from '../planner/proposalDiff';
 import useAcceptProposal from '../planner/useAcceptProposal';
@@ -87,7 +87,11 @@ export default function ProposalCard({ visual }) {
   const [undone, setUndone] = useState(false);
   const acceptProposal = useAcceptProposal();
 
-  useEffect(() => { planner?.ensureLoaded(); }, [planner]);
+  // Once per card: the planner object changes with every view and status, and
+  // a failed load would otherwise retry on each change.
+  const plannerRef = useRef(planner);
+  plannerRef.current = planner;
+  useEffect(() => { plannerRef.current?.ensureLoaded(); }, []);
 
   const state = stateOf(visual || {}, original, outcome, planner);
   const reviewed = state === 'needs_review' ? (outcome?.proposal || original) : original;
