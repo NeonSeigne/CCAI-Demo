@@ -183,9 +183,10 @@ def _fose_courses(rows: List[Dict[str, Any]], number: str, keyword: str) -> List
             "sections": 0, "instructors": [],
         })
         course["sections"] += 1
-        instructor = row.get("instructor") or ""
-        if instructor and instructor not in course["instructors"]:
-            course["instructors"].append(instructor)
+        # FOSE lists co-teachers in one string ("A. One, B. Two").
+        for instructor in _names(row.get("instructor") or ""):
+            if instructor not in course["instructors"]:
+                course["instructors"].append(instructor)
     return list(courses.values())
 
 
@@ -244,7 +245,7 @@ async def search_catalog(
         if not subject:
             raise CatalogQueryError(CU_SUBJECT_HINT)
         subject_listing = not (course_number or keyword)
-        rows = _fose_courses(await fose.fose_search(subject), course_number.upper(), keyword)
+        rows = _fose_courses(await fose_subject_rows(subject), course_number.upper(), keyword)
     else:
         rows = []
         if guess_subject and _looks_like_subject(keyword.replace(" ", ""), 8):
@@ -408,10 +409,23 @@ def _names(text: str) -> List[str]:
 
 
 def fose_terms() -> List[str]:
-    """Terms the CU summary reads, in order: the next term, then the other
+    """Terms CU summaries and searches read, in order: the next term, then the other
     covered terms newest first (a course not offered next term still shows)."""
     first = next_term()
     return [first, *[t for t in reversed(planner_terms()) if t != first]]
+
+
+async def fose_subject_rows(subject: str) -> List[Dict[str, Any]]:
+    """FOSE lecture/seminar rows for ``subject`` from the first term in
+    ``fose_terms()`` that lists any (the next term may not be published yet)."""
+    from app.tools import search_courses as fose
+
+    rows: List[Dict[str, Any]] = []
+    for term in fose_terms():
+        rows = await fose.fose_search(subject, term)
+        if rows:
+            break
+    return rows
 
 
 async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any]:
@@ -438,7 +452,7 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
         "title": rows[0].get("title") or "",
         "description": "",
         "sections": _sections_figure(rows, rows[0].get("semester"), caps, None),
-        "instructors": list(dict.fromkeys(r["instructor"] for r in rows if r.get("instructor"))),
+        "instructors": list(dict.fromkeys(n for r in rows for n in _names(r.get("instructor") or ""))),
     }
 
 

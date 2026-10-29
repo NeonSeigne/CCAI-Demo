@@ -227,9 +227,17 @@ async def execute(
         }
 
     subject = subject.upper().strip()
-    semester = semester or default_semester()
     try:
-        courses = await fose_search(subject, semester)
+        if semester:
+            courses = await fose_search(subject, semester)
+        else:
+            # No term asked: the next term, else the other covered terms newest first.
+            from app.sources import academics
+
+            for semester in academics.fose_terms():
+                courses = await fose_search(subject, semester)
+                if courses:
+                    break
     except Exception as exc:
         logger.error("FOSE API error for %s: %s", subject, exc)
         return {"courses": [], "error": str(exc), "query": {"subject": subject, "semester": semester}}
