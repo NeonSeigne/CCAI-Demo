@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { Pencil } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AvatarPickerModal from './AvatarPickerModal';
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from './icons';
 import MessageBubble from './MessageBubble';
 
 const CAROUSEL_BREAKPOINT = 700;

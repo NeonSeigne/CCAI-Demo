@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, ExternalLink, MapPin } from 'lucide-react';
+import { ArrowRight, ExternalLink, MapPin } from '../icons';
 import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';
 

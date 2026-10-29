@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
+import { Check as CheckIcon } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AppDialog from './AppDialog';
 

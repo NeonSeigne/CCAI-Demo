@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp } from '../components/icons';
 import CampusRail, { RecentChats, useRecentChats } from '../components/CampusRail';
 import { DOMAIN_COLORS } from '../components/domainColors';
 import SettingsModal from '../components/SettingsModal';

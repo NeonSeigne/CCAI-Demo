@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, CalendarDays, ExternalLink } from 'lucide-react';
+import { ArrowRight, CalendarDays, ExternalLink } from '../icons';
 import { downloadEventIcs } from '../../utils/ics';
 import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';

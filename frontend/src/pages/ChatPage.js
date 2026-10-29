@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContex
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 
-import { Menu, MessageCircle, Reply, X, Sparkles, FileText } from 'lucide-react';
+import { Menu, MessageCircle, Reply, X, Sparkles, FileText } from '../components/icons';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';

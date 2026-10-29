@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, FileText, File, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileText, File, X, CheckCircle, AlertCircle } from './icons';
 import '../styles/FileUpload.css'
 
 const FileUpload = ({ onFileUploaded, isUploading, onUploadStart, currentChatSessionId = null, authToken = null  }) => {

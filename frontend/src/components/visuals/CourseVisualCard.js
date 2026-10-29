@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw } from '../icons';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import { useCourseRatings } from '../../hooks/useCampusDetail';

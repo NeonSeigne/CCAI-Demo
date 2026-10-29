@@ -4,8 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2 } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { Reply, Copy, Check, Maximize2, FileText, Hash, Target, Volume2, VolumeX, Search, X, Loader2, iconFor } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import VisualBlock from './visuals/VisualBlock';
 import CourseChip from './visuals/CourseChip';
@@ -396,7 +395,7 @@ const MessageBubble = ({
   if (message.type === 'user') {
     const uAvatar = userAvatarOptions?.find(a => a.id === userAvatarId);
     const UserIcon = uAvatar
-      ? (LucideIcons[uAvatar.icon] || LucideIcons.User)
+      ? iconFor(uAvatar.icon)
       : null;
 
     return (

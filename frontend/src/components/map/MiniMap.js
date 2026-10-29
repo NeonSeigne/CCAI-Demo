@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin } from '../icons';
 
 /**
  * A still map centred on one point: a 3×3 block of OpenStreetMap tiles

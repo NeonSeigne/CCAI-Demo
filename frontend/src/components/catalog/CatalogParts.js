@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw } from '../icons';
 import { DEBOUNCE_MS, gradeSegments, notAvailableText } from './catalogFormat';
 
 /** `value` once it has stopped changing for `delay` ms. */

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useOpenCourse } from '../../utils/openCourse';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { ArrowRight, RefreshCw } from '../icons';
 import { useAuth } from '../../contexts/AuthContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import ContextLink from '../ContextLink';

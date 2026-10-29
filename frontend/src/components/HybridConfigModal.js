@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Layers } from 'lucide-react';
+import { X, Layers } from './icons';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
 
 const overlay = {

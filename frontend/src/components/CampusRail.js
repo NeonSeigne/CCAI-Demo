@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Bookmark, CalendarDays, GraduationCap, LogOut, Map as MapIcon, MapPin, MessageCircle,
-  MessageSquare, Plus, RefreshCw, Settings2,
-} from 'lucide-react';
+import { Bookmark, CalendarDays, GraduationCap, LogOut, Map as MapIcon, MapPin, MessageCircle, MessageSquare, Plus, RefreshCw, Settings2 } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';

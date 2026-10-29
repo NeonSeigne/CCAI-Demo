@@ -1,7 +1,7 @@
 import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
-import CloseRounded from '@mui/icons-material/CloseRounded';
+import { CloseRounded } from '../../icons';
 import AppDialog from '../../AppDialog';
 import ConfirmDialog from '../../ConfirmDialog';
 import { usePageColumn } from '../../shell/PageColumnContext';

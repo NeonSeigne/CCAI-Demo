@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { Users, ChevronDown, Pencil, AlertTriangle, X } from 'lucide-react';
+import { Users, ChevronDown, Pencil, AlertTriangle, X } from './icons';
 import AvatarPickerModal from './AvatarPickerModal';
 import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';

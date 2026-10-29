@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle } from '../icons';
 import ThinkingIndicator from '../ThinkingIndicator';
 
 /** "Thinking…" while the answer streams, plus one indicator per advisor still working. */

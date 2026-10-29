@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Bookmark, CalendarPlus, ChevronRight, ExternalLink, Footprints, MessageSquare, Navigation, X,
-} from 'lucide-react';
+import { Bookmark, CalendarPlus, ChevronRight, ExternalLink, Footprints, MessageSquare, Navigation, X } from '../icons';
 import SaveButton from '../SaveButton';
 import {
   CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,

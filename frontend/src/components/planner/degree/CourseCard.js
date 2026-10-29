@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import MoreHorizRounded from '@mui/icons-material/MoreHorizRounded';
+import { MoreHorizRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { creditSpan } from '../planFormat';
 import { difficultyKey, formatGpa } from './degreeFormat';

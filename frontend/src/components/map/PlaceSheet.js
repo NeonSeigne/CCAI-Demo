@@ -2,9 +2,7 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Accessibility, Bookmark, ChevronLeft, ChevronRight, Footprints, Globe, MapPin, MessageSquare, Phone,
-} from 'lucide-react';
+import { Accessibility, Bookmark, ChevronLeft, ChevronRight, Footprints, Globe, MapPin, MessageSquare, Phone } from '../icons';
 import SaveButton from '../SaveButton';
 import { CouldntLoad, DragGrip, usePopupDrag } from '../popup/PopupParts';
 import { useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';

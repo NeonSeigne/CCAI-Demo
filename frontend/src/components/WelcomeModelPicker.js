@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Cloud, Cpu, Server, ChevronDown, Settings2 } from 'lucide-react';
+import { Cloud, Cpu, Server, ChevronDown, Settings2 } from './icons';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';
 
 // Welcome-state model picker. Lets a new user pick a uniform default backend

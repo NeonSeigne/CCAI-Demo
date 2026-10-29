@@ -7,7 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from './icons';
 import AppDialog from './AppDialog';
 
 const ConfirmDialog = ({

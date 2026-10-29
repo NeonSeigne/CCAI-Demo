@@ -13,8 +13,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SearchIcon from '@mui/icons-material/Search';
+import { ArrowBack as ArrowBackIcon, Search as SearchIcon } from '../components/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { parseServerTime } from '../utils/serverTime';
 

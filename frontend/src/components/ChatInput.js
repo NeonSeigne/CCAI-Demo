@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send } from './icons';
 
 const ChatInput = ({ onSendMessage, isLoading, placeholder = "Ask your advisors anything..." }) => {
   const [inputMessage, setInputMessage] = useState('');

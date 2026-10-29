@@ -7,7 +7,7 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import { X } from 'lucide-react';
+import { X } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AppDialog from './AppDialog';
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Polyline, useMap } from 'react-leaflet';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink } from '../components/icons';
 import 'leaflet/dist/leaflet.css';
 import CampusRail from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';

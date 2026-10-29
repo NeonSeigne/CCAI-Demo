@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Popover } from '@mui/material';
-import { CircleHelp, MoreHorizontal, Search } from 'lucide-react';
+import { CircleHelp, MoreHorizontal, Search } from './icons';
 
 /** The chat header's ⋯ menu: chat search and the user guide. */
 export default function ChatMoreMenu({ onSearchChats, onOpenGuide }) {

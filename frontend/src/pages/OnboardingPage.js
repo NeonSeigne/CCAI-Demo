@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Code2, MapPin } from 'lucide-react';
+import { ArrowRight, Code2, MapPin } from '../components/icons';
 import CopyrightNotice from '../components/CopyrightNotice';
 import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';

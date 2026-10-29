@@ -1,6 +1,6 @@
 // src/components/ProviderDropdown.js
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Cpu, Cloud, Server, Loader2, Layers, Settings2 } from 'lucide-react';
+import { ChevronDown, Cpu, Cloud, Server, Loader2, Layers, Settings2 } from './icons';
 
 const ProviderDropdown = ({ currentProvider, onProviderChange, isLoading = false, onConfigureHybrid }) => {
   const [isOpen, setIsOpen] = useState(false);

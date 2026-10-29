@@ -2,10 +2,7 @@ import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock, List as ListIcon, MapPin, Navigation, RefreshCw,
-  Search, X,
-} from 'lucide-react';
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock, List as ListIcon, MapPin, Navigation, RefreshCw, Search, X } from '../components/icons';
 import AppDialog from '../components/AppDialog';
 import CampusRail from '../components/CampusRail';
 import EventPopup from '../components/events/EventPopup';

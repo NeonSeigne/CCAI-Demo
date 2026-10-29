@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check } from '../icons';
 
 /** "Checked: Courses · Events · Campus map" above a tool-grounded answer. */
 export default function SourcesChecked({ visual }) {

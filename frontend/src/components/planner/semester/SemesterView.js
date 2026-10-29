@@ -3,12 +3,7 @@ import React, {
 } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useDndContext } from '@dnd-kit/core';
-import UndoRounded from '@mui/icons-material/UndoRounded';
-import RedoRounded from '@mui/icons-material/RedoRounded';
-import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
-import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
-import SearchRounded from '@mui/icons-material/SearchRounded';
-import AddRounded from '@mui/icons-material/AddRounded';
+import { UndoRounded, RedoRounded, ChevronLeftRounded, ChevronRightRounded, SearchRounded, AddRounded } from '../../icons';
 import { usePlanner, termKey } from '../../../contexts/PlannerContext';
 import { useChat } from '../../../contexts/ChatContext';
 import { useAuth } from '../../../contexts/AuthContext';

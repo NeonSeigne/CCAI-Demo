@@ -7,7 +7,7 @@ import {
   DialogTitle,
   IconButton,
 } from '@mui/material';
-import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from 'lucide-react';
+import { X, User as UserIcon, Lock, Trash2, AlertTriangle, Users, Layers } from './icons';
 import Toggle from './Toggle';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import AdvisorConfigPanel, { DEFAULT_BACKEND, stripDefaultBackends } from './AdvisorConfigPanel';

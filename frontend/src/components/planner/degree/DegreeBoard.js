@@ -2,8 +2,7 @@ import React, {
   useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import UndoRounded from '@mui/icons-material/UndoRounded';
-import RedoRounded from '@mui/icons-material/RedoRounded';
+import { UndoRounded, RedoRounded } from '../../icons';
 import { usePlanner } from '../../../contexts/PlannerContext';
 import { useOpenCourse } from '../../../utils/openCourse';
 import { useDropToast } from '../../dnd';

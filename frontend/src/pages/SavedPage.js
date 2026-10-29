@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeftRight, ChevronDown, ChevronRight, Plus, RefreshCw } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, ChevronRight, Plus, RefreshCw } from '../components/icons';
 import CampusRail from '../components/CampusRail';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SettingsModal from '../components/SettingsModal';

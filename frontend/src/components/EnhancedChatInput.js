@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover } from '@mui/material';
-import { ArrowUp, Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from 'lucide-react';
+import { ArrowUp, Send, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays } from './icons';
 import FileUpload from './FileUpload';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { attachmentLabel } from '../contexts/ChatContext';

@@ -1,7 +1,7 @@
 import React, {
   useEffect, useId, useMemo, useState,
 } from 'react';
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, X } from '../icons';
 import SaveButton from '../SaveButton';
 import {
   useCourseDetail, useCoursePreview, useCourseRatings,

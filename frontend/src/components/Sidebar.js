@@ -22,16 +22,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import LogoutIcon from '@mui/icons-material/Logout';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import SearchIcon from '@mui/icons-material/Search';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
+import { Close as CloseIcon, DeleteOutlined as DeleteOutlinedIcon, DescriptionOutlined as DescriptionOutlinedIcon, EditOutlined as EditOutlinedIcon, HomeOutlined as HomeOutlinedIcon, Logout as LogoutIcon, PersonOutlined as PersonOutlinedIcon, Search as SearchIcon, SettingsOutlined as SettingsOutlinedIcon, ViewSidebarOutlined as ViewSidebarOutlinedIcon } from './icons';
 import { useNavigate } from 'react-router-dom';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import muiTheme from '../theme/muiTheme';

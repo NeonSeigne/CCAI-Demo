@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import * as LucideIcons from 'lucide-react';
+import { MapPin, User, iconFor } from '../components/icons';
 
 const AppConfigContext = createContext(null);
 
@@ -12,7 +12,7 @@ const SYNTHETIC_PERSONAS = {
     bgColor: 'var(--paper-sunken)',
     darkColor: 'var(--accent-blue)',
     darkBgColor: 'var(--paper-sunken)',
-    icon: LucideIcons.User,
+    icon: User,
   },
   // Tool-grounded answers (persona_id "orchestrator"): speak as the product,
   // not as an internal component name.
@@ -24,7 +24,7 @@ const SYNTHETIC_PERSONAS = {
     bgColor: 'var(--paper-sunken)',
     darkColor: 'var(--ink)',
     darkBgColor: 'var(--paper-sunken)',
-    icon: LucideIcons.MapPin,
+    icon: MapPin,
   },
 };
 
@@ -45,14 +45,8 @@ const getAuthToken = () => {
   try { return localStorage.getItem('authToken'); } catch { return null; }
 };
 
-/**
- * Resolve a Lucide icon name string (e.g. "BookOpen") to the actual React
- * component.  Falls back to HelpCircle if the name isn't found.
- */
-const resolveIcon = (iconName) => {
-  if (!iconName) return LucideIcons.User;
-  return LucideIcons[iconName] || LucideIcons.User;
-};
+/** A config icon name (Material, or an older Lucide name) as a component; unknown names fall back to a person. */
+const resolveIcon = (iconName) => iconFor(iconName);
 
 /**
  * Build the advisors lookup object (keyed by persona id) from the config
