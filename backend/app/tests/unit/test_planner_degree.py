@@ -69,6 +69,21 @@ class DegreeBoardTests(PlannerTestCase):
         self.assertEqual(fall["courses"][0]["offered"], "unknown")
         self.assertEqual(fall["courses"][0]["credits"], [3.0, 3.0])  # identity and credits still known
 
+    async def test_saved_credits_beat_catalog_credits(self):
+        # Setup-dialog R10: a transcript row's credits are saved with the
+        # completed entry; a manual entry without credits keeps the catalog's.
+        await self.edit([{"op": "set_profile", "program_ids": ["econ-ba"], "completed": [
+            {"id": "ECON 3010", "grade": "A", "credits": 4.5},
+            {"id": "ECON 2010", "grade": "B", "credits": 1},
+            {"id": "ECON 3020", "grade": "B"},
+        ]}])
+        body = await routes.get_degree(self.user)
+        credits = {row["id"]: row["credits"] for row in body["completed"]}
+        self.assertEqual(credits, {"ECON 3010": [4.5, 4.5], "ECON 2010": [1.0, 1.0], "ECON 3020": [3.0, 3.0]})
+        electives, other = body["waffle"]["groups"]
+        self.assertEqual(electives["earned"], 7.5)  # 4.5 saved + 3 catalog
+        self.assertEqual(other["earned"], 1.0)
+
     async def test_board_route_for_a_new_plan(self):
         body = await routes.get_degree(self.user)
         self.assertEqual([t["term"] for t in body["terms"]], [TERM])

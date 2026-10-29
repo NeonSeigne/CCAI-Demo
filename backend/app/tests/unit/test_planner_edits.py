@@ -128,6 +128,31 @@ class SetTermTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, "unknown_term")
 
 
+class CompletedCreditsTests(unittest.TestCase):
+    """A completed entry may carry transcript credits, 0 to 12 (setup-dialog R10)."""
+
+    def op(self, credits):
+        return [{"op": "set_profile", "completed": [{"id": "ECON 2010", "grade": "A", "term": None, "credits": credits}]}]
+
+    def test_credits_in_range_are_kept(self):
+        for credits in (0, 3, 4.5, 12, None):
+            with self.subTest(credits=credits):
+                edits.check_applies(plan(), self.op(credits))
+                self.assertEqual(edits.apply_ops(plan(), self.op(credits))["profile"]["completed"][0]["credits"], credits)
+
+    def test_credits_out_of_range_are_bad_op(self):
+        for credits in (-1, 12.5, "3", True):
+            with self.subTest(credits=credits):
+                with self.assertRaises(EditError) as ctx:
+                    edits.check_applies(plan(), self.op(credits))
+                self.assertEqual(ctx.exception.code, "bad_op")
+
+    def test_entries_without_credits_are_unchanged(self):
+        ops = [{"op": "set_profile", "completed": [{"id": "ECON 2010", "grade": "A", "term": None}]}]
+        edits.check_applies(plan(), ops)
+        self.assertNotIn("credits", edits.apply_ops(plan(), ops)["profile"]["completed"][0])
+
+
 class DiffTests(unittest.TestCase):
     def setUp(self):
         self.ids = ["ECON 3010", "ECON 3020", "ECON 3300", "ECON 4010", "ECON 4020"]

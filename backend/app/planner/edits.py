@@ -30,6 +30,8 @@ from app.planner.facts import CourseFacts
 
 OPS = ("add", "remove", "move", "swap", "pick_section", "set_profile", "set_term")
 PROFILE_FIELDS = ("program_ids", "catalog_year", "class_year", "completed", "interests")
+# Credits a completed entry may carry from a transcript row (setup-dialog R10).
+COMPLETED_CREDITS = (0, 12)
 
 # What a student might say for each op, for ``literal_differs`` (design 11A).
 ASKED_WORDS = {
@@ -141,6 +143,27 @@ def _check_shape(op: Dict[str, Any]) -> None:
         raise EditError("bad_op", "'set_profile' needs at least one profile field")
     if kind == "set_term" and not isinstance(op["term"], str):
         raise EditError("bad_op", "'set_term' needs a term")
+    if kind == "set_profile" and "completed" in op:
+        _check_completed(op["completed"])
+
+
+def _check_completed(completed: Any) -> None:
+    """Completed entries are ``{id, grade?, term?, credits?}``; ``credits``,
+    when given, is a number from 0 to 12 (setup-dialog R10)."""
+    if completed is None:
+        return
+    if not isinstance(completed, list):
+        raise EditError("bad_op", "'completed' must be a list")
+    low, high = COMPLETED_CREDITS
+    for entry in completed:
+        if not isinstance(entry, dict):
+            raise EditError("bad_op", "Each completed course must be an object")
+        credits = entry.get("credits")
+        if credits is None:
+            continue
+        if isinstance(credits, bool) or not isinstance(credits, (int, float)) or not low <= credits <= high:
+            raise EditError("bad_op", f"Credits for {norm(entry.get('id'))} must be a number from {low} to {high}",
+                            norm(entry.get("id")) or None)
 
 
 def check_applies(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> None:
