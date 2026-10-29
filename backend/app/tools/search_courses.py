@@ -23,8 +23,15 @@ logger = logging.getLogger(__name__)
 
 FOSE_SEARCH_URL = "https://classes.colorado.edu/api/?page=fose&route=search"
 CLASSES_BASE_URL = "https://classes.colorado.edu"
-# FOSE term the tool and the catalog read when none is given.
-DEFAULT_SEMESTER = "Spring 2026"
+
+
+def default_semester() -> str:
+    """The FOSE term read when none is given: the term students plan for now
+    (``academics.next_term``, from the school's ``planner.terms``)."""
+    from app.sources import academics
+
+    return academics.next_term()
+
 
 TOOL_DEFINITION: Dict[str, Any] = {
     "type": "function",
@@ -56,8 +63,8 @@ TOOL_DEFINITION: Dict[str, Any] = {
                 "semester": {
                     "type": "string",
                     "description": (
-                        "Semester name, e.g. 'Spring 2026', 'Fall 2025'. "
-                        "Defaults to 'Spring 2026' if not provided."
+                        "Semester name, e.g. 'Spring 2027', 'Fall 2026'. "
+                        "Defaults to the next term students plan for."
                     ),
                 },
             },
@@ -101,7 +108,7 @@ def _parse_schedule(meets: str) -> Dict[str, str]:
     return {"days": days, "start_time": start, "end_time": end, "raw": meets}
 
 
-def _row_to_course(item: Dict[str, Any], term: str) -> Optional[Dict[str, Any]]:
+def row_to_course(item: Dict[str, Any], term: str) -> Optional[Dict[str, Any]]:
     """Convert a FOSE result row to a lightweight course dict.
     Returns None for rows that should be skipped (recitations, cancelled sections, etc.).
     """
@@ -129,14 +136,15 @@ def _row_to_course(item: Dict[str, Any], term: str) -> Optional[Dict[str, Any]]:
     }
 
 
-async def fose_search(subject: str, semester: str = DEFAULT_SEMESTER) -> List[Dict[str, Any]]:
+async def fose_search(subject: str, semester: str = "") -> List[Dict[str, Any]]:
     """Every lecture/seminar section FOSE lists for ``subject`` in ``semester``.
 
     Raises ``RuntimeError`` when FOSE can't be reached or answers non-200, so
     an outage is never mistaken for a subject with no classes.
     """
+    semester = semester or default_semester()
     results = await _fose_results(subject, semester)
-    return [row for row in (_row_to_course(item, semester) for item in results) if row]
+    return [row for row in (row_to_course(item, semester) for item in results) if row]
 
 
 # Planner reads of whole subjects, kept briefly so one plan check asks once.
@@ -191,7 +199,7 @@ async def execute(
     name: str = "",
     subject: str,
     course_number: str = "",
-    semester: str = DEFAULT_SEMESTER,
+    semester: str = "",
 ) -> Dict[str, Any]:
     """Query the CU Boulder FOSE API and return matching courses.
 
@@ -219,6 +227,7 @@ async def execute(
         }
 
     subject = subject.upper().strip()
+    semester = semester or default_semester()
     try:
         courses = await fose_search(subject, semester)
     except Exception as exc:

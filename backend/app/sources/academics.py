@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 from app.config import get_settings
-from app.planner.facts import CourseFacts, Meeting, Section
+from app.planner.facts import CourseFacts, Meeting, PrereqNode, Section
 
 logger = logging.getLogger(__name__)
 
@@ -380,6 +380,10 @@ def _section_row(row: Dict[str, Any]) -> Dict[str, Any]:
         out["meetings"] = row["meetings"]
     if (row.get("schedule") or {}).get("raw"):
         out["meetings"] = [row["schedule"]["raw"]]
+    # FOSE's building (``bldg``, carried as ``location``); other sources have none.
+    bldg = " ".join(re.sub(r"<[^>]+>", " ", str(row.get("location") or "")).split())
+    if bldg:
+        out["bldg"] = bldg
     return out
 
 
@@ -403,6 +407,13 @@ def _names(text: str) -> List[str]:
     return [n.strip() for n in (text or "").split(",") if n.strip()]
 
 
+def fose_terms() -> List[str]:
+    """Terms the CU summary reads, in order: the next term, then the other
+    covered terms newest first (a course not offered next term still shows)."""
+    first = next_term()
+    return [first, *[t for t in reversed(planner_terms()) if t != first]]
+
+
 async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any]:
     from app.tools import search_courses as fose
 
@@ -410,7 +421,16 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
     if not (subject and number):
         raise FileNotFoundError(f"No course found for '{identifier}'")
     code = f"{subject} {number}"
-    rows = [r for r in await fose.fose_search(subject) if _same_code(r.get("course_code")) == code]
+    rows: List[Dict[str, Any]] = []
+    for term in fose_terms():
+        # Cached per subject and term, so the facts read below asks FOSE once.
+        items = await fose.fose_sections(subject, term)
+        rows = [
+            row for row in (fose.row_to_course(item, term) for item in items)
+            if row and _same_code(row.get("course_code")) == code
+        ]
+        if rows:
+            break
     if not rows:
         raise FileNotFoundError(f"No course found for '{code}'")
     return {
@@ -422,6 +442,53 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
     }
 
 
+def prereq_dict(node: Optional[PrereqNode]) -> Optional[Dict[str, Any]]:
+    """A prerequisite tree as JSON: ``{kind: all|any, children}`` groups and
+    ``{kind: course, course, minimum_grade?, timing}`` leaves."""
+    if node is None:
+        return None
+    if node.kind == "course":
+        out: Dict[str, Any] = {"kind": "course", "course": node.course, "timing": node.timing}
+        if node.minimum_grade:
+            out["minimum_grade"] = node.minimum_grade
+        return out
+    return {"kind": node.kind, "children": [prereq_dict(c) for c in node.children]}
+
+
+def _grade_history(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Per-term grade figures, oldest term first."""
+    if result.get("error"):
+        return []
+    history = []
+    for row in result.get("terms") or []:
+        figure = _grade_figure(row)
+        history.append({
+            "term": row.get("term") or _term_name(row.get("term_code")),
+            "gpa": figure["gpa"],
+            "students": figure["students"],
+            "pct_a": figure["pct_a"],
+            "pct_df": figure["pct_df"],
+        })
+    return sorted(history, key=lambda h: _term_order(h["term"]))
+
+
+async def _facts_fields(identifier: str) -> Dict[str, Any]:
+    """``credits``, ``gen_ed`` and ``prereq_tree`` from the planner's course
+    facts for the next term (the sources cache what the summary already read).
+    A field the school doesn't publish is left out."""
+    facts = (await course_facts([identifier], next_term())).get(identifier)
+    if facts is None or facts.known != "yes":
+        return {}
+    out: Dict[str, Any] = {}
+    if facts.credits:
+        out["credits"] = {"min": facts.credits[0], "max": facts.credits[1]}
+    if facts.gen_ed:
+        out["gen_ed"] = list(facts.gen_ed)
+    if facts.prereq_tree is not None:
+        out["prereq_tree"] = prereq_dict(facts.prereq_tree)
+    return out
+
+
 async def course_summary(identifier: str) -> Dict[str, Any]:
     """Everything the Courses preview and Compare show for one course.
 
@@ -429,14 +496,18 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
     ``prerequisites`` and ``next_courses`` appear only when the school's
     source has them (see ``capabilities``); a key that is present but
     ``None`` means the source has that data in general but not for this
-    course. Raises ``FileNotFoundError`` for an unknown course and
-    ``RuntimeError`` when the source can't be reached.
+    course. ``grade_history`` (per term, oldest first), ``instructor_grades``
+    (UVA), ``credits``, ``gen_ed`` and ``prereq_tree`` (UW) appear only when
+    there is data for this course. Raises ``FileNotFoundError`` for an
+    unknown course and ``RuntimeError`` when the source can't be reached.
     """
     backend = catalog_backend()
     caps = _CAPABILITIES[backend]
     meta = {"capabilities": dict(caps), "source": catalog_source(), "as_of": None}
     if backend == FOSE:
-        return {**await _fose_summary(identifier, caps), **meta}
+        summary = {**await _fose_summary(identifier, caps), **meta}
+        summary.update(await _facts_fields(summary["identifier"]))
+        return summary
 
     provider = get_provider()
     course = await provider.lookup_course(identifier)
@@ -445,9 +516,15 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
 
     # One at a time: the first call warms the source's cache for the rest.
     if caps["grades"]:
-        summary["grades"], summary["cumulative"] = _grades_figures(
-            await provider.course_grades(course_identifier=canonical)
-        )
+        grades = await provider.course_grades(course_identifier=canonical)
+        summary["grades"], summary["cumulative"] = _grades_figures(grades)
+        history = _grade_history(grades)
+        if history:
+            summary["grade_history"] = history
+        if hasattr(provider, "instructor_grades"):
+            by_instructor = await provider.instructor_grades(canonical)
+            if by_instructor:
+                summary["instructor_grades"] = by_instructor
     if caps["sections"]:
         result = await provider.course_sections(course_identifier=canonical, limit=SECTION_LIMIT)
         rows = [] if result.get("error") else result.get("sections") or []
@@ -472,6 +549,7 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
     if caps["next_courses"]:
         result = await provider.next_courses(course_identifier=canonical)
         summary["next_courses"] = None if result.get("error") else result.get("next_courses") or []
+    summary.update(await _facts_fields(canonical))
     return summary
 
 

@@ -294,6 +294,40 @@ async def course_grades(*, tool_name: str = "", course_identifier: str) -> Dict[
     }
 
 
+def display_name(name: str) -> str:
+    """Grades files write ``"Morrison,Briana"``; sections files ``"Briana Morrison"``."""
+    last, comma, first = (name or "").partition(",")
+    return " ".join(f"{first} {last}".split()) if comma else " ".join((name or "").split())
+
+
+async def instructor_grades(course_identifier: str) -> List[Dict[str, Any]]:
+    """``[{name, gpa, students}]`` per primary instructor across every grades
+    file, the most recent teacher first. Empty when there are no grade rows."""
+    subject, number = _split(course_identifier)
+    if not subject:
+        return []
+    try:
+        index, _, _, _ = await _grade_index()
+    except Exception as exc:  # noqa: BLE001 — an extra beside the pooled grades
+        logger.warning("snapshot instructor grades failed: %s", exc)
+        return []
+    groups: Dict[str, List[Dict[str, str]]] = {}
+    for row in index.get(_identifier(subject, number)) or []:
+        name = display_name(row.get("Primary Instructor Name", ""))
+        if name:
+            groups.setdefault(name, []).append(row)
+    out = []
+    for name, rows in groups.items():
+        latest = max(_term_order(r.get("Term Desc", "")) for r in rows)
+        out.append(({
+            "name": name,
+            "gpa": _course_gpa(rows),
+            "students": sum(_int(r.get("# of Students")) for r in rows),
+        }, latest))
+    out.sort(key=lambda item: (item[1], item[0]["students"]), reverse=True)
+    return [item for item, _ in out]
+
+
 async def prerequisites(*, tool_name: str = "", course_identifier: str) -> Dict[str, Any]:
     del tool_name
     return {
