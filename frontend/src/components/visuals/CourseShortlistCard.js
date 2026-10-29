@@ -8,11 +8,12 @@ import '../../styles/PlanCards.css';
 /**
  * Chat card for a `course_shortlist` visual (design 19A).
  *
- * visual: {type: 'course_shortlist', items: [{id, title, why, labels, prereqs, credits}], reason?}
+ * visual: {type: 'course_shortlist', items: [{id, title, why, labels, prereqs, credits}], reason?, term?}
  *
  * Up to five rows, "Show more" for the next five. Choose creates the single
- * pending proposal (an `add` op) through the shared planner, and the new
- * proposal's card appears under the list.
+ * pending proposal (an `add` op, into `term` when the visual names one)
+ * through the shared planner, and the new proposal's card appears under the
+ * list.
  */
 
 const PAGE = 5;
@@ -56,7 +57,10 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
     setChoosing(item.id);
     setError(null);
     try {
-      setChosen(await planner.propose([{ op: 'add', course: item.id }]));
+      // The term the shortlist was checked for (N2); without one the server uses the open term.
+      const term = visual?.term || null;
+      const op = term ? { op: 'add', course: item.id, term } : { op: 'add', course: item.id };
+      setChosen(await planner.propose([op], term ? { term } : undefined));
     } catch (err) {
       const info = plannerError(err);
       setError({ id: item.id, text: info.message || "Couldn't add that course. Try again." });
