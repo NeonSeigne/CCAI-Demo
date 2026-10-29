@@ -8,7 +8,7 @@ import CourseAnswerCard from './CourseAnswerCard';
 import SourcesChecked from './SourcesChecked';
 import ProposalCard from './ProposalCard';
 import CourseShortlistCard from './CourseShortlistCard';
-import '../../styles/CampusCards.css';
+import '../../styles/CourseVisuals.css';
 
 /**
  * Registry mapping a structured visual spec (`visual.type`) to a vetted,
