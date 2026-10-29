@@ -173,3 +173,14 @@ Frontend → /chat-stream → orchestrator → personas → RAG + LLM → respon
 ```
 
 ---
+## Campus Companion payload fields
+
+Fields the Home Colors screens read (`docs/designs/home-colors-alignment.md`,
+Phase 3). Planner payloads are in `app/planner/CONTRACTS.md`.
+
+### `GET /api/config`
+
+| Field | Shape | Notes |
+|---|---|---|
+| `app.short_name` | str | "UVA", "CU Boulder", "UW–Madison" (rail and phone header); `""` when a pack sets none |
+| `school.term_dates` | `{term: {first_day, last_day}}` | ISO dates of the first and last day of classes, from the school's official academic calendar (cited in `school.yaml`). Either may be `null` when it couldn't be verified; a term with no dates is absent. "Your classes today" shows only on weekdays inside both dates and hides when either is missing (R12) |

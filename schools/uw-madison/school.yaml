@@ -7,6 +7,7 @@ school:
   status: active
 
 app:
+  short_name: "UW–Madison"
   # School colours (DESIGN.md): every role for light and dark. The frontend writes
   # each as a CSS variable and builds the MUI theme from the same values.
   # Toned-down red on large areas; Badger red only on small things. "Harder" is ink plus an icon so red stays the school's.
@@ -63,6 +64,12 @@ planner:
   harder_below_gpa: 3.4
   # Terms Course Map lists offerings for.
   terms: ["Fall 2026", "Spring 2027"]
+  # First and last day of classes ("Fall/Spring semester instruction begins",
+  # "Last class day"), from https://secfac.wisc.edu/academic-calendar/
+  # (Faculty Senate academic calendar, checked 2026-10-29).
+  term_dates:
+    "Fall 2026": {first_day: 2026-09-02, last_day: 2026-12-09}
+    "Spring 2027": {first_day: 2027-01-19, last_day: 2027-04-30}
 
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (amenity=university).

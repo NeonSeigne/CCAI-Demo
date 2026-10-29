@@ -10,6 +10,7 @@ school:
 app:
   title: "UVA Undergraduate Advisor"
   institution: "University of Virginia"
+  short_name: "UVA"
   footer_text: "Unofficial student advising demo for the University of Virginia."
   # School colours (DESIGN.md): every role for light and dark. The frontend writes
   # each as a CSS variable and builds the MUI theme from the same values.
@@ -89,6 +90,14 @@ planner:
   # "Harder" uses the hardest third of the snapshot's grade data.
   credit_limits: {min: 12, max: 18}
   credit_limits_source: "https://college.as.virginia.edu/course_load"
+  # First and last day of classes (Academic Division). Fall 2026's first day
+  # is from https://as.virginia.edu/fall-semester-2026 ("Fall courses begin
+  # Tuesday, Aug. 25", checked 2026-10-29). The registrar's calendar
+  # (https://registrar.virginia.edu/calendar/academic/2026-2027) refuses
+  # automated requests, so the other dates aren't verified and are left out;
+  # "Your classes today" stays hidden until both dates of a term are here.
+  term_dates:
+    "Fall 2026": {first_day: 2026-08-25}
 
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (amenity=university).

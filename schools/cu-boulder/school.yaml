@@ -8,6 +8,7 @@ school:
   status: active
 
 app:
+  short_name: "CU Boulder"
   # School colours (DESIGN.md): every role for light and dark. The frontend writes
   # each as a CSS variable and builds the MUI theme from the same values.
   theme:
@@ -54,6 +55,14 @@ app:
 planner:
   # Terms CU Class Search (FOSE) publishes sections for.
   terms: ["Fall 2026", "Spring 2027"]
+  # First and last day of classes ("Classes Begin", "Last Day of Classes"),
+  # Main Campus, from the registrar's calendar PDFs linked on
+  # https://www.colorado.edu/registrar/students/calendar (checked 2026-10-29):
+  # Fall 2026 https://www.colorado.edu/registrar/media/1942
+  # Spring 2027 https://www.colorado.edu/registrar/media/1943
+  term_dates:
+    "Fall 2026": {first_day: 2026-08-20, last_day: 2026-12-04}
+    "Spring 2027": {first_day: 2027-01-07, last_day: 2027-04-23}
 
 campus:
   # OpenStreetMap campus area for scripts/import_places.py (Main Campus (tagged boundary=administrative in OSM)).
