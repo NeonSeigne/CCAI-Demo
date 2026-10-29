@@ -1,24 +1,31 @@
-# Drafted from https://uvacsadvising.org/bscs.html ; needs a human check against the official page before the demo.
-# Only the School of Engineering general requirements are encoded. The source above (UVA CS Advising Guide) lists them as
-# "the unified set of general requirements for all engineering majors". The Mechanical Engineering sources
-# (engineering.virginia.edu B.S. page and ME curriculum PDFs) answered with a Cloudflare challenge, and the Undergraduate
-# Record (records.ureg.virginia.edu) with a bot challenge, on 2026-10-29, so the ME core, electives and degree total were not read.
-# Add the MAE core from https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/mechanical-engineering-undergraduate-program/bs-mechanical-engineering
-# or the Record as part of the human check.
+# Drafted from the MAE department's curriculum sheet "Mechanical Engineering Undergraduate Curriculum, for students
+# graduating 2029" (dated 10/29/2025) ; needs a human check against the official page before the demo.
+# The sheet's URL answers automated requests with a Cloudflare challenge; it was opened in a browser by a person and
+# read from the downloaded PDF on 2026-10-29. No sheet for students entering in 2026 was found, so catalog_year is 2025.
+# An older undated-class sheet (sw 3/29/24, /sites/default/files/users/user186/ME%20UG%20Curriculum.pdf) differs: it
+# starts at APMA 1110 and lists the capstone as MAE 4XXX.
+# The SEAS general requirements (calculus, chemistry, physics, programming, ENGR, STS) match uvacsadvising.org/bscs.html.
 id: me-bs
 name: Mechanical Engineering B.S.
 type: major
-catalog_year: 2026
-source_url: https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/mechanical-engineering-undergraduate-program/bs-mechanical-engineering
+catalog_year: 2025
+source_url: https://engineering.virginia.edu/sites/default/files/_common/departments-programs/mae/ME_UG_Curriculum_2029.pdf
 checked_on: 2026-10-29
-complete: false  # SEAS general requirements only; the ME core, ME electives, HSS and unrestricted electives and degree total aren't encoded
+total_credits: 131
+complete: false  # math-science/technical, HSS and unrestricted electives are notes only
 rules:
   - id: calculus
     title: Calculus
     kind: all_of
     courses: [APMA 1090, APMA 1110, APMA 2120]
-    notes:
-      - APMA 1090 is required for students matriculating Fall 2025 and after.
+  - id: differential-equations
+    title: Differential equations
+    kind: all_of
+    courses: [APMA 2130, APMA 3140]
+  - id: statistics
+    title: Probability and statistics
+    kind: all_of
+    courses: [APMA 3110]
   - id: chemistry
     title: Chemistry with lab
     kind: all_of
@@ -30,23 +37,49 @@ rules:
       - [PHYS 1425, PHYS 1429, PHYS 2415, PHYS 2419]
       - [PHYS 1425, PHYS 1429, ECE 2200]
     notes:
-      - ECE 2200 as an alternative to PHYS 2415/2419 comes from the all-majors general requirements on uvacsadvising.org; the ME curriculum page itself was not readable.
+      - ECE 2200 (Applied Physics, 4 credits) replaces both PHYS 2415 and PHYS 2419.
   - id: intro-programming
     title: Introduction to programming
     kind: n_of
     n: 1
     courses: [CS 1110, CS 1111, CS 1112, CS 1113]
+    notes:
+      - The sheet lists "CS 111X".
   - id: engineering-foundations
     title: Engineering foundations
     kind: all_of
     courses: [ENGR 1010, ENGR 1020]
+    notes:
+      - Transfer students can replace ENGR 1020 with 3 other credits, generally communication or ethics, by appeal to the Office of the Associate Dean for Undergraduate Affairs.
+  - id: mae-core
+    title: Mechanical engineering core
+    kind: all_of
+    courses: [
+      MAE 2020, MAE 2040, MAE 2300, MAE 2100, MAE 2310, MAE 2320, MAE 2330,
+      MAE 3210, MAE 3230, MAE 3310, MAE 3710,
+      MAE 3140, MAE 3420, MAE 3620, MAE 3840, MAE 4710,
+    ]
+  - id: capstone
+    title: Capstone design
+    kind: one_of_groups
+    groups:
+      - [MAE 4610, MAE 4620]
+      - [MAE 4690, MAE 4700]
+    notes:
+      - The semester grid names MAE 4610 and 4620; its footnote allows 4610/4620 or 4690/4700.
+  - id: math-science-elective
+    title: Math-science elective
+    kind: n_of
+    n: 1
+    courses: [BIOL 2100, BIOL 2200, CHEM 1620, MSE 2090, PHYS 2620]
+    notes:
+      - Any APMA course numbered 2000 or higher that the major doesn't already require and that doesn't duplicate another APMA course also counts.
   - id: sts
     title: Engineering ethics and thesis (STS)
     kind: all_of
     courses: [STS 2600, STS 4500, STS 4600]
-    notes:
-      - STS 4500 and STS 4600 are taken in the fall and spring of the fourth year.
 notes:
-  - The SEAS general requirements also include a 3-credit math/science elective and 9 credits of humanities or social science electives, not encoded.
-  - Mechanical Engineering core courses, design sequence and electives are not encoded; the official ME pages could not be read.
-  - Total degree credits were not read, so total_credits is omitted.
+  - Three math-science/technical electives (9 credits) come from the MAE Approved Math-Science/Technical Electives list on the department website, which was not read.
+  - Three HSS electives (9 credits) come from the approved Humanities and Social Science list in the SEAS Undergraduate Handbook.
+  - "Three unrestricted electives (9 credits): any graded course except mathematics below MATH 1310 and courses that duplicate others offered for the degree, including PHYS 1010, 1020, 2010, 2020, CS 1010 and introductory programming courses."
+  - The 2029 sheet's footnote numbers don't all match its grid (references to footnotes 6 and 7 for electives and the capstone); the footnotes were read by content.

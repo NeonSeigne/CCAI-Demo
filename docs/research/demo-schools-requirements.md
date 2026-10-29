@@ -15,7 +15,8 @@ UVA sources used instead, all public:
 - [bio.as.virginia.edu](https://bio.as.virginia.edu/undergraduate-program) and its 2026-27 Biology B.A. checklist PDF;
 - [uvacsadvising.org](https://uvacsadvising.org/bscs.html) (CS B.S. page, checklist PDF, course list);
 - a 2025-26 copy of the Record's Mathematics B.A. page in the math department's public repo, [uva-math/uva-math-code](https://github.com/uva-math/uva-math-code);
-- [economics.virginia.edu](https://economics.virginia.edu/overview-major).
+- [economics.virginia.edu](https://economics.virginia.edu/overview-major);
+- the MAE curriculum sheet for students graduating 2029 (PDF dated 10/29/2025), opened in a browser by a person and read from the download, because its URL is behind the Cloudflare challenge.
 
 ## Program files
 
@@ -25,14 +26,14 @@ All in `schools/<school>/programs/`. Each was drafted from its source, then chec
 |---|---|---|---|---|---|
 | UW–Madison | B.A. | B.S. | B.S. (L&S) | B.S. | B.S., 128 cr |
 | CU Boulder | B.A. | B.A., Comprehensive track | Ecology & Evolutionary Biology B.A. | B.S. | B.S., 128 cr |
-| UVA | B.A. | B.A., General Option | B.A. | B.S. (Engineering) | **B.S., partial** |
+| UVA | B.A. | B.A., General Option | B.A. | B.S. (Engineering) | B.S., 131 cr (class of 2029 sheet) |
 
 - **UW and CU:** total credits are set (120, or 128 for engineering).
-- **UVA:** no file sets total credits, because no readable source states the degree total. The credit grid has no "Other credit" block there.
+- **UVA:** only Mechanical Engineering sets total credits (131). The other UVA files don't, because no readable source states the degree total, so their credit grid has no "Other credit" block.
 
 ## Open items before the demo
 
-- **UVA Mechanical Engineering:** only the general engineering requirements are encoded (calculus, chemistry, physics, engineering foundations, STS). The ME core, design sequence and electives must be added by hand from the Record or the engineering site in a browser.
+- **UVA Mechanical Engineering:** built from the sheet for students graduating 2029 (entered Fall 2025); no 2026-entry sheet was found. Its math-science/technical elective list is on the department website and wasn't read.
 - **UVA Mathematics:** compare with the live 2026-27 Record page; the file was built from the 2025-26 copy.
 - **Human check:** every file is marked as needing a check against its official page.
 - **Rules the format can't express**, kept in notes for now:
