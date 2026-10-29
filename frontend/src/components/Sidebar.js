@@ -211,7 +211,7 @@ const Sidebar = ({
     minHeight: 40,
     px: showCollapsed ? 1 : 1.25,
     justifyContent: showCollapsed ? 'center' : 'flex-start',
-    borderRadius: 2,
+    borderRadius: 'var(--r-full)',
   };
 
   const drawerContent = (
@@ -309,9 +309,7 @@ const Sidebar = ({
                 disabled={isCreatingNewChat}
                 sx={{
                   ...navItemSx,
-                  bgcolor: showCollapsed
-                    ? 'var(--paper-sunken)'
-                    : 'var(--bg-tertiary)',
+                  bgcolor: 'var(--raised)',
                   mb: 0.25,
                 }}
               >
@@ -433,13 +431,14 @@ const Sidebar = ({
         >
           {!showCollapsed && (
             <Typography
-              variant="overline"
               sx={{
                 display: 'block',
                 px: 0.75,
                 pt: 1.5,
                 pb: 0.75,
-                color: 'var(--ink-soft)',
+                color: 'var(--muted)',
+                fontSize: 13,
+                fontWeight: 700,
                 lineHeight: 1.2,
               }}
             >
@@ -570,18 +569,19 @@ const Sidebar = ({
               justifyContent: showCollapsed ? 'center' : 'flex-start',
               gap: 1,
               p: 0.75,
-              borderRadius: 2,
+              borderRadius: 'var(--r-full)',
               textAlign: 'left',
-              '&:hover': { bgcolor: 'var(--paper-sunken)' },
+              '&:hover': { bgcolor: 'var(--raised)' },
             }}
           >
             <Avatar
               sx={{
                 width: 34,
                 height: 34,
-                bgcolor: 'var(--ink)',
-                color: 'var(--paper)',
-                fontSize: 14,
+                bgcolor: 'var(--deep)',
+                color: 'var(--on-deep)',
+                fontSize: 13,
+                fontWeight: 800,
               }}
             >
               {user?.firstName?.[0] || <PersonOutlinedIcon fontSize="small" />}

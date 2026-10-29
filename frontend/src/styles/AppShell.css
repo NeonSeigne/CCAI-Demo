@@ -3,7 +3,7 @@
   display: flex;
   align-items: flex-start;
   min-height: 100vh;
-  background: var(--paper-sunken);
+  background: var(--canvas);
 }
 
 /* CampusRail portals here; it stays put while the page scrolls. */
@@ -18,6 +18,8 @@
 .cc-shell-rail .campus-rail {
   height: 100vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--deep-raised) transparent;
 }
 
 .cc-shell-page {

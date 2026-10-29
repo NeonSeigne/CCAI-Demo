@@ -3,12 +3,13 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom';
 import CampusRail from './CampusRail';
 import { SavedContext } from '../contexts/SavedContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token', user: { firstName: 'Ada', lastName: 'Lovelace' } }),
 }));
 jest.mock('../contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' } } }),
+  useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' }, school: { slug: 'uw-madison' } } }),
 }));
 
 const SESSIONS = Array.from({ length: 8 }, (_, index) => ({ id: `s${index}`, title: `Chat ${index}` }));
@@ -98,4 +99,48 @@ test('a network failure also shows the failure, not the empty line', async () =>
   jest.spyOn(global, 'fetch').mockImplementation(() => Promise.reject(new TypeError('Failed to fetch')));
   renderRail();
   expect(await within(rail()).findByText(/Couldn.t load chats/)).toBeInTheDocument();
+});
+
+test('the phone tab bar puts Ask in the centre', async () => {
+  jest.spyOn(global, 'fetch').mockImplementation(() => ok([]));
+  renderRail({ path: '/map' });
+  const tabs = within(screen.getByRole('navigation', { name: 'Main tabs' })).getAllByRole('link');
+  expect(tabs.map((tab) => tab.querySelector('.campus-tab-label').textContent)).toEqual(['Courses', 'Events', 'Ask', 'Map', 'Saved']);
+  expect(tabs[3]).toHaveAttribute('aria-current', 'page');
+  await screen.findByText('Your chats will show up here.');
+});
+
+test('the rail shows the school mark and name, and the theme toggle above the profile row', async () => {
+  jest.spyOn(global, 'fetch').mockImplementation(() => ok([]));
+  window.localStorage.removeItem('cc.theme.v1');
+  render(
+    <MemoryRouter initialEntries={['/home']}>
+      <ThemeProvider>
+        <SavedContext.Provider value={{ count: 0 }}>
+          <CampusRail />
+        </SavedContext.Provider>
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+  const nav = within(rail());
+  expect(nav.getByText('UW')).toBeInTheDocument();
+  expect(nav.getByText('UW–Madison')).toBeInTheDocument();
+
+  const toggle = nav.getByRole('group', { name: 'Theme' });
+  const settings = nav.getByRole('button', { name: 'Settings' });
+  // eslint-disable-next-line no-bitwise
+  expect(toggle.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(toggle.contains(settings)).toBe(false);
+
+  const stop = (name) => within(toggle).getByRole('button', { name });
+  expect(stop('Auto')).toHaveAttribute('aria-pressed', 'true');
+  fireEvent.click(stop('Dark'));
+  expect(stop('Dark')).toHaveAttribute('aria-pressed', 'true');
+  expect(stop('Auto')).toHaveAttribute('aria-pressed', 'false');
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  expect(window.localStorage.getItem('cc.theme.v1')).toBe('dark');
+
+  // The phone header carries the same toggle.
+  expect(screen.getAllByRole('group', { name: 'Theme' })).toHaveLength(2);
+  await screen.findByText('Your chats will show up here.');
 });
