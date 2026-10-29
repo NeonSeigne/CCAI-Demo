@@ -19,15 +19,11 @@
   color: var(--good);
 }
 
-
-
 .upload-status.error {
   background-color: var(--error-tint);
   border-color: var(--error);
   color: var(--error);
 }
-
-
 
 .status-content {
   display: flex;
@@ -73,23 +69,17 @@
   overflow: hidden;
 }
 
-
-
 .file-upload-area:hover:not(.uploading) {
   border-color: var(--signal);
   background-color: var(--tint);
   transform: translateY(-1px);
 }
 
-
-
 .file-upload-area.drag-active {
   border-color: var(--signal);
   background-color: var(--tint);
   transform: scale(1.02);
 }
-
-
 
 .file-upload-area.uploading {
   cursor: not-allowed;
@@ -108,13 +98,9 @@
   margin-bottom: 4px;
 }
 
-
-
 .file-upload-area:hover:not(.uploading) .upload-icon {
   color: var(--signal);
 }
-
-
 
 .upload-text {
   margin: 0;
@@ -122,14 +108,10 @@
   color: var(--ink);
 }
 
-
-
 .upload-primary {
   font-weight: 600;
   color: var(--signal);
 }
-
-
 
 .upload-secondary {
   margin: 0;
@@ -137,8 +119,6 @@
   color: var(--muted);
   margin-top: 4px;
 }
-
-
 
 /* Upload Spinner */
 .upload-spinner {
@@ -155,8 +135,6 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-
-
 
 /* Supported File Types */
 .supported-types {
@@ -178,63 +156,6 @@
   font-weight: 500;
   color: var(--muted);
   border: 1px solid var(--line);
-}
-
-
-
-/* Enhanced Chat Input with Upload */
-.enhanced-chat-input {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
-
-.input-with-upload {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  width: 100%;
-}
-
-.upload-toggle-btn {
-  background: var(--raised);
-  border: 1px solid var(--control);
-  border-radius: 8px;
-  padding: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  height: 40px;
-}
-
-
-
-.upload-toggle-btn:hover {
-  background-color: var(--line);
-  border-color: var(--signal);
-}
-
-
-
-.upload-toggle-btn.active {
-  background-color: var(--signal);
-  border-color: var(--signal);
-  color: white;
-}
-
-.upload-toggle-btn svg {
-  color: var(--muted);
-}
-
-
-
-.upload-toggle-btn:hover svg,
-.upload-toggle-btn.active svg {
-  color: currentColor;
 }
 
 /* Animations */

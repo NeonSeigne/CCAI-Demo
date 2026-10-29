@@ -22,8 +22,6 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-
-
 /* Header Section */
 .signup-header {
   text-align: center;
@@ -147,8 +145,6 @@
   background-size: 16px;
   padding-right: 48px;
 }
-
-
 
 .form-input:focus,
 .form-select:focus {
@@ -537,53 +533,4 @@
   .loading-spinner {
     animation: none;
   }
-  
-  .fadeInUp {
-    animation: none;
-  }
-}
-
-/* Password Strength Indicator (Optional Enhancement) */
-.password-strength {
-  margin-top: 8px;
-  display: flex;
-  gap: 4px;
-}
-
-.strength-bar {
-  height: 3px;
-  flex: 1;
-  background: var(--rule);
-  border-radius: 2px;
-  transition: background-color 0.2s ease;
-}
-
-.strength-bar.weak {
-  background: var(--error);
-}
-
-.strength-bar.medium {
-  background: var(--life);
-}
-
-.strength-bar.strong {
-  background: var(--good);
-}
-
-.strength-text {
-  font-size: 12px;
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-.strength-text.weak {
-  color: var(--error);
-}
-
-.strength-text.medium {
-  color: var(--life);
-}
-
-.strength-text.strong {
-  color: var(--good);
 }

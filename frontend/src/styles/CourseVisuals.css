@@ -74,7 +74,6 @@
 }
 
 .user-message.vc-ubub p { margin: 0; color: inherit; line-height: 1.45; }
-.user-message.vc-ubub .reply-indicator { color: inherit; opacity: 0.8; }
 
 /* ---- "Checked" line ------------------------------------------------------ */
 .vc-checked {
@@ -675,8 +674,6 @@
   font-size: 13px;
   text-decoration: none;
 }
-
-
 
 .vc-evt-more {
   display: flex;

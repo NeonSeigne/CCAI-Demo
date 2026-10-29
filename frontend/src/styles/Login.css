@@ -47,8 +47,6 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-
-
 /* Header Section */
 .login-header {
   text-align: center;
@@ -500,10 +498,6 @@
   }
   
   .loading-spinner {
-    animation: none;
-  }
-  
-  .fadeInUp {
     animation: none;
   }
 }

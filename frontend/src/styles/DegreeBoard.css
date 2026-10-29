@@ -530,10 +530,6 @@
 .dg-past-actions .dg-open { padding: 0 12px; }
 
 /* ---- Completed editor (O2) ---------------------------------------------- */
-.dg-editor { padding: 20px; border-radius: 16px !important; font-family: var(--font-app); }
-
-.dg-editor-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.dg-editor-head h2 { margin: 0; font-size: 20px; }
 
 .dg-editor-search { display: flex; flex-direction: column; gap: 8px; }
 
@@ -564,8 +560,6 @@
 .dg-editor-check { display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
 .dg-editor-check input { width: 18px; height: 18px; accent-color: var(--ink); }
 .dg-editor-title { font-size: 13px; color: var(--muted); }
-
-.dg-editor-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
 
 /* ---- Setup dialog (docs/designs/setup-dialog.md) ------------------------ */
 .cc-dialog .su-dialog { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
