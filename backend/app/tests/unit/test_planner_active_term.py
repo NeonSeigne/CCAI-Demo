@@ -13,7 +13,7 @@ from app.api.routes import chat
 from app.api.visuals import build_visuals
 from app.core.improved_orchestrator import ImprovedChatOrchestrator
 from app.llm.llm_client import ToolCallResult
-from app.planner import service
+from app.planner import service, store
 from app.sources import academics
 from app.tests.unit.planner_fakes import TERM
 from app.tests.unit.test_planner_chat import ALICE, PLANNING, SCHOOL, PlannerChatTestCase, add
@@ -87,6 +87,25 @@ class TestActiveTermInTools(ActiveTermTestCase):
         # Accepted later, from anywhere, it still lands in Fall 2027.
         accepted = await service.accept(ALICE, SCHOOL, result["proposal"]["id"])
         self.assertEqual(accepted["plan"]["courses"], [{"id": "ECON 3020", "term": FALL, "sections": None}])
+
+    async def test_the_card_diff_is_drawn_for_the_open_term(self):
+        await self.edit(ALICE, [add("ECON 3010")])
+        dispatch = get_tool_executor(enabled=PLANNING, context=self.context(FALL))
+        proposal = (await dispatch(name="plan_edit", ops=[add("ECON 3020")]))["proposal"]
+        diff = proposal["diff"]
+        self.assertEqual(proposal["term"], FALL)
+        self.assertEqual([(c["id"], c["term"]) for c in diff["added_courses"]], [("ECON 3020", FALL)])
+        self.assertEqual(diff["credits"], {"before": [0, 0], "after": [3.0, 3.0]})  # fall's, not spring's
+        (spec,) = build_visuals([{"name": "plan_edit", "result": {"status": "proposed", "proposal": proposal}}])
+        self.assertEqual(spec["proposal"]["term"], FALL)
+
+        # The plan moves on; the recheck at accept still draws Fall 2027.
+        await self.edit(ALICE, [add("ECON 4010")])
+        with self.assertRaises(store.NeedsReview) as review:
+            await service.accept(ALICE, SCHOOL, proposal["id"])
+        self.assertEqual([c["id"] for c in review.exception.proposal["diff"]["added_courses"]], ["ECON 3020"])
+        accepted = await service.accept(ALICE, SCHOOL, proposal["id"])
+        self.assertIn({"id": "ECON 3020", "term": FALL, "sections": None}, accepted["plan"]["courses"])
 
     async def test_an_add_naming_its_term_keeps_it(self):
         dispatch = get_tool_executor(enabled=PLANNING, context=self.context(FALL))

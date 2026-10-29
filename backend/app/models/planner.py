@@ -20,6 +20,7 @@ class EditRequest(BaseModel):
 class ProposalRequest(BaseModel):
     ops: List[Dict[str, Any]] = Field(min_length=1, max_length=MAX_OPS)
     expected_revision: int = Field(ge=0)
+    term: Optional[str] = Field(default=None, max_length=40)  # the term the diff is shown in
 
 
 class PreviewRequest(BaseModel):

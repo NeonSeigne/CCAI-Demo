@@ -139,7 +139,7 @@ async def post_preview(body: PreviewRequest, current_user: User = Depends(get_cu
 async def post_proposal(body: ProposalRequest, current_user: User = Depends(get_current_active_user)):
     """Check ops and store them as the one pending proposal, with its diff."""
     proposal = await _run(service.propose(
-        str(current_user.id), _school(), body.ops, expected_revision=body.expected_revision,
+        str(current_user.id), _school(), body.ops, expected_revision=body.expected_revision, term=body.term,
     ))
     return {"proposal": proposal}
 

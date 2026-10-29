@@ -246,15 +246,24 @@ async def preview(
 
 
 async def propose(
-    user_id: str, school: str, ops: List[Dict[str, Any]], *, expected_revision: int, asked: Optional[str] = None
+    user_id: str,
+    school: str,
+    ops: List[Dict[str, Any]],
+    *,
+    expected_revision: int,
+    asked: Optional[str] = None,
+    term: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Check ``ops`` and store them as the plan's one pending proposal (with its diff)."""
+    """Check ``ops`` and store them as the plan's one pending proposal (with its
+    diff, seen in ``term``; default the plan's). The term is stored with the
+    proposal, so a recheck at accept shows the same term."""
     db = get_database()
     plan = await _plan(db, user_id, school)
     if plan["revision"] != expected_revision:
         raise store.RevisionConflict(plan["revision"])
-    diff = await _validated_diff(plan, ops, school, asked=asked)
-    proposal = await store.put_proposal(db, str(user_id), school, ops, base_revision=expected_revision, diff=diff)
+    diff = await _validated_diff(plan, ops, school, asked=asked, term=term)
+    proposal = await store.put_proposal(db, str(user_id), school, ops, base_revision=expected_revision, diff=diff,
+                                        term=term)
     return store.public_proposal(proposal)
 
 
@@ -265,13 +274,15 @@ async def propose_for_user(
     *,
     asked: Optional[str] = None,
     base_revision: Optional[int] = None,
+    term: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Chat entry point (propose only). ``base_revision`` is the revision of the
     summary the model saw (R9); a moved plan raises ``RevisionConflict``.
-    Without it the current revision is used."""
+    Without it the current revision is used. ``term`` is the term open in the
+    semester view (O1), which the card's diff is drawn for."""
     if base_revision is None:
         base_revision = (await _plan(get_database(), user_id, school))["revision"]
-    return await propose(user_id, school, ops, expected_revision=base_revision, asked=asked)
+    return await propose(user_id, school, ops, expected_revision=base_revision, asked=asked, term=term)
 
 
 async def accept(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:
@@ -280,7 +291,7 @@ async def accept(user_id: str, school: str, proposal_id: str) -> Dict[str, Any]:
     await _plan(db, user_id, school)
 
     async def recheck(plan: Dict[str, Any], proposal: Dict[str, Any]) -> Dict[str, Any]:
-        return await _validated_diff(plan, proposal["ops"], school)
+        return await _validated_diff(plan, proposal["ops"], school, term=proposal.get("term"))
 
     plan = await store.accept(db, str(user_id), school, proposal_id, recheck=recheck)
     return _changed(await _view(plan, school))

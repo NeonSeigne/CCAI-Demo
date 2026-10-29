@@ -131,7 +131,8 @@ async def execute(
     """
     if context is None or not getattr(context, "user_id", None) or not getattr(context, "school", None):
         return dict(NO_CONTEXT)
-    cleaned = with_active_term(clean_ops(ops, dict(context.options or {})), getattr(context, "active_term", None))
+    active_term = getattr(context, "active_term", None)
+    cleaned = with_active_term(clean_ops(ops, dict(context.options or {})), active_term)
     if not cleaned:
         return {"error": "No course edits given.", "code": "bad_op"}
     try:
@@ -141,6 +142,7 @@ async def execute(
             cleaned,
             asked=asked,
             base_revision=context.plan_revision,
+            term=active_term,
         )
     except store.RevisionConflict as exc:
         return {

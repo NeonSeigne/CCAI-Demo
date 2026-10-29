@@ -63,7 +63,7 @@ Mongo collection `plans`, unique index `(user_id, school)`:
              interests: { text: str, tags: [str] } },
   courses: [{ id, term, sections: [section ids]|null }],
   undo: { stack: [{ ops, inverse, label, revision }], pointer: int },
-  proposal: null | { id, base_revision, ops, summary, created_at, expires_at,
+  proposal: null | { id, base_revision, ops, summary, term|null, created_at, expires_at,
                      status: "pending"|"applied"|"discarded"|"replaced"|"expired" },
   updated_at }
 ```
@@ -162,7 +162,7 @@ adds no credits there, so the earned sum is the distinct earned credits.
 | GET | `/api/planner/degree` | | `degree` (above) |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label, redo_label, notes}`; 409 `revision_conflict` |
 | POST | `/api/planner/preview` | `{ops, expected_revision, term?}` | `{diff, revision}`: the diff a proposal of `ops` would carry, seen in `term` (default the plan's); writes nothing, a pending proposal is untouched; 409 `revision_conflict`, 422 edit errors |
-| POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
+| POST | `/api/planner/proposals` | `{ops, expected_revision, term?}` (diff shown in `term`, stored as `proposal.term` and reused by the accept recheck) | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
 | POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
@@ -196,5 +196,5 @@ is one of `academics.planner_terms()` (in the school's spelling) and drops
 anything else, so `ToolContext.active_term` never comes from the model.
 With it, `plan_summary` says "planning Fall 2027", `plan_suggest` checks
 suggestions for that term, and `plan_edit` gives an `add` with no `term` that
-term. Without it everything uses `plan.term`. `GET /api/planner/suggestions`
+term and draws the proposal's diff for it (`proposal.term`). Without it everything uses `plan.term`. `GET /api/planner/suggestions`
 returns `{items, reason, term}`.

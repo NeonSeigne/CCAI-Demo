@@ -278,9 +278,11 @@ async def put_proposal(
     *,
     base_revision: int,
     diff: Dict[str, Any],
+    term: Optional[str] = None,
     now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
-    """Store a new pending proposal, replacing any earlier one."""
+    """Store a new pending proposal, replacing any earlier one. ``term`` is the
+    term its diff is shown in (None: the plan's)."""
     now = now or utcnow()
     plan = await load(db, user_id, school)
     if plan["revision"] != base_revision:
@@ -296,6 +298,7 @@ async def put_proposal(
         "ops": ops,
         "summary": diff.get("heading"),
         "diff": diff,
+        "term": term,
         "created_at": now,
         "expires_at": now + PROPOSAL_TTL,
         "status": "pending",
