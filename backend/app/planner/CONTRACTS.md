@@ -46,6 +46,10 @@ rules:
     exclude: [ECON 3010, ECON 3020]
     min_grade: C-      # optional
     double_count: false  # may a course also count toward another rule (default false)
+    line: Core theory  # optional: rules sharing a line are one route-map line (R2)
+deadline:              # optional: the "Core due" marker
+  rules: [micro, macro]
+  by_semester: 6       # counted from the student's start_term
 ```
 
 `programs.py` exposes `list_programs(slug) -> list[Program]` and
@@ -59,6 +63,7 @@ Mongo collection `plans`, unique index `(user_id, school)`:
 ```
 { user_id, school, revision: int, term: "Spring 2027",
   profile: { program_ids: [...], catalog_year: int|null, class_year: str|null,
+             start_term: "Fall 2025"|null,      # first semester, for the "Core due" marker (R10)
              completed: [{ id, grade|null, term|null }],
              interests: { text: str, tags: [str] } },
   courses: [{ id, term, sections: [section ids]|null }],
@@ -143,6 +148,12 @@ degree = {
                 # sized total_credits - (distinct rule credits + rules' open credits), never
                 # negative; only when total_credits is known. Sizes sum to total_credits.
     "finish": "Fall 2028"|null,                    # only when complete AND nothing is open AND every rule is met
+  },
+  "route": {                                       # the route map (R2, R9)
+    "lines": [{"program_id", "name", "rule_ids": [ids]}],  # a rule's `line`, else its title; file order
+    "deadline": {"program_id", "rule_ids", "by_semester"}|null,
+    "slots": [{"program_id", "rule_id", "line", "open": n}], # courses a rule needs that the plan hasn't chosen
+    "edges": [{"from": id, "to": id}],             # prerequisite links between courses in the plan
   },
 }
 ```

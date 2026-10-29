@@ -123,6 +123,23 @@ class ProgramFileTest(unittest.TestCase):
         self.assertFalse(programs.read_file(self.write(VALID)).complete)
         self.assertTrue(programs.read_file(self.write(VALID.replace("total_credits: 120", "total_credits: 120\ncomplete: true"))).complete)
 
+    def test_lines_and_deadline(self):
+        text = VALID.replace("    title: Theory\n", "    title: Theory\n    line: Core theory\n") \
+            .replace("    title: Upper-level electives\n", "    title: Upper-level electives\n    line: Core theory\n") \
+            + "deadline:\n  rules: [theory, upper]\n  by_semester: 6\n"
+        program = programs.read_file(self.write(text))
+        self.assertEqual([r.line for r in program.rules], [None, "Core theory", None, "Core theory"])
+        self.assertEqual(program.deadline, programs.Deadline(rules=("theory", "upper"), by_semester=6))
+        self.assertIsNone(programs.read_file(self.write(VALID)).deadline)
+
+    def test_bad_lines_and_deadlines(self):
+        self.assertBadFile(VALID.replace("    title: Intro\n", "    title: Intro\n    line: ''\n"), "rules[intro]: line")
+        self.assertBadFile(VALID + "deadline:\n  rules: [nope]\n  by_semester: 6\n", "deadline.rules")
+        self.assertBadFile(VALID + "deadline:\n  rules: []\n  by_semester: 6\n", "deadline.rules")
+        self.assertBadFile(VALID + "deadline:\n  rules: [intro]\n  by_semester: 0\n", "by_semester")
+        self.assertBadFile(VALID + "deadline:\n  rules: [intro]\n  by_semester: 6\n  term: Fall\n", "deadline.term")
+        self.assertBadFile(VALID + "deadline: [intro]\n", "deadline")
+
     def test_identifier_normalisation(self):
         self.assertEqual(programs.normalize_course("econ  2010"), "ECON 2010")
         self.assertEqual(programs.normalize_course("ECON2010"), "ECON 2010")

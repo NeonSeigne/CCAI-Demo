@@ -153,6 +153,26 @@ class CompletedCreditsTests(unittest.TestCase):
         self.assertNotIn("credits", edits.apply_ops(plan(), ops)["profile"]["completed"][0])
 
 
+class StartTermTests(unittest.TestCase):
+    """The student's first semester, which places the "Core due" marker (R10)."""
+
+    def test_start_term_is_saved_and_undone(self):
+        for term in ("Fall 2025", "Spring 2024", None):
+            with self.subTest(term=term):
+                ops = [{"op": "set_profile", "start_term": term}]
+                edits.check_applies(plan(), ops)
+                after = edits.apply_ops(plan(), ops)
+                self.assertEqual(after["profile"]["start_term"], term)
+                self.assertEqual(edits.inverse_ops(plan(), ops), [{"op": "set_profile", "start_term": None}])
+
+    def test_bad_start_term_is_bad_op(self):
+        for term in ("fall 2025", "Autumn 2025", "Fall 25", 2025, "Fall 2025 "):
+            with self.subTest(term=term):
+                with self.assertRaises(EditError) as ctx:
+                    edits.check_applies(plan(), [{"op": "set_profile", "start_term": term}])
+                self.assertEqual(ctx.exception.code, "bad_op")
+
+
 class DiffTests(unittest.TestCase):
     def setUp(self):
         self.ids = ["ECON 3010", "ECON 3020", "ECON 3300", "ECON 4010", "ECON 4020"]

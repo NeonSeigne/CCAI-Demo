@@ -20,10 +20,11 @@ given only when every program says ``complete: true`` and nothing is open.
 
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from app.planner import checker
-from app.planner.facts import CourseFacts
+from app.planner.facts import CourseFacts, PrereqNode
 
 # Credits counted for a course whose credits are unknown, or not yet chosen.
 COURSE_CREDITS = 3.0
@@ -200,6 +201,60 @@ def waffle(
     return {"total_credits": total, "complete": complete, "groups": groups, "finish": finish}
 
 
+def _prereq_ids(node: Optional[PrereqNode]) -> List[str]:
+    """Every course a prerequisite tree names, AND and OR alike."""
+    if node is None:
+        return []
+    if node.kind == "course":
+        return [checker.norm(node.course)] if node.course else []
+    return [c for child in node.children for c in _prereq_ids(child)]
+
+
+def _open_slots(rule: Dict[str, Any]) -> int:
+    """Courses the rule still needs that the plan hasn't chosen: a credits
+    rule counts its open credits in ``COURSE_CREDITS`` courses."""
+    left = max(0.0, float(rule["needed"]) - float(rule["completed"]) - float(rule["planned"]))
+    return math.ceil(left / COURSE_CREDITS) if rule["unit"] == "credits" else int(left)
+
+
+def route(
+    plan: Dict[str, Any], facts: Dict[str, CourseFacts], programs: Sequence[Any], rules: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """The My degree route map's data (R2, R9): requirement lines, the
+    deadline, each rule's unchosen slots and the prerequisite links between
+    courses in the plan."""
+    line_of: Dict[tuple, str] = {}
+    lines: List[Dict[str, Any]] = []
+    deadline = None
+    for program in programs:
+        program_id = checker._get(program, "id")
+        for rule in checker._get(program, "rules") or ():
+            rule_id = checker._get(rule, "id")
+            name = checker._get(rule, "line") or checker._get(rule, "title")
+            line = next((l for l in lines if l["program_id"] == program_id and l["name"] == name), None)
+            if line is None:
+                line = {"program_id": program_id, "name": name, "rule_ids": []}
+                lines.append(line)
+            line["rule_ids"].append(rule_id)
+            line_of[(program_id, rule_id)] = name
+        found = checker._get(program, "deadline")
+        if found is not None and deadline is None:
+            deadline = {"program_id": program_id, "rule_ids": list(checker._get(found, "rules")),
+                        "by_semester": checker._get(found, "by_semester")}
+    slots = [{"program_id": r["program_id"], "rule_id": r["rule_id"],
+              "line": line_of.get((r["program_id"], r["rule_id"]), r["title"]), "open": _open_slots(r)}
+             for r in rules if _open_slots(r) > 0]
+    in_plan = [c["id"] for c in checker.completed_courses(plan)] + \
+              [checker.norm(c["id"]) for c in checker.planned_courses(plan)]
+    present = set(in_plan)
+    edges = []
+    for course_id in dict.fromkeys(in_plan):
+        fact = facts.get(course_id)
+        needs = _prereq_ids(fact.prereq_tree) if _usable(fact) else []
+        edges += [{"from": p, "to": course_id} for p in dict.fromkeys(needs) if p in present and p != course_id]
+    return {"lines": lines, "deadline": deadline, "slots": slots, "edges": edges}
+
+
 def board(
     plan: Dict[str, Any],
     by_term: Dict[str, Dict[str, CourseFacts]],
@@ -219,4 +274,5 @@ def board(
         "completed": _completed_rows(plan, facts),
         "rules": rules,
         "waffle": waffle(plan, facts, programs, rules),
+        "route": route(plan, facts, programs, rules),
     }
