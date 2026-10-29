@@ -11,7 +11,7 @@ import {
 import {
   gradeSegments, primarySections, sectionName, seatsText,
 } from '../catalog/catalogFormat';
-import PrereqWeb from './PrereqWeb';
+import PrereqGraph from './PrereqGraph';
 import {
   CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
 } from '../popup/PopupParts';
@@ -546,17 +546,28 @@ export function FitsTile({
 }
 
 function WebTile({
-  course, tree, unlocks, onOpenCourse, onExpand,
+  course, tree, unlocks, titles, onOpenCourse, onExpand,
 }) {
+  const heading = tree ? 'Prerequisites' : 'Unlocks';
   return (
     <section className="pop-tile cp-web-tile" aria-labelledby="cp-web-title">
       <div className="pop-tile-head">
-        <h3 id="cp-web-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
+        <h3 id="cp-web-title" className="pop-tile-title">{heading}</h3>
         <button type="button" className="pop-chevron" aria-label="Open the full prerequisite graph" title="Full graph" onClick={onExpand}>
           <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
-      <PrereqWeb course={course} tree={tree} unlocks={tree ? NONE : unlocks} onOpenCourse={onOpenCourse} />
+      <div className="cp-graph">
+        <PrereqGraph
+          course={course}
+          tree={tree}
+          unlocks={tree ? NONE : unlocks}
+          titles={titles}
+          onOpenCourse={onOpenCourse}
+          label={tree ? `Prerequisites for ${course}` : `Unlocks after ${course}`}
+          size="tile"
+        />
+      </div>
     </section>
   );
 }
@@ -674,6 +685,7 @@ export default function CoursePopup({
   const diff = preview.data?.diff || null;
   const showFits = Boolean(diff) || previewFailed(preview.error);
   const showWeb = Boolean(tree || unlocks.length);
+  const graphTitles = data.title ? { [id]: data.title } : undefined;
   let main;
   if (fullGraph && showWeb) {
     main = (
@@ -684,7 +696,16 @@ export default function CoursePopup({
           </button>
           <h3 id="cp-fullgraph-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
         </div>
-        <PrereqWeb course={id} tree={tree} unlocks={unlocks} onOpenCourse={onOpenCourse} size="full" />
+        <div className="cp-graph cp-graph--full">
+          <PrereqGraph
+            course={id}
+            tree={tree}
+            unlocks={unlocks}
+            titles={graphTitles}
+            onOpenCourse={onOpenCourse}
+            label={tree ? `Prerequisites for ${id}` : `Unlocks after ${id}`}
+          />
+        </div>
       </section>
     );
   } else if (tab) {
@@ -739,6 +760,7 @@ export default function CoursePopup({
                   course={id}
                   tree={tree}
                   unlocks={unlocks}
+                  titles={graphTitles}
                   onOpenCourse={onOpenCourse}
                   onExpand={() => setFullGraph(true)}
                 />
