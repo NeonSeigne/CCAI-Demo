@@ -1,5 +1,5 @@
-/* Semester plan panel, proposal and shortlist cards, and the plan's
-   placement around the chat (design review 1A–19A). brand-tokens.css
+/* Semester plan panel and the plan's placement around the chat (design
+   review 1A–19A); the cards and shared controls are in PlanCards.css. brand-tokens.css
    variables only; no literal colours. */
 
 /* ---- Panel ----------------------------------------------------------------- */
@@ -100,7 +100,6 @@
 
 .pp-list { margin: 0; padding: 0; list-style: none; }
 
-.pp-muted { color: var(--ink-soft); }
 .pp-short { color: var(--error-ink); }
 
 .pp-change .pp-before,
@@ -180,40 +179,6 @@
 }
 
 .pp-dot { color: var(--ink-soft); }
-
-.pp-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 44px;
-  padding: 0 4px;
-  border: 0;
-  background: transparent;
-  color: var(--domain-academics-ink);
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.pp-link:hover { text-decoration: underline; }
-
-.pp-btn {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.pp-btn:hover:not(:disabled) { background: var(--paper-sunken); }
-.pp-btn:disabled { color: var(--ink-soft); cursor: default; }
-.pp-btn.is-primary { border-color: var(--ink); background: var(--ink); color: var(--paper); }
-.pp-btn.is-primary:hover:not(:disabled) { background: var(--ink); }
-.pp-btn.is-primary:disabled { background: var(--paper-sunken); border-color: var(--line); color: var(--ink-soft); }
 
 .pp-add { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; padding: 4px 0; }
 
@@ -328,29 +293,12 @@
 .pp-error { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .pp-error p { margin: 0; font-weight: 600; }
 
-.pp-skeleton { display: flex; flex-direction: column; gap: 10px; }
-.pp-skel { border-radius: 8px; background: var(--paper-sunken); }
 .pp-skel-title { width: 50%; height: 22px; }
 .pp-skel-line { width: 80%; height: 12px; }
-.pp-skel-row { height: 36px; }
 
 /* ---- First visit, checklist, details --------------------------------------------- */
 .pp-first { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding-right: 44px; }
 .pp-first-line { margin: 0; color: var(--ink-soft); }
-.pp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-
-.pp-chip {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-
-.pp-chip:hover { background: var(--paper-sunken); }
 
 .pp-checklist,
 .pp-detail { display: flex; flex-direction: column; gap: 12px; padding-right: 44px; }
@@ -502,97 +450,3 @@
 @media (prefers-reduced-motion: no-preference) {
   .plan-sheet { transition: height 200ms ease-out; }
 }
-
-/* ---- Proposal card (2A, 6A) ----------------------------------------------------------- */
-.proposal-card {
-  box-sizing: border-box;
-  max-width: 520px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--paper);
-  box-shadow: var(--shadow-soft);
-  color: var(--ink);
-  font-family: var(--font-app);
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
-
-.proposal-card :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
-
-.pc-label { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-.pc-heading { margin: 2px 0 4px; font-size: 16px; font-weight: 700; }
-.pc-literal { margin: 0 0 6px; color: var(--ink-soft); }
-.pc-lead { margin: 0 0 8px; color: var(--ink-soft); }
-.pc-rows { margin: 0; padding: 0; list-style: none; }
-
-.pc-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.pc-row-value { font-weight: 600; text-align: right; }
-.pc-row.is-changed { margin: 0 -8px; padding: 6px 8px; border-radius: 6px; background: var(--domain-academics-tint); }
-.pc-changed-tag { color: var(--domain-academics-ink); font-size: 12px; font-weight: 600; }
-
-.pc-unknowns { margin: 8px 0 0; padding: 0; list-style: none; color: var(--ink-soft); font-size: 13px; }
-.pc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-
-.pc-review {
-  margin: 8px 0 0;
-  color: var(--domain-academics-ink);
-  font-weight: 600;
-}
-
-.pc-refused {
-  margin: 8px 0 0;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--error-tint);
-  color: var(--error-ink);
-}
-
-.pc-line { display: flex; align-items: center; gap: 8px; margin: 0; min-height: 44px; }
-.pc-line.is-muted { color: var(--ink-soft); }
-
-.pc-spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-right: 6px;
-  vertical-align: -2px;
-  border: 2px solid var(--line);
-  border-top-color: currentColor;
-  border-radius: 50%;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .pc-spinner { animation: pc-spin 800ms linear infinite; }
-}
-
-@keyframes pc-spin { to { transform: rotate(360deg); } }
-
-/* ---- Course shortlist (19A) ------------------------------------------------------------- */
-.shortlist-card { max-width: 560px; }
-.sl-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.sl-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.sl-name { font-weight: 600; }
-.sl-name .sl-title { font-weight: 400; }
-.sl-why { margin: 0; color: var(--ink-soft); font-size: 13px; }
-.sl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-
-.sl-chip {
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: var(--paper-sunken);
-  color: var(--ink-soft);
-  font-size: 12px;
-}
-
-.sl-prereq { font-size: 12px; color: var(--ink-soft); }
-.sl-prereq.is-short { color: var(--error-ink); }
-.sl-row-action { flex-shrink: 0; align-self: center; }
-.sl-chosen { margin-top: 12px; }

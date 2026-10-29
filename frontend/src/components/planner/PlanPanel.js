@@ -21,6 +21,7 @@ import {
   statusWord,
 } from './planFormat';
 import { previewOf } from './proposalDiff';
+import '../../styles/PlanCards.css';
 import '../../styles/PlanPanel.css';
 
 /**
@@ -91,6 +92,17 @@ function ConflictNotice({ onDismiss }) {
     <div className="pp-notice" role="status">
       <span>Updated from another window</span>
       <button type="button" className="pp-link" onClick={onDismiss}>Dismiss</button>
+    </div>
+  );
+}
+
+/** A write that couldn't be saved (N3, D8): the queue waits for Retry. */
+function SaveRetry({ onRetry }) {
+  return (
+    <div className="pp-notice" role="alert">
+      <span>Couldn't save</span>
+      <span aria-hidden="true">·</span>
+      <button type="button" className="pp-link" onClick={onRetry}>Retry</button>
     </div>
   );
 }
@@ -629,6 +641,8 @@ export default function PlanPanel({
     try {
       await planner.undo();
     } catch (error) {
+      // A held queue shows "Couldn't save · Retry" instead.
+      if (error?.held || error?.code === 'session_ended') return;
       const info = plannerError(error);
       toast.show({ message: info.kind === 'refused' && info.reason ? info.reason : "Couldn't undo", tone: 'error' });
     } finally {
@@ -657,6 +671,7 @@ export default function PlanPanel({
       }
       return null;
     } catch (error) {
+      if (error?.held || error?.code === 'session_ended') return null;
       const info = plannerError(error);
       if (info.kind === 'edit') return info.message || "Couldn't make that change";
       if (info.kind === 'conflict') return 'Your plan changed in another window. Check it and try again.';
@@ -820,6 +835,7 @@ export default function PlanPanel({
         </button>
       )}
       {notice === 'conflict' && <ConflictNotice onDismiss={planner.dismissNotice} />}
+      {planner.queueState === 'error' && <SaveRetry onRetry={planner.retry} />}
       {body}
     </div>
   );

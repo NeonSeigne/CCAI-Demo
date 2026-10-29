@@ -203,7 +203,15 @@ async def commit_edit(
         keys = (keys + [{"key": idempotency_key, "revision": plan["revision"] + 1}])[-IDEMPOTENCY_KEEP:]
     fields = {"courses": after["courses"], "profile": after["profile"],
               "undo": {"stack": stack, "pointer": len(stack)}, "idempotency": keys, **(extra_fields or {})}
-    return await _write(db, plan, fields), False
+    try:
+        return await _write(db, plan, fields), False
+    except RevisionConflict:
+        # A same-key retry can race the original request: if that one landed
+        # in between, this is a repeat, not a conflict.
+        current = await load(db, user_id, school)
+        if seen_key(current, idempotency_key):
+            return current, True
+        raise
 
 
 async def undo(db, user_id: str, school: str, *, expected_revision: int) -> Dict[str, Any]:
