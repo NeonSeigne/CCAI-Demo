@@ -1,44 +1,39 @@
 /* MUI owns sidebar structure; these selectors preserve shared/tour hooks. */
 .sidebar {
-  background: var(--paper);
+  background: var(--surface);
   border-color: var(--line);
-  font-size: 12px;
+  font-family: var(--font-app);
+  font-size: 14px;
 }
 
 .sidebar .MuiTypography-root,
 .sidebar .MuiListItemText-primary,
 .sidebar .MuiButtonBase-root {
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .sidebar .MuiTypography-caption,
 .sidebar .MuiListItemText-secondary {
-  font-size: 10px;
-}
-
-.sidebar .MuiTypography-overline {
-  font-size: 9px;
-  letter-spacing: 0.08em;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .sidebar .MuiInputBase-input {
-  font-size: 12px;
-}
-
-.sidebar-neon-link {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .sidebar-scroll-region {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--border-secondary) transparent;
+  scrollbar-color: var(--control) transparent;
   overscroll-behavior: contain;
 }
 
 .sidebar-command-area,
 .sidebar-account-footer {
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .advisor-thinking-dot {
@@ -68,6 +63,7 @@
 }
 
 .sidebar-neon-link {
+  font-size: 13px;
   transition: opacity 150ms ease;
 }
 
@@ -75,7 +71,7 @@
   opacity: 0.72;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .session-menu-button {
     opacity: 1;
   }

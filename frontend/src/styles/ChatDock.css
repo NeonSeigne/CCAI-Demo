@@ -1,9 +1,9 @@
-/* Chat dock (design D17). var() only. */
+/* Chat dock (design D17, DESIGN.md "Home colors"). var() only. */
 .cc-dock {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-app);
 }
@@ -13,7 +13,7 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* >= 1280px: a 360px column; collapsed, a 48px strip. */
+/* Wide screens: a 360px column; collapsed, a 52px strip. */
 .cc-dock.is-docked,
 .cc-dock.is-strip {
   position: sticky;
@@ -25,13 +25,13 @@
 .cc-dock.is-docked { flex: 0 0 360px; width: 360px; }
 
 .cc-dock.is-strip {
-  flex: 0 0 48px;
-  width: 48px;
+  flex: 0 0 52px;
+  width: 52px;
   align-items: center;
-  padding-top: 12px;
+  padding-top: 14px;
 }
 
-/* 768–1279px: a 400px drawer over the page, with no scrim. */
+/* Medium screens: a drawer over the page, with no scrim. */
 .cc-dock.is-drawer {
   position: fixed;
   top: 0;
@@ -39,11 +39,11 @@
   bottom: 0;
   z-index: 1310;
   width: min(400px, 100vw);
-  border-left: 1px solid var(--line);
-  box-shadow: var(--shadow-soft-md);
+  border-radius: var(--r-2xl) 0 0 var(--r-2xl);
+  box-shadow: var(--shadow-float);
 }
 
-/* < 768px: a sheet above the tab bar (peek / half / full). */
+/* Phones: a sheet above the tab bar (peek / half / full). */
 .cc-dock.is-sheet {
   position: fixed;
   left: 0;
@@ -51,8 +51,8 @@
   bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   z-index: 1310;
   max-height: calc(100dvh - 56px - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
-  border-radius: 16px 16px 0 0;
-  box-shadow: var(--shadow-soft-md);
+  border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+  box-shadow: var(--shadow-float);
 }
 
 .cc-dock.is-sheet.is-half { height: 50dvh; }
@@ -60,7 +60,7 @@
 .cc-dock.is-sheet.is-peek .cc-dock-messages { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .cc-dock.is-sheet { transition: height 200ms ease-out; }
+  .cc-dock.is-sheet { transition: height 250ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 }
 
 .cc-dock-handle {
@@ -69,7 +69,8 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 28px;
+  min-height: 24px;
+  padding-top: 6px;
   border: 0;
   background: transparent;
   cursor: grab;
@@ -79,9 +80,8 @@
 .cc-dock-handle span {
   width: 40px;
   height: 5px;
-  border-radius: 99px;
-  background: var(--line);
-  box-shadow: inset 0 0 0 1px var(--line);
+  border-radius: var(--r-full);
+  background: var(--control);
 }
 
 .cc-dock-head {
@@ -89,49 +89,56 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 12px 8px 8px 16px;
+  padding: 16px 12px 10px 18px;
 }
+
+.cc-dock.is-sheet .cc-dock-head { padding-top: 4px; }
 
 .cc-dock-head h2 {
   flex-grow: 1;
   margin: 0;
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .cc-dock-icon-btn {
   position: relative;
   width: 36px;
   height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: 50%;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--muted);
   cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.cc-dock-icon-btn:hover { background: var(--paper-sunken); color: var(--ink); }
+.cc-dock-icon-btn:hover { background: var(--raised); color: var(--ink); }
+
+.cc-dock.is-strip .cc-dock-icon-btn { width: 40px; height: 40px; }
 
 .cc-dock-unread {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: 99px;
-  background: var(--accent-red);
-  box-shadow: 0 0 0 2px var(--paper);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .cc-dock-messages {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 4px 16px 12px;
-  font-size: 14px;
+  padding: 6px 16px 12px;
+  font-size: 14.5px;
 }
 
 .cc-dock-messages .user-message-container { margin-bottom: 16px; }
@@ -142,5 +149,21 @@
   padding: 8px 12px 12px;
 }
 
+/* In the dock the composer is a hairline card, not a floating one. */
 .cc-dock-composer .compact-composer { max-width: none; margin: 0; padding: 0; }
-.cc-dock-composer .compact-composer .floating-input-box { min-height: 48px; box-shadow: none; }
+.cc-dock-composer div.cc-composer .floating-input-box {
+  gap: 8px;
+  padding: 12px 10px 10px 16px;
+  border-color: var(--control);
+  box-shadow: none;
+}
+.cc-dock-composer div.cc-composer .main-textarea { font-size: 15px; }
+
+@media (max-width: 767px) {
+  /* Phones keep 16px so iOS doesn't zoom into the field. */
+  .cc-dock-composer div.cc-composer .main-textarea { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-dock-icon-btn { transition: none; }
+}

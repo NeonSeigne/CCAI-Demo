@@ -1,6 +1,4 @@
 import React from 'react';
-import cytoscape from 'cytoscape';
-import fcose from 'cytoscape-fcose';
 import {
   Bar,
   BarChart,
@@ -11,11 +9,6 @@ import {
   YAxis,
 } from 'recharts';
 import '../../styles/CourseVisuals.css';
-
-cytoscape.use(fcose);
-
-/** cytoscape with the fcose layout registered, for every course graph. */
-export { cytoscape };
 
 /** UW Course Map letter buckets, as legacy `gpa_chart` visuals carry them. */
 export const GRADE_KEYS = ['other', 'f', 'd', 'c', 'bc', 'b', 'ab', 'a'];

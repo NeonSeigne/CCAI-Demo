@@ -203,6 +203,7 @@ export default function ChatDock() {
           attachments={chat.attachments}
           onRemoveAttachment={chat.removeAttachment}
           placeholder={chatPlaceholder(config)}
+          showScope={false}
         />
       </div>
     </aside>
