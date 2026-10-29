@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { usePlanner } from './PlannerContext';
 import { parseServerTime } from '../utils/serverTime';
 
 /**
@@ -12,6 +13,12 @@ import { parseServerTime } from '../utils/serverTime';
  * View-only state (composer text, landing phase, reply target) stays in the
  * view; `sessionEpoch` changes whenever newChat / openSession replace the
  * conversation, so a view knows to reset it.
+ *
+ * Replacing the conversation (new chat, opening a session, a fresh send,
+ * signing out) aborts the stream, and calls still in flight for the old
+ * conversation drop their results instead of writing into the new one.
+ * Proposals from a live stream are handed to the planner here, so one that
+ * arrives while the student is on another page still reaches it.
  */
 export const ChatContext = createContext(null);
 
@@ -35,8 +42,11 @@ export function attachmentLine(item) {
   return `${prefix}: ${attachmentLabel(item)}`;
 }
 
+const proposalOf = (visual) => visual.proposal || visual;
+
 export function ChatProvider({ children }) {
   const { authToken } = useAuth();
+  const planner = usePlanner();
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [thinkingAdvisors, setThinkingAdvisors] = useState([]);
@@ -52,17 +62,52 @@ export function ChatProvider({ children }) {
   const [synthesizingGroups, setSynthesizingGroups] = useState({});
   const [attachments, setAttachments] = useState([]);
   const [activeTerm, setActiveTerm] = useState(null);
-  // The latest attachments for send, which may run from a stale closure.
+  // Latest values for calls that may run from a stale closure.
   const attachmentsRef = useRef(attachments);
   attachmentsRef.current = attachments;
+  const activeTermRef = useRef(activeTerm);
+  activeTermRef.current = activeTerm;
+  const plannerRef = useRef(planner);
+  plannerRef.current = planner;
+  // Which conversation a call belongs to; bumped whenever it is replaced.
+  const conversationRef = useRef(0);
+  // Open /chat-stream requests, aborted when the conversation is replaced.
+  const streamsRef = useRef(new Set());
+  // The latest send; only it clears the loading state.
+  const latestSendRef = useRef(0);
+  const handedProposalsRef = useRef(new Set());
+  // The last proposal a live stream handed to the planner, for views to open on.
+  const [liveProposalId, setLiveProposalId] = useState(null);
 
   const bumpSessions = () => setSessionsVersion((prev) => prev + 1);
+
+  // Start a new conversation: stop the stream and orphan calls in flight.
+  const replaceConversation = () => {
+    conversationRef.current += 1;
+    streamsRef.current.forEach((controller) => controller.abort());
+    streamsRef.current.clear();
+    setIsLoading(false);
+    setThinkingAdvisors([]);
+    setSynthesizingGroups({});
+  };
 
   const appendMessage = (message) => {
     setMessages((prev) => [...prev, { id: generateMessageId(), timestamp: new Date(), ...message }]);
   };
 
-  const createSession = async (firstMessage = null) => {
+  // Hand each new proposal from a live stream to the planner, once.
+  const handOffProposals = (visuals) => {
+    (visuals || []).forEach((visual) => {
+      if (visual?.type !== 'proposed_change') return;
+      const proposal = proposalOf(visual);
+      if (!proposal?.id || handedProposalsRef.current.has(proposal.id)) return;
+      handedProposalsRef.current.add(proposal.id);
+      plannerRef.current?.receiveProposal(proposal);
+      setLiveProposalId(proposal.id);
+    });
+  };
+
+  const createSession = async (firstMessage = null, isLive = () => true) => {
     try {
       const title = firstMessage
         ? `${firstMessage.substring(0, 30)}...`
@@ -79,8 +124,10 @@ export function ChatProvider({ children }) {
 
       if (response.ok) {
         const newSession = await response.json();
-        setSessionId(newSession.id);
-        setSessionTitle(newSession.title);
+        if (isLive()) {
+          setSessionId(newSession.id);
+          setSessionTitle(newSession.title);
+        }
         return newSession.id;
       }
       console.error('Failed to create new session');
@@ -91,7 +138,7 @@ export function ChatProvider({ children }) {
     }
   };
 
-  const updateSessionTitle = async (id, newTitle) => {
+  const updateSessionTitle = async (id, newTitle, isLive) => {
     if (!id || !authToken) return;
     try {
       await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${id}`, {
@@ -102,7 +149,7 @@ export function ChatProvider({ children }) {
         },
         body: JSON.stringify({ title: newTitle })
       });
-      setSessionTitle(newTitle);
+      if (isLive()) setSessionTitle(newTitle);
     } catch (error) {
       console.error('Error updating session title:', error);
     }
@@ -111,6 +158,7 @@ export function ChatProvider({ children }) {
   // Load a saved session; /switch-chat also syncs the server-side context.
   const openSession = async (id) => {
     if (!id || isLoadingSession) return;
+    const started = conversationRef.current;
     setIsLoadingSession(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/switch-chat`, {
@@ -122,9 +170,11 @@ export function ChatProvider({ children }) {
         body: JSON.stringify({ chat_session_id: id })
       });
 
-      if (response.ok) {
+      if (response.ok && conversationRef.current === started) {
         const result = await response.json();
-        if (result.status === 'success') {
+        if (result.status === 'success' && conversationRef.current === started) {
+          replaceConversation();
+          const conversation = conversationRef.current;
           setSessionId(id);
           setSessionTitle('');
           setMessages(result.context.messages.map((msg) => ({
@@ -133,7 +183,6 @@ export function ChatProvider({ children }) {
             persona_id: msg.persona_id || msg.advisor || msg.advisorId,
             responseGroupId: msg.response_group_id || null,
           })));
-          setThinkingAdvisors([]);
           setSessionEpoch((prev) => prev + 1);
 
           const sessionResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${id}`, {
@@ -144,7 +193,7 @@ export function ChatProvider({ children }) {
           });
           if (sessionResponse.ok) {
             const sessionData = await sessionResponse.json();
-            setSessionTitle(sessionData.title);
+            if (conversationRef.current === conversation) setSessionTitle(sessionData.title);
           }
         }
       }
@@ -156,10 +205,10 @@ export function ChatProvider({ children }) {
   };
 
   const resetConversation = (id, title) => {
+    replaceConversation();
     setMessages([]);
     setSessionId(id);
     setSessionTitle(title);
-    setThinkingAdvisors([]);
     setUploadedDocuments([]);
     setSessionEpoch((prev) => prev + 1);
   };
@@ -196,7 +245,23 @@ export function ChatProvider({ children }) {
     }
   };
 
-  const streamChat = async (userInput, id, activeAdvisorIds = null) => {
+  // Signing out or in as someone else: nothing of the old conversation stays.
+  const previousTokenRef = useRef(authToken);
+  useEffect(() => {
+    if (previousTokenRef.current === authToken) return;
+    previousTokenRef.current = authToken;
+    resetConversation(null, '');
+    setAttachments([]);
+    setActiveTerm(null);
+    setGroupViews({});
+    handedProposalsRef.current = new Set();
+    setLiveProposalId(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken]);
+
+  useEffect(() => () => streamsRef.current.forEach((controller) => controller.abort()), []);
+
+  const streamChat = async (userInput, id, activeAdvisorIds, signal) => {
     const body = {
       user_input: userInput,
       response_length: 'medium',
@@ -204,7 +269,7 @@ export function ChatProvider({ children }) {
       response_mode: responseMode,
       active_advisors: activeAdvisorIds,
     };
-    if (activeTerm) body.active_term = activeTerm;
+    if (activeTermRef.current) body.active_term = activeTermRef.current;
     const response = await fetch(`${process.env.REACT_APP_API_URL}/chat-stream`, {
       method: 'POST',
       headers: {
@@ -212,6 +277,7 @@ export function ChatProvider({ children }) {
         'Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify(body),
+      signal,
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response;
@@ -219,7 +285,8 @@ export function ChatProvider({ children }) {
 
   // Send a message (with any attached chips as leading lines) and stream the
   // reply. `fresh` drops the current conversation first; sending then creates
-  // a session titled after the question.
+  // a session titled after the question. The chips clear once the stream
+  // opens, so a failed send keeps them.
   const send = async (text, activeAdvisorIds = null, { fresh = false } = {}) => {
     if (!text.trim()) return;
 
@@ -227,7 +294,6 @@ export function ChatProvider({ children }) {
     const inputMessage = attached.length
       ? [...attached.map(attachmentLine), text].join('\n')
       : text;
-    if (attached.length) setAttachments([]);
 
     const userMessage = {
       id: generateMessageId(),
@@ -236,28 +302,21 @@ export function ChatProvider({ children }) {
       timestamp: new Date()
     };
     if (fresh) {
+      replaceConversation();
       setMessages([userMessage]);
       setSessionId(null);
       setSessionTitle('');
-      setThinkingAdvisors([]);
       setUploadedDocuments([]);
     } else {
       setMessages((prev) => [...prev, userMessage]);
     }
 
-    let id = fresh ? null : sessionId;
-    if (!id) {
-      id = await createSession(text);
-      if (!id) {
-        console.error('Failed to create session');
-        return;
-      }
-    }
-
-    // Retitle a generic "Chat <date>" session after its first message.
-    if (!fresh && messages.length === 0 && sessionTitle.includes('Chat ')) {
-      await updateSessionTitle(id, text.length > 30 ? `${text.substring(0, 30)}...` : text);
-    }
+    const conversation = conversationRef.current;
+    const isLive = () => conversationRef.current === conversation;
+    const controller = new AbortController();
+    streamsRef.current.add(controller);
+    const sendNumber = latestSendRef.current + 1;
+    latestSendRef.current = sendNumber;
 
     setIsLoading(true);
     setThinkingAdvisors(['system']);
@@ -269,7 +328,21 @@ export function ChatProvider({ children }) {
     const collectedAdvisorResponses = [];
 
     try {
-      const response = await streamChat(inputMessage, id, activeAdvisorIds);
+      let id = fresh ? null : sessionId;
+      if (!id) {
+        id = await createSession(text, isLive);
+        if (!id) throw new Error('Could not start a chat session');
+      }
+      if (!isLive()) return;
+
+      // Retitle a generic "Chat <date>" session after its first message.
+      if (!fresh && messages.length === 0 && sessionTitle.includes('Chat ')) {
+        await updateSessionTitle(id, text.length > 30 ? `${text.substring(0, 30)}...` : text, isLive);
+      }
+
+      const response = await streamChat(inputMessage, id, activeAdvisorIds, controller.signal);
+      if (!isLive()) return;
+      if (attached.length) setAttachments((prev) => prev.filter((a) => !attached.some((b) => sameItem(a, b))));
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -278,6 +351,7 @@ export function ChatProvider({ children }) {
 
       while (true) {
         const { done, value } = await reader.read();
+        if (!isLive()) return;
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
@@ -312,6 +386,7 @@ export function ChatProvider({ children }) {
                 visuals: d.visuals || null,
               };
               collectedAdvisorResponses.push(msg);
+              handOffProposals(msg.visuals);
               setThinkingAdvisors((prev) => prev.filter((a) => a !== d.persona_id));
               if (!aggregatedMode || msg.is_aggregated) {
                 setMessages((prev) => [...prev, msg]);
@@ -363,6 +438,7 @@ export function ChatProvider({ children }) {
       setSynthesizingGroups((prev) => { const n = { ...prev }; delete n[responseGroupId]; return n; });
 
     } catch (error) {
+      if (error?.name === 'AbortError' || !isLive()) return;
       console.error('Error sending message:', error);
       setMessages((prev) => [...prev, {
         id: generateMessageId(),
@@ -371,22 +447,19 @@ export function ChatProvider({ children }) {
         timestamp: new Date()
       }]);
     } finally {
-      setIsLoading(false);
-      setThinkingAdvisors([]);
+      streamsRef.current.delete(controller);
+      if (isLive() && latestSendRef.current === sendNumber) {
+        setIsLoading(false);
+        setThinkingAdvisors([]);
+      }
       bumpSessions();
     }
   };
 
   // replyContext: { advisorId, advisorName, messageId, persona_id }.
   const replyToAdvisor = async (inputMessage, replyContext) => {
-    let id = sessionId;
-    if (!id) {
-      id = await createSession(inputMessage);
-      if (!id) {
-        console.error('Failed to create session for reply');
-        return;
-      }
-    }
+    const conversation = conversationRef.current;
+    const isLive = () => conversationRef.current === conversation;
 
     setMessages((prev) => [...prev, {
       id: generateMessageId(),
@@ -405,6 +478,12 @@ export function ChatProvider({ children }) {
     setThinkingAdvisors([replyContext.persona_id]);
 
     try {
+      let id = sessionId;
+      if (!id) {
+        id = await createSession(inputMessage, isLive);
+        if (!id) throw new Error('Could not start a chat session');
+      }
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/reply-to-advisor`, {
         method: 'POST',
         headers: {
@@ -424,7 +503,7 @@ export function ChatProvider({ children }) {
       }
 
       const data = await response.json();
-      if (data.type === 'advisor_reply') {
+      if (data.type === 'advisor_reply' && isLive()) {
         setMessages((prev) => [...prev, {
           id: generateMessageId(),
           type: 'advisor',
@@ -437,11 +516,15 @@ export function ChatProvider({ children }) {
       }
     } catch (error) {
       console.error('Error replying to advisor:', error);
-      appendMessage({ type: 'error', content: 'Sorry, I encountered an error with your reply. Please try again.' });
+      if (isLive()) {
+        appendMessage({ type: 'error', content: 'Sorry, I encountered an error with your reply. Please try again.' });
+      }
     }
 
-    setIsLoading(false);
-    setThinkingAdvisors([]);
+    if (isLive()) {
+      setIsLoading(false);
+      setThinkingAdvisors([]);
+    }
     bumpSessions();
   };
 
@@ -449,6 +532,8 @@ export function ChatProvider({ children }) {
   const expand = async (messageId, advisorId, advisorName) => {
     const originalMessage = messages.find((msg) => msg.id === messageId);
     if (!originalMessage) return;
+    const conversation = conversationRef.current;
+    const isLive = () => conversationRef.current === conversation;
 
     const expandPrompt = `Please expand on your previous response: "${originalMessage.content.substring(0, 100)}..." Provide more detail and depth.`;
     setMessages((prev) => [...prev, {
@@ -483,6 +568,7 @@ export function ChatProvider({ children }) {
       }
 
       const data = await response.json();
+      if (!isLive()) return;
       if (data.persona && data.response) {
         setMessages((prev) => [...prev, {
           id: generateMessageId(),
@@ -499,12 +585,16 @@ export function ChatProvider({ children }) {
       }
     } catch (error) {
       console.error('Error expanding message:', error);
-      appendMessage({ type: 'error', content: 'Sorry, I encountered an error while expanding the message. Please try again.' });
+      if (isLive()) {
+        appendMessage({ type: 'error', content: 'Sorry, I encountered an error while expanding the message. Please try again.' });
+      }
+    } finally {
+      if (isLive()) {
+        setIsLoading(false);
+        setThinkingAdvisors([]);
+      }
+      bumpSessions();
     }
-
-    setIsLoading(false);
-    setThinkingAdvisors([]);
-    bumpSessions();
   };
 
   const addDocument = (file, uploadResult) => {
@@ -536,6 +626,7 @@ export function ChatProvider({ children }) {
     uploadedDocuments,
     groupViews,
     synthesizingGroups,
+    liveProposalId,
     send,
     newChat,
     openSession,
