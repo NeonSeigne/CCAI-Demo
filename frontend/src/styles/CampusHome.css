@@ -63,9 +63,9 @@
 }
 
 /* ---- Ask home: date, heading, composer, then the Next up board ----------- */
-.campus-home .home-main { padding-top: 36px; }
+.campus-home .ah-main { padding-top: 36px; }
 
-.home-column {
+.ah-column {
   max-width: 1040px;
   margin: 0 auto;
   display: flex;
@@ -73,10 +73,10 @@
   gap: 28px;
 }
 
-.home-hero { display: flex; flex-direction: column; }
-.home-date { margin-bottom: 8px; font-size: 15px; font-weight: 500; color: var(--muted); }
+.ah-hero { display: flex; flex-direction: column; }
+.ah-date { margin-bottom: 8px; font-size: 15px; font-weight: 500; color: var(--muted); }
 
-.home-hero h1 {
+.ah-hero h1 {
   margin: 0 0 22px;
   font-family: var(--font-display);
   font-size: 34px;
@@ -85,7 +85,7 @@
   letter-spacing: -0.03em;
 }
 
-.home-ask {
+.ah-ask {
   display: grid;
   gap: 10px;
   padding: 16px 14px 12px 20px;
@@ -94,9 +94,9 @@
   box-shadow: var(--shadow-float);
 }
 
-.home-ask:focus-within { box-shadow: var(--shadow-float), 0 0 0 2px var(--control); }
+.ah-ask:focus-within { box-shadow: var(--shadow-float), 0 0 0 2px var(--control); }
 
-.home-ask textarea {
+.ah-ask textarea {
   width: 100%;
   min-height: 28px;
   padding: 0;
@@ -110,11 +110,11 @@
   line-height: 1.5;
 }
 
-.home-ask textarea::placeholder { color: var(--faint); }
+.ah-ask textarea::placeholder { color: var(--faint); }
 
-.home-ask-row { display: flex; align-items: center; gap: 8px; }
+.ah-ask-row { display: flex; align-items: center; gap: 8px; }
 
-.home-scope {
+.ah-scope {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -128,7 +128,7 @@
   font-weight: 500;
 }
 
-.home-send {
+.ah-send {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
@@ -142,20 +142,20 @@
   transition: transform 120ms ease-out, background-color 120ms ease-out;
 }
 
-.home-send:hover { background: var(--signal-hover); }
-.home-send:active { transform: scale(0.95); }
+.ah-send:hover { background: var(--signal-hover); }
+.ah-send:active { transform: scale(0.95); }
 
-.home-bento {
+.ah-bento {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
 
-.home-bento.is-single { grid-template-columns: minmax(0, 1fr); }
-.home-side { display: grid; gap: 16px; align-content: start; }
+.ah-bento.is-single { grid-template-columns: minmax(0, 1fr); }
+.ah-side { display: grid; gap: 16px; align-content: start; }
 
-.home-panel {
+.ah-panel {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -164,7 +164,7 @@
   box-shadow: var(--shadow-rest);
 }
 
-.home-panel-h {
+.ah-panel-h {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -172,7 +172,7 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.home-panel-h h2 {
+.ah-panel-h h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: 16px;
@@ -180,10 +180,10 @@
   letter-spacing: -0.02em;
 }
 
-.home-list { margin: 0; padding: 0; list-style: none; }
-.home-list > li + li { border-top: 1px solid var(--rule); }
+.ah-list { margin: 0; padding: 0; list-style: none; }
+.ah-list > li + li { border-top: 1px solid var(--rule); }
 
-.home-empty {
+.ah-empty {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -193,7 +193,7 @@
   color: var(--muted);
 }
 
-.home-panel-foot {
+.ah-panel-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -202,11 +202,11 @@
   padding: 10px 20px 14px;
 }
 
-.home-more { color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
-.home-more:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.ah-more { color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
+.ah-more:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Event row: time (Unbounded) with the end under it, title and place, walk, actions. */
-.home-evt {
+.ah-evt {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr) auto auto;
   gap: 14px;
@@ -214,15 +214,16 @@
   padding: 12px 20px;
 }
 
-.home-time {
+.ah-time {
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
   font-feature-settings: "tnum";
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
-.home-time small {
+.ah-time small {
   display: block;
   font-family: var(--font-app);
   font-size: 12.5px;
@@ -232,10 +233,10 @@
   white-space: nowrap;
 }
 
-.home-what { min-width: 0; }
-.home-what b { display: block; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.ah-what { min-width: 0; }
+.ah-what b { display: block; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
-.home-what > span {
+.ah-what > span {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -244,9 +245,9 @@
   color: var(--muted);
 }
 
-.home-what > span > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ah-what > span > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.home-walk {
+.ah-walk {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -259,9 +260,9 @@
   white-space: nowrap;
 }
 
-.home-acts { display: flex; align-items: center; gap: 2px; }
+.ah-acts { display: flex; align-items: center; gap: 2px; }
 
-.home-chip {
+.ah-chip {
   height: 32px;
   margin-right: 4px;
   padding: 0 12px;
@@ -275,9 +276,9 @@
   cursor: pointer;
 }
 
-.home-chip:hover { background: var(--raised); }
+.ah-chip:hover { background: var(--raised); }
 
-.home-icon-btn {
+.ah-icon-btn {
   width: 40px;
   height: 40px;
   display: grid;
@@ -289,11 +290,11 @@
   cursor: pointer;
 }
 
-.home-icon-btn:hover { background: var(--raised); color: var(--ink); }
-.home-acts .home-save { width: 40px; height: 40px; border-radius: var(--r-full); }
+.ah-icon-btn:hover { background: var(--raised); color: var(--ink); }
+.ah-acts .ah-save { width: 40px; height: 40px; border-radius: var(--r-full); }
 
 /* Classes and saved rows. */
-.home-code {
+.ah-code {
   font-family: var(--font-code);
   font-size: 11px;
   font-weight: 700;
@@ -301,7 +302,7 @@
   color: var(--muted);
 }
 
-.home-cls {
+.ah-cls {
   width: 100%;
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
@@ -315,11 +316,11 @@
   cursor: pointer;
 }
 
-.home-cls:hover { background: var(--raised); }
-.home-cls b { display: block; font-weight: 700; }
-.home-where { display: block; font-size: 14px; color: var(--muted); }
+.ah-cls:hover { background: var(--raised); }
+.ah-cls b { display: block; font-weight: 700; }
+.ah-where { display: block; font-size: 14px; color: var(--muted); }
 
-.home-saved-row {
+.ah-saved-row {
   width: 100%;
   display: flex;
   align-items: center;
@@ -336,24 +337,25 @@
   cursor: pointer;
 }
 
-.home-saved-row:hover { background: var(--raised); }
-.home-saved-kind { display: inline-flex; color: var(--muted); }
-.home-saved-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ah-saved-row:hover { background: var(--raised); }
+.ah-saved-kind { display: inline-flex; color: var(--muted); }
+.ah-saved-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 767px) {
-  .campus-home .home-main { padding-top: 12px; }
-  .home-column { gap: 20px; }
-  .home-hero h1 { margin-bottom: 16px; font-size: 23px; }
-  .home-scope { display: none; }
-  .home-ask-row { justify-content: flex-end; }
-  .home-bento { grid-template-columns: minmax(0, 1fr); }
-  .home-evt { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px 10px; padding: 12px 16px; }
-  .home-what b { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .home-acts { grid-column: 2 / -1; }
-  .home-cls, .home-saved-row { padding-left: 16px; padding-right: 16px; }
-  .home-panel-h, .home-empty, .home-panel-foot { padding-left: 16px; padding-right: 16px; }
+  .campus-home .ah-main { padding-top: 12px; }
+  .ah-column { gap: 20px; }
+  .ah-hero h1 { margin-bottom: 16px; font-size: 23px; }
+  .ah-scope { display: none; }
+  .ah-ask-row { justify-content: flex-end; }
+  .ah-bento { grid-template-columns: minmax(0, 1fr); }
+  .ah-evt { grid-template-columns: 70px minmax(0, 1fr) auto; gap: 8px 10px; padding: 12px 16px; }
+  .ah-time { font-size: 13px; }
+  .ah-what b { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .ah-acts { grid-column: 2 / -1; }
+  .ah-cls, .ah-saved-row { padding-left: 16px; padding-right: 16px; }
+  .ah-panel-h, .ah-empty, .ah-panel-foot { padding-left: 16px; padding-right: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-send { transition: none; }
+  .ah-send { transition: none; }
 }

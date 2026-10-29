@@ -113,12 +113,12 @@ function useClassesToday(authToken, timezone) {
 function EventRow({ event, timezone, onAsk }) {
   const physical = hasPhysicalLocation(event.location);
   return (
-    <li className="home-evt">
-      <span className="home-time">
+    <li className="ah-evt">
+      <span className="ah-time">
         {formatEventTime(event, timezone)}
         {event.end && event.end !== event.start && <small>to {timeOf(event.end, timezone)}</small>}
       </span>
-      <span className="home-what">
+      <span className="ah-what">
         <b>{event.title}</b>
         {event.location && (
           <span>
@@ -128,24 +128,24 @@ function EventRow({ event, timezone, onAsk }) {
         )}
       </span>
       {event.walk_minutes != null
-        ? <span className="home-walk"><Icon name="directions_walk" size={18} />{event.walk_minutes} min</span>
+        ? <span className="ah-walk"><Icon name="directions_walk" size={18} />{event.walk_minutes} min</span>
         : <span />}
-      <span className="home-acts">
+      <span className="ah-acts">
         {physical && (
-          <button type="button" className="home-chip" onClick={() => onAsk(`How do I get to ${event.location}?`)}>
+          <button type="button" className="ah-chip" onClick={() => onAsk(`How do I get to ${event.location}?`)}>
             Directions
           </button>
         )}
         <button
           type="button"
-          className="home-icon-btn"
+          className="ah-icon-btn"
           aria-label={`Add ${event.title} to calendar`}
           onClick={() => downloadEventIcs(event)}
         >
           <Icon name="calendar_add_on" size={21} />
         </button>
         <SaveButton
-          className="home-save"
+          className="ah-save"
           item={event.id ? {
             kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
           } : null}
@@ -165,8 +165,8 @@ function SavedRow({ item, onOpenCourse }) {
   if (item.kind === 'course') {
     return (
       <li>
-        <button type="button" className="home-saved-row" onClick={() => onOpenCourse(item.key)}>
-          <span className="home-code">{name}</span>
+        <button type="button" className="ah-saved-row" onClick={() => onOpenCourse(item.key)}>
+          <span className="ah-code">{name}</span>
         </button>
       </li>
     );
@@ -174,9 +174,9 @@ function SavedRow({ item, onOpenCourse }) {
   const to = item.kind === 'place' ? `/map?to=${encodeURIComponent(item.key)}` : '/saved';
   return (
     <li>
-      <Link className="home-saved-row" to={to}>
-        <span className="home-saved-kind">{marker}</span>
-        <span className="home-saved-name">{name}</span>
+      <Link className="ah-saved-row" to={to}>
+        <span className="ah-saved-kind">{marker}</span>
+        <span className="ah-saved-name">{name}</span>
       </Link>
     </li>
   );
@@ -240,8 +240,8 @@ const HomePage = () => {
         onSignOut={handleSignOutClick}
       />
 
-      <main className="campus-main home-main" id="main-content">
-        <div className="home-column">
+      <main className="campus-main ah-main" id="main-content">
+        <div className="ah-column">
           {/* Phones only: the rail is hidden, so recent chats lead the page (26A). */}
           <section className="campus-phone-recent" aria-label="Recent chats">
             <RecentChats
@@ -250,10 +250,10 @@ const HomePage = () => {
               onShowAllChats={() => navigate('/search')}
             />
           </section>
-          <header className="home-hero">
-            <p className="campus-kicker home-date">{school} · {todayLabel(timezone)}</p>
+          <header className="ah-hero">
+            <p className="campus-kicker ah-date">{school} · {todayLabel(timezone)}</p>
             <h1>What do you need on campus today?</h1>
-            <form className="home-ask" onSubmit={handleSubmit}>
+            <form className="ah-ask" onSubmit={handleSubmit}>
               <label htmlFor="campus-ask-input" className="sr-only">Ask a question</label>
               <textarea
                 id="campus-ask-input"
@@ -264,59 +264,59 @@ const HomePage = () => {
                 onKeyDown={handleKeyDown}
                 placeholder={starters[0]?.prompts?.[0] ? `Try “${starters[0].prompts[0]}”` : 'Ask about courses, events or places'}
               />
-              <div className="home-ask-row">
-                <span className="home-scope">
+              <div className="ah-ask-row">
+                <span className="ah-scope">
                   <Icon name="school" size={18} />
                   Courses, events and places at {school}
                 </span>
-                <button type="submit" className="home-send" aria-label="Ask">
+                <button type="submit" className="ah-send" aria-label="Ask">
                   <ArrowUp size={22} />
                 </button>
               </div>
             </form>
           </header>
 
-          <div className={`home-bento ${showSide ? '' : 'is-single'}`.trim()}>
-            <section aria-labelledby="home-next" className="home-panel">
-              <div className="home-panel-h">
-                <h2 id="home-next">Next up</h2>
+          <div className={`ah-bento ${showSide ? '' : 'is-single'}`.trim()}>
+            <section aria-labelledby="ah-next" className="ah-panel">
+              <div className="ah-panel-h">
+                <h2 id="ah-next">Next up</h2>
               </div>
-              {today.loading && <p className="home-empty">Loading today’s events…</p>}
+              {today.loading && <p className="ah-empty">Loading today’s events…</p>}
               {!today.loading && upcoming.length === 0 && (
-                <p className="home-empty">
+                <p className="ah-empty">
                   <Icon name="event" size={20} />
                   {today.error || 'Nothing else on the calendar today.'}
                 </p>
               )}
               {upcoming.length > 0 && (
-                <ul className="home-list">
+                <ul className="ah-list">
                   {upcoming.map((event) => (
                     <EventRow key={event.id || `${event.title}-${event.start}`} event={event} timezone={timezone} onAsk={ask} />
                   ))}
                 </ul>
               )}
-              <div className="home-panel-foot">
-                <Link className="home-more" to="/events">All events today</Link>
+              <div className="ah-panel-foot">
+                <Link className="ah-more" to="/events">All events today</Link>
                 {today.source?.length > 0 && <p className="campus-footnote">From {today.source.join(', ')}</p>}
               </div>
             </section>
 
             {showSide && (
-              <div className="home-side">
+              <div className="ah-side">
                 {classes && classes.length > 0 && (
-                  <section aria-labelledby="home-classes" className="home-panel">
-                    <div className="home-panel-h">
-                      <h2 id="home-classes">Your classes today</h2>
+                  <section aria-labelledby="ah-classes" className="ah-panel">
+                    <div className="ah-panel-h">
+                      <h2 id="ah-classes">Your classes today</h2>
                     </div>
-                    <ul className="home-list">
+                    <ul className="ah-list">
                       {classes.map((row) => (
                         <li key={`${row.id}-${row.part}-${row.start}`}>
-                          <button type="button" className="home-cls" onClick={() => openCourse(row.id)}>
-                            <span className="home-time">{clockText(row.start)}</span>
+                          <button type="button" className="ah-cls" onClick={() => openCourse(row.id)}>
+                            <span className="ah-time">{clockText(row.start)}</span>
                             <span>
-                              <span className="home-code">{row.id}</span>
+                              <span className="ah-code">{row.id}</span>
                               {row.title && <b>{row.title}</b>}
-                              {row.place && <span className="home-where">{row.place}</span>}
+                              {row.place && <span className="ah-where">{row.place}</span>}
                             </span>
                           </button>
                         </li>
@@ -325,11 +325,11 @@ const HomePage = () => {
                   </section>
                 )}
                 {savedItems.length > 0 && (
-                  <section aria-labelledby="home-saved" className="home-panel">
-                    <div className="home-panel-h">
-                      <h2 id="home-saved">Saved</h2>
+                  <section aria-labelledby="ah-saved" className="ah-panel">
+                    <div className="ah-panel-h">
+                      <h2 id="ah-saved">Saved</h2>
                     </div>
-                    <ul className="home-list home-saved">
+                    <ul className="ah-list ah-saved">
                       {savedItems.map((item) => (
                         <SavedRow key={`${item.kind}-${item.key}`} item={item} onOpenCourse={openCourse} />
                       ))}
