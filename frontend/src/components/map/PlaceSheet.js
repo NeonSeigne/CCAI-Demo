@@ -2,7 +2,9 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import { Link } from 'react-router-dom';
-import { Accessibility, Bookmark, ChevronLeft, ChevronRight, Footprints, Globe, MapPin, MessageSquare, Phone } from '../icons';
+import {
+  Accessibility, Bookmark, ChevronRight, Footprints, Globe, Icon, MapPin, MessageSquare, Phone, X,
+} from '../icons';
 import SaveButton from '../SaveButton';
 import { CouldntLoad, DragGrip, usePopupDrag } from '../popup/PopupParts';
 import { useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
@@ -10,11 +12,11 @@ import { groupedHours, weekdayIndex, weeklyHours } from '../../utils/osmHours';
 import '../../styles/Popups.css';
 
 /**
- * The map's place side sheet (r1-place-2; sparse r1-place-3): photo with its
- * Commons credit, name, category and operator, a 2×2 of Walk / Open / Floors
- * / Access, weekly hours with today marked, today's events here, address and
- * website, and pinned Directions / Save / Ask / Call. Anything the place
- * lacks is not rendered, so a sparse place gets a short sheet (D21).
+ * The map's place card (DESIGN.md "Map"): a band with the category, name and
+ * tiles for Walk / Open / Floors / Access; then the photo with its Commons
+ * credit, today's events here, weekly hours with today marked, address and
+ * website; then Directions / Save / Ask / Call. Anything the place lacks is
+ * not rendered, so a sparse place gets a short card (D21).
  *
  * Props
  *   placeId, place        the id to load; `place` (a list row) shows while it loads
@@ -28,6 +30,20 @@ import '../../styles/Popups.css';
  *   titleId               id for the name, for aria-labelledby
  *   autoFocus             move focus to the name when the sheet opens
  */
+
+/** Material icon per category (pins, list rows, the card). */
+export const CATEGORY_ICONS = {
+  library: 'local_library',
+  dining: 'restaurant',
+  academic: 'school',
+  housing: 'home',
+  recreation: 'fitness_center',
+  transit: 'directions_bus',
+  health: 'local_hospital',
+  arts: 'theater_comedy',
+  landmark: 'account_balance',
+  other: 'location_on',
+};
 
 const CATEGORY_LABELS = {
   library: 'Library',
@@ -57,15 +73,6 @@ function timeIn(iso, timezone) {
   } catch {
     return date.toLocaleTimeString('en-US', options).toLowerCase();
   }
-}
-
-function OpenRing({ open }) {
-  return (
-    <svg className={`ps-ring ${open ? 'is-open' : 'is-closed'}`} viewBox="0 0 36 36" width="34" height="34" aria-hidden="true">
-      <circle className="ps-ring-track" cx="18" cy="18" r="14" />
-      <circle className="ps-ring-arc" cx="18" cy="18" r="14" pathLength="100" strokeDasharray={open ? '70 100' : '0 100'} />
-    </svg>
-  );
 }
 
 function Photo({ photo }) {
@@ -104,11 +111,8 @@ function Tiles({ place, timezone }) {
       <div key="open" className="ps-tile">
         <span className="ps-tile-label">Open</span>
         <span className="ps-open">
-          <OpenRing open={place.open_now} />
-          <span>
-            <strong className={place.open_now ? 'is-open' : 'is-closed'}>{place.open_now ? 'Open' : 'Closed'}</strong>
-            {until && <span className="ps-tile-sub">{`until ${until}`}</span>}
-          </span>
+          <strong className={place.open_now ? 'is-open' : 'is-closed'}>{place.open_now ? 'Open' : 'Closed'}</strong>
+          {until && <span className="ps-tile-sub">{`until ${until}`}</span>}
         </span>
       </div>,
     );
@@ -132,7 +136,7 @@ function Tiles({ place, timezone }) {
           <span className="ps-tile-value ps-access-text">No<span className="sr-only">{`: ${label}`}</span></span>
         ) : (
           <span className={`ps-access ${access === 'limited' ? 'is-limited' : ''}`.trim()} role="img" aria-label={label} title={label}>
-            <Accessibility size={18} aria-hidden="true" />
+            <Accessibility size={22} aria-hidden="true" />
             {access === 'limited' && <span aria-hidden="true">Limited</span>}
           </span>
         )}
@@ -239,14 +243,14 @@ export default function PlaceSheet({
 
   const back = onClose && (
     <button type="button" className="ps-back" aria-label="Close" title="Close" onClick={onClose}>
-      <ChevronLeft size={18} aria-hidden="true" />
+      <X size={20} aria-hidden="true" />
     </button>
   );
 
   if (!place && detail.error) {
     return (
       <section className="pop-sheet ps" aria-labelledby={titleId}>
-        <div className="ps-head">{back}<h2 id={titleId} ref={headingRef} tabIndex={-1} className="sr-only">Place</h2></div>
+        <div className="ps-band">{back}<h2 id={titleId} ref={headingRef} tabIndex={-1} className="sr-only">Place</h2></div>
         <div className="ps-scroll"><CouldntLoad onRetry={detail.retry} /></div>
       </section>
     );
@@ -255,11 +259,11 @@ export default function PlaceSheet({
   if (!place) {
     return (
       <section className="pop-sheet ps" aria-labelledby={titleId} aria-busy="true">
-        <div className="ps-head">{back}</div>
-        <div className="ps-scroll">
-          <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name"><span className="sr-only">Place</span><span className="pop-skel pop-skel--title is-light" /></h2>
+        <div className="ps-band">
+          {back}
+          <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name"><span className="sr-only">Place</span><span className="pop-skel pop-skel--title" /></h2>
           <div className="ps-tiles is-single" aria-hidden="true">
-            <div className="ps-tile"><span className="pop-skel pop-skel--label is-light" /><span className="pop-skel pop-skel--number is-light" /></div>
+            <div className="ps-tile"><span className="pop-skel pop-skel--label" /><span className="pop-skel pop-skel--number" /></div>
           </div>
         </div>
       </section>
@@ -273,32 +277,38 @@ export default function PlaceSheet({
   return (
     <section className="pop-sheet ps" aria-labelledby={titleId}>
       <div className="ps-scroll">
-        <div className={`ps-head ${photo ? 'has-photo' : ''}`.trim()}>
+        <div className="ps-band">
+          <span className="ps-grab" aria-hidden="true" />
           {back}
-          <Photo photo={photo} />
-        </div>
-        <div className="ps-content">
-          <div ref={drag.ref} className={`ps-title ${drag.className}`}>
-            <DragGrip drag={drag} label={`Drag ${place.name}`} className="pop-grip--light" />
-            <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name">{place.name}</h2>
-          </div>
           {(category || place.operator) && (
             <p className="ps-kind">
-              {category && <span className={`ps-chip ps-chip--${place.category}`}>{category}</span>}
+              {category && (
+                <span className={`ps-chip ps-chip--${place.category}`}>
+                  <Icon name={CATEGORY_ICONS[place.category] || 'location_on'} size={18} />
+                  {category}
+                </span>
+              )}
               {place.operator && <span className="ps-operator">{place.operator}</span>}
             </p>
           )}
+          <div ref={drag.ref} className={`ps-title ${drag.className}`}>
+            <DragGrip drag={drag} label={`Drag ${place.name}`} />
+            <h2 id={titleId} ref={headingRef} tabIndex={-1} className="ps-name">{place.name}</h2>
+          </div>
           <Tiles place={place} timezone={timezone} />
-          <Hours place={place} timezone={timezone} now={now} />
+        </div>
+        <div className="ps-content">
+          <Photo photo={photo} />
           <TodayEvents events={here} timezone={timezone} onOpenEvent={onOpenEvent} />
+          <Hours place={place} timezone={timezone} now={now} />
           {(place.address || place.website) && (
             <p className="ps-links">
               {place.address && (
-                <span className="ps-link"><MapPin size={15} aria-hidden="true" /><span className="sr-only">Address: </span>{place.address}</span>
+                <span className="ps-link"><MapPin size={18} aria-hidden="true" /><span className="sr-only">Address: </span>{place.address}</span>
               )}
               {place.website && (
                 <a className="ps-link" href={place.website} target="_blank" rel="noopener noreferrer">
-                  <Globe size={15} aria-hidden="true" />{hostOf(place.website)}
+                  <Globe size={18} aria-hidden="true" />{hostOf(place.website)}
                 </a>
               )}
             </p>
@@ -308,11 +318,11 @@ export default function PlaceSheet({
       <div className="ps-actions">
         {onDirections ? (
           <button type="button" className="ps-directions" onClick={() => onDirections(place)}>
-            <Footprints size={16} aria-hidden="true" /> Directions
+            <Footprints size={20} aria-hidden="true" /> Directions
           </button>
         ) : (
           <Link className="ps-directions" to={`/map?to=${encodeURIComponent(place.id)}`}>
-            <Footprints size={16} aria-hidden="true" /> Directions
+            <Footprints size={20} aria-hidden="true" /> Directions
           </Link>
         )}
         {onSave ? (
@@ -324,19 +334,19 @@ export default function PlaceSheet({
             title={saved ? 'Saved' : 'Save'}
             onClick={() => onSave(item)}
           >
-            <Bookmark size={18} aria-hidden="true" />
+            <Bookmark size={20} aria-hidden="true" />
           </button>
         ) : (
           <SaveButton className="ps-icon-btn" item={{ kind: 'place', key: place.id, display_name: place.name }} />
         )}
         {onAsk && (
           <button type="button" className="ps-icon-btn" aria-label={`Ask about ${place.name}`} title="Ask" onClick={() => onAsk(item)}>
-            <MessageSquare size={18} aria-hidden="true" />
+            <MessageSquare size={20} aria-hidden="true" />
           </button>
         )}
         {place.phone && (
           <a className="ps-icon-btn" href={`tel:${place.phone.replace(/[^\d+]/g, '')}`} aria-label={`Call ${place.name}`} title="Call">
-            <Phone size={18} aria-hidden="true" />
+            <Phone size={20} aria-hidden="true" />
           </a>
         )}
       </div>
