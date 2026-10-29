@@ -1025,27 +1025,300 @@ These amend design tasks T1–T12 above. Effort ratios: features ~30×, tests ~5
 - **Parallelization:** 3 lanes, 2 parallel and 1 sequential (E6 after A + B).
 - **Lake Score:** 4/16, the answers that picked a 10/10 option out of those scored for completeness.
 
+
+## CEO Review (plan-ceo-review, 2026-10-28)
+
+- **Mode:** HOLD SCOPE (D1, user answer; the user declined the recommended SCOPE REDUCTION). No additions and no cuts proposed.
+- **Governing approvals:** design D3–D24, eng D1, R1–R16, and TODO D21.
+- **0I sequence:**
+  - Hour 1: E1 tests and the E2 term-aware service.
+  - Hours 2–3: preview key (fixed in R2), redo ordering (R4).
+  - Hours 4–5: rapid drags vs `revision_conflict` (C3), the old PlanPanel (C1).
+  - Hour 6+: deadline-miss logging (C5).
+
+### CEO decision ledger
+
+| ID and owner | Contract and evidence | Current | Proposed | Status | Exact approval and scope |
+|---|---|---|---|---|---|
+| C1 (Section 1, architecture) | Design D3 / 5A reversal: the plan moves into Courses. `ChatPage.js:19-20` still imports PlanPanel / PlanSheet and has a Plan toggle (`:80`) | M1 plan panel stays in chat | A) remove the chat Plan toggle, PlanPanel and PlanSheet once the semester view lands, moving their tests; B) keep both | approved | D2, user answer A, 2026-10-28. Once the semester view ships: remove the Plan toggle and the PlanPanel / PlanSheet mount from ChatPage, delete `PlanPanel.js`, `PlanSheet.js` and `PlanPanel.css`, reuse `proposalDiff.js` and `planFormat.js`, and move the PlanPanel tests' behaviours (accept / discard / undo label) to the semester view tests. |
+| C3 (Section 4, edge cases) | D8 drop feedback. `PlannerContext.js:118` "After a 409 revision conflict: refetch and say so once". Two quick drags send the same `expected_revision`, so the second gets a 409 and is dropped with a conflict message | 409 → refetch + message | A) queue planner edits in PlannerContext so each waits for the previous revision; a real conflict from another tab still refetches; B) keep | approved | D3, user answer A, 2026-10-28. PlannerContext runs edits, undo, redo and accept through one FIFO queue. Each request uses the revision returned by the one before it. Optimistic cards show at once. A 409 not caused by this tab's own queue still refetches with the existing message. Tests: two drops within 100ms both land in order; an injected cross-tab revision bump still shows the conflict message; a failed save mid-queue reverts only that edit (D8) and the queue continues. |
+| C4 (Section 7, performance) | Approved pop-up shows "Instructors with RMP ratings" at every school. `tools/rate_my_professor.py:112-130` is live GraphQL with a scraped token (fallback test:test) | unspecified | A) ratings come only from the backend, cached 7 days per instructor, at most 4 per course, hidden when unavailable; UW keeps Course Map ratings; B) call RMP live per pop-up | approved | D4, user answer A, 2026-10-28.
+
+- **Endpoint:** `GET /api/catalog/{id}/ratings` returns ratings for at most 4 instructors (the course's current instructors first).
+- **Sources:** UW uses Course Map ratings. UVA and CU call the existing RMP lookup through `sources/cache.py`, with a 7-day TTL per (school, instructor) and a 2s timeout per lookup.
+- **On failure or timeout:** that instructor has no rating; the star is omitted and there is no error text.
+- **Pop-up:** loads ratings after the band, never blocking it.
+- **Tests:** the cache hits on a second call; a timeout omits the rating; there are never more than 4 lookups. |
+| C5 (Section 8, observability) | `facts.py:131` marks a timed-out course `TOO_SLOW` with no log line (failures do log, `:136`). New endpoints `/preview`, `/redo`, `/degree` have no log lines specified | silent timeouts | A) structured log lines: one per facts deadline miss (school, term, ids, budget) and one per call to preview / redo / degree (user hash, revision, duration, outcome); B) keep | approved | D5, user answer A, 2026-10-28. `load_facts` logs one warning per batch with timed-out ids (school, term, ids, `budget_s`). The `/preview`, `/redo` and `/degree` routes each log one info line (sha256-prefixed user id, revision, duration in ms, outcome / error code). Tests: a timed-out batch emits the warning (caplog), and the route log carries the outcome. |
+| O1 (Outside voice 1, Outside review, verified) | Chat's plan summary uses `plan["term"]` (`service.py:233`); `plan_suggest.execute` passes no term (`plan_suggest.py:56`). With Fall 2027 open, chat still targets the stored term | chat ignores the open semester | A) the dock sends the open term with each message (`active_term` in the chat request, from the semester view); ToolContext carries it; `plan_summary` and `plan_suggest` use it; B) keep; C) investigate; D) defer | approved | D6, user answer A, 2026-10-28.
+
+- **Where the term comes from:** the semester view sets `activeTerm` in ChatProvider, and `/chat-stream` sends `active_term`.
+- **Server side:** `tool_context_for` checks it against `planner_terms()` and drops unknown values, so the term never comes from the model. ToolContext carries it.
+- **Who uses it:** `plan_summary` labels the open term as the one being planned, and `plan_suggest` passes it as `term`.
+- **R9 is unchanged:** attachments stay text.
+- **Tests:** with `active_term` Fall 2027, the suggest tool gets Fall 2027; an unknown term falls back to the plan term. |
+| O2 (Outside voice 2, Outside review, verified) | PlanPanel holds the only completed-course checklist with a `set_profile` save (`PlanPanel.js:125-151`). C1 deletes it; new plans start with no completed courses (`store.py:88`) | no replacement planned | A) before C1's removal, My degree gets a "Completed" editor: the program checklist plus search-to-add, with an optional grade, saving through `set_profile`; it reuses `checklistCourses` and is reachable from the Past column and the first-run Program picker; B) keep C1 as approved; C) investigate again; D) defer | approved | D8, user answer A, 2026-10-28.
+
+- **What it is:** a "Completed" editor in My degree, built and tested before C1 removes PlanPanel.
+- **Contents:** the program checklist (`checklistCourses` moved to a shared module) plus search-to-add, with an optional grade per course. It saves through the existing `set_profile` op.
+- **Where it opens:** from the Past column and from the first-run Program picker.
+- **Later:** the planner M3 transcript upload will end on this editor.
+- **Tests:**
+  - ticking a course saves a `set_profile` with it;
+  - removing a course drops it;
+  - a grade entered resolves Calculus "unknown";
+  - a fresh account can reach the editor without chat.
+
+History: D7 answered C "Investigate first" (user, 2026-10-28). The investigation found no transcript parser on this branch (only on the ruled-out `NeonSeigne/plan-semester-separate-branch`). The planner premise 3 (`semester-planner.md:54`) makes the checklist one of the three profile doors, and the end step of any transcript parse (planner M3, `:192`). `/upload-document` (`documents.py:157`) is chat document upload with no course parsing. So a transcript can't replace the checklist; option A stands as the base that M3 builds on. |
+| O3 (Outside voice 3, Outside review, verified) | `Dockerfile:31` `COPY . .` bakes schools/ into the image; `places.py:123` caches loaded places in process | rollout imports after the backend is up | A) run `import_places.py` for the three schools and commit places.geojson before building the image; rebuild and recreate the backend; smoke-test that `/api/places/{id}` returns `photo` for one known place per school; B) keep | approved | D9, user answer A, 2026-10-28. Rollout runs in this order:
+
+1. Run `scripts/import_places.py` for UW, UVA and CU (needs network).
+2. Check that each `places.geojson` parses and has at least one `photo`; commit them.
+3. Build the image and recreate the backend container.
+4. Smoke-test that `/api/places/{id}` returns `photo.url`, `author` and `license` for one known place per school (for example Alderman Library at UVA).
+
+This replaces the Section 9 rollout line. |
+
+### Section findings (HOLD SCOPE)
+
+- **Section 1, Architecture:** C1. The rest is covered by eng R1–R16 (diagram in Eng Review > Architecture).
+  - **Rollback:** `git revert` of the wave commits. There are no data migrations; plan documents stay compatible (redo only reads the existing stack).
+- **Section 2, Errors:** covered by design D7 / D8 and the eng failure-mode table. C5 makes the timeout path visible in logs.
+- **Section 3, Security:** No issues found.
+  - The new planner routes use the existing signed-in user scope (`api/routes/planner.py`).
+  - Feed and Wikimedia strings are rendered as React text, which is escaped.
+  - Feed links in `href` are covered by React 19 blocking `javascript:` URLs (`EventsPage.js:178` today).
+  - Attachments are text the user sends themselves (R9). Chat tools stay propose-only.
+- **Section 4, Data and UX edge cases:** C3. The other cases are covered by D8 / D9 / R2 / R13.
+- **Section 5, Code quality:** No new issues (eng R6 and R10 cover it).
+- **Section 6, Tests:** covered by eng R11 and the eng test diagram; no new gaps.
+- **Section 7, Performance:** C4. Degree loading is covered by R12.
+- **Section 8, Observability:** C5.
+- **Section 9, Deployment:**
+  - **Rollout order (amended by O3 / D9):** import places for the three schools and commit `places.geojson`, then build the image and recreate the backend, then the frontend. No flags; local demo.
+  - **Smoke:** `/api/planner/degree` returns 200 for a seeded plan; `?course=` opens over `/map`.
+- **Section 10, Trajectory:** reversibility 4/5. Debt is reduced by R1 and R6, and C1 would remove the last chat-side planner surface.
+- **Section 11, Design:** covered by the design review (score 8/10, D3–D24). Flow:
+  ```
+  Courses(Browse) ──program set──▶ My degree ──Open semester──▶ Semester(term) ──‹ breadcrumb──▶ My degree
+        │ ?course=ID (any page)          │ drag card between terms        │ drag/Add/Swap/Remove, ←/→
+        ▼                                ▼                                ▼
+     Course pop-up ──Ask──▶ Chat dock (chip) ──proposal──▶ ghost preview ──Accept/Discard──▶ toast + Undo
+  ```
+
+
+Approval readiness: PASS. Mode: D1. Rows: C1 (D2), C3 (D3), C4 (D4), C5 (D5), O1 (D6), O2 (D8, after the D7 investigation), O3 (D9). All are the user's actual answers.
+
+## CEO Review Outputs
+
+### Reality rows
+- `REALITY: premise-table pass` — 10 premises with receipts, unverified=1 (dnd-kit on React 19). `frontend/package.json:16`
+- `REALITY: already-done pass` — origin/dev has no commits since 2026-10-27 (origin/dev at 6555ae3). commit 6555ae3
+- `REALITY: surface-check pass` — the new routes are marked new; existing routes and tools verified (`plan_suggest.py:53`, `service.py:233`). `backend/app/api/routes/planner.py`
+- `REALITY: binding-decisions pass` — consistent with the planner decisions (one pending proposal, propose-only chat) and the catalog decisions (`/api/catalog`). backend/app/planner/store.py:20
+- `REALITY: numbers finding` — file, module and effort counts are `[estimated]`. `docs/designs/tab-workspaces.md:563`
+- `REALITY: deferred-asks pass` — no linked issue; every user ask is in scope. docs/designs/tab-workspaces.md:9
+- `REALITY: pr-count pass` — no `.gstack/ship-policy.json`, so the default is one PR per wave; commits stay local (HEAD bf6ecf4). commit bf6ecf4
+
+### NOT in scope
+- **Deferred:**
+  - Gen-ed rule kind: TODOS.md (eng D21).
+  - Transcript upload: planner M3 (`semester-planner.md:192`). It will land on the O2 Completed editor.
+- **Rejected:**
+  - Scope reduction (CEO D1: HOLD chosen).
+  - Shared pop-up shell (eng D1).
+  - Structured chat context (eng D10). O1 adds only `active_term`.
+  - Tonight tile (eng D4).
+  - Live RMP calls per open (CEO D4).
+
+### What already exists
+See Eng Review Outputs, "What already exists". This review adds:
+- `checklistCourses` (`PlanPanel.js:125`), reused by O2;
+- `tool_context_for` / ToolContext, carrying `active_term` (O1);
+- `sources/cache.py`, caching ratings (C4).
+
+### Dream state delta
+After this plan, every tab is a workspace with chat beside it, the degree and semester planning is term-aware, and course, event and place detail is rich.
+
+Still missing compared with the 12-month ideal:
+- encoded gen-eds and a real Finish date (TODO);
+- transcript import (M3);
+- live UW meeting times (TODO);
+- a registration handoff.
+
+### Error & Rescue Registry
+
+```
+  METHOD/CODEPATH                    | WHAT CAN GO WRONG                 | CLASS / CODE
+  -----------------------------------|-----------------------------------|----------------------------
+  ChatProvider.send (stream)         | stream drop / 5xx                 | fetch reject / non-200
+  POST /api/planner/preview          | stale revision; bad op            | revision_conflict 409; EditError 422
+  POST /api/planner/redo             | nothing to redo; op now invalid   | 409 nothing_to_redo; EditError 422
+  GET  /api/planner/degree           | provider slow / failing           | facts TOO_SLOW / NO_ANSWER (per course)
+  PlannerContext edit queue (C3)     | cross-tab revision bump; 5xx      | 409; network error
+  apply_edit (term-aware, R13)       | course not offered in dest term   | validate notes (not raised)
+  GET /api/catalog/{id}/ratings (C4) | RMP timeout / token broken        | asyncio.TimeoutError; httpx.HTTPError
+  ical_events._event new fields      | malformed X-TRUMBA field / image  | ValueError on parse
+  import_places photo (R7)           | Commons 429 / missing licence     | HTTPError 429; missing extmetadata
+  /chat-stream active_term (O1)      | unknown term                      | (validated, dropped)
+
+  CLASS / CODE              | RESCUED? | RESCUE ACTION                         | USER SEES
+  --------------------------|----------|---------------------------------------|---------------------------------
+  stream drop               | Y        | provider keeps messages; existing err | chat error line in dock
+  revision_conflict (own)   | Y        | C3 queue prevents; preview refetch 1x | nothing / Fits refreshes
+  revision_conflict (other) | Y        | refetch + existing message            | "Updated from another tab"
+  EditError 422             | Y        | revert optimistic card (D8)           | "Couldn't save · Retry"
+  nothing_to_redo 409       | Y        | redo icon disabled                    | disabled button
+  TOO_SLOW / NO_ANSWER      | Y        | course unavailable + C5 warning log   | unknown credits/load for term
+  RMP timeout/HTTPError     | Y        | omit rating; cached miss short TTL    | no star
+  ValueError (feed field)   | Y        | drop that field only                  | tile not shown (D7)
+  Commons 429 / no licence  | Y        | skip photo; rerun fills               | sheet without photo
+  unknown active_term       | Y        | fall back to plan term                | normal chat answer
+```
+
+### Failure Modes Registry
+
+```
+  CODEPATH                 | FAILURE MODE            | RESCUED? | TEST? | USER SEES?                | LOGGED?
+  -------------------------|-------------------------|----------|-------|---------------------------|--------
+  ChatProvider             | stream drop mid-nav     | Y        | Y R11 | dock error                | existing
+  /preview                 | revision moved          | Y        | Y R2  | Fits refetches            | Y C5
+  /redo                    | op invalid now          | Y        | Y R4  | Couldn't save             | Y C5
+  /degree                  | one term slow           | Y        | Y R12 | term unknown              | Y C5
+  edit queue               | two fast drops          | Y        | Y C3  | both land                 | n/a
+  edit queue               | cross-tab change        | Y        | Y C3  | updated message           | existing
+  term-aware edit          | not offered in term     | Y        | Y R13 | card flagged              | n/a
+  ratings                  | RMP down                | Y        | Y C4  | no star                   | Y
+  event fields             | malformed field         | Y        | Y T9  | tile hidden               | Y
+  place import             | Commons 429             | Y        | Y R7  | no photo                  | Y
+  rollout                  | stale places in image   | Y        | Y O3  | photos present (smoke)    | n/a
+  active_term              | unknown term            | Y        | Y O1  | correct-term answer       | n/a
+  Completed editor         | set_profile 422         | Y        | Y O2  | Couldn't save · Retry     | existing
+```
+
+13 rows, 0 CRITICAL GAPS.
+
+### Diagrams
+
+1. **System architecture:** see Eng Review, "Architecture (Section 1)".
+2. **Data flow:** semester drop with shadow paths.
+```
+  drag card ─▶ PlannerContext queue (C3) ─▶ POST /edits {ops, expected_revision}
+     │ nil/empty op: client never enqueues        │ 409 own: impossible (queue)
+     ▼                                            │ 409 other tab: refetch + message
+  optimistic card ◀── 422/5xx: revert + toast ◀───┤
+                                                  ▼
+                       service.apply_edit ─▶ facts per destination term (R13, R12 batch)
+                                                  │ timeout: course unavailable + log (C5)
+                                                  ▼
+                                        store.commit_edit ─▶ new revision + undo entry
+                                                  ▼
+                                   view(term) ─▶ cards, gauges, week (R13 per-term report)
+```
+3. **State machine:** proposal, with the edit queue.
+```
+  none ──chat proposes──▶ pending ──Accept (queued)──▶ applied ──Undo──▶ (inverse edit, redo available)
+                │  ──Discard──▶ discarded
+                │  ──direct edit lands first──▶ stale (Discard only; D9)
+                └──new proposal──▶ replaced
+  Invalid: applying a stale or replaced proposal → 409 (store._target refuses)
+```
+4. **Error flow:** see the Error & Rescue Registry above.
+5. **Deployment sequence:** import places ×3 → commit geojson → build image → recreate backend → frontend → smoke (O3).
+6. **Rollback:** `git revert <wave commits>` → rebuild → recreate. Plan documents stay readable (no migration; the redo pointer is ignored by old code).
+
+### Stale Diagram Audit
+`backend/app/planner/CONTRACTS.md`'s diff block is stale once R16 lands (it lacks `blocks_in` / `blocks_out`); R16's accepted scope updates it. The design-doc diagrams in this file are current.
+
+### CEO Implementation Tasks
+These amend the eng tasks E1–E6.
+
+- [ ] **C-T1 (P1, human: ~4h / CC: ~20min)**: Planner UI. Remove the chat Plan toggle, PlanPanel and PlanSheet after the semester view and the Completed editor land.
+  - Surfaced by: C1, O2.
+  - Files: `frontend/src/pages/ChatPage.js`, `frontend/src/components/planner/PlanPanel.js`, `PlanSheet.js`, `PlanPanel.css`.
+  - Verify: the accept / discard / undo label tests run in the semester view suite; ChatPage has no Plan toggle.
+- [ ] **C-T2 (P1, human: ~1d / CC: ~40min)**: My degree. Completed editor (checklist, search, grade) through `set_profile`.
+  - Surfaced by: O2.
+  - Files: new `frontend/src/components/planner/CompletedEditor.js`, shared `checklistCourses`.
+  - Verify: a fresh account enters completed courses without chat.
+- [ ] **C-T3 (P1, human: ~4h / CC: ~20min)**: Planner client. FIFO edit queue in PlannerContext.
+  - Surfaced by: C3.
+  - Files: `frontend/src/contexts/PlannerContext.js`.
+  - Verify: two drops within 100ms both land; cross-tab 409 still shows the message.
+- [ ] **C-T4 (P2, human: ~4h / CC: ~20min)**: Catalog. Cached, capped ratings endpoint.
+  - Surfaced by: C4.
+  - Files: `backend/app/api/routes/catalog.py`, `backend/app/sources/cache.py`, `backend/app/tools/rate_my_professor.py`.
+  - Verify: pytest for cache hit, timeout omission and the 4-lookup cap.
+- [ ] **C-T5 (P2, human: ~2h / CC: ~10min)**: Observability. Deadline-miss warning and route log lines.
+  - Surfaced by: C5.
+  - Files: `backend/app/planner/facts.py`, `backend/app/api/routes/planner.py`.
+  - Verify: caplog tests.
+- [ ] **C-T6 (P1, human: ~4h / CC: ~25min)**: Chat. `active_term` from the semester view through ToolContext to `plan_summary` and `plan_suggest`.
+  - Surfaced by: O1.
+  - Files: `frontend/src/contexts/ChatContext.js`, `backend/app/api/routes/chat.py`, `backend/app/tools/__init__.py`, `backend/app/tools/plan_suggest.py`, `backend/app/planner/service.py`.
+  - Verify: with Fall 2027 open, suggestions are for Fall 2027.
+- [ ] **C-T7 (P1, human: ~1h / CC: ~10min)**: Rollout. Import places, commit, rebuild, smoke-test a photo for each school.
+  - Surfaced by: O3.
+  - Files: `scripts/import_places.py`, `schools/*/places.geojson`.
+  - Verify: `/api/places/{id}` returns `photo` for UW, UVA and CU.
+
+### CEO Completion Summary
+
+```
+  +====================================================================+
+  |            MEGA PLAN REVIEW — COMPLETION SUMMARY                   |
+  +====================================================================+
+  | Mode selected        | HOLD SCOPE                                  |
+  | System Audit         | plan replaces 1-day-old M1 panel; catch-all  |
+  |                      | course route removed (R6)                   |
+  | Step 0               | HOLD SCOPE; no new approach decision        |
+  | Section 1  (Arch)    | 1 issue (C1)                                |
+  | Section 2  (Errors)  | 10 error paths mapped, 0 GAPS               |
+  | Section 3  (Security)| 0 issues found, 0 High severity             |
+  | Section 4  (Data/UX) | 1 edge case unhandled → resolved (C3)       |
+  | Section 5  (Quality) | 0 issues found                              |
+  | Section 6  (Tests)   | Diagram produced (eng), 0 new gaps          |
+  | Section 7  (Perf)    | 1 issue (C4)                                |
+  | Section 8  (Observ)  | 1 gap (C5)                                  |
+  | Section 9  (Deploy)  | 1 risk flagged (O3)                         |
+  | Section 10 (Future)  | Reversibility: 4/5, debt items: 0 new       |
+  | Section 11 (Design)  | 0 new issues (design review 8/10)           |
+  +--------------------------------------------------------------------+
+  | NOT in scope         | written (7 items)                           |
+  | What already exists  | written                                     |
+  | Dream state delta    | written                                     |
+  | Error/rescue registry| 10 rows, 0 CRITICAL GAPS                    |
+  | Failure modes        | 13 total, 0 CRITICAL GAPS                   |
+  | TODOS.md updates     | 0 items proposed                            |
+  | Scope proposals      | 0 proposed, 0 accepted (HOLD)               |
+  | CEO plan             | skipped by mode                             |
+  | Outside voice        | outside review, completed (3 findings, 3 resolved)   |
+  | Lake Score           | 2/2 recommendations chose complete option   |
+  | Diagrams produced    | 6 (arch, data flow, state, error, deploy,   |
+  |                      | rollback)                                   |
+  | Stale diagrams found | 1 (CONTRACTS.md diff block, fixed by R16)   |
+  | Unresolved decisions | 0                                           |
+  | Reality rows         | 7/7 rows (PLAN_REALITY), 1 unverified       |
+  +====================================================================+
+```
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
-| Outside Review | Outside review `outside review exec` (plan-review + design phases) | Independent 2nd opinion | 2 | completed | plan-review: 5 findings (4 decisions R13–R16, 1 correction to R2); design: 11 findings folded into D3–D24 |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 27 issues, 0 critical gaps (all 16 decisions resolved; tasks E1–E6) |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | clean | mode: HOLD_SCOPE, 0 critical gaps (7 decisions: C1, C3–C5, O1–O3) |
+| Outside Review | Outside review `outside review exec` (plan-review ×2, design ×1) | Independent 2nd opinion | 3 | completed | CEO pass: 3 findings, 3 resolved, 0 unresolved; eng pass: 5 findings, 5 resolved; design pass: 11 findings, folded into D3–D24 |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 27 issues, 0 critical gaps (16 decisions resolved; mapped work E1–E6) |
 | Design Review | `/plan-design-review` | UI/UX gaps | 1 | clean | score: 3/10 → 8/10, 22 decisions |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
 - **OUTSIDE COVERAGE:**
-  - **Plan-review phase:** Outside review completed with 5 findings. All 5 were verified against code (`service.py:120`, `econ-ba.yaml:84`, `ModalManager.js:39`, `edits.py:354`, `edits.py:172`) and resolved.
-  - **Design phase:** Outside review completed with 11 findings, resolved in the design review.
-- **CROSS-MODEL:** The main review's sections found the single-owner chat state (R1), the saving preview (R2), the Tonight data gap (R3), redo (R4) and degree loading (R12). Outside review alone found:
-  - term-aware validation (R13), confirmed by a bounded investigation;
-  - over-claiming in the waffle (R14), confirmed;
-  - MUI `aria-hidden` on the dock (R15), confirmed in MUI 9.2.0 source;
-  - missing ghost blocks for moves (R16), confirmed;
-  - the R2 cache key, confirmed.
-
-  The two models agreed on the R2 / R10 direction. Outside review extended both.
-- **VERDICT:** DESIGN CLEARED. ENG REVIEWED: every decision is resolved and the status is issues_open only because mapped work remains (E1–E6). Ready to implement.
+  - **CEO plan-review:** Outside review completed with 3 findings: chat's active term (O1), the Completed-course editor (O2) and the rollout order (O3). All were verified against `service.py:233`, `plan_suggest.py:56`, `PlanPanel.js:125`, `Dockerfile:31` and `places.py:123`, and resolved.
+  - **Eng plan-review and design phases:** completed, as recorded above.
+- **CROSS-MODEL:**
+  - The main review's CEO sections found C1 (the old panel), C3 (rapid-drag 409s), C4 (live RMP) and C5 (silent timeouts).
+  - Outside review found three integration gaps that neither earlier pass caught (O1–O3). The O2 gap arose from C1, The main review's own removal decision.
+  - There were no disagreements once O2's investigation confirmed that no transcript path exists.
+- **VERDICT:** CEO + DESIGN CLEARED. Eng review is issues_open only for mapped implementation work (E1–E6 plus C-T1–C-T7), with 0 unresolved decisions. Ready to implement; eng review required to show CLEAR after implementation.
 
 NO UNRESOLVED DECISIONS
