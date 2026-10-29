@@ -13,17 +13,20 @@ small functions at the top, so tests replace them without a network or files.
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.core.database import get_database
-from app.planner import checker, edits, store
+from app.planner import checker, degree as degree_board, edits, store
 from app.planner.facts import CourseFacts, Provider, load_facts_by_term
 from app.planner.suggest import suggest
 
 logger = logging.getLogger(__name__)
 
 SUMMARY_LIMIT = 1500
+# One deadline for every fact batch, however many terms it spans (R8, R12).
+FACTS_BUDGET_S = 6.0
 
 # Replaced in tests; None means ``academics.course_facts``.
 facts_provider: Optional[Provider] = None
@@ -33,6 +36,13 @@ def default_term() -> str:
     from app.sources import academics
 
     return academics.next_term()
+
+
+def covered_terms() -> List[str]:
+    """Terms the school's course data covers (``academics.planner_terms``)."""
+    from app.sources import academics
+
+    return academics.planner_terms()
 
 
 def credit_limits() -> Optional[Dict[str, float]]:
@@ -74,9 +84,38 @@ def programs_for(school: str, program_ids: Sequence[str]) -> List[Any]:
 # ---------------------------------------------------------------------------
 
 
+def _same_term(term: Optional[str]) -> str:
+    return " ".join(str(term or "").split()).title()
+
+
+def _uncovered(fact: CourseFacts, term: str) -> CourseFacts:
+    """A course in a term past the data's coverage: what it is, but not when it runs."""
+    if fact.known != "yes":
+        return fact
+    return dataclasses.replace(fact, offered="unknown", sections=None, bundles_known=False,
+                               notes=[*fact.notes, f"No course data for {term} yet"])
+
+
 async def _facts_by_term(wanted: Dict[str, Sequence[str]], school: str) -> Dict[str, Dict[str, CourseFacts]]:
-    """``{term: {id: facts}}`` for ``{term: ids}``, all terms in one bounded batch (R12, R13)."""
-    return await load_facts_by_term({t: list(ids) for t, ids in wanted.items()}, provider=facts_provider)
+    """``{term: {id: facts}}`` for ``{term: ids}``, all terms in one bounded batch (R12, R13).
+
+    A term outside ``covered_terms()`` makes no provider call of its own: its
+    courses are looked up in the newest covered term and read offered
+    "unknown" with no sections. With no coverage list every term is asked.
+    """
+    covered = {_same_term(t): t for t in covered_terms()}
+    newest = list(covered.values())[-1] if covered else None
+    wanted = {t: list(dict.fromkeys(i for i in ids if i)) for t, ids in wanted.items()}
+    source = {t: t if not covered or _same_term(t) in covered else newest for t in wanted}
+    fetch: Dict[str, List[str]] = {}
+    for term, ids in wanted.items():
+        fetch[source[term]] = list(dict.fromkeys(fetch.get(source[term], []) + ids))
+    loaded = await load_facts_by_term(fetch, provider=facts_provider, budget_s=FACTS_BUDGET_S)
+    return {
+        term: {i: loaded[source[term]][i] if source[term] == term else _uncovered(loaded[source[term]][i], term)
+               for i in ids}
+        for term, ids in wanted.items()
+    }
 
 
 async def _facts(ids: Sequence[str], term: str, school: str) -> Dict[str, CourseFacts]:
@@ -120,6 +159,20 @@ async def view(user_id: str, school: str, term: Optional[str] = None) -> Dict[st
 # ---------------------------------------------------------------------------
 # Edits, proposals, undo
 # ---------------------------------------------------------------------------
+
+
+async def degree(user_id: str, school: str) -> Dict[str, Any]:
+    """The multi-term degree board (eng review R12, R14); shape in ``CONTRACTS.md``.
+
+    Every planned term's facts load in one bounded batch (shared deadline):
+    a term that misses it shows unknown credits and load.
+    """
+    plan = await _plan(get_database(), user_id, school)
+    by_term = await _facts_by_term(degree_board.facts_wanted(plan), school)
+    programs = programs_for(school, (plan.get("profile") or {}).get("program_ids") or [])
+    covered = {_same_term(t) for t in covered_terms()}
+    return degree_board.board(plan, by_term, programs, credit_limits=credit_limits(),
+                              covered=lambda t: not covered or _same_term(t) in covered)
 
 
 async def _validated_diff(

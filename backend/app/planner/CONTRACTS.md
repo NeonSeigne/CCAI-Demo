@@ -103,12 +103,38 @@ diff = {
 }
 ```
 
+## Degree board (`GET /api/planner/degree`, `planner/degree.py`)
+
+Facts for every planned term load in ONE bounded batch (shared 6s deadline,
+concurrency 8; eng review R12). Each planned course is read with its own
+term's facts, completed courses with the plan term's. A term outside
+`academics.planner_terms()` makes no provider call of its own: its courses
+are looked up in the newest covered term and read `offered: "unknown"` with
+no sections (`covered: false`). A term whose calls miss the deadline gets
+"unavailable" courses: credits `null`, credit status and load unknown.
+
+```
+degree = {
+  "revision": n, "term": "Spring 2027",            # the plan's term
+  "terms": [{                                      # plan term + every planned term, in term order
+    "term": "Fall 2027", "covered": bool,
+    "credits": {min, max, status, limits, reason}, # report credits for that term
+    "difficulty": {label, harder, graded, total},
+    "courses": [{"id", "title", "credits": [min, max]|null, "avg_gpa": n|null,
+                 "harder": bool|null, "offered": "yes"|"no"|"unknown",
+                 "requirements": [rule titles], "gen_ed": [str]|null}]}],
+  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term"}],
+  "rules": [report rule rows, across all terms],
+}
+```
+
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
+| GET | `/api/planner/degree` | | `degree` (above) |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
 | POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |

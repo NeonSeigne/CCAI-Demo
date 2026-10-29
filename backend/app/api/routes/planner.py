@@ -60,6 +60,12 @@ async def get_plan(
     return await _run(service.view(str(current_user.id), _school(), term))
 
 
+@router.get("/degree")
+async def get_degree(current_user: User = Depends(get_current_active_user)) -> Dict[str, Any]:
+    """Every planned term's credits, load and courses, plus completed courses and rules."""
+    return await _run(service.degree(str(current_user.id), _school()))
+
+
 @router.get("/programs")
 async def list_programs(current_user: User = Depends(get_current_active_user)):
     """Program files this school has, for the profile picker."""
