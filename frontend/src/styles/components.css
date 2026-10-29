@@ -1,6 +1,5 @@
 /* Theme tokens: see brand-tokens.css + md3-theme.css */
 
-/* Theme toggle removed — light-only */
 
 /* Homepage Styles */
 .homepage {
@@ -1665,4 +1664,306 @@
   .home-canvas-open {
     width: 100%;
   }
+}
+
+/* ==========================================================================
+   Shared components (DESIGN.md "Home colors"): buttons, chips, the segmented
+   control, tags, panels, menus and dialogs. Controls are fully round, panels
+   24px, menus 24px with 44px rows, dialogs 32px. Colours are roles only.
+   ========================================================================== */
+
+/* ---- Buttons --------------------------------------------------------------- */
+.cc-btn {
+  min-height: 42px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.cc-btn:hover:not(:disabled) { background: var(--raised); }
+.cc-btn:active:not(:disabled) { transform: scale(0.95); }
+.cc-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.cc-btn-primary { background: var(--signal); border-color: var(--signal); color: var(--on-signal); }
+.cc-btn-primary:hover:not(:disabled) { background: var(--signal-hover); border-color: var(--signal-hover); }
+
+.cc-btn-ghost { background: transparent; border-color: transparent; }
+
+.cc-btn-icon { width: 42px; padding: 0; }
+
+.cc-btn-hero { min-height: 48px; padding: 0 22px; font-size: 15.5px; }
+
+/* MUI's outlined button is the secondary button: ink on surface with a control
+   hairline (the theme would colour it signal, which is unreadable as text). */
+.MuiButton-outlined.MuiButton-root {
+  border-color: var(--control);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.MuiButton-outlined.MuiButton-root:hover { border-color: var(--control); background: var(--raised); }
+
+/* Text buttons are the ghost button. */
+.MuiButton-text.MuiButton-colorPrimary { color: var(--ink); }
+.MuiButton-text.MuiButton-colorPrimary:hover { background: var(--raised); }
+
+/* ---- Chips ------------------------------------------------------------------ */
+.cc-chip {
+  min-height: 36px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cc-chip:hover { background: var(--raised); }
+
+.cc-chip.is-on,
+.cc-chip[aria-pressed="true"],
+.cc-chip[aria-checked="true"] { background: var(--deep); border-color: var(--deep); color: var(--on-deep); }
+
+html[data-theme="dark"] .cc-chip.is-on,
+html[data-theme="dark"] .cc-chip[aria-pressed="true"],
+html[data-theme="dark"] .cc-chip[aria-checked="true"] {
+  background: var(--tint-strong);
+  border-color: var(--tint-strong);
+  color: var(--tint-ink);
+}
+
+/* ---- Segmented control ------------------------------------------------------ */
+.cc-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: var(--raised);
+}
+
+.cc-segmented > button,
+.cc-segmented > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cc-segmented > button:disabled { cursor: default; opacity: 0.6; }
+
+.cc-segmented > .is-on,
+.cc-segmented > [aria-pressed="true"],
+.cc-segmented > [aria-selected="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-rest);
+}
+
+/* ---- Tags ------------------------------------------------------------------- */
+.cc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cc-tag.is-done { background: var(--good-tint); color: var(--good); }
+.cc-tag.is-now { background: var(--tint); color: var(--tint-ink); }
+.cc-tag.is-plan { background: var(--raised); color: var(--muted); }
+
+/* ---- Panels ----------------------------------------------------------------- */
+.cc-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+  overflow: hidden;
+}
+
+.cc-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px 8px;
+}
+
+.cc-panel-head h2 {
+  margin: 0;
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Menus (MUI Menu / Popover and plain .cc-menu) ------------------------- */
+.cc-menu,
+.MuiMenu-paper.MuiPaper-root {
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  font-family: var(--font-app);
+}
+
+.MuiMenu-list.MuiList-root { padding: 0; }
+
+.cc-menu-item,
+.MuiMenu-paper .MuiMenuItem-root {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--r-lg);
+  color: var(--ink);
+  font-family: var(--font-app);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cc-menu-item .ms,
+.MuiMenu-paper .MuiMenuItem-root .ms { color: var(--muted); font-size: 21px; }
+
+.cc-menu-item:hover,
+.MuiMenu-paper .MuiMenuItem-root:hover { background: var(--raised); }
+
+.cc-menu-item.is-on,
+.cc-menu-item[aria-checked="true"],
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected,
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected:hover { background: var(--tint); color: var(--tint-ink); }
+
+.cc-menu-item.is-on .ms,
+.cc-menu-item[aria-checked="true"] .ms,
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected .ms {
+  color: var(--tint-ink);
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+}
+
+.cc-menu-value { margin-left: auto; color: var(--muted); font-size: 13.5px; }
+
+.cc-menu-sep,
+.MuiMenu-paper .MuiDivider-root { height: 1px; margin: 6px 4px; border: 0; background: var(--rule); }
+
+/* ---- Dialogs (AppDialog adds .cc-dialog) ------------------------------------ */
+.cc-dialog .MuiDialog-paper {
+  border-radius: var(--r-2xl);
+  font-family: var(--font-app);
+}
+
+/* The band header: the school's band colour with on-deep text. */
+.cc-dialog .MuiDialogTitle-root {
+  padding: 20px 24px 18px;
+  border-bottom: 0;
+  background: var(--band);
+  color: var(--on-deep);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cc-dialog .MuiDialogTitle-root .MuiIconButton-root { color: var(--on-deep-soft); }
+
+.cc-dialog .MuiDialogTitle-root .MuiIconButton-root:hover {
+  background: color-mix(in srgb, var(--on-deep) 12%, transparent);
+  color: var(--on-deep);
+}
+
+.cc-dialog .MuiDialogTitle-root :focus-visible { outline-color: var(--on-deep); }
+
+.cc-dialog .MuiDialogTitle-root + .MuiDialogContent-root { padding-top: 20px; }
+.cc-dialog .MuiDialogTitle-root + .MuiDialogActions-root { padding-top: 20px; }
+
+.cc-dialog .MuiDialogContentText-root { color: var(--muted); font-size: 15px; font-weight: 500; }
+
+.cc-confirm-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--on-deep) 12%, transparent);
+}
+
+/* Phones: a bottom sheet with 32px top corners. */
+@media (max-width: 767px) {
+  .cc-dialog.is-sheet .MuiDialog-container { align-items: flex-end; }
+
+  .cc-dialog.is-sheet .MuiDialog-paper {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+    margin: 0;
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Menus and the composer's + menu rise from the bottom edge. MUI places
+     popovers with inline top/left, hence !important. */
+  .MuiMenu-paper.MuiPaper-root,
+  .composer-plus-popover.MuiPaper-root {
+    top: auto !important;
+    bottom: 0;
+    left: 0 !important;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 8px 8px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    transform-origin: bottom center !important;
+  }
+
+  .cc-menu-item,
+  .MuiMenu-paper .MuiMenuItem-root { min-height: 52px; font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-btn { transition: none; }
 }

@@ -60,10 +60,12 @@ function useDocumentScrollLock(active) {
  *   defaults to `disableEnforceFocus` and `aria-modal="false"`, so Tab can
  *   reach the dock. Escape closes and focus returns to the trigger as usual.
  *   The document's scroll is locked while it's open (not the column's).
+ * - The root carries `cc-dialog` (components.css): the title is the band
+ *   header, and on phones the dialog is a bottom sheet unless `sheet={false}`.
  */
 const AppDialog = forwardRef(function AppDialog(
   {
-    leftInset = 0, rightInset = 0, container, slotProps, style, ...props
+    leftInset = 0, rightInset = 0, container, slotProps, style, className, sheet = true, ...props
   },
   ref,
 ) {
@@ -81,6 +83,7 @@ const AppDialog = forwardRef(function AppDialog(
       ref={ref}
       {...(inColumn ? { container, disableEnforceFocus: true, 'aria-modal': 'false' } : {})}
       {...props}
+      className={['cc-dialog', sheet && 'is-sheet', className].filter(Boolean).join(' ')}
       {...(inColumn ? { disableScrollLock: true } : {})}
       style={{ ...style, left, right }}
       slotProps={{
