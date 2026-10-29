@@ -28,7 +28,11 @@
     border: 1px solid var(--line);
     border-radius: 16px;
     background: var(--paper);
+    /* The list is the rail's; here it sits on the page, not the deep rail. */
+    --on-deep: var(--ink);
+    --on-deep-soft: var(--muted);
   }
+  .campus-phone-recent > .campus-recent { flex: 1; min-width: 0; }
 }
 
 /* ---- Main column --------------------------------------------------------- */
