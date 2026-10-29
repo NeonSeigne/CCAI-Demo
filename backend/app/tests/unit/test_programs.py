@@ -117,6 +117,11 @@ class ProgramFileTest(unittest.TestCase):
         self.assertBadFile(VALID.replace("id: lab", "id: intro"), "rules[intro].id")
         self.assertBadFile(VALID.replace("total_credits: 120", "total_credit: 120"), "total_credit")
         self.assertBadFile(VALID.replace("id: test-ba", "id: other"), "id")
+        self.assertBadFile(VALID.replace("total_credits: 120", "total_credits: 120\ncomplete: maybe"), "complete")
+
+    def test_complete_defaults_to_false(self):
+        self.assertFalse(programs.read_file(self.write(VALID)).complete)
+        self.assertTrue(programs.read_file(self.write(VALID.replace("total_credits: 120", "total_credits: 120\ncomplete: true"))).complete)
 
     def test_identifier_normalisation(self):
         self.assertEqual(programs.normalize_course("econ  2010"), "ECON 2010")
@@ -163,10 +168,12 @@ class ShippedProgramsTest(unittest.TestCase):
         self.assertEqual(rules["micro-theory"].min_grade, "C+")
         self.assertEqual((rules["electives-4000"].min_level, rules["electives-4000"].n), (4000, 2))
         self.assertTrue(program.notes)
+        self.assertFalse(program.complete)
 
     def test_uw_econ_loads(self):
         program = programs.get_program("uw-madison", "econ-ba")
         self.assertEqual(program.total_credits, 120)
+        self.assertFalse(program.complete)
         rules = {r.id: r for r in program.rules}
         self.assertEqual(rules["micro-theory"].courses, ("ECON 301", "ECON 311"))
         self.assertEqual(rules["core"].n, 2)

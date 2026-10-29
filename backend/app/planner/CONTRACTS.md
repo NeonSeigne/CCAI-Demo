@@ -31,6 +31,7 @@ catalog_year: 2026
 source_url: https://...
 checked_on: 2026-10-28
 total_credits: 120     # degree total-credit rule; omit if unknown
+complete: false        # the rules encode EVERY degree requirement (default false; gates Finish)
 rules:
   - id: intro
     title: Introductory economics
@@ -62,7 +63,7 @@ Mongo collection `plans`, unique index `(user_id, school)`:
              interests: { text: str, tags: [str] } },
   courses: [{ id, term, sections: [section ids]|null }],
   undo: { stack: [{ ops, inverse, label, revision }], pointer: int },
-  proposal: null | { id, base_revision, ops, summary, created_at, expires_at,
+  proposal: null | { id, base_revision, ops, summary, term|null, created_at, expires_at,
                      status: "pending"|"applied"|"discarded"|"replaced"|"expired" },
   updated_at }
 ```
@@ -99,31 +100,106 @@ diff = {
   "unknowns": [str],                    # "Prerequisites not published for UVA"
   "literal_differs": str|null,          # 11A: "You said drop; I moved ECON 3010 to fall"
   "added_courses": [report course rows], # title, credits, labels of proposed additions
-  "schedule": {"blocks": [...]},        # week blocks of proposed additions (dashed in the grid)
+  "schedule": {                         # the shown term's week (tab-workspaces R16)
+    "blocks_in": [...],                 # after-blocks of added, moved-in or re-sectioned courses (dashed)
+    "blocks_out": [...],                # before-blocks that disappear (faded)
+    "blocks": [...],                    # alias of blocks_in, for PlanPanel until it migrates
+  },
 }
 ```
+
+## Degree board (`GET /api/planner/degree`, `planner/degree.py`)
+
+Facts for every planned term load in ONE bounded batch (shared 6s deadline,
+concurrency 8; eng review R12). Each planned course is read with its own
+term's facts, completed courses with the plan term's. A term outside
+`academics.planner_terms()` makes no provider call of its own: its courses
+are looked up in the newest covered term and read `offered: "unknown"` with
+no sections (`covered: false`). A term whose calls miss the deadline gets
+"unavailable" courses: credits `null`, credit status and load unknown.
+
+```
+degree = {
+  "revision": n, "term": "Spring 2027",            # the plan's term
+  "terms": [{                                      # plan term + every planned term, in term order
+    "term": "Fall 2027", "covered": bool,
+    "credits": {min, max, status, limits, reason}, # report credits for that term
+    "difficulty": {label, harder, graded, total},
+    "courses": [{"id", "title", "credits": [min, max]|null, "avg_gpa": n|null,
+                 "harder": bool|null, "offered": "yes"|"no"|"unknown",
+                 "requirements": [rule titles], "gen_ed": [str]|null}]}],
+  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term"}],
+  "rules": [report rule rows, across all terms],
+  "waffle": {
+    "total_credits": n|null,                       # largest total_credits of the student's programs
+    "complete": bool,                              # every program file says complete: true
+    "groups": [{"program_id", "rule_id", "title", "status",   # one per encoded rule, file order
+                "size", "earned", "planned", "open",          # credits; earned + planned + open == size
+                "unknown_grade": n,                           # completed courses with no grade on record
+                "courses": [ids],                             # what the rule took (status follows these)
+                "counted_elsewhere": [ids]}],                 # taken, but credits counted by an earlier group
+                # last: {"program_id": null, "rule_id": null, "title": "Other credit", "status": null, ...}
+                # sized total_credits - (distinct rule credits + rules' open credits), never
+                # negative; only when total_credits is known. Sizes sum to total_credits.
+    "finish": "Fall 2028"|null,                    # only when complete AND nothing is open AND every rule is met
+  },
+}
+```
+
+Waffle groups (eng review R14) claim only what the program file encodes; there
+is no gen-ed group. A credits rule is sized by its `credits`; a course-count
+rule by the credits of the courses it took plus 3 per course still needed (a
+course with unknown credits counts 3). Each course's credits count once across
+the waffle: a course a `double_count` rule reuses is listed in that group but
+adds no credits there, so the earned sum is the distinct earned credits.
 
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| GET | `/api/planner/plan` | | `{plan, report, proposal: {…, diff}|null, undo_label}` |
+| GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label, redo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
-| POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label}`; 409 `revision_conflict` |
-| POST | `/api/planner/proposals` | `{ops, expected_revision}` | `{proposal (with diff)}` |
+| GET | `/api/planner/degree` | | `degree` (above) |
+| POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label, redo_label, notes}`; 409 `revision_conflict` |
+| POST | `/api/planner/preview` | `{ops, expected_revision, term?}` | `{diff, revision}`: the diff a proposal of `ops` would carry, seen in `term` (default the plan's); writes nothing, a pending proposal is untouched; 409 `revision_conflict`, 422 edit errors |
+| POST | `/api/planner/proposals` | `{ops, expected_revision, term?}` (diff shown in `term`, stored as `proposal.term` and reused by the accept recheck) | `{proposal (with diff)}` |
 | POST | `/api/planner/proposals/{id}/accept` | `{}` | `{plan, report}`; 409 `{status:"needs_review", proposal}` or `{status:"refused", reason}` |
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
-| POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label}` |
+| POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
+| POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
-`{"op":"move","course":id,"to_term":term}`, `{"op":"swap","out":id,"in":id}`,
+`{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the
+course's sections unless it names new ones), `{"op":"swap","out":id,"in":id}`,
 `{"op":"pick_section","course":id,"sections":[ids]}`,
 `{"op":"set_profile", ...profile fields}`.
-Errors: `unknown_course`, `couldnt_verify_course`, `revision_conflict`.
+Errors: `unknown_course`, `couldnt_verify_course`, `unknown_term`, `revision_conflict`.
+
+A client `term` (`GET /plan?term=`, `/preview`, `/proposals`) is matched case-
+and space-insensitively against `planner_terms()`, the plan's terms and the
+terms the ops name, and used in that spelling (`fall 2027` -> `Fall 2027`); an
+unknown term is 422 `unknown_term`.
+
+Every op is validated against the facts of the term it lands in (eng review
+R13): `add.term`, `move.to_term`, the current term of the course a `swap` or
+`pick_section` changes, otherwise `plan.term`. All terms an edit touches load
+in one bounded batch (`facts.load_facts_by_term`). A course added or moved
+into a term where it is not offered is kept, with the note
+"ECON 3010 isn't offered in Fall 2027" (edit `notes`, diff `unknowns`).
 
 ## Chat (lane D)
 
 Planning domain tool `plan_edit` (propose only) with `ToolContext(user_id, school)`
 passed by the dispatcher; visual type `proposed_change` carries the proposal
-with its diff; visual type `course_shortlist` carries suggestions.
+with its diff; visual type `course_shortlist` carries suggestions and the
+`term` they were checked for.
+
+The open semester (CEO review O1, eng re-review N2): `/chat-stream` takes an
+optional `active_term` ("Fall 2027"). `tool_context_for` keeps it only when it
+is one of `academics.planner_terms()` (in the school's spelling) and drops
+anything else, so `ToolContext.active_term` never comes from the model.
+With it, `plan_summary` says "planning Fall 2027", `plan_suggest` checks
+suggestions for that term, and `plan_edit` gives an `add` with no `term` that
+term and draws the proposal's diff for it (`proposal.term`). Without it everything uses `plan.term`. `GET /api/planner/suggestions`
+returns `{items, reason, term}`.

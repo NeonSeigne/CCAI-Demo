@@ -109,6 +109,13 @@ def clean_ops(ops: Any, options: Optional[Dict[str, str]] = None) -> List[Dict[s
     return cleaned
 
 
+def with_active_term(ops: List[Dict[str, Any]], term: Optional[str]) -> List[Dict[str, Any]]:
+    """An ``add`` with no term lands in the term open in the semester view (N2)."""
+    if not term:
+        return ops
+    return [dict(op, term=term) if op["op"] == "add" and not op.get("term") else op for op in ops]
+
+
 async def execute(
     *,
     name: str = "",
@@ -124,7 +131,8 @@ async def execute(
     """
     if context is None or not getattr(context, "user_id", None) or not getattr(context, "school", None):
         return dict(NO_CONTEXT)
-    cleaned = clean_ops(ops, dict(context.options or {}))
+    active_term = getattr(context, "active_term", None)
+    cleaned = with_active_term(clean_ops(ops, dict(context.options or {})), active_term)
     if not cleaned:
         return {"error": "No course edits given.", "code": "bad_op"}
     try:
@@ -134,6 +142,7 @@ async def execute(
             cleaned,
             asked=asked,
             base_revision=context.plan_revision,
+            term=active_term,
         )
     except store.RevisionConflict as exc:
         return {

@@ -31,15 +31,33 @@ router = APIRouter()
 session_manager = get_session_manager()
 
 
-def tool_context_for(user: User) -> Optional[ToolContext]:
-    """The tool context for *user*'s chat: their id and this deployment's school (R2).
+def known_planner_term(term: Optional[str]) -> Optional[str]:
+    """*term* as the school's planner names it, or None when it isn't one of
+    ``academics.planner_terms()`` (O1: the open term never comes from the model,
+    and an unknown one is dropped)."""
+    if not isinstance(term, str) or not term.strip():
+        return None
+    from app.sources import academics
+
+    wanted = " ".join(term.split()).title()
+    try:
+        terms = academics.planner_terms()
+    except Exception as exc:  # noqa: BLE001 — no term list, no open term
+        logger.warning("Planner terms unavailable (%r); dropping active_term", exc)
+        return None
+    return next((t for t in terms if " ".join(t.split()).title() == wanted), None)
+
+
+def tool_context_for(user: User, active_term: Optional[str] = None) -> Optional[ToolContext]:
+    """The tool context for *user*'s chat: their id, this deployment's school
+    (R2) and the semester open in the planner, when it is a known term (O1).
 
     ``None`` for a legacy config without a school slug (no planner there).
     """
     school = get_settings().school.slug
     if not school or getattr(user, "id", None) is None:
         return None
-    return ToolContext(user_id=str(user.id), school=school)
+    return ToolContext(user_id=str(user.id), school=school, active_term=known_planner_term(active_term))
 
 
 def _session_history(session: Any) -> List[Dict[str, Any]]:
@@ -99,6 +117,8 @@ class ChatMessage(BaseModel):
     response_length: str = "medium"
     active_advisors: Optional[List[str]] = None
     response_mode: ResponseMode = "panel"
+    # The term open in the semester view ("Fall 2027"); checked by tool_context_for.
+    active_term: Optional[str] = Field(default=None, max_length=40)
 
 class PanelResult(BaseModel):
     persona_id: str
@@ -219,7 +239,7 @@ async def chat_stream(
             # directly and skip persona generation.
             tool_result = await chat_orchestrator.get_tool_response(
                 message.user_input, llm_client=orchestrator_llm,
-                context=tool_context_for(current_user),
+                context=tool_context_for(current_user, message.active_term),
                 history=_session_history(session),
             )
             if tool_result.used_tool:

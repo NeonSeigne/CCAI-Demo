@@ -8,6 +8,7 @@ type: major
 catalog_year: 2026
 source_url: https://economics.virginia.edu/overview-major
 checked_on: 2026-10-28
+complete: false  # major rules only; College gen-ed and total credits aren't encoded
 rules:
   - id: intro
     title: Introductory economics

@@ -188,7 +188,7 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     }]
 
 
-_PROPOSAL_KEYS = ("id", "status", "summary", "ops", "diff", "base_revision", "created_at", "expires_at")
+_PROPOSAL_KEYS = ("id", "status", "summary", "ops", "diff", "term", "base_revision", "created_at", "expires_at")
 _SHORTLIST_KEYS = ("option_id", "id", "title", "why", "labels", "prereqs", "credits")
 
 
@@ -216,6 +216,8 @@ def _shortlist_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     return [{
         "type": "course_shortlist",
         "query": result.get("query") or "",
+        # The term the items were checked for; the card's Choose adds them there (N2).
+        "term": result.get("term"),
         "items": [{key: item.get(key) for key in _SHORTLIST_KEYS} for item in items],
     }]
 
