@@ -113,6 +113,9 @@ function GpaTrend({ history }) {
     12 + (1 - (v - lo) / (hi - lo)) * (H - 44),
   ]);
   const [lx, ly] = xy[xy.length - 1];
+  // About six term labels, counted back from the latest.
+  const step = Math.ceil(points.length / 6);
+  const labelled = (i) => (points.length - 1 - i) % step === 0;
 
   return (
     <div className="vc-trend">
@@ -128,7 +131,7 @@ function GpaTrend({ history }) {
         <polyline className="vc-trend-line" points={xy.map((p) => p.join(',')).join(' ')} />
         <circle className="vc-trend-dot" cx={lx} cy={ly} r={5} />
         <text className="vc-trend-value" x={lx - 8} y={ly - 10} textAnchor="end">{gpaText(values[values.length - 1])}</text>
-        {points.map((p, i) => (
+        {points.map((p, i) => labelled(i) && (
           <text key={p.term} className="vc-trend-term" x={xy[i][0]} y={H - 6} textAnchor="middle">{termShort(p.term)}</text>
         ))}
       </svg>

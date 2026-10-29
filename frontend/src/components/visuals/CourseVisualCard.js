@@ -81,6 +81,7 @@ function PrereqCard({ payload, tree, unlocks, onCourse }) {
         titles={titles}
         onOpenCourse={onCourse}
         label={heading}
+        size="tile"
       />
     </section>
   );
