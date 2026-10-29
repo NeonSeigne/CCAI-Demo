@@ -8,6 +8,7 @@ working.
 """
 
 import os
+import re
 import logging
 import colorsys
 from pathlib import Path
@@ -17,7 +18,7 @@ from colorhash import ColorHash
 
 import httpx
 import yaml
-from pydantic import BaseModel, validator, Field, model_validator
+from pydantic import BaseModel, validator, field_validator, Field, model_validator
 
 from app.utils.avatar_helpers import get_bundled_avatar_path
 from app.version import __version__
@@ -50,10 +51,47 @@ class FeatureConfig(_IconValidatorMixin):
     icon: str = "HelpCircle"
 
 
+THEME_ROLES = (
+    "deep", "deep_raised", "on_deep", "on_deep_soft",
+    "signal", "signal_hover", "on_signal",
+    "tint", "tint_strong", "tint_ink",
+    "band", "mark_bg", "mark_ink", "canvas",
+    "line_1", "line_2", "line_3",
+)
+# Shared data colours a school may override when its brand colour clashes
+# with one (UVA's orange vs student life, UW's red vs "harder").
+THEME_OVERRIDES = ("academics", "life", "campus", "easier", "typical", "harder")
+_HEX = re.compile(r"^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
+
+
+class ThemeConfig(BaseModel):
+    """A school's colours (DESIGN.md): one set of roles for light, one for dark.
+
+    The frontend writes each role as a CSS variable (``deep_raised`` becomes
+    ``--deep-raised``) and builds the MUI theme from the same values.
+    """
+    light: Dict[str, str]
+    dark: Dict[str, str]
+
+    @field_validator("light", "dark")
+    @classmethod
+    def _roles(cls, value, info):
+        missing = [r for r in THEME_ROLES if r not in value]
+        if missing:
+            raise ValueError(f"theme.{info.field_name} is missing {', '.join(missing)}")
+        unknown = [k for k in value if k not in THEME_ROLES and k not in THEME_OVERRIDES]
+        if unknown:
+            raise ValueError(f"theme.{info.field_name} has unknown roles: {', '.join(unknown)}")
+        bad = [k for k, v in value.items() if not isinstance(v, str) or not _HEX.match(v)]
+        if bad:
+            raise ValueError(f"theme.{info.field_name} needs #RRGGBB or #RRGGBBAA for: {', '.join(bad)}")
+        return {k: v.upper() for k, v in value.items()}
+
+
 class AppConfig(BaseModel):
     title: str = "Advisor Canvas"
     subtitle: str = "AI-Powered Guidance"
-    primary_color: str = "#7C3AED"
+    theme: Optional[ThemeConfig] = None
     logo_icon: str = "GraduationCap"
     institution: str = ""
     footer_text: str = ""

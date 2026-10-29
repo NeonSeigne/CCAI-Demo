@@ -7,6 +7,47 @@ school:
   timezone: America/Denver
   status: active
 
+app:
+  # School colours (DESIGN.md): every role for light and dark. The frontend writes
+  # each as a CSS variable and builds the MUI theme from the same values.
+  theme:
+    light:
+      deep: "#000000"
+      deep_raised: "#222222"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFFA8"
+      signal: "#CFB87C"
+      signal_hover: "#BDA365"
+      on_signal: "#000000"
+      tint: "#F4EEDD"
+      tint_strong: "#E7DAB5"
+      tint_ink: "#594819"
+      band: "#000000"
+      mark_bg: "#CFB87C"
+      mark_ink: "#000000"
+      canvas: "#F5F4F0"
+      line_1: "#2F5BEA"
+      line_2: "#A07A1E"
+      line_3: "#565A5C"
+    dark:
+      deep: "#000000"
+      deep_raised: "#1E1E1C"
+      on_deep: "#FFFFFF"
+      on_deep_soft: "#FFFFFF9E"
+      signal: "#CFB87C"
+      signal_hover: "#DCC995"
+      on_signal: "#000000"
+      tint: "#2B2617"
+      tint_strong: "#4A4022"
+      tint_ink: "#EADCB2"
+      band: "#000000"
+      mark_bg: "#CFB87C"
+      mark_ink: "#000000"
+      canvas: "#0E0E0C"
+      line_1: "#7EA1FF"
+      line_2: "#CFB87C"
+      line_3: "#A2A4A3"
+
 # Data stores (mongodb.database_name, rag.chroma_collection) come from the base
 # config and keep their existing names, so current users' chats and documents stay.
 
