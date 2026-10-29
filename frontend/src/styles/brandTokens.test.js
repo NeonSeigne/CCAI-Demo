@@ -75,7 +75,6 @@ const RAW_COLOUR_ALLOWED = {
   'components/Login.js': "Google's sign-in logo",
   'components/Signup.js': "Google's sign-in logo",
   'contexts/AppConfigContext.js': 'persona colours; callers append alpha suffixes',
-  'data/advisors.js': 'persona colours; callers append alpha suffixes',
 };
 
 const sourceFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

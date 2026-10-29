@@ -57,7 +57,6 @@ jest.mock('../components/AdvisorCarousel', () => (props) => (
 ));
 jest.mock('../components/MessageBubble', () => () => null);
 jest.mock('../components/ThinkingIndicator', () => () => null);
-jest.mock('../components/SuggestionsPanel', () => () => <div>Starter prompts</div>);
 jest.mock('../components/EnhancedChatInput', () => (props) => (
   <button type="button" onClick={() => props.onSendMessage('Plan my semester')}>
     Send test message
