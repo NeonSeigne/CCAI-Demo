@@ -47,6 +47,7 @@ class Program:
     checked_on: str = "2026-10-28"
     total_credits: Optional[int] = 120
     rules: Tuple[Rule, ...] = ()
+    complete: bool = False
 
 
 def course(identifier: str, **kw: Any) -> CourseFacts:

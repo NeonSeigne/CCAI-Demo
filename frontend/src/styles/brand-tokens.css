@@ -31,6 +31,50 @@ html[data-theme="light"],
   --focus-ring: 2px solid var(--ink);
   --focus-ring-offset: 2px;
 
+  /* Difficulty by average GPA (D14, D15): easier >= 3.4, harder < 3.0.
+     The plain colour is for graphics only; text uses -ink. */
+  --difficulty-easier: #1F9D55;
+  --difficulty-easier-ink: #156B3A;
+  --difficulty-easier-tint: #E3F4EA;
+  --difficulty-typical: #E8730C;
+  --difficulty-typical-ink: #8A4206;
+  --difficulty-typical-tint: #FDEEDF;
+  --difficulty-harder: #D92D20;
+  --difficulty-harder-ink: #B42318;
+  --difficulty-harder-tint: #FDECEA;
+
+  /* Course palette: one colour per planned course (codes, week blocks). */
+  --course-1: #2E7CF6;
+  --course-1-ink: #1A4FB0;
+  --course-1-tint: #E8F0FE;
+  --course-2: #6E56CF;
+  --course-2-ink: #4E36A8;
+  --course-2-tint: #EFEBFC;
+  --course-3: #0E9AA7;
+  --course-3-ink: #0A6971;
+  --course-3-tint: #DFF3F4;
+  --course-4: #D6336C;
+  --course-4-ink: #9C2754;
+  --course-4-tint: #FBE8EF;
+  --course-5: #1F9D55;
+  --course-5-ink: #156B3A;
+  --course-5-tint: #E3F4EA;
+  --course-6: #E8730C;
+  --course-6-ink: #8A4206;
+  --course-6-tint: #FDEEDF;
+
+  /* Gauges: the empty arc and the target band (12–18 credits). */
+  --gauge-track: #ECECE8;
+  --gauge-band: #A8DCBD;
+  --gauge-band-tint: #E3F4EA;
+  --gauge-needle: var(--ink);
+
+  /* Dark band at the top of the course and event pop-ups. */
+  --band-bg: #111114;
+  --band-text: #FFFFFF;
+  --band-text-soft: rgba(255, 255, 255, 0.66);
+  --band-line: rgba(255, 255, 255, 0.12);
+
   --font-app: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 

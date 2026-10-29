@@ -14,7 +14,10 @@ through the same three steps:
 3. ``inverse_ops`` and ``undo_label`` record how to walk the edit back.
 
 ``diff`` compares the reports before and after, and lists every rule whose
-counts or status change (R16), not only status flips.
+counts or status change (R16), not only status flips. Its week blocks show
+what an edit does to the shown term's week (tab-workspaces R16):
+``blocks_in`` are the after-blocks of every course whose blocks change
+(added, moved in, re-sectioned), ``blocks_out`` the before-blocks that go.
 """
 
 from __future__ import annotations
@@ -62,18 +65,57 @@ def _find(plan: Dict[str, Any], course_id: str) -> Optional[Dict[str, Any]]:
     return next((c for c in plan.get("courses") or [] if norm(c.get("id")) == wanted), None)
 
 
+def _verify_ids(op: Dict[str, Any]) -> List[str]:
+    """Course ids one op needs facts for (a move is checked where it lands)."""
+    kind = op.get("op")
+    if kind in ("add", "pick_section", "move"):
+        return [norm(op.get("course"))]
+    if kind == "swap":
+        return [norm(op.get("in"))]
+    if kind == "set_profile":
+        return [norm(c.get("id")) for c in op.get("completed") or [] if c.get("id")]
+    return []
+
+
 def courses_to_verify(ops: List[Dict[str, Any]]) -> List[str]:
     """Course ids whose facts ``validate_ops`` needs."""
-    ids: List[str] = []
+    ids = [i for op in ops for i in _verify_ids(op)]
+    return [i for i in dict.fromkeys(ids) if i]
+
+
+def destination_terms(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> List[str]:
+    """The term each op lands in (eng review R13): ``add.term``, ``move.to_term``,
+    the term of the course a ``swap`` or ``pick_section`` changes, otherwise
+    the plan's term. Ops are walked in order, as ``check_applies`` does."""
+    terms: List[str] = []
+    current = plan
     for op in ops:
         kind = op.get("op")
-        if kind in ("add", "pick_section"):
-            ids.append(norm(op.get("course")))
-        elif kind == "swap":
-            ids.append(norm(op.get("in")))
-        elif kind == "set_profile":
-            ids += [norm(c.get("id")) for c in op.get("completed") or [] if c.get("id")]
-    return [i for i in dict.fromkeys(ids) if i]
+        term = current.get("term")
+        if kind == "add" and op.get("term"):
+            term = op["term"]
+        elif kind == "move" and op.get("to_term"):
+            term = op["to_term"]
+        elif kind in ("swap", "pick_section"):
+            found = _find(current, op.get("out") if kind == "swap" else op.get("course"))
+            term = (found or {}).get("term") or term
+        terms.append(term)
+        if kind in OPS and kind != "set_profile":
+            try:
+                current = apply_ops(current, [op])
+            except (KeyError, TypeError, AttributeError):
+                pass  # a malformed op; ``check_applies`` reports it
+    return terms
+
+
+def verify_by_term(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """``{term: course ids}`` for ``validate_ops``, grouped by destination term."""
+    grouped: Dict[str, List[str]] = {}
+    for op, term in zip(ops, destination_terms(plan, ops)):
+        for course_id in _verify_ids(op):
+            if course_id and course_id not in grouped.setdefault(term, []):
+                grouped[term].append(course_id)
+    return grouped
 
 
 def _verify_identity(course_id: str, facts: Dict[str, CourseFacts]) -> None:
@@ -120,40 +162,58 @@ def check_applies(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> None:
         current = apply_ops(current, [op])
 
 
+def _not_offered(course_id: str, term: str, fact: Optional[CourseFacts]) -> List[str]:
+    if fact is not None and fact.known == "yes" and fact.offered == "no":
+        return [f"{course_id} isn't offered in {term}"]
+    return []
+
+
 def validate_ops(
-    plan: Dict[str, Any], ops: List[Dict[str, Any]], facts: Dict[str, CourseFacts]
+    plan: Dict[str, Any],
+    ops: List[Dict[str, Any]],
+    facts: Optional[Dict[str, CourseFacts]] = None,
+    *,
+    by_term: Optional[Dict[str, Dict[str, CourseFacts]]] = None,
 ) -> List[str]:
     """Validate ops for a new edit or proposal; returns notes to show with it.
 
-    Raises ``EditError`` for the first op that can't be applied.
+    ``by_term`` (``{term: facts}``, loaded for ``verify_by_term``) checks each
+    op against the facts of the term it lands in (R13); without it every op
+    is checked against ``facts``. A course added or moved into a term where
+    it isn't offered is kept, with a note. Raises ``EditError`` for the first
+    op that can't be applied.
     """
     if not ops:
         raise EditError("bad_op", "No edits given")
     check_applies(plan, ops)
     notes: List[str] = []
-    for op in ops:
+    for op, term in zip(ops, destination_terms(plan, ops)):
+        known = by_term.get(term, {}) if by_term is not None else (facts or {})
         kind = op["op"]
-        if kind == "add":
-            _verify_identity(norm(op["course"]), facts)
+        if kind in ("add", "move"):
+            course_id = norm(op["course"])
+            if kind == "add":
+                _verify_identity(course_id, known)
+            notes += _not_offered(course_id, term, known.get(course_id))
         elif kind == "swap":
-            _verify_identity(norm(op["in"]), facts)
+            _verify_identity(norm(op["in"]), known)
         elif kind == "pick_section":
             course_id = norm(op["course"])
-            _verify_identity(course_id, facts)
-            sections = facts[course_id].sections
+            _verify_identity(course_id, known)
+            sections = known[course_id].sections
             if sections is not None:
-                known = {s.id for s in sections}
-                bad = [s for s in op["sections"] if s not in known]
+                section_ids = {s.id for s in sections}
+                bad = [s for s in op["sections"] if s not in section_ids]
                 if bad:
                     raise EditError("unknown_section", f"{course_id} has no section {', '.join(bad)}", course_id)
         elif kind == "set_profile":
             for entry in op.get("completed") or []:
                 course_id = norm(entry.get("id"))
-                fact = facts.get(course_id)
+                fact = known.get(course_id)
                 if fact is None or fact.known != "yes":
                     # R12: the student's own record is kept, with a label.
                     notes.append(f"Couldn't verify {course_id}; kept as you entered it")
-    return notes
+    return list(dict.fromkeys(notes))
 
 
 # ---------------------------------------------------------------------------
@@ -161,8 +221,15 @@ def validate_ops(
 # ---------------------------------------------------------------------------
 
 
-def apply_ops(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """A new plan with ``ops`` applied in order; run ``check_applies`` first."""
+def apply_ops(
+    plan: Dict[str, Any], ops: List[Dict[str, Any]], *, keep_sections_on_move: bool = False
+) -> Dict[str, Any]:
+    """A new plan with ``ops`` applied in order; run ``check_applies`` first.
+
+    A ``move`` clears sections unless it names some. ``keep_sections_on_move``
+    keeps them instead when the op has no ``sections`` key: the pre-R13 rule,
+    for undo entries stored before moves recorded their sections.
+    """
     new = copy.deepcopy(plan)
     new.setdefault("courses", [])
     new.setdefault("profile", {})
@@ -176,6 +243,9 @@ def apply_ops(plan: Dict[str, Any], ops: List[Dict[str, Any]]) -> Dict[str, Any]
         elif kind == "move":
             course = _find(new, op["course"])
             course["term"] = op["to_term"]
+            # Sections belong to a term: a move keeps none unless it names new ones (R13).
+            if not (keep_sections_on_move and "sections" not in op):
+                course["sections"] = list(op["sections"]) if op.get("sections") else None
         elif kind == "swap":
             course = _find(new, op["out"])
             course["id"] = norm(op["in"])
@@ -201,7 +271,7 @@ def _inverse_one(plan: Dict[str, Any], op: Dict[str, Any]) -> Dict[str, Any]:
         return {"op": "add", "course": course["id"], "term": course.get("term"), "sections": course.get("sections")}
     if kind == "move":
         course = _find(plan, op["course"])
-        return {"op": "move", "course": course["id"], "to_term": course.get("term")}
+        return {"op": "move", "course": course["id"], "to_term": course.get("term"), "sections": course.get("sections")}
     if kind == "swap":
         course = _find(plan, op["out"])
         return {"op": "swap", "out": norm(op["in"]), "in": course["id"], "sections": course.get("sections")}
@@ -288,6 +358,26 @@ def _unknowns(report: Dict[str, Any], changed: Optional[set] = None, rule_ids: O
     return list(dict.fromkeys(found))
 
 
+def _blocks_by_course(report: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+    found: Dict[str, List[Dict[str, Any]]] = {}
+    for block in (report.get("schedule") or {}).get("blocks") or []:
+        found.setdefault(block.get("course"), []).append(block)
+    return found
+
+
+def schedule_change(before: Dict[str, Any], after: Dict[str, Any]) -> Dict[str, Any]:
+    """``{blocks_in, blocks_out, blocks}`` for the shown term's week.
+
+    A course whose blocks differ between the reports contributes its after
+    blocks to ``blocks_in`` and its before blocks to ``blocks_out``.
+    ``blocks`` repeats ``blocks_in`` for the clients that read the old name.
+    """
+    old, new = _blocks_by_course(before), _blocks_by_course(after)
+    blocks_in = [b for course, blocks in new.items() if blocks != old.get(course) for b in blocks]
+    blocks_out = [b for course, blocks in old.items() if blocks != new.get(course) for b in blocks]
+    return {"blocks_in": blocks_in, "blocks_out": blocks_out, "blocks": blocks_in}
+
+
 def _literal_differs(asked: Optional[str], ops: List[Dict[str, Any]]) -> Optional[str]:
     if not asked:
         return None
@@ -350,9 +440,9 @@ def diff(
         ))),
         "literal_differs": _literal_differs(asked, ops),
         # What the panel needs to draw a proposed addition: its report row
-        # (title, credits, labels) and its week blocks (design 1A, 18A).
+        # (title, credits, labels) and the week blocks that come and go
+        # (design 1A, 18A; tab-workspaces R16).
         "added_courses": [c for c in after.get("courses") or [] if c.get("id") in courses["added"]],
-        "schedule": {"blocks": [b for b in (after.get("schedule") or {}).get("blocks") or []
-                                if b.get("course") in courses["added"]]},
+        "schedule": schedule_change(before, after),
     }
 

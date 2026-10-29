@@ -1,0 +1,50 @@
+/* Drag and drop (design D8, D20). var() only. */
+
+.dnd-source { touch-action: manipulation; }
+.dnd-source.is-dragging { opacity: 0.5; }
+
+.dnd-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 280px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-app);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: var(--shadow-soft-md);
+  cursor: grabbing;
+}
+
+.dnd-target { border-radius: 10px; }
+
+.dnd-target.is-drop-ready {
+  outline: 2px dashed var(--domain-academics);
+  outline-offset: -2px;
+}
+
+.dnd-target.is-drop-over {
+  outline-style: solid;
+  background: var(--domain-academics-tint);
+}
+
+/* The Saved count rises once after a drop. */
+.campus-nav-count.is-pulsing { animation: dnd-pulse 600ms ease-out; }
+
+@keyframes dnd-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35) translateY(-2px); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campus-nav-count.is-pulsing {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--domain-academics);
+  }
+}

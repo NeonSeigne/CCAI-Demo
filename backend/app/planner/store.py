@@ -10,12 +10,14 @@ What lives here besides plain reads and writes:
 - **Idempotency keys.** An edit carries a key; a repeated key (a retried
   request) returns the plan as it is without applying the ops again. The last
   ``IDEMPOTENCY_KEEP`` keys are kept with the revision they produced.
-- **Undo** (design doc, Behavior details > Undo). The stack holds the
-  last ``UNDO_DEPTH`` non-undo edits; ``pointer`` counts how many of them can
-  still be undone. Undo writes a new revision applying the inverse at the
-  pointer and moves the pointer back one; undo revisions are never pushed, so
-  repeated Undo walks back through the stack. A new edit drops the steps after
-  the pointer. There is no redo.
+- **Undo and redo** (design doc, Behavior details > Undo; tab-workspaces
+  R4). The stack holds the last ``UNDO_DEPTH`` non-undo edits; ``pointer``
+  counts how many of them can still be undone. Undo writes a new revision
+  applying the inverse at the pointer and moves the pointer back one; undo
+  revisions are never pushed, so repeated Undo walks back through the stack.
+  Redo re-applies ``stack[pointer].ops`` as a new revision, through the same
+  checks as an edit, and moves the pointer forward one. A new edit drops the
+  steps after the pointer, so there is nothing left to redo.
 - **Proposals** (R9, R10). At most one is pending: a new one replaces the old,
   whose id is remembered as "replaced" so its card can't be accepted. A
   proposal expires ``PROPOSAL_TTL`` after it is made. Accept checks the id,
@@ -35,12 +37,17 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
+Validate = Callable[[Dict[str, Any], List[Dict[str, Any]]], Awaitable[Any]]
+
 from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from app.planner import edits
 
 UNDO_DEPTH = 20
+# Undo entries written since moves record their sections (R13). An entry with
+# no "v" predates that: its moves keep the course's sections when applied.
+UNDO_ENTRY_VERSION = 2
 IDEMPOTENCY_KEEP = 50
 PAST_PROPOSALS_KEEP = 20
 PROPOSAL_TTL = timedelta(hours=24)
@@ -150,6 +157,21 @@ def current_undo_label(plan: Dict[str, Any]) -> Optional[str]:
     return undo["stack"][pointer - 1]["label"] if pointer else None
 
 
+def _legacy(entry: Dict[str, Any]) -> bool:
+    """An undo entry stored before ``UNDO_ENTRY_VERSION``."""
+    return not entry.get("v")
+
+
+def current_redo_label(plan: Dict[str, Any]) -> Optional[str]:
+    """``"Redo: added ECON 3010"`` for the step after the pointer, else None."""
+    undo = plan.get("undo") or {}
+    stack, pointer = undo.get("stack") or [], undo.get("pointer", 0)
+    if pointer >= len(stack):
+        return None
+    label = stack[pointer]["label"]
+    return "Redo: " + label[len("Undo: "):] if label.startswith("Undo: ") else label
+
+
 async def commit_edit(
     db,
     user_id: str,
@@ -173,7 +195,7 @@ async def commit_edit(
     edits.check_applies(plan, ops)
     after = edits.apply_ops(plan, ops)
     entry = {"ops": ops, "inverse": edits.inverse_ops(plan, ops), "label": edits.undo_label(ops),
-             "revision": plan["revision"] + 1}
+             "revision": plan["revision"] + 1, "v": UNDO_ENTRY_VERSION}
     undo = plan.get("undo") or {"stack": [], "pointer": 0}
     stack = (undo["stack"][: undo["pointer"]] + [entry])[-UNDO_DEPTH:]
     keys = plan.get("idempotency") or []
@@ -198,9 +220,39 @@ async def undo(db, user_id: str, school: str, *, expected_revision: int) -> Dict
         edits.check_applies(plan, entry["inverse"])
     except edits.EditError as exc:
         raise Refused(f"Can't undo that: {exc.message}") from exc
-    after = edits.apply_ops(plan, entry["inverse"])
+    after = edits.apply_ops(plan, entry["inverse"], keep_sections_on_move=_legacy(entry))
     fields = {"courses": after["courses"], "profile": after["profile"],
               "undo": {"stack": undo_state["stack"], "pointer": pointer - 1}}
+    return await _write(db, plan, fields)
+
+
+async def redo(
+    db, user_id: str, school: str, *, expected_revision: int, validate: Optional[Validate] = None
+) -> Dict[str, Any]:
+    """Re-apply the edit after the undo pointer, as a new revision.
+
+    ``validate(plan, ops)`` runs the edit's own checks (course facts) and
+    raises ``edits.EditError`` when the step no longer applies; that, or a
+    step that doesn't fit the plan, is ``Refused`` with the reason.
+    """
+    plan = await load(db, user_id, school)
+    if plan["revision"] != expected_revision:
+        raise RevisionConflict(plan["revision"])
+    undo_state = plan.get("undo") or {"stack": [], "pointer": 0}
+    stack, pointer = list(undo_state["stack"]), undo_state["pointer"]
+    if pointer >= len(stack):
+        raise Refused("Nothing to redo")
+    ops = stack[pointer]["ops"]
+    try:
+        edits.check_applies(plan, ops)
+        if validate is not None:
+            await validate(plan, ops)
+    except edits.EditError as exc:
+        raise Refused(f"Can't redo that: {exc.message}") from exc
+    after = edits.apply_ops(plan, ops, keep_sections_on_move=_legacy(stack[pointer]))
+    stack[pointer] = dict(stack[pointer], inverse=edits.inverse_ops(plan, ops), revision=plan["revision"] + 1)
+    fields = {"courses": after["courses"], "profile": after["profile"],
+              "undo": {"stack": stack, "pointer": pointer + 1}}
     return await _write(db, plan, fields)
 
 
@@ -234,9 +286,11 @@ async def put_proposal(
     *,
     base_revision: int,
     diff: Dict[str, Any],
+    term: Optional[str] = None,
     now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
-    """Store a new pending proposal, replacing any earlier one."""
+    """Store a new pending proposal, replacing any earlier one. ``term`` is the
+    term its diff is shown in (None: the plan's)."""
     now = now or utcnow()
     plan = await load(db, user_id, school)
     if plan["revision"] != base_revision:
@@ -252,6 +306,7 @@ async def put_proposal(
         "ops": ops,
         "summary": diff.get("heading"),
         "diff": diff,
+        "term": term,
         "created_at": now,
         "expires_at": now + PROPOSAL_TTL,
         "status": "pending",

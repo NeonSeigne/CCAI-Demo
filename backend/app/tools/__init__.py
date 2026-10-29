@@ -48,13 +48,16 @@ class ToolContext:
 
     Built by the chat route, never by the model. The planning pass adds the
     revision of the plan summary the model saw (R9) and the shortlist's option
-    ids (R15) before it runs.
+    ids (R15) before it runs. ``active_term`` is the term open in the
+    semester view, checked against the school's planner terms by the route
+    (tab-workspaces O1); None when the student has none open.
     """
 
     user_id: str
     school: str
     plan_revision: Optional[int] = None
     options: Mapping[str, str] = field(default_factory=dict)
+    active_term: Optional[str] = None
 
 
 def _takes_context(executor: Callable) -> bool:

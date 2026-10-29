@@ -298,6 +298,15 @@
 
   .campus-tab.is-current { color: var(--ink); font-weight: 600; }
 
+  /* Ask is a button where it raises the chat dock's sheet (D17). */
+  button.campus-tab {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
   .campus-tab-icon { position: relative; display: inline-flex; }
 
   .campus-tab-icon .campus-nav-count {

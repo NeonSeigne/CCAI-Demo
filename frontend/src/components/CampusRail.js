@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Bookmark, CalendarDays, GraduationCap, LogOut, Map as MapIcon, MapPin, MessageCircle,
@@ -7,6 +8,9 @@ import {
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
+import { useChatDock } from '../contexts/ChatDockContext';
+import { useSavedDropTarget } from './dnd';
+import { useRailSlot } from './shell/PageColumnContext';
 import '../styles/CampusRail.css';
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -98,13 +102,47 @@ export function RecentChats({ recent, currentSessionId, onSelectSession, onShowA
   );
 }
 
-function SavedCount({ count }) {
+function SavedCount({ count, pulse = false }) {
   if (!count) return null;
   return (
-    <span className="campus-nav-count">
+    <span className={`campus-nav-count ${pulse ? 'is-pulsing' : ''}`.trim()}>
       {count}
       <span className="sr-only"> saved</span>
     </span>
+  );
+}
+
+function NavLink({ item, current, savedCount }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      to={item.to}
+      className={`campus-nav-link ${current ? 'is-current' : ''}`}
+      aria-current={current ? 'page' : undefined}
+    >
+      <Icon size={17} aria-hidden="true" />
+      <span className="campus-nav-label">{item.label}</span>
+      {item.counted && <SavedCount count={savedCount} />}
+    </Link>
+  );
+}
+
+/** Saved in the rail doubles as a drop target while a drag runs (D20). */
+function SavedNavItem({ item, current, savedCount }) {
+  const target = useSavedDropTarget();
+  const Icon = item.icon;
+  return (
+    <li ref={target.ref} className={target.className}>
+      <Link
+        to={item.to}
+        className={`campus-nav-link ${current ? 'is-current' : ''}`}
+        aria-current={current ? 'page' : undefined}
+      >
+        <Icon size={17} aria-hidden="true" fill={target.over ? 'currentColor' : 'none'} />
+        <span className="campus-nav-label">{item.label}</span>
+        <SavedCount count={savedCount} pulse={target.pulse} />
+      </Link>
+    </li>
   );
 }
 
@@ -133,6 +171,8 @@ export default function CampusRail({
   const savedCount = useSaved()?.count || 0;
   const ownRecent = useRecentChats(recentProp ? null : authToken, refreshTrigger);
   const recent = recentProp || ownRecent;
+  const dock = useChatDock();
+  const railSlot = useRailSlot();
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
@@ -143,62 +183,101 @@ export default function CampusRail({
     </span>
   );
 
+  const rail = (
+    <nav className={`campus-rail ${className}`} aria-label="Main">
+      <div className="campus-brand">
+        {brandMark}
+        <span className="campus-brand-name">Campus Companion</span>
+      </div>
+
+      <div className="campus-school">
+        <span className="campus-school-dot" aria-hidden="true" />
+        <span className="campus-school-name">{school}</span>
+      </div>
+
+      <ul className="campus-nav">
+        {NAV_ITEMS.map((item) => {
+          const current = isCurrent(item, pathname);
+          return item.counted ? (
+            <SavedNavItem key={item.to} item={item} current={current} savedCount={savedCount} />
+          ) : (
+            <li key={item.to}>
+              <NavLink item={item} current={current} savedCount={savedCount} />
+            </li>
+          );
+        })}
+      </ul>
+
+      <button type="button" className="campus-new-chat" onClick={onNewChat}>
+        <Plus size={18} /> New chat
+      </button>
+
+      <RecentChats
+        recent={recent}
+        currentSessionId={currentSessionId}
+        onSelectSession={onSelectSession}
+        onShowAllChats={onShowAllChats}
+      />
+
+      <div className="campus-user">
+        <span className="campus-avatar" aria-hidden="true">{initials}</span>
+        <span className="campus-user-name">{user?.firstName || 'You'}</span>
+        <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={onOpenSettings}>
+          <Settings2 size={18} />
+        </button>
+        <button type="button" className="campus-icon-btn" aria-label="Sign out" onClick={onSignOut}>
+          <LogOut size={18} />
+        </button>
+      </div>
+    </nav>
+  );
+
+  const tabbar = (
+    <nav className="campus-tabbar" aria-label="Main tabs">
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const current = isCurrent(item, pathname);
+        // Where the chat dock is available, Ask raises its sheet instead (D17).
+        if (item.to === '/home' && dock?.available) {
+          return (
+            <button
+              key={item.to}
+              ref={dock.askTabRef}
+              type="button"
+              className={`campus-tab ${dock.open ? 'is-current' : ''}`}
+              aria-expanded={dock.open}
+              onClick={() => (dock.open ? dock.closeDock() : dock.openDock())}
+            >
+              <span className="campus-tab-icon">
+                <Icon size={20} aria-hidden="true" />
+              </span>
+              <span className="campus-tab-label">{item.short}</span>
+            </button>
+          );
+        }
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            className={`campus-tab ${current ? 'is-current' : ''}`}
+            aria-current={current ? 'page' : undefined}
+          >
+            <span className="campus-tab-icon">
+              <Icon size={20} aria-hidden="true" />
+              {item.counted && <SavedCount count={savedCount} />}
+            </span>
+            <span className="campus-tab-label">{item.short}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  // Inside the app shell the rail and tab bar render in the shell's rail
+  // slot, outside the page column, so a pop-up there never hides them (R15).
   return (
     <>
-      <nav className={`campus-rail ${className}`} aria-label="Main">
-        <div className="campus-brand">
-          {brandMark}
-          <span className="campus-brand-name">Campus Companion</span>
-        </div>
-
-        <div className="campus-school">
-          <span className="campus-school-dot" aria-hidden="true" />
-          <span className="campus-school-name">{school}</span>
-        </div>
-
-        <ul className="campus-nav">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const current = isCurrent(item, pathname);
-            return (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  className={`campus-nav-link ${current ? 'is-current' : ''}`}
-                  aria-current={current ? 'page' : undefined}
-                >
-                  <Icon size={17} aria-hidden="true" />
-                  <span className="campus-nav-label">{item.label}</span>
-                  {item.counted && <SavedCount count={savedCount} />}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        <button type="button" className="campus-new-chat" onClick={onNewChat}>
-          <Plus size={18} /> New chat
-        </button>
-
-        <RecentChats
-          recent={recent}
-          currentSessionId={currentSessionId}
-          onSelectSession={onSelectSession}
-          onShowAllChats={onShowAllChats}
-        />
-
-        <div className="campus-user">
-          <span className="campus-avatar" aria-hidden="true">{initials}</span>
-          <span className="campus-user-name">{user?.firstName || 'You'}</span>
-          <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={onOpenSettings}>
-            <Settings2 size={18} />
-          </button>
-          <button type="button" className="campus-icon-btn" aria-label="Sign out" onClick={onSignOut}>
-            <LogOut size={18} />
-          </button>
-        </div>
-      </nav>
-
+      {railSlot ? createPortal(rail, railSlot) : rail}
       {/* Phones (<768px): slim header on top, tab bar at the bottom. */}
       <header className="campus-phone-header">
         {brandMark}
@@ -207,27 +286,7 @@ export default function CampusRail({
           <Settings2 size={18} />
         </button>
       </header>
-
-      <nav className="campus-tabbar" aria-label="Main tabs">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const current = isCurrent(item, pathname);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`campus-tab ${current ? 'is-current' : ''}`}
-              aria-current={current ? 'page' : undefined}
-            >
-              <span className="campus-tab-icon">
-                <Icon size={20} aria-hidden="true" />
-                {item.counted && <SavedCount count={savedCount} />}
-              </span>
-              <span className="campus-tab-label">{item.short}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {railSlot ? createPortal(tabbar, railSlot) : tabbar}
     </>
   );
 }

@@ -6,7 +6,7 @@ import { Menu, MessageCircle, Reply, X, Sparkles, FileText } from 'lucide-react'
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
-import ThinkingIndicator from '../components/ThinkingIndicator';
+import ChatThinking from '../components/chat/ChatThinking';
 import SettingsModal from '../components/SettingsModal';
 import ExportButton from '../components/ExportButton';
 import CampusRail from '../components/CampusRail';
@@ -28,6 +28,7 @@ import '../styles/ChatFrame.css';
 import AdvisorCarousel from '../components/AdvisorCarousel';
 import OnboardingTour from '../components/OnboardingTour';
 import muiTheme from '../theme/muiTheme';
+import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 
 const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
 
@@ -332,39 +333,7 @@ const ChatPageView = () => {
     }
   };
 
-  /** Group consecutive advisor messages so we can render them in a horizontal carousel */
-  const messageGroups = useMemo(() => {
-    const groups = [];
-    let i = 0;
-    while (i < messages.length) {
-      if (messages[i].type === 'advisor') {
-        const advisorGroup = [];
-        while (i < messages.length && messages[i].type === 'advisor') {
-          advisorGroup.push(messages[i]);
-          i++;
-        }
-        const aggregatedMessages = advisorGroup.filter(m => m.is_aggregated);
-        const panelMessages = advisorGroup.filter(m => !m.is_aggregated);
-        // Prefer the shared responseGroupId from non-aggregated messages;
-        // aggregated messages appended to the DB can land after a later
-        // exchange's advisors, so they must not pollute that group's key.
-        const responseGroupId =
-          advisorGroup.find(m => m.responseGroupId && !m.is_aggregated)?.responseGroupId ||
-          `legacy_${advisorGroup.map(m => m.id).join('_')}`;
-        groups.push({
-          type: 'advisor_group',
-          responseGroupId,
-          messages: advisorGroup,
-          panelMessages,
-          aggregatedMessages,
-        });
-      } else {
-        groups.push({ type: 'single', message: messages[i] });
-        i++;
-      }
-    }
-    return groups;
-  }, [messages]);
+  const messageGroups = useMemo(() => groupMessages(messages), [messages]);
 
   const handleInputSubmit = async (inputMessage) => {
   if (replyingTo) {
@@ -399,7 +368,6 @@ const ChatPageView = () => {
   const hasMessages = messages.length > 0;
   const hasConversationMessages = messages.some(isConversation);
 
-  const chatPlaceholder = config?.chat_page?.placeholder || 'Ask about courses, events or places';
   const firstQuestion = messages.find((m) => m.type === 'user')?.content;
   const chatTitle = firstQuestion || (hasMessages && currentSessionTitle) || 'New chat';
   const answerVisuals = latestVisuals(messages);
@@ -635,25 +603,7 @@ const ChatPageView = () => {
                       )
                     ))}
 
-                    {thinkingAdvisors.includes('system') && (
-                      <div className="orchestrator-thinking">
-                        <div className="thinking-bubble">
-                          <MessageCircle size={20} />
-                        </div>
-                        <div className="thinking-content">
-                          <span className="thinking-label">Thinking…</span>
-                          <div className="thinking-animation">
-                            <div className="dot"></div>
-                            <div className="dot"></div>
-                            <div className="dot"></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {thinkingAdvisors.filter(id => id !== 'system').map(advisorId => (
-                      <ThinkingIndicator key={advisorId} advisorId={advisorId} />
-                    ))}
+                    <ChatThinking thinkingAdvisors={thinkingAdvisors} />
 
                     <div ref={messagesEndRef} />
                   </div>
@@ -720,7 +670,7 @@ const ChatPageView = () => {
               placeholder={
                 replyingTo
                   ? `Reply to ${replyingTo.advisorName}...`
-                  : chatPlaceholder
+                  : chatPlaceholder(config)
               }
             />
           </div>

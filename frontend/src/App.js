@@ -8,6 +8,7 @@ import { SavedProvider } from './contexts/SavedContext';
 import { PlannerProvider } from './contexts/PlannerContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
+import AppShell from './components/shell/AppShell';
 import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
@@ -61,37 +62,39 @@ function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/search" element={<ChatSearchPage />} />
-        <Route path="/canvas" element={<CanvasPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route
-          path="/saved"
-          element={(
-            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading saved items…</div>}>
-              <SavedPage />
-            </Suspense>
-          )}
-        />
-        <Route
-          path="/map"
-          element={(
-            <Suspense fallback={<div className="auth-boot-screen" role="status">Loading map…</div>}>
-              <CampusMapPage />
-            </Suspense>
-          )}
-        />
-        <Route
-          path="/courses"
-          element={<Suspense fallback={pageFallback('Loading courses…')}><CoursesPage /></Suspense>}
-        />
-        {/* Before the redirect, so "compare" is never read as a course id. */}
-        <Route
-          path="/courses/compare"
-          element={<Suspense fallback={pageFallback('Loading compare…')}><CourseComparePage /></Suspense>}
-        />
-        <Route path="/courses/:courseIdentifier" element={<CourseRedirect />} />
+        <Route element={<AppShell />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/search" element={<ChatSearchPage />} />
+          <Route path="/canvas" element={<CanvasPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route
+            path="/saved"
+            element={(
+              <Suspense fallback={<div className="auth-boot-screen" role="status">Loading saved items…</div>}>
+                <SavedPage />
+              </Suspense>
+            )}
+          />
+          <Route
+            path="/map"
+            element={(
+              <Suspense fallback={<div className="auth-boot-screen" role="status">Loading map…</div>}>
+                <CampusMapPage />
+              </Suspense>
+            )}
+          />
+          <Route
+            path="/courses"
+            element={<Suspense fallback={pageFallback('Loading courses…')}><CoursesPage /></Suspense>}
+          />
+          {/* Before the redirect, so "compare" is never read as a course id. */}
+          <Route
+            path="/courses/compare"
+            element={<Suspense fallback={pageFallback('Loading compare…')}><CourseComparePage /></Suspense>}
+          />
+          <Route path="/courses/:courseIdentifier" element={<CourseRedirect />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<CatchAllRedirect />} />
