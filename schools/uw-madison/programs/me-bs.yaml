@@ -1,0 +1,120 @@
+# Drafted from https://guide.wisc.edu/undergraduate/engineering/mechanical-engineering/mechanical-engineering-bs/ ; needs a human check against the official page before the demo.
+# Guide 2026-2027 Mechanical Engineering B.S. curriculum (College of Engineering), for students admitted to the
+# degree program this Guide year; earlier admits follow the archived Guide. There is no B.A.
+# Cross-listed courses are listed under their M E number when they have one (e.g. M E/E M A 307 as M E 307),
+# otherwise under the first subject the Guide lists (e.g. COMP SCI/E C E 354 as COMP SCI 354).
+# Technical electives are approximated by course-count level rules; the Guide states them in credits.
+id: me-bs
+name: Mechanical Engineering B.S.
+type: major
+catalog_year: 2026
+source_url: https://guide.wisc.edu/undergraduate/engineering/mechanical-engineering/mechanical-engineering-bs/
+checked_on: 2026-10-29
+total_credits: 128
+complete: false  # technical electives by credit, math/science and liberal studies electives, the math/science auxiliary credit condition and Core GenEd aren't encoded
+rules:
+  - id: calculus
+    title: Calculus
+    kind: all_of
+    courses: [MATH 221, MATH 222, MATH 234]
+  - id: linear-algebra-de
+    title: Linear algebra and differential equations
+    kind: one_of_groups
+    groups:
+      - [MATH 320]
+      - [MATH 319, MATH 340]
+    notes:
+      - When MATH 319 and MATH 340 replace MATH 320, MATH 340 may count toward the Math/Science elective or non-ME technical electives.
+  - id: statistics
+    title: Statistics
+    kind: n_of
+    n: 1
+    courses: [STAT 324, I SY E 210]
+    notes:
+      - Transfer students may use another statistics course with a calculus prerequisite, with mechanical engineering department approval.
+  - id: chemistry
+    title: Chemistry
+    kind: n_of
+    n: 1
+    courses: [CHEM 103, CHEM 104, CHEM 109]
+  - id: computer-science
+    title: Computer science
+    kind: n_of
+    n: 1
+    courses: [COMP SCI 220, COMP SCI 300]
+    notes:
+      - COMP SCI 220 is preferred; COMP SCI 300 counts when another major or certificate needs it.
+  - id: physics
+    title: Physics
+    kind: all_of
+    courses: [PHYSICS 202]
+    notes:
+      - Students following the normal M E sequence need not take PHYSICS 201 for the PHYSICS 202 prerequisites.
+  - id: statics
+    title: Statics
+    kind: all_of
+    courses: [E M A 201]
+    min_grade: C
+  - id: materials
+    title: Materials science
+    kind: all_of
+    courses: [M S & E 350]
+  - id: intro-me
+    title: Introduction to mechanical engineering
+    kind: all_of
+    courses: [M E 201]
+    notes:
+      - Students who begin in another engineering major may count that major's introduction to engineering course.
+  - id: core-c-or-better
+    title: Core courses (C or better)
+    kind: all_of
+    courses: [E M A 202, E M A 303, M E 361]
+    min_grade: C
+  - id: me-core
+    title: Mechanical engineering core
+    kind: all_of
+    courses: [
+      M E 231, M E 307, M E 310, M E 311, M E 331, M E 340, M E 342, M E 351, M E 352,
+      M E 363, M E 364, M E 368, M E 370, M E 376,
+    ]
+    notes:
+      - M E 351 is fall only and M E 352 spring only, taken in sequence; an approved out-of-sequence exception also needs M E 353.
+  - id: technical-electives-me
+    title: ME or EMA technical elective
+    kind: level
+    n: 1
+    subjects: [M E, E M A]
+    min_level: 400
+    exclude: [M E 488, M E 489, M E 491, M E 492]
+    notes:
+      - At least 3 of the 12 technical elective credits must be formal M E or E M A courses numbered 400 and higher (not seminar, survey, independent study or research).
+  - id: technical-electives
+    title: Other technical electives
+    kind: level
+    n: 3
+    subjects: [M E, E M A, B M E, BSE, CBE, CIV ENGR, E C E, G L E, I SY E, M S & E, N E, MATH, PHYSICS, CHEM, STAT, COMP SCI]
+    min_level: 400
+    notes:
+      - The requirement is 12 technical elective credits in all, not a course count.
+      - Formal courses in engineering, mathematics, physics, chemistry, statistics and computer science numbered 400 and higher count; the engineering subjects listed here are the ones named on the Guide page, and INTEREGR and E P D courses count only when listed below.
+      - "Also accepted: ANAT&PHY 335, BIOCHEM 501, B M E 315, BSE 364, BSE 367, CBE 320, CBE 326, CHEM 341, CHEM 343, CHEM 345, CIV ENGR 311, CIV ENGR 320, CIV ENGR 330, CIV ENGR 340, CIV ENGR 370, CIV ENGR 392, CIV ENGR 415, CNSR SCI 357, CNSR SCI 555, COMP SCI 300, COMP SCI 320, COMP SCI 354, DS 341, E C E 320, E C E 330, E C E 340, E C E 342, E C E 352, E C E 353, E C E 355 or E C E 377, E C E 356, E P D 660, INFO SYS 371, INTEREGR 303, INTEREGR 477, I SY E 315, I SY E 323, I SY E 349, MATH 321, MATH 322, M E 273, M S & E 330, M S & E 332, M S & E 352, NAV SCI 301, N E 305, PHYSICS 205, PHYSICS 241, PHYSICS 311, PHYSICS 321, PHYSICS 322, PHYSICS 325, STAT 311, STAT 312, STAT 333, STAT 349, STAT 351."
+      - Up to 3 technical elective credits may come from non-formal courses such as independent study (M E 488, 489, 491, 492 and other engineering independent study numbered 399 and higher) and Cooperative Education (M E 1).
+      - Other courses may be proposed to an academic advisor for review by the ME curriculum committee.
+  - id: engr-comm-1
+    title: Engineering Communication 1
+    kind: n_of
+    n: 1
+    courses: [INTEREGR 156, ENGL 100, LSC 100, COM ARTS 100, ESL 118]
+  - id: engr-comm-2
+    title: Engineering Communication 2
+    kind: all_of
+    courses: [INTEREGR 397]
+notes:
+  - The curriculum totals 128 credits; students who finish all course requirements with fewer credits take free electives to reach 128.
+  - "Math/Science elective (not encoded): 3 credits from CHEM 104 or CHEM 109, any formal biological science course numbered 100 or higher, or any non-engineering formal course with physical or natural science breadth numbered 200 or higher. If the math/science auxiliary credit condition is met otherwise, a formal engineering course numbered 200 or higher (not INTEREGR or E P D) may be used."
+  - The math/science auxiliary credit condition requires at least 30 credits; the math and basic science courses (except computer science) count toward it.
+  - "Liberal Studies Electives (not encoded): 15 credits, per the College of Engineering Liberal Studies Requirements, including at least 6 credits with Humanities or Literature breadth, 3 credits with Social Sciences breadth, and one 3+ credit Ethnic Studies course."
+  - Pass/fail courses do not count toward specific degree requirements.
+  - Students enter by direct admission to the College of Engineering, with first-year progression requirements, or by cross-campus transfer application.
+  - "Honors in Research (not encoded): 3.3 cumulative GPA, M E 488 (or M E 491, E M A 488 or E M A 599), M E 489 with B or better, and a senior thesis."
+  - "University Core GenEd requirements (not encoded) apply to students starting Summer 2026 or later: 30 credits across Civics & Perspectives, Communication & Literacy, Humanities & Arts, Mathematics & Quantitative Reasoning, Natural Science & Wellness, and Social & Behavioral Science."

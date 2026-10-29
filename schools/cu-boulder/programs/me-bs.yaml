@@ -1,0 +1,160 @@
+# Drafted from https://catalog.colorado.edu/undergraduate/colleges-schools/engineering-applied-science/programs-study/mechanical-engineering/mechanical-engineering-bachelor-science-bsme/ ; needs a human check against the official page before the demo.
+# 2026-2027 University Catalog. ME technical elective rule from the department page
+# https://www.colorado.edu/mechanical/node/1987 (rules for students starting Fall 2024 or later).
+# General technical electives come from a department list not on the catalog page, so they are in notes.
+# The pages were read through a summarising fetch, not copied verbatim.
+id: me-bs
+name: Mechanical Engineering B.S.
+type: major
+catalog_year: 2026
+source_url: https://catalog.colorado.edu/undergraduate/colleges-schools/engineering-applied-science/programs-study/mechanical-engineering/mechanical-engineering-bachelor-science-bsme/
+checked_on: 2026-10-29
+total_credits: 128
+complete: false  # general technical electives, HSS/writing, free electives, FE exam and senior survey aren't encoded
+rules:
+  - id: cad
+    title: Computer-aided design
+    kind: n_of
+    n: 1
+    courses: [MCEN 1026, BMEN 1020, BMEN 1025, GEEN 1017, MCEN 1025]
+  - id: computing
+    title: Engineering computing
+    kind: n_of
+    n: 1
+    courses: [MCEN 1030, ASEN 1030, CSCI 1300, ECEN 1310]
+  - id: profession
+    title: ME as a profession
+    kind: all_of
+    courses: [MCEN 2000]
+  - id: statics
+    title: Statics and structures
+    kind: n_of
+    n: 1
+    courses: [MCEN 2023, ASEN 2401, CVEN 2121, GEEN 2851]
+  - id: materials
+    title: Materials science
+    kind: n_of
+    n: 1
+    courses: [MCEN 2024, GEEN 3024]
+  - id: fabrication
+    title: Introduction to fabrication
+    kind: n_of
+    n: 1
+    courses: [MCEN 2026, MCEN 1025]
+    notes:
+      - MCEN 1025 is listed as an alternative for both CAD and fabrication; the catalog page does not say whether it can count for both.
+  - id: dynamics
+    title: Dynamics
+    kind: n_of
+    n: 1
+    courses: [MCEN 2043, ASEN 2403, CVEN 3111, PHYS 3210]
+  - id: solids
+    title: Mechanics of solids
+    kind: n_of
+    n: 1
+    courses: [MCEN 2063, ASEN 3401, CVEN 3161]
+  - id: thermo-1
+    title: Thermodynamics
+    kind: n_of
+    n: 1
+    courses: [MCEN 3012, AREN 2110, ASEN 2402, EVEN 3012, GEEN 3852]
+  - id: circuits
+    title: Circuits and electronics
+    kind: one_of_groups
+    groups:
+      - [MCEN 3017]
+      - [ASEN 3503]
+      - [ECEN 2250, ECEN 2260, ECEN 2270]
+      - [ECEN 3010]
+      - [GEEN 3010]
+  - id: fluids
+    title: Fluid mechanics
+    kind: n_of
+    n: 1
+    courses: [MCEN 3021, AREN 2120, CHEN 3200, CVEN 3313]
+  - id: heat-transfer
+    title: Heat transfer
+    kind: n_of
+    n: 1
+    courses: [MCEN 3022, ASEN 3402, CHEN 3210]
+  - id: computational
+    title: Computational methods
+    kind: n_of
+    n: 1
+    courses: [MCEN 3030, APPM 4600, ASEN 3502, CSCI 3656]
+  - id: data-analysis
+    title: Data analysis and experimental methods
+    kind: n_of
+    n: 1
+    courses: [MCEN 3047, GEEN 3853]
+  - id: me-core
+    title: ME core
+    kind: all_of
+    courses: [MCEN 3025, MCEN 3032, MCEN 4026, MCEN 4043]
+  - id: senior-design
+    title: Senior design
+    kind: all_of
+    courses: [MCEN 4045, MCEN 4085]
+  - id: me-tech-electives
+    title: ME technical electives
+    kind: level
+    subjects: [MCEN]
+    min_level: 4000
+    n: 2
+    exclude: [MCEN 4026, MCEN 4043, MCEN 4045, MCEN 4085]
+    notes:
+      - The catalog asks for 6 credits of ME technical electives from the department list.
+      - For students starting Fall 2024 or later only MCEN courses count; the department page lists 4000- and 5000-level courses for undergraduates. MCEN 3208 does not count.
+  - id: calculus-1
+    title: Calculus 1
+    kind: n_of
+    n: 1
+    courses: [APPM 1350, APPM 1345, MATH 1300]
+  - id: calculus-2
+    title: Calculus 2
+    kind: n_of
+    n: 1
+    courses: [APPM 1360, MATH 2300]
+  - id: calculus-3
+    title: Calculus 3
+    kind: n_of
+    n: 1
+    courses: [APPM 2350, MATH 2400]
+  - id: differential-equations
+    title: Differential equations and linear algebra
+    kind: one_of_groups
+    groups:
+      - [APPM 2360]
+      - [MATH 2130, MATH 3430]
+      - [MATH 2135, MATH 3430]
+  - id: chemistry
+    title: Chemistry
+    kind: n_of
+    n: 1
+    courses: [MCEN 1024, CHEM 1113, CHEM 1400, CHEN 1201, CHEN 1203, CHEN 1211]
+  - id: physics-1
+    title: General Physics 1
+    kind: n_of
+    n: 1
+    courses: [PHYS 1110, PHYS 1115]
+  - id: physics-2
+    title: General Physics 2
+    kind: n_of
+    n: 1
+    courses: [PHYS 1120, PHYS 1125]
+  - id: physics-lab
+    title: Experimental physics
+    kind: all_of
+    courses: [PHYS 1140]
+  - id: engineering-projects
+    title: Engineering projects
+    kind: n_of
+    n: 1
+    courses: [GEEN 1400, GEEN 2400, GEEN 3400, ASEN 1400, ASEN 1403, ECEN 1400]
+notes:
+  - "General technical electives: 6 credits from the department's General Technical Electives list."
+  - "Humanities, social sciences and writing: one Writing course (3 credits) and 15 HSS credits, at least 6 of them upper-division, under the college requirements."
+  - "Free electives: at least 6 credits to reach the 128-credit minimum."
+  - A required course that is a prerequisite or corequisite for another required course needs C- or better; other required courses need D- or better.
+  - A class can count toward only one requirement in the major.
+  - A professional exam (usually the FE exam; GRE, MCAT, LSAT or GMAT also approved) and the college Senior Survey are required to graduate.

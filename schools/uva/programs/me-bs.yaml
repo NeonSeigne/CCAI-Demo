@@ -1,0 +1,52 @@
+# Drafted from https://uvacsadvising.org/bscs.html ; needs a human check against the official page before the demo.
+# Only the School of Engineering general requirements are encoded. The source above (UVA CS Advising Guide) lists them as
+# "the unified set of general requirements for all engineering majors". The Mechanical Engineering sources
+# (engineering.virginia.edu B.S. page and ME curriculum PDFs) answered with a Cloudflare challenge, and the Undergraduate
+# Record (records.ureg.virginia.edu) with a bot challenge, on 2026-10-29, so the ME core, electives and degree total were not read.
+# Add the MAE core from https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/mechanical-engineering-undergraduate-program/bs-mechanical-engineering
+# or the Record as part of the human check.
+id: me-bs
+name: Mechanical Engineering B.S.
+type: major
+catalog_year: 2026
+source_url: https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/mechanical-engineering-undergraduate-program/bs-mechanical-engineering
+checked_on: 2026-10-29
+complete: false  # SEAS general requirements only; the ME core, ME electives, HSS and unrestricted electives and degree total aren't encoded
+rules:
+  - id: calculus
+    title: Calculus
+    kind: all_of
+    courses: [APMA 1090, APMA 1110, APMA 2120]
+    notes:
+      - APMA 1090 is required for students matriculating Fall 2025 and after.
+  - id: chemistry
+    title: Chemistry with lab
+    kind: all_of
+    courses: [CHEM 1410, CHEM 1411]
+  - id: physics
+    title: Physics with labs
+    kind: one_of_groups
+    groups:
+      - [PHYS 1425, PHYS 1429, PHYS 2415, PHYS 2419]
+      - [PHYS 1425, PHYS 1429, ECE 2200]
+    notes:
+      - ECE 2200 as an alternative to PHYS 2415/2419 comes from the all-majors general requirements on uvacsadvising.org; the ME curriculum page itself was not readable.
+  - id: intro-programming
+    title: Introduction to programming
+    kind: n_of
+    n: 1
+    courses: [CS 1110, CS 1111, CS 1112, CS 1113]
+  - id: engineering-foundations
+    title: Engineering foundations
+    kind: all_of
+    courses: [ENGR 1010, ENGR 1020]
+  - id: sts
+    title: Engineering ethics and thesis (STS)
+    kind: all_of
+    courses: [STS 2600, STS 4500, STS 4600]
+    notes:
+      - STS 4500 and STS 4600 are taken in the fall and spring of the fourth year.
+notes:
+  - The SEAS general requirements also include a 3-credit math/science elective and 9 credits of humanities or social science electives, not encoded.
+  - Mechanical Engineering core courses, design sequence and electives are not encoded; the official ME pages could not be read.
+  - Total degree credits were not read, so total_credits is omitted.

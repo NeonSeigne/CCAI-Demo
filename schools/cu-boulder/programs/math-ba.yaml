@@ -1,0 +1,89 @@
+# Drafted from https://catalog.colorado.edu/undergraduate/colleges-schools/arts-sciences/programs-study/mathematics/mathematics-bachelor-arts-ba/ ; needs a human check against the official page before the demo.
+# 2026-2027 University Catalog. The B.A. has five tracks; this file encodes the core and the
+# Comprehensive track only. The other tracks (Applicable, Secondary Education, Computational,
+# Statistics) are summarised in notes. The page was read through a summarising fetch, not copied verbatim.
+id: math-ba
+name: Mathematics B.A.
+type: major
+catalog_year: 2026
+source_url: https://catalog.colorado.edu/undergraduate/colleges-schools/arts-sciences/programs-study/mathematics/mathematics-bachelor-arts-ba/
+checked_on: 2026-10-29
+total_credits: 120
+complete: false  # major core and Comprehensive track only; other tracks and A&S Gen Ed aren't encoded
+rules:
+  - id: calculus-1
+    title: Calculus 1
+    kind: n_of
+    n: 1
+    courses: [MATH 1300, MATH 1310, APPM 1350]
+    min_grade: C-
+  - id: calculus-2
+    title: Calculus 2
+    kind: n_of
+    n: 1
+    courses: [MATH 2300, APPM 1360]
+    min_grade: C-
+  - id: calculus-3
+    title: Calculus 3
+    kind: n_of
+    n: 1
+    courses: [MATH 2400, APPM 2350]
+    min_grade: C-
+  - id: proofs
+    title: Discrete mathematics
+    kind: n_of
+    n: 1
+    courses: [MATH 2001, MATH 2002]
+    min_grade: C-
+  - id: linear-algebra
+    title: Linear algebra
+    kind: all_of
+    courses: [MATH 2135]
+    min_grade: C-
+  - id: analysis
+    title: Analysis 1
+    kind: all_of
+    courses: [MATH 3001]
+    min_grade: C-
+  - id: algebra
+    title: Abstract algebra
+    kind: all_of
+    courses: [MATH 3140]
+    min_grade: C-
+    notes:
+      - Comprehensive track.
+  - id: advanced-course
+    title: Advanced analysis or algebra
+    kind: n_of
+    n: 1
+    courses: [MATH 4140, MATH 4001]
+    min_grade: C-
+    notes:
+      - Comprehensive track.
+  - id: electives
+    title: Upper-division electives
+    kind: level
+    subjects: [MATH]
+    min_level: 3000
+    n: 3
+    exclude: [MATH 3001, MATH 3140]
+    min_grade: C-
+    notes:
+      - Comprehensive track, 9 credits. Approved APPM courses also count.
+  - id: electives-4000
+    title: Electives at the 4000 level
+    kind: level
+    subjects: [MATH]
+    min_level: 4000
+    n: 1
+    double_count: true
+    notes:
+      - Encodes "at least one at the 4000 level"; this course is among the three electives, not extra.
+notes:
+  - Core plus track is 36-40 credits.
+  - C- or better in each core and track course, and at least a C average in all mathematics work attempted.
+  - "Applicable track: MATH 4510, MATH 3430, MATH 4520 or 4470, and two upper-division MATH or approved APPM electives."
+  - "Secondary Education track: MATH 3110 or 3140, MATH 3120, 3210, 3510 and 4820. It does not give a teaching license."
+  - "Computational track: CSCI 1300 and CSCI 2270 (ancillary, outside major hours and GPA), CSCI 3104, MATH 3430, MATH/APPM 4650, and two MATH, approved APPM or approved CSCI electives, at least one at the 4000 level."
+  - "Statistics track: MATH 4510, 4520, 4540, and two of APPM 4560, APPM 4590, MATH 6550, STAT 4000, STAT 4010, STAT 4610."
+  - "A&S degree requirements (not encoded; from https://catalog.colorado.edu/undergraduate/colleges-schools/arts-sciences/policies-requirements/): 120 credits, 45 upper-division, 45 at CU Boulder with 30 upper-division A&S, 2.00 GPA overall and in the major, and Gen Ed (World Language, Quantitative Reasoning, Written Communication, 12 credits each of Arts & Humanities, Natural Sciences with a lab and Social Sciences, U.S. and Global Perspective)."

@@ -1,0 +1,82 @@
+# Drafted from https://guide.wisc.edu/undergraduate/letters-science/computer-sciences/computer-sciences-bs/ ; needs a human check against the official page before the demo.
+# Guide 2026-2027, Computer Sciences major paired with the L&S B.S. The major requirements are the same with the
+# B.A. (the page says the major pairs with either degree).
+# Cross-listed courses are listed under their COMP SCI number (e.g. COMP SCI/E C E 252 as COMP SCI 252), except
+# STAT/MATH 309 and 431, which are listed under both subjects (as in econ-ba.yaml).
+id: cs-bs
+name: Computer Sciences B.S.
+type: major
+catalog_year: 2026
+source_url: https://guide.wisc.edu/undergraduate/letters-science/computer-sciences/computer-sciences-bs/
+checked_on: 2026-10-29
+total_credits: 120
+complete: false  # major rules only; L&S breadth, language, residency and Core GenEd aren't encoded
+rules:
+  - id: calculus
+    title: Foundational math
+    kind: all_of
+    courses: [MATH 221, MATH 222]
+  - id: basic-cs
+    title: Basic computer sciences
+    kind: all_of
+    courses: [COMP SCI 240, COMP SCI 252, COMP SCI 300, COMP SCI 354, COMP SCI 400]
+  - id: linear-algebra
+    title: Linear algebra
+    kind: n_of
+    n: 1
+    courses: [MATH 320, MATH 340, MATH 345, MATH 341, MATH 375]
+  - id: probability-statistics
+    title: Probability or statistics
+    kind: n_of
+    n: 1
+    courses: [STAT 309, MATH 309, STAT 311, STAT 324, MATH 331, STAT 333, STAT 340, STAT 371, STAT 431, MATH 431, MATH 531]
+  - id: theory
+    title: Theory of computer science
+    kind: n_of
+    n: 1
+    courses: [COMP SCI 577, COMP SCI 520]
+  - id: software-hardware
+    title: Software and hardware
+    kind: n_of
+    n: 2
+    courses: [
+      COMP SCI 407, COMP SCI 506, COMP SCI 536, COMP SCI 538, COMP SCI 537, COMP SCI 542,
+      COMP SCI 544, COMP SCI 552, COMP SCI 557, COMP SCI 564, COMP SCI 574, COMP SCI 640,
+      COMP SCI 642,
+    ]
+    notes:
+      - COMP SCI 536 and COMP SCI 538 are listed as one choice (536 or 538).
+  - id: applications
+    title: Applications
+    kind: n_of
+    n: 1
+    courses: [
+      COMP SCI 412, COMP SCI 425, COMP SCI 513, COMP SCI 514, COMP SCI 524, COMP SCI 525,
+      COMP SCI 540, COMP SCI 541, COMP SCI 559, COMP SCI 565, COMP SCI 566, COMP SCI 570,
+      COMP SCI 571,
+    ]
+  - id: electives
+    title: Electives
+    kind: n_of
+    n: 2
+    courses: [
+      COMP SCI 407, COMP SCI 412, COMP SCI 425, COMP SCI 435, COMP SCI 471, COMP SCI 475,
+      COMP SCI 506, COMP SCI 513, COMP SCI 514, COMP SCI 518, COMP SCI 520, COMP SCI 524,
+      COMP SCI 525, COMP SCI 526, COMP SCI 532, COMP SCI 533, COMP SCI 536, COMP SCI 537,
+      COMP SCI 538, COMP SCI 539, COMP SCI 540, COMP SCI 541, COMP SCI 542, COMP SCI 544,
+      COMP SCI 550, COMP SCI 552, COMP SCI 557, COMP SCI 559, COMP SCI 561, COMP SCI 564,
+      COMP SCI 565, COMP SCI 566, COMP SCI 567, COMP SCI 570, COMP SCI 571, COMP SCI 574,
+      COMP SCI 576, COMP SCI 577, COMP SCI 579, COMP SCI 580, COMP SCI 620, COMP SCI 640,
+      COMP SCI 642, COMP SCI 639,
+    ]
+    notes:
+      - A COMP SCI course fulfills only one major requirement area (theory, software and hardware, applications or electives).
+notes:
+  - The major requires a minimum of 39 credits (basic computer sciences, additional mathematics and advanced computer science courses); MATH 221 and 222 are listed separately as foundational math.
+  - Minimum 2.000 GPA in all COMP SCI courses and courses counting toward the major.
+  - Minimum 2.000 GPA on 15 upper-level credits taken in residence; COMP SCI courses numbered 400-699 count as upper level.
+  - At least 15 COMP SCI credits taken on campus.
+  - "To declare: credit for COMP SCI 300 and MATH 222, a grade of BC or higher in COMP SCI 300, COMP SCI/E C E 354 or COMP SCI 400 taken at UW-Madison, and a 2.250 GPA in major declaration eligible coursework."
+  - "Honors in the major (not encoded): 3.300 University GPA, 3.500 GPA in COMP SCI and major courses, one COMP SCI 500-699 course taken for Honors with B or better, and COMP SCI 681 and 682 (6 credits)."
+  - "L&S B.S. degree requirements (not encoded): 120 credits, 108 in Liberal Arts and Science coursework, 60 at the Intermediate or Advanced level, 30 credits in residence and 30 in residence after the 86th credit, 2.000 GPA overall and in Intermediate/Advanced coursework, Communication A and B, Quantitative Reasoning A and B, one Ethnic Studies course, the third unit of a language other than English, two Intermediate/Advanced MATH, COMP SCI or STAT courses of 3+ credits (at most one each in COMP SCI and STAT), and breadth (12 Humanities including 6 Literature, 12 Social Science, 12 Natural Science including 6 Biological and 6 Physical Science)."
+  - "University Core GenEd requirements (not encoded) apply to students starting Summer 2026 or later: 30 credits across Civics & Perspectives, Communication & Literacy, Humanities & Arts, Mathematics & Quantitative Reasoning, Natural Science & Wellness, and Social & Behavioral Science."

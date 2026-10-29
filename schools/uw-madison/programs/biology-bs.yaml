@@ -1,0 +1,179 @@
+# Drafted from https://guide.wisc.edu/undergraduate/letters-science/integrative-biology/biology-bs/ ; needs a human check against the official page before the demo.
+# Guide 2026-2027, Biology major in the College of Letters & Science (not the CALS Biology B.S., which has its own
+# page and college rules), standard major paired with the L&S B.S. The major requirements are the same with the
+# B.A. (the page says the major pairs with either degree). The Evolutionary Biology named option is not covered.
+# Cross-listed courses are listed under their BIOLOGY number when they have one (e.g. BIOLOGY/BOTANY/ZOOLOGY 151 as
+# BIOLOGY 151), otherwise under the first subject the Guide lists (e.g. BIOCHEM/NUTR SCI 510 as BIOCHEM 510).
+# PATH-BIO 307 (category D) is left out of the rules because the program format doesn't accept hyphenated subjects.
+id: biology-bs
+name: Biology B.S.
+type: major
+catalog_year: 2026
+source_url: https://guide.wisc.edu/undergraduate/letters-science/integrative-biology/biology-bs/
+checked_on: 2026-10-29
+total_credits: 120
+complete: false  # major rules only; Additional Lab or Field Research, 31 biology credits, L&S breadth, language, residency and Core GenEd aren't encoded
+rules:
+  - id: calculus
+    title: Calculus
+    kind: n_of
+    n: 1
+    courses: [MATH 221, MATH 211]
+  - id: statistics
+    title: Statistics
+    kind: n_of
+    n: 1
+    courses: [STAT 240, STAT 301, STAT 324, STAT 371]
+  - id: general-chemistry
+    title: General chemistry
+    kind: one_of_groups
+    groups:
+      - [CHEM 103, CHEM 104]
+      - [CHEM 109]
+      - [CHEM 115, CHEM 116]
+  - id: organic-chemistry
+    title: Organic chemistry
+    kind: all_of
+    courses: [CHEM 343, CHEM 344, CHEM 345]
+  - id: physics-1
+    title: First-semester physics
+    kind: n_of
+    n: 1
+    courses: [PHYSICS 103, PHYSICS 201, PHYSICS 207]
+  - id: physics-2
+    title: Second-semester physics
+    kind: n_of
+    n: 1
+    courses: [PHYSICS 104, PHYSICS 202, PHYSICS 208]
+  - id: intro-biology
+    title: Introductory biology
+    kind: one_of_groups
+    double_count: true
+    groups:
+      - [BIOLOGY 151, BIOLOGY 152]
+      - [BIOCORE 381, BIOCORE 382, BIOCORE 383, BIOCORE 384, BIOCORE 485]
+      - [BIOLOGY 101, BIOLOGY 102, BIOLOGY 130]
+    notes:
+      - BIOCORE 381 and BIOCORE 383 may count toward both Introductory biology and the Foundation course.
+  - id: foundation
+    title: Foundation course
+    kind: one_of_groups
+    groups:
+      - [BIOCHEM 501]
+      - [BIOCHEM 508]
+      - [BIOCORE 381, BIOCORE 383]
+      - [GENETICS 466]
+      - [GENETICS 468]
+      - [MICROBIO 470]
+    notes:
+      - A course used for the Foundation requirement may not also count as Upper-Level Breadth.
+  - id: upper-level-breadth
+    title: Upper-level breadth
+    kind: credits_from
+    credits: 13
+    courses: [
+      # A. Cellular and Molecular Biology
+      AN SCI 336, AN SCI 362, AN SCI 366, BIOCHEM 501, BIOCHEM 507, BIOCHEM 508, BIOCHEM 510, BIOCHEM 560,
+      BIOCHEM 575, BIOCHEM 601, BIOCHEM 612, BIOCHEM 620, BIOCHEM 621, BIOCHEM 625, BIOCHEM 631, BMOLCHEM 668,
+      BOTANY 505, CRB 640, CRB 670, DERM 601, DERM 602, GENETICS 466, GENETICS 467, GENETICS 520, GENETICS 525,
+      GENETICS 527, GENETICS 588, GENETICS 605, GENETICS 627, GENETICS 650, GENETICS 662, H ONCOL 410,
+      MICROBIO 345, MICROBIO 470, MICROBIO 523, MICROBIO 626, M M & I 341, M M & I 528, NEURODPT 610,
+      NEURODPT 629, ONCOLOGY 640, PLANTSCI 340, PHM SCI 254, PHM SCI 558, ZOOLOGY 370, ZOOLOGY 444,
+      ZOOLOGY 470, ZOOLOGY 523, ZOOLOGY 555, ZOOLOGY 570, ZOOLOGY 604, ZOOLOGY 655,
+      # B. Organismal Biology
+      AN SCI 373, AN SCI 377, AN SCI 434, ANAT&PHY 335, ANAT&PHY 337, ANAT&PHY 338, ANAT&PHY 435, ANTHRO 619,
+      BIOCORE 486, BOTANY 300, BOTANY 330, BOTANY 332, BOTANY 333, BOTANY 402, BOTANY 500, CS&D 503,
+      DY SCI 378, ENTOM 302, ENTOM 321, ENTOM 331, F&W ECOL 520, F&W ECOL 521, GENETICS 545, GENETICS 565,
+      GEOSCI 542, KINES 314, MICROBIO 303, MICROBIO 304, MICROBIO 526, M M & I 301, M M & I 350, NTP 611,
+      NUTR SCI 431, NUTR SCI 631, ONCOLOGY 401, PATH 404, PSYCH 406, PSYCH 414, PSYCH 454, PSYCH 513,
+      ZOOLOGY 303, ZOOLOGY 403, ZOOLOGY 430, ZOOLOGY 611, ZOOLOGY 612, ZOOLOGY 620,
+      # C. Ecology
+      AGROECOL 370, ANTHRO 444, AN SCI 420, BOTANY 450, BOTANY 455, BOTANY 460, BOTANY 473, BOTANY 516,
+      ENTOM 344, ENTOM 450, ENTOM 490, ENVIR ST 361, F&W ECOL 448, F&W ECOL 550, F&W ECOL 551, F&W ECOL 565,
+      F&W ECOL 660, GENETICS 528, MICROBIO 335, PL PATH 300, PL PATH 315, ZOOLOGY 304, ZOOLOGY 315,
+      ZOOLOGY 316, ZOOLOGY 320, ZOOLOGY 333, ZOOLOGY 510, ZOOLOGY 511,
+      # D. Evolution and Systematics
+      ANTHRO 302, ANTHRO 304, ANTHRO 410, ANTHRO 411, ANTHRO 458, ANTHRO 603, BIOLOGY 522, BOTANY 305,
+      BOTANY 400, BOTANY 401, BOTANY 422, BOTANY 563, ENTOM 432, ENTOM 624, ENVIR ST 360, GENETICS 468,
+      GENETICS 633, MICROBIO 450, MICROBIO 520, MICROBIO 525, PSYCH 449, PSYCH 450, ZOOLOGY 300,
+      ZOOLOGY 301, ZOOLOGY 415, ZOOLOGY 425,
+      # E. Applied Biology, Agriculture and Natural Resources
+      A A E 350, AGROECOL 377, AMER IND 474, AN SCI 311, AN SCI 320, AN SCI 361, BIOCORE 587, B M E 430,
+      B M E 619, BOTANY 403, DY SCI 471, ENTOM 351, ENTOM 371, ENVIR ST 471, ENVIR ST 502, ENVIR ST 581,
+      F&W ECOL 306, F&W ECOL 410, F&W ECOL 458, F&W ECOL 548, F&W ECOL 561, FOOD SCI 324, FOOD SCI 325,
+      GENETICS 548, M&ENVTOX 625, MED PHYS 265, MED PHYS 651, MICROBIO 357, MICROBIO 425, M M & I 554,
+      NUTR SCI 332, PATH 501, PLANTSCI 263, PLANTSCI 300, PLANTSCI 302, PLANTSCI 338, PLANTSCI 360,
+      PLANTSCI 370, PLANTSCI 378, PLANTSCI 501, PLANTSCI 532, PLANTSCI 550, PL PATH 517, SOIL SCI 323,
+      SOIL SCI 621, ZOOLOGY 335,
+    ]
+    notes:
+      - PATH-BIO 307 (category D) also counts.
+      - At least 2 credits must come from an unused category (A, B, C, D or E), beyond the A or B and C or D credits.
+  - id: breadth-a-or-b
+    title: Breadth from A or B
+    kind: credits_from
+    credits: 2
+    double_count: true
+    courses: [
+      AN SCI 336, AN SCI 362, AN SCI 366, BIOCHEM 501, BIOCHEM 507, BIOCHEM 508, BIOCHEM 510, BIOCHEM 560,
+      BIOCHEM 575, BIOCHEM 601, BIOCHEM 612, BIOCHEM 620, BIOCHEM 621, BIOCHEM 625, BIOCHEM 631, BMOLCHEM 668,
+      BOTANY 505, CRB 640, CRB 670, DERM 601, DERM 602, GENETICS 466, GENETICS 467, GENETICS 520, GENETICS 525,
+      GENETICS 527, GENETICS 588, GENETICS 605, GENETICS 627, GENETICS 650, GENETICS 662, H ONCOL 410,
+      MICROBIO 345, MICROBIO 470, MICROBIO 523, MICROBIO 626, M M & I 341, M M & I 528, NEURODPT 610,
+      NEURODPT 629, ONCOLOGY 640, PLANTSCI 340, PHM SCI 254, PHM SCI 558, ZOOLOGY 370, ZOOLOGY 444,
+      ZOOLOGY 470, ZOOLOGY 523, ZOOLOGY 555, ZOOLOGY 570, ZOOLOGY 604, ZOOLOGY 655,
+      AN SCI 373, AN SCI 377, AN SCI 434, ANAT&PHY 335, ANAT&PHY 337, ANAT&PHY 338, ANAT&PHY 435, ANTHRO 619,
+      BIOCORE 486, BOTANY 300, BOTANY 330, BOTANY 332, BOTANY 333, BOTANY 402, BOTANY 500, CS&D 503,
+      DY SCI 378, ENTOM 302, ENTOM 321, ENTOM 331, F&W ECOL 520, F&W ECOL 521, GENETICS 545, GENETICS 565,
+      GEOSCI 542, KINES 314, MICROBIO 303, MICROBIO 304, MICROBIO 526, M M & I 301, M M & I 350, NTP 611,
+      NUTR SCI 431, NUTR SCI 631, ONCOLOGY 401, PATH 404, PSYCH 406, PSYCH 414, PSYCH 454, PSYCH 513,
+      ZOOLOGY 303, ZOOLOGY 403, ZOOLOGY 430, ZOOLOGY 611, ZOOLOGY 612, ZOOLOGY 620,
+    ]
+    notes:
+      - Part of the 13 upper-level breadth credits; a course used for the Foundation requirement doesn't count here.
+  - id: breadth-c-or-d
+    title: Breadth from C or D
+    kind: credits_from
+    credits: 2
+    double_count: true
+    courses: [
+      AGROECOL 370, ANTHRO 444, AN SCI 420, BOTANY 450, BOTANY 455, BOTANY 460, BOTANY 473, BOTANY 516,
+      ENTOM 344, ENTOM 450, ENTOM 490, ENVIR ST 361, F&W ECOL 448, F&W ECOL 550, F&W ECOL 551, F&W ECOL 565,
+      F&W ECOL 660, GENETICS 528, MICROBIO 335, PL PATH 300, PL PATH 315, ZOOLOGY 304, ZOOLOGY 315,
+      ZOOLOGY 316, ZOOLOGY 320, ZOOLOGY 333, ZOOLOGY 510, ZOOLOGY 511,
+      ANTHRO 302, ANTHRO 304, ANTHRO 410, ANTHRO 411, ANTHRO 458, ANTHRO 603, BIOLOGY 522, BOTANY 305,
+      BOTANY 400, BOTANY 401, BOTANY 422, BOTANY 563, ENTOM 432, ENTOM 624, ENVIR ST 360, GENETICS 468,
+      GENETICS 633, MICROBIO 450, MICROBIO 520, MICROBIO 525, PSYCH 449, PSYCH 450, ZOOLOGY 300,
+      ZOOLOGY 301, ZOOLOGY 415, ZOOLOGY 425,
+    ]
+    notes:
+      - Part of the 13 upper-level breadth credits; a course used for the Foundation requirement doesn't count here.
+      - PATH-BIO 307 (category D) also counts.
+  - id: breadth-lab
+    title: Approved lab course
+    kind: n_of
+    n: 1
+    double_count: true
+    courses: [
+      PHM SCI 254, PHM SCI 558, ZOOLOGY 555, ZOOLOGY 604, AN SCI 377, AN SCI 434, ANAT&PHY 335, ANAT&PHY 338,
+      ANAT&PHY 435, BIOCORE 486, BOTANY 300, BOTANY 330, BOTANY 332, BOTANY 402, BOTANY 500, DY SCI 378,
+      ENTOM 302, ENTOM 331, F&W ECOL 521, GENETICS 545, KINES 314, MICROBIO 304, ZOOLOGY 430, ZOOLOGY 612,
+      BOTANY 455, BOTANY 460, F&W ECOL 551, PL PATH 300, PL PATH 315, ZOOLOGY 316, ZOOLOGY 320, ZOOLOGY 511,
+      BOTANY 305, BOTANY 400, BOTANY 401, ENTOM 432, MICROBIO 525, ZOOLOGY 301, ENVIR ST 581, F&W ECOL 306,
+      F&W ECOL 561, FOOD SCI 324,
+    ]
+    notes:
+      - Must be one of the upper-level breadth courses.
+      - ENTOM/ZOOLOGY 371 and F&W ECOL 410 meet the lab requirement only when taken for the 4th credit.
+notes:
+  - Minimum 31 credits of Biological Science courses within Introductory biology, the Foundation course, Upper-level breadth and Additional Lab or Field Research.
+  - Unless stated otherwise, a course may not be used to meet more than one requirement of the major.
+  - "Additional Lab or Field Research (not encoded), one of: one more approved lab course plus at least 2 credits from categories A-E; at least 2 credits of approved directed study in a biological science (after completing Introductory biology); or an approved two-semester thesis in biological science."
+  - Minimum 2.000 GPA in all BIOLOGY and major courses.
+  - Minimum 2.000 GPA on at least 15 credits of upper-level major work in residence; the Foundation course and Upper-level breadth count as upper level.
+  - At least 15 credits in the major taken on the UW-Madison campus.
+  - Students may complete only one Biology major or named option.
+  - Biology may not be combined in a double major with the Molecular and Cell Biology major or the Neurobiology major.
+  - "Honors in the major (not encoded): 3.300 University GPA and 3.300 GPA in the major, 13 credits of Foundation and Upper-level breadth taken for Honors, B or better in every Honors course, and an approved two-semester Senior Honors Thesis (6 credits)."
+  - "L&S B.S. degree requirements (not encoded): 120 credits, 108 in Liberal Arts and Science coursework, 60 at the Intermediate or Advanced level, 30 credits in residence and 30 in residence after the 86th credit, 2.000 GPA overall and in Intermediate/Advanced coursework, Communication A and B, Quantitative Reasoning A and B, one Ethnic Studies course, the third unit of a language other than English, two Intermediate/Advanced MATH, COMP SCI or STAT courses of 3+ credits (at most one each in COMP SCI and STAT), and breadth (12 Humanities including 6 Literature, 12 Social Science, 12 Natural Science including 6 Biological and 6 Physical Science)."
+  - "University Core GenEd requirements (not encoded) apply to students starting Summer 2026 or later: 30 credits across Civics & Perspectives, Communication & Literacy, Humanities & Arts, Mathematics & Quantitative Reasoning, Natural Science & Wellness, and Social & Behavioral Science."

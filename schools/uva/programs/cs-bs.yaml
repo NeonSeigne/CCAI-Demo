@@ -1,0 +1,92 @@
+# Drafted from https://uvacsadvising.org/bscs.html ; needs a human check against the official page before the demo.
+# The UVA CS Advising Guide page (last updated 2026-10-27) and its checklist https://uvacsadvising.org/materials/uva-bscs-checklist.pdf
+# (students matriculating Fall 2025 and later). The page says the Undergraduate Record is the official source; the Record page
+# (https://records.ureg.virginia.edu/preview_program.php?catoid=72&poid=11700) answered automated requests with a bot challenge,
+# and engineering.virginia.edu answered with a Cloudflare challenge on 2026-10-29, so neither was read.
+# Chose the School of Engineering B.S. in Computer Science, not the College B.A.
+id: cs-bs
+name: Computer Science B.S.
+type: major
+catalog_year: 2026
+source_url: https://uvacsadvising.org/bscs.html
+checked_on: 2026-10-29
+complete: false  # math/science elective, HSS electives and unrestricted electives aren't encoded
+rules:
+  - id: calculus
+    title: Calculus
+    kind: all_of
+    courses: [APMA 1090, APMA 1110, APMA 2120]
+    notes:
+      - APMA 1090 is required for students matriculating Fall 2025 and after.
+  - id: chemistry
+    title: Chemistry with lab
+    kind: all_of
+    courses: [CHEM 1410, CHEM 1411]
+  - id: physics
+    title: Physics with labs
+    kind: one_of_groups
+    groups:
+      - [PHYS 1425, PHYS 1429, PHYS 2415, PHYS 2419]
+      - [PHYS 1425, PHYS 1429, ECE 2200]
+  - id: engineering-foundations
+    title: Engineering foundations
+    kind: all_of
+    courses: [ENGR 1010, ENGR 1020]
+  - id: sts
+    title: Engineering ethics and thesis (STS)
+    kind: all_of
+    courses: [STS 2600, STS 4500, STS 4600]
+    notes:
+      - STS 4500 and STS 4600 are taken in the fall and spring of the fourth year.
+  - id: intro-programming
+    title: Introduction to programming
+    kind: n_of
+    n: 1
+    courses: [CS 1110, CS 1111, CS 1112, CS 1113]
+    notes:
+      - AP, IB or dual-enrollment credit also satisfies this; the place-out test satisfies it without giving degree credit.
+  - id: foundation
+    title: CS foundation
+    kind: all_of
+    courses: [CS 2100, CS 2120, CS 2130, CS 3100, CS 3120, CS 3130, CS 3140]
+  - id: software-engineering
+    title: Software engineering
+    kind: all_of
+    courses: [CS 3240]
+  - id: senior-thesis
+    title: CS senior thesis
+    kind: one_of_groups
+    groups:
+      - [CS 4980]
+      - [CS 4971]
+      - [CS 4991]
+    notes:
+      - CS 4991 (0 credits) also needs a three-credit, graded CS 4000-level course not used for any other CS requirement.
+  - id: cs-electives
+    title: CS electives
+    kind: level
+    subjects: [CS]
+    min_level: 3000
+    n: 5
+    exclude: [CS 3100, CS 3120, CS 3130, CS 3140, CS 3240, CS 4971, CS 4980, CS 4991]
+    notes:
+      - The source requires 15 credits of CS-mnemonic electives and states no level; this rule counts five courses at 3000 or above, the levels the advising course list tags as CS electives.
+      - More CS electives may be needed for the CS 4991 thesis option or to replace credit missed through a place-out test.
+  - id: apma-probability
+    title: Probability
+    kind: all_of
+    courses: [APMA 3100]
+  - id: apma-electives
+    title: Applied mathematics electives
+    kind: n_of
+    n: 2
+    courses: [APMA 2130, APMA 3080, APMA 3120, APMA 3150]
+    notes:
+      - APMA 3120 and APMA 3150 cannot both count.
+      - Equivalent MATH courses may be substituted for matching APMA courses; APMA 3110 and STAT 3080 do not count.
+notes:
+  - "Not encoded: a 3-credit math/science elective, 15 credits of HSS electives from the approved list (9 of them part of the SEAS general requirements), and 12 credits of unrestricted electives (15 for students who matriculated before Fall 2025)."
+  - Unrestricted electives exclude MATH courses below MATH 1310, PHYS 2010, PHYS 2020, CS 1010, CS 1020, any introductory programming course and SCPS courses; APMA 1090 counts as a 3-credit unrestricted elective.
+  - A 2.0 GPA in CS courses is required to graduate; all attempts of repeated courses count.
+  - SEAS students may change to or add the BSCS only after completing CS 2100 with C- or better.
+  - The checklist section totals add up to 126 credits, but no degree total is stated, so total_credits is omitted.

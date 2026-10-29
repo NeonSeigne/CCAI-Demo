@@ -1,0 +1,88 @@
+# Drafted from https://bio.as.virginia.edu/undergraduate-program/bachelor-arts-biology-ba ; needs a human check against the official page before the demo.
+# Department page for the 2026-2027 catalog year. It says the Undergraduate Record is the official source; the Record page
+# it links (records.ureg.virginia.edu) answered automated requests with a bot challenge on 2026-10-29 and was not read.
+# Chose the B.A.: every student declares it first, and the B.S. (https://bio.as.virginia.edu/undergraduate-program/bachelor-science-biology-bs)
+# needs BIOL 3000, 3010 and 3020 with a 2.7 GPA in them before declaring.
+# The 2026-27 checklist PDF linked from the page (https://bio.as.virginia.edu/sites/uva-as-biology/files/2026-07/BIOLOGY-BA-CHECKLIST-CY2026-27.pdf)
+# was read on 2026-10-29 in review; the 2026-27 course map PDFs were not read.
+id: biology-ba
+name: Biology B.A.
+type: major
+catalog_year: 2026
+source_url: https://bio.as.virginia.edu/undergraduate-program/bachelor-arts-biology-ba
+checked_on: 2026-10-29
+complete: false  # major rules only; College gen-ed, total credits, the upper-level lab and the 15-credit elective total aren't encoded
+rules:
+  - id: intro-biology
+    title: Introductory biology
+    kind: all_of
+    courses: [BIOL 2100, BIOL 2200]
+    notes:
+      - A 5 on the AP Biology exam, or at least 6 on the IB higher-level exam, gives credit for BIOL 2100 and BIOL 2200.
+  - id: chemistry
+    title: General chemistry with labs
+    kind: all_of
+    courses: [CHEM 1410, CHEM 1411, CHEM 1420, CHEM 1421]
+    notes:
+      - CHEM 1810 may be used for CHEM 1410, and CHEM 1811 may be used for both labs.
+      - Students with AP credit for CHEM 1410 and CHEM 1420 must still take the labs, unless granted credit for CHEM 1411 and CHEM 1421.
+  - id: statistics
+    title: Statistics
+    kind: n_of
+    n: 1
+    courses: [STAT 2020, STAT 2120]
+  - id: math-or-statistics
+    title: Additional math or statistics
+    kind: one_of_groups
+    groups:
+      - [MATH 1190]
+      - [MATH 1191, MATH 1192]
+      - [MATH 1210]
+      - [MATH 1310]
+      - [STAT 1601]
+      - [STAT 1602]
+      - [STAT 3020]
+      - [STAT 3220]
+  - id: physics
+    title: Physics with workshops
+    kind: all_of
+    courses: [PHYS 2010, PHYS 2030, PHYS 2020, PHYS 2040]
+    notes:
+      - PHYS 1420 or 1425 may be used for PHYS 2010; PHYS 1429 for PHYS 2030; PHYS 2410 or 2415 for PHYS 2020; PHYS 2419 for PHYS 2040.
+      - Credit for specific AP Physics exams may fulfill part or all of the lecture component; workshops must be taken in person.
+  - id: core
+    title: Biology core
+    kind: all_of
+    courses: [BIOL 3000, BIOL 3010, BIOL 3020]
+  - id: electives
+    title: Biology electives
+    kind: level
+    subjects: [BIOL]
+    min_level: 3000
+    n: 4
+    exclude: [BIOL 3000, BIOL 3010, BIOL 3020, BIOL 3910, BIOL 3920]
+    notes:
+      - The source requires 15 elective credits at the 3000 level or above (4-5 courses); this rule counts courses, not credits.
+      - "Electives must include one upper-level laboratory course of at least 3 credits: a 3- or 4-credit lab course from the department's approved list, any 3000+ course at Mountain Lake Biological Station, or two semesters of BIOL 4910 or 4920 in the same lab."
+      - The remaining electives are three 3000+ courses of at least 3 credits each, other than the core and independent research or study courses.
+      - No more than 6 credits of independent study and research (BIOL 3900, 4900, 4910, 4920, 4930) may be applied.
+      - BIOL 3910 and BIOL 3920 do not count.
+  - id: elective-list
+    title: Elective from the core-topics list
+    kind: n_of
+    n: 1
+    courses: [BIOL 3030, CHEM 4440, BIOL 3040, BIOL 3050, BIOL 3090, BIOL 3180, BIOL 3240, BIOL 3270, BIOL 3450]
+    double_count: true
+    notes:
+      - One of the three non-lab electives must come from this list; it is among the electives, not extra.
+      - Only one of BIOL 3030 and CHEM 4440 counts toward the major.
+notes:
+  - "To declare: one 2000- or 3000-level BIOL course completed at UVA with C or higher (for example BIOL 2100 or BIOL 2200). Incoming third-year transfer students may declare the B.A. in their first semester while enrolled in a 3000-level BIOL course."
+  - At most 6 credits from outside the Biology Department count toward the major.
+  - The upper-level coursework (core, lab and electives, at least 24 credits) must have a GPA of at least 2.000.
+  - From the 2026-27 catalog year, CHEM 4410 does not count toward the major.
+  - BIOL 3410 and BIOL 3420 may be applied toward the major.
+  - Core courses and lab courses must be taken at UVA (transfer students exempted for credit given at matriculation); transfer credit after matriculation must be pre-approved.
+  - Students may not double major in Biology and Interdisciplinary Neuroscience B.A. or the Cognitive Science B.A. Neuroscience Concentration.
+  - Double majors must submit at least 18 credits in each major; no more than two courses may count for two non-interdisciplinary majors.
+  - Total degree credits are not stated on the source page, so total_credits is omitted.

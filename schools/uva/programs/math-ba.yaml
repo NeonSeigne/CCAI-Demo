@@ -1,0 +1,83 @@
+# Drafted from https://github.com/uva-math/uva-math-code/blob/master/_advising/math_major_ba.html ; needs a human check against the official page before the demo.
+# That file is a copy of the Undergraduate Record 2025-2026 "Mathematics, B.A." page, saved 2026-02-09 in the
+# Mathematics Department's public website repository. The department page https://math.virginia.edu/undergraduate/requirements/
+# links the official Record page (https://records.ureg.virginia.edu/preview_program.php?catoid=72&poid=11827, 2026-2027),
+# which answered automated requests with a bot challenge on 2026-10-29, so the 2026-2027 text was not read.
+# Compare this file with the 2026-2027 Record page as part of the human check.
+# The major has a General Option and four concentrations; this file encodes the General Option.
+id: math-ba
+name: Mathematics B.A.
+type: major
+catalog_year: 2026
+source_url: https://records.ureg.virginia.edu/preview_program.php?catoid=72&poid=11827
+checked_on: 2026-10-29
+complete: false  # General Option major rules only; College gen-ed, total credits and the non-MATH general electives aren't encoded
+rules:
+  - id: core-diffeq
+    title: Differential equations
+    kind: n_of
+    n: 1
+    courses: [MATH 3250, MATH 4250, MATH 3315, APMA 2130]
+    min_grade: C
+    notes:
+      - APMA 2130 may substitute for MATH 3250.
+      - MATH 3315 must be passed at B- or higher to count as a core course.
+  - id: core-linear-algebra
+    title: Linear algebra
+    kind: n_of
+    n: 1
+    courses: [MATH 3351, MATH 4651, MATH 3315, APMA 3080]
+    min_grade: C
+    notes:
+      - APMA 3080 may substitute for MATH 3351.
+      - MATH 3315 must be passed at B- or higher to count as a core course.
+      - If MATH 3315 is used for both differential equations and linear algebra, one more MATH elective is required.
+  - id: core-real-analysis
+    title: Real analysis
+    kind: n_of
+    n: 1
+    courses: [MATH 3310, MATH 4310]
+    min_grade: C
+  - id: core-abstract-algebra
+    title: Abstract algebra
+    kind: n_of
+    n: 1
+    courses: [MATH 3354, MATH 4652]
+    min_grade: C
+  - id: math-electives
+    title: MATH electives
+    kind: level
+    subjects: [MATH]
+    min_level: 3000
+    n: 2
+    exclude: [MATH 3350]
+    min_grade: C
+    notes:
+      - Any MATH course numbered 3000 or higher, except MATH 3350, not used for another requirement of the major.
+  - id: general-electives
+    title: General electives
+    kind: level
+    subjects: [MATH]
+    min_level: 3000
+    n: 3
+    exclude: [MATH 3350]
+    min_grade: C
+    notes:
+      - A general elective is any MATH elective or one of CS 3100, CS 3102, ECON 4010, PHIL 5420, PHIL 5470, STAT 3120, STAT 5265, SYS 3021, SYS 3060.
+      - Only MATH courses are counted here; the listed non-MATH courses also qualify but are not counted automatically.
+  - id: computing
+    title: Computing elective
+    kind: n_of
+    n: 1
+    courses: [CS 1110, CS 1111, CS 1112, CS 1113, PHYS 2660]
+    min_grade: C
+notes:
+  - "To declare: Calculus III proficiency at C or better through MATH 2310, MATH 2315 or APMA 2120 (or an equivalent approved by the Director of Undergraduate Programs). The prerequisite is not part of the major."
+  - MATH 1210 and 1220 are insufficient preparation for Calculus III.
+  - At least 6 courses offered for the major must have a MATH prefix; APMA substitutes don't count toward the 6.
+  - All courses for the major must be taken for a letter grade and passed with C or better, except that two may be passed with C-.
+  - No more than two courses taken outside the University may be applied to the major (more may be approved for transfer students).
+  - "Concentrations, not encoded: Graduate Preparatory (advanced core MATH 3250/4250/3315, MATH 4651, MATH 4310, MATH 4652; MATH 3340; 1 MATH elective, 3 general electives, 1 computing elective); Probability and Statistics (standard core; MATH 3100, MATH 4110, STAT 3120; 2 general electives, 1 computing elective); Financial Mathematics (standard core; MATH 3100, MATH 4140, STAT 3120; 2 general electives, 2 finance electives from COMM 2010, COMM 2020, ECON 2010, ECON 2020; 1 computing elective); Teacher Education (standard core; MATH 3100, MATH 4040, MATH 5700, STAT 3120; 1 general elective, 1 computing elective)."
+  - APMA 3100 may substitute for MATH 3100 and APMA 3120 for STAT 3120 in the concentrations.
+  - Distinguished Majors Program (application required) adds MATH 3340, 4310, 4651, 4652, 4770, 4840 and 4330 or 4720 at B or higher with a 3.4 GPA, plus the thesis MATH 4900 and 4901.
+  - Total degree credits are not stated on the source page, so total_credits is omitted.
