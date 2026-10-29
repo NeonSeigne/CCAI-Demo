@@ -32,6 +32,16 @@ describe('AppDialog', () => {
     expect(document.querySelector('.MuiBackdrop-root')).toHaveStyle({ left: '0px' });
   });
 
+  test('stops the dialog and backdrop at the supplied right inset', () => {
+    renderWithTheme(
+      <AppDialog open rightInset={360} aria-labelledby="right-title">
+        <DialogTitle id="right-title">Docked dialog</DialogTitle>
+      </AppDialog>,
+    );
+    expect(document.querySelector('.MuiDialog-root')).toHaveStyle({ right: '360px', left: '0px' });
+    expect(document.querySelector('.MuiBackdrop-root')).toHaveStyle({ right: '360px' });
+  });
+
   test('reports Escape and backdrop dismissal through onClose', () => {
     const onClose = jest.fn();
     renderWithTheme(
