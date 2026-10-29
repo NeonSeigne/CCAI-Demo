@@ -16,7 +16,8 @@ function useContainerInsets(container, open) {
     const measure = () => {
       const rect = container.getBoundingClientRect();
       const left = px(rect.left);
-      const right = rect.width ? px(window.innerWidth - rect.right) : 0;
+      // clientWidth leaves out the page scrollbar, which innerWidth counts.
+      const right = rect.width ? px(document.documentElement.clientWidth - rect.right) : 0;
       setInsets((current) => (current.left === left && current.right === right
         ? current
         : { left, right }));
@@ -35,6 +36,20 @@ function useContainerInsets(container, open) {
 }
 
 /**
+ * MUI's own scroll lock would land on the container (the page column),
+ * which doesn't scroll; the document does. Lock it while open instead.
+ */
+function useDocumentScrollLock(active) {
+  useLayoutEffect(() => {
+    if (!active) return undefined;
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = 'hidden';
+    return () => { root.style.overflow = previous; };
+  }, [active]);
+}
+
+/**
  * MUI Dialog with its scrim kept off the rail and the dock (design D3, eng
  * R10, R15).
  *
@@ -44,6 +59,7 @@ function useContainerInsets(container, open) {
  *   live. The insets then follow the container's edges, and the dialog
  *   defaults to `disableEnforceFocus` and `aria-modal="false"`, so Tab can
  *   reach the dock. Escape closes and focus returns to the trigger as usual.
+ *   The document's scroll is locked while it's open (not the column's).
  */
 const AppDialog = forwardRef(function AppDialog(
   {
@@ -55,12 +71,14 @@ const AppDialog = forwardRef(function AppDialog(
   const left = `${Math.max(px(leftInset), edges.left)}px`;
   const right = `${Math.max(px(rightInset), edges.right)}px`;
   const inColumn = Boolean(container);
+  useDocumentScrollLock(inColumn && Boolean(props.open) && !props.disableScrollLock);
 
   return (
     <Dialog
       ref={ref}
       {...(inColumn ? { container, disableEnforceFocus: true, 'aria-modal': 'false' } : {})}
       {...props}
+      {...(inColumn ? { disableScrollLock: true } : {})}
       style={{ ...style, left, right }}
       slotProps={{
         ...slotProps,
