@@ -1,110 +1,84 @@
-/* Campus map page (design 5A, 6A, 7A, 22A, 23A, 27A, 28A, 31A).
-   Layout shell (.campus-home, .campus-main, .campus-kicker) comes from CampusHome.css.
-   New CSS uses var() only (24A). */
+/* Campus map page (DESIGN.md "Map"): a list column beside the map, round
+   category pins, the place card over the map; a bottom sheet on phone.
+   Layout shell (.campus-home, .campus-main, .campus-kicker) comes from
+   CampusHome.css. Tokens only, no hex. */
 
 .map-page ::selection { background: var(--selection); color: var(--ink); }
 .map-page :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
 
-.map-main { padding-top: 40px; }
+.map-main { padding: 0; }
 
-.map-column {
-  max-width: 1120px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  min-height: 100vh;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---- Title bar ------------------------------------------------------------ */
-.map-header {
+.map-side {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 4px;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 24px 20px 32px;
+  background: var(--canvas);
 }
 
 .map-header h1 {
-  margin: 4px 0 0;
-  font-size: clamp(28px, 4vw, 36px);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
 }
 
-/* Outlined Ask (7A): white, --line border. */
-.map-ask {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.map-ask:hover { background: var(--paper-sunken); }
-
-/* ---- Start panel + map ---------------------------------------------------- */
-.map-top {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) 1fr;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
-  overflow: hidden;
-  min-height: 320px;
-}
-
+/* ---- Walking route ---------------------------------------------------------- */
 .map-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 22px 24px;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
 }
 
 .map-panel-kicker {
   font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-soft);
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .map-start-block {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .map-start-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 
 .map-start-name {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: -0.015em;
   color: var(--ink);
 }
 
 .map-link-btn {
-  min-height: 44px;
+  min-height: 32px;
   padding: 0 4px;
   border: 0;
   background: transparent;
-  color: var(--domain-academics-ink);
+  color: var(--ink);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -115,102 +89,102 @@
 
 .map-choose-start {
   align-self: flex-start;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper-sunken);
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14.5px;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .map-dest {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
 }
 
-.map-dest-name { font-size: 14px; color: var(--ink-soft); }
+.map-dest-name { font-size: 14px; font-weight: 600; color: var(--muted); }
 
 .map-dest-minutes {
-  font-size: 30px;
+  font-family: var(--font-display);
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--domain-campus-ink);
+  letter-spacing: -0.03em;
+  color: var(--good);
 }
 
-.map-dest-metres { font-size: 14px; color: var(--ink-soft); }
+.map-dest-metres { font-size: 13.5px; color: var(--muted); }
 
-.map-dest-unavailable {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-}
+.map-dest-unavailable { font-size: 15px; font-weight: 700; color: var(--ink); }
 
 .map-dest-placeholder {
   display: block;
   width: 120px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--paper-sunken);
+  height: 26px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
 }
 
 .map-osm-link {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  margin-top: 8px;
-  padding: 0 16px;
-  border-radius: 10px;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 14px;
-  font-weight: 600;
+  gap: 6px;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 700;
   text-decoration: none;
 }
+
+.map-osm-link:hover { background: var(--raised); }
 
 .map-placeholder-line {
   display: block;
   width: 50%;
-  height: 16px;
-  border-radius: 6px;
-  background: var(--paper-sunken);
+  height: 14px;
+  border-radius: var(--r-sm);
+  background: var(--raised);
 }
 
-.map-placeholder-line.is-wide { width: 80%; height: 24px; }
+.map-placeholder-line.is-wide { width: 80%; height: 22px; }
 
-/* ---- Start picker popover (16A) ------------------------------------------- */
+/* ---- Start picker popover (a 24px menu) ------------------------------------- */
 .map-picker {
   position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
+  top: calc(100% + 6px);
+  left: -8px;
   z-index: 1100;
-  width: min(340px, calc(100vw - 48px));
+  width: min(340px, calc(100vw - 32px));
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px;
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--paper);
-  box-shadow: var(--shadow-soft-md);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
 }
 
-.map-picker-label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.map-picker-label { padding: 0 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
 
 .map-picker input {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--paper-sunken);
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: 15px;
@@ -231,64 +205,289 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
 
-.map-picker-option:hover,
-.map-picker-option[aria-current="true"] { background: var(--paper-sunken); }
+.map-picker-option:hover { background: var(--raised); }
+.map-picker-option[aria-current="true"] { background: var(--tint); color: var(--tint-ink); }
 
-.map-picker-cat { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.map-picker-cat { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
-.map-picker-note { margin: 4px 2px; font-size: 14px; color: var(--ink-soft); }
+.map-picker-note { margin: 4px; font-size: 14px; color: var(--muted); }
 
-.map-picker-note.is-error { color: var(--error-ink); }
+.map-picker-note.is-error { color: var(--error); font-weight: 600; }
 
 .map-picker-close { align-self: flex-end; }
 
+/* ---- Search and category chips ---------------------------------------------- */
+.map-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--faint);
+}
+
+.map-search:focus-within { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+
+.map-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.map-search input::placeholder { color: var(--faint); }
+
+.map-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px 0 10px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease-out;
+}
+
+.map-chip:active { transform: scale(0.95); }
+
+.map-chip.is-on {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: var(--on-deep);
+}
+
+html[data-theme="dark"] .map-chip.is-on {
+  background: var(--tint-strong);
+  border-color: var(--tint-strong);
+  color: var(--tint-ink);
+}
+
+.map-chip-count { font-size: 12.5px; font-weight: 600; opacity: 0.7; }
+
+/* ---- Place list --------------------------------------------------------------- */
+.map-list { display: flex; flex-direction: column; gap: 10px; }
+
+.map-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+  overflow: hidden;
+}
+
+.map-row {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+  border-top: 1px solid var(--rule);
+}
+
+.map-row:first-child { border-top: 0; }
+
+.map-row.is-selected { background: var(--tint); color: var(--tint-ink); }
+
+.map-row-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 8px 10px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-row-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--raised);
+  color: var(--ink);
+}
+
+.map-row.is-selected .map-row-icon { background: var(--signal); color: var(--on-signal); }
+
+.map-row-text { display: flex; flex-direction: column; min-width: 0; }
+
+.map-row-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.map-row-hours {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.map-row.is-selected .map-row-hours { color: var(--tint-ink); }
+
+.map-row-walk {
+  max-width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.map-row-minutes { font-size: 13.5px; font-weight: 800; color: var(--good); white-space: nowrap; }
+.map-row-distance { font-size: 12px; font-weight: 600; color: var(--muted); }
+.map-row.is-selected .map-row-minutes,
+.map-row.is-selected .map-row-distance { color: var(--tint-ink); }
+
+.map-row .cc-save { border-radius: var(--r-full); color: inherit; }
+
+.map-row.is-placeholder .map-row-name { color: var(--muted); }
+
+.map-btn {
+  align-self: flex-start;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.map-btn:hover { background: var(--raised); }
+
+.map-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+}
+
+.map-state p { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+
+.map-state[role="alert"] p { color: var(--error); }
+
+.map-footnote {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.map-footnote a { color: inherit; }
+
 /* ---- Map ------------------------------------------------------------------ */
+.map-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-width: 0;
+}
+
 .map-frame {
-  position: relative;
-  min-height: 320px;
-  background: var(--paper-sunken);
+  position: absolute;
+  inset: 0;
+  background: var(--raised);
 }
 
 .map-canvas {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: var(--paper-sunken);
+  background: var(--raised);
   font-family: var(--font-app);
 }
 
-/* Bright tokens only for pins and the route line (23A). */
+/* Dark mode: OSM tiles inverted and dimmed (DESIGN.md "Dark mode"). */
+html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6);
+}
+
+/* Round category pins; the selected one large, in signal. */
 .map-canvas .map-pin {
-  stroke: var(--paper);
-  stroke-width: 2;
-  fill: var(--domain-academics);
-  fill-opacity: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: var(--shadow-float);
 }
 
-.map-canvas .map-pin.is-selected { stroke-width: 3; }
+.map-canvas .map-pin .ms { font-size: 19px; }
+.map-canvas .map-pin--dining,
+.map-canvas .map-pin--arts { color: var(--life); }
+.map-canvas .map-pin--library { color: var(--academics); }
+.map-canvas .map-pin--landmark,
+.map-canvas .map-pin--recreation,
+.map-canvas .map-pin--health { color: var(--campus); }
 
+.map-canvas .map-pin.is-selected {
+  background: var(--signal);
+  color: var(--on-signal);
+  box-shadow: 0 0 0 5px var(--surface), var(--shadow-float);
+}
+
+.map-canvas .map-pin.is-selected .ms { font-size: 24px; }
+
+/* The starting place: a blue dot with a halo. */
 .map-canvas .map-start {
-  stroke: var(--paper);
+  stroke: var(--surface);
   stroke-width: 3;
-  fill: var(--ink);
+  fill: var(--academics);
   fill-opacity: 1;
 }
 
-/* The route draws from start to place in 240 ms ease-out (22A). The path
-   carries pathLength="1", so a dash of 1 is the whole line. */
+/* The walking route draws from the start to the place (22A). */
 .map-canvas .map-route-line {
-  stroke: var(--domain-campus);
+  stroke: var(--good);
   stroke-width: 5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -302,194 +501,93 @@
   to { stroke-dashoffset: 0; }
 }
 
+.map-canvas .leaflet-control-attribution {
+  margin: 0 8px 6px 0;
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.map-canvas .leaflet-control-attribution a { color: inherit; }
+
+.map-canvas .leaflet-control-zoom {
+  border: 0;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+}
+
+.map-canvas .leaflet-control-zoom a {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+/* ---- Place card ------------------------------------------------------------ */
+.map-card {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 500;
+  width: min(380px, calc(100% - 40px));
+  max-height: calc(100% - 40px);
+  display: flex;
+}
+
+.map-card .pop-sheet { flex: 1; height: auto; }
+
 @media (prefers-reduced-motion: reduce) {
   .map-canvas .map-route-line {
     animation: none;
     stroke-dashoffset: 0;
   }
+  .map-chip { transition: none; }
 }
 
-.map-canvas .leaflet-control-attribution {
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
-/* ---- Category filters ----------------------------------------------------- */
-.map-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.map-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.map-chip.is-on {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
-}
-
-.map-chip-count { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
-
-/* ---- List ----------------------------------------------------------------- */
-.map-list {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--paper);
-  overflow: hidden;
-}
-
-.map-rows {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.map-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-right: 14px;
-}
-
-.map-row + .map-row { border-top: 1px solid var(--line); }
-
-.map-row.is-selected { background: var(--domain-campus-tint); }
-
-.map-row-main {
-  flex: 1;
-  min-width: 0;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 8px 10px 18px;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.map-row-dot {
-  flex-shrink: 0;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--domain-academics);
-}
-
-.map-row-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.map-row-name { font-size: 15px; font-weight: 600; }
-
-.map-row-hours { font-size: 13px; color: var(--ink-soft); }
-
-.map-row-walk {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-.map-row-minutes { font-size: 15px; font-weight: 700; color: var(--domain-campus-ink); }
-
-.map-row-distance { font-size: 12px; color: var(--ink-soft); }
-
-.map-row.is-placeholder .map-row-name { color: var(--ink-soft); }
-
-.map-btn {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--paper-sunken);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.map-more {
-  display: block;
-  margin: 10px auto;
-}
-
-.map-state {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px;
-}
-
-.map-state p { margin: 0; font-size: 15px; color: var(--ink); }
-
-.map-state[role="alert"] p { color: var(--error-ink); }
-
-.map-footnote {
-  margin: 0;
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
-.map-footnote a { color: inherit; }
-
-/* ---- Phones (27A): start panel and map on top, filters scroll sideways ---- */
+/* ---- Phone: map on top, the list under it, the card as a bottom sheet ------ */
 @media (max-width: 767px) {
-  .map-main { padding: 16px 16px 32px; }
-
-  .map-header { align-items: center; }
-
-  .map-header h1 { font-size: 26px; }
-
-  .map-ask { padding: 0 12px; font-size: 13px; white-space: normal; text-align: left; }
-
-  .map-top {
-    grid-template-columns: 1fr;
+  .map-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     min-height: 0;
   }
 
-  .map-panel { padding: 16px; }
+  .map-side { display: contents; }
 
-  .map-frame {
-    order: 0;
-    height: 40vh;
-    min-height: 200px;
-    border-top: 1px solid var(--line);
-  }
-
+  .map-header { order: 1; padding: 18px 16px 0; }
+  .map-header h1 { font-size: 23px; }
+  .map-search { order: 2; margin: 0 16px; }
   .map-filters {
+    order: 3;
     flex-wrap: nowrap;
     overflow-x: auto;
-    margin: 0 -16px;
-    padding: 0 16px 4px;
+    padding: 0 16px;
     scrollbar-width: none;
   }
+  .map-chip { flex: 0 0 auto; }
+  .map-stage { order: 4; position: relative; height: 360px; }
+  .map-panel { order: 5; margin: 0 16px; }
+  .map-list { order: 6; margin: 0 16px; }
+  .map-footnote { order: 7; margin: 0 16px 24px; }
 
-  .map-row-main { padding-left: 14px; gap: 10px; }
+  .map-card {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1300;
+    width: auto;
+    max-height: 78vh;
+  }
+
+  .map-card .pop-sheet {
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .map-card .ps-grab { display: block; }
 }

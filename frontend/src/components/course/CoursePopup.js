@@ -1,7 +1,9 @@
 import React, {
   useEffect, useId, useMemo, useState,
 } from 'react';
-import { ChevronLeft, ChevronRight, Plus, X } from '../icons';
+import {
+  ChevronLeft, ChevronRight, Icon, Plus, X,
+} from '../icons';
 import SaveButton from '../SaveButton';
 import {
   useCourseDetail, useCoursePreview, useCourseRatings,
@@ -9,7 +11,7 @@ import {
 import {
   gradeSegments, primarySections, sectionName, seatsText,
 } from '../catalog/catalogFormat';
-import PrereqWeb from './PrereqWeb';
+import PrereqGraph from './PrereqGraph';
 import {
   CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
 } from '../popup/PopupParts';
@@ -20,9 +22,10 @@ import {
 import '../../styles/Popups.css';
 
 /**
- * The course pop-up's body (r5-course-1 / r5-course-2): black band with the
- * five big numbers, Grades / Instructors / Sections tabs, and the Fits and
- * prerequisite-web tiles. The dialog shell is the host's (CoursePopupHost).
+ * The course pop-up's body (DESIGN.md "Course card / pop-up"): the band with
+ * the code, title and stat tiles; Grades / Instructors / Sections tabs beside
+ * the Fits and prerequisite tiles; then the actions. The dialog shell is the
+ * host's (CoursePopupHost).
  *
  * D7: a field the school lacks is not rendered (tile, tab, row or number);
  * a failed request shows "Couldn't load · Retry". Skeletons cover only the
@@ -117,8 +120,44 @@ function bigNumbers(data) {
   return out;
 }
 
+function CloseButton({ onClose }) {
+  return (
+    <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
+      <X size={20} aria-hidden="true" />
+    </button>
+  );
+}
+
+/** Add, Ask and Save, under the body. */
+function Actions({
+  id, title, term, onAdd, onSave, saved, onAsk,
+}) {
+  const item = { type: 'course', id, title: title || '' };
+  return (
+    <footer className="pop-foot">
+      {onAdd && term && (
+        <button type="button" className="pop-btn pop-btn--primary" onClick={() => onAdd(id)}>
+          <Plus size={20} aria-hidden="true" /> Add to {term}
+        </button>
+      )}
+      {onAsk && (
+        <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
+          <Icon name="forum" size={20} /> Ask
+        </button>
+      )}
+      {onSave ? (
+        <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
+          {saved ? 'Saved' : 'Save'}
+        </button>
+      ) : (
+        <SaveButton className="pop-save" item={{ kind: 'course', key: id, display_name: id }} />
+      )}
+    </footer>
+  );
+}
+
 function Band({
-  data, courseId, term, requirements, onAdd, onSave, saved, onAsk, onClose, titleId,
+  data, courseId, term, requirements, onClose, titleId,
 }) {
   const id = data?.identifier || courseId;
   const credits = creditsText(data?.credits);
@@ -155,28 +194,11 @@ function Band({
             </ul>
           )}
         </div>
-        <div className="pop-actions">
-          {onAdd && term && (
-            <button type="button" className="pop-btn pop-btn--primary" onClick={() => onAdd(id)}>
-              <Plus size={15} aria-hidden="true" /> Add to {term}
-            </button>
-          )}
-          {onSave ? (
-            <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
-              {saved ? 'Saved' : 'Save'}
-            </button>
-          ) : (
-            <SaveButton className="pop-save" item={{ kind: 'course', key: id, display_name: id }} />
-          )}
-          {onAsk && (
-            <button type="button" className="pop-btn" onClick={() => onAsk(item)}>Ask</button>
-          )}
-          {onClose && (
-            <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
-              <X size={18} aria-hidden="true" />
-            </button>
-          )}
-        </div>
+        {onClose && (
+          <div className="pop-actions pop-actions--close">
+            <CloseButton onClose={onClose} />
+          </div>
+        )}
       </div>
       {numbers === null && (
         <div className="pop-numbers" aria-hidden="true">
@@ -303,7 +325,10 @@ export function GradeDistribution({ grades, cumulative }) {
       </div>
       <ol className="cp-bars">
         {segments.map((s) => (
-          <li key={s.key} className={`cp-bar ${DF_KEYS.has(s.key.toLowerCase()) ? 'is-df' : ''}`.trim()}>
+          <li
+            key={s.key}
+            className={['cp-bar', DF_KEYS.has(s.key.toLowerCase()) && 'is-df', s.pct === top && 'is-top'].filter(Boolean).join(' ')}
+          >
             <span className="cp-bar-pct">{`${Math.round(s.pct)}%`}</span>
             <span className="cp-bar-fill" style={{ height: `${Math.max(2, (s.pct / top) * 100)}%` }} />
             <span className="cp-bar-label">{s.label}</span>
@@ -521,17 +546,28 @@ export function FitsTile({
 }
 
 function WebTile({
-  course, tree, unlocks, onOpenCourse, onExpand,
+  course, tree, unlocks, titles, onOpenCourse, onExpand,
 }) {
+  const heading = tree ? 'Prerequisites' : 'Unlocks';
   return (
     <section className="pop-tile cp-web-tile" aria-labelledby="cp-web-title">
       <div className="pop-tile-head">
-        <h3 id="cp-web-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
+        <h3 id="cp-web-title" className="pop-tile-title">{heading}</h3>
         <button type="button" className="pop-chevron" aria-label="Open the full prerequisite graph" title="Full graph" onClick={onExpand}>
           <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
-      <PrereqWeb course={course} tree={tree} unlocks={tree ? NONE : unlocks} onOpenCourse={onOpenCourse} />
+      <div className="cp-graph">
+        <PrereqGraph
+          course={course}
+          tree={tree}
+          unlocks={tree ? NONE : unlocks}
+          titles={titles}
+          onOpenCourse={onOpenCourse}
+          label={tree ? `Prerequisites for ${course}` : `Unlocks after ${course}`}
+          size="tile"
+        />
+      </div>
     </section>
   );
 }
@@ -591,12 +627,19 @@ export default function CoursePopup({
       courseId={courseId}
       term={term}
       requirements={requirements}
+      onClose={onClose}
+      titleId={titleId}
+    />
+  );
+  const actions = (
+    <Actions
+      id={id}
+      title={data?.title}
+      term={term}
       onAdd={onAdd}
       onSave={onSave}
       saved={saved}
       onAsk={onAsk}
-      onClose={onClose}
-      titleId={titleId}
     />
   );
 
@@ -610,13 +653,11 @@ export default function CoursePopup({
               <p className="pop-eyebrow">{courseId}</p>
               <h2 id={titleId} className="pop-title">{courseId}</h2>
             </div>
-            <div className="pop-actions">
-              {onClose && (
-                <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
-                  <X size={18} aria-hidden="true" />
-                </button>
-              )}
-            </div>
+            {onClose && (
+              <div className="pop-actions pop-actions--close">
+                <CloseButton onClose={onClose} />
+              </div>
+            )}
           </div>
         </header>
         <div className="pop-body">
@@ -636,6 +677,7 @@ export default function CoursePopup({
             <GradesSkeleton />
           </div>
         </div>
+        {actions}
       </article>
     );
   }
@@ -643,6 +685,7 @@ export default function CoursePopup({
   const diff = preview.data?.diff || null;
   const showFits = Boolean(diff) || previewFailed(preview.error);
   const showWeb = Boolean(tree || unlocks.length);
+  const graphTitles = data.title ? { [id]: data.title } : undefined;
   let main;
   if (fullGraph && showWeb) {
     main = (
@@ -653,7 +696,16 @@ export default function CoursePopup({
           </button>
           <h3 id="cp-fullgraph-title" className="pop-tile-title">{tree ? 'Prerequisites' : 'Unlocks'}</h3>
         </div>
-        <PrereqWeb course={id} tree={tree} unlocks={unlocks} onOpenCourse={onOpenCourse} size="full" />
+        <div className="cp-graph cp-graph--full">
+          <PrereqGraph
+            course={id}
+            tree={tree}
+            unlocks={unlocks}
+            titles={graphTitles}
+            onOpenCourse={onOpenCourse}
+            label={tree ? `Prerequisites for ${id}` : `Unlocks after ${id}`}
+          />
+        </div>
       </section>
     );
   } else if (tab) {
@@ -708,6 +760,7 @@ export default function CoursePopup({
                   course={id}
                   tree={tree}
                   unlocks={unlocks}
+                  titles={graphTitles}
                   onOpenCourse={onOpenCourse}
                   onExpand={() => setFullGraph(true)}
                 />
@@ -716,6 +769,7 @@ export default function CoursePopup({
           )}
         </div>
       )}
+      {actions}
     </article>
   );
 }

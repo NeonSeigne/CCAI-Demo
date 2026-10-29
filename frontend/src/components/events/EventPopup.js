@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, CalendarPlus, ChevronRight, ExternalLink, Footprints, MessageSquare, Navigation, X } from '../icons';
+import { Bookmark, ChevronRight, ExternalLink, Icon, X } from '../icons';
 import SaveButton from '../SaveButton';
 import {
   CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
@@ -12,10 +12,10 @@ import { downloadEventIcs } from '../../utils/ics';
 import '../../styles/Popups.css';
 
 /**
- * The event pop-up's body (r1-event-2 at UVA, r1-event-3 at UW): black band
- * with the date block, title, categories and numbers; then a bento of the
- * image, About, Details, a mini map and two related lists. No Tonight tile
- * (eng R3). A field the feed lacks drops its tile, row or number (D7).
+ * The event pop-up's body (DESIGN.md "Event detail"): the band with the date
+ * block, kind, title and tiles (starts in, time, walk, cost); then About and
+ * Details beside Where and the related lists; then the actions. No Tonight
+ * tile (eng R3). A field the feed lacks drops its tile, row or number (D7).
  *
  * Props
  *   eventId, event        the id to load; `event` (a list row) shows while it loads
@@ -71,21 +71,21 @@ export function countdown(event, now) {
 
 function DateBlock({ event, timezone, small = false }) {
   if (!event?.start) return null;
-  const month = inZone(event.start, timezone, { month: 'short' }).toUpperCase();
+  const month = inZone(event.start, timezone, { month: 'short' });
   const day = inZone(event.start, timezone, { day: 'numeric' });
-  const weekday = inZone(event.start, timezone, { weekday: 'short' }).toUpperCase();
+  const weekday = inZone(event.start, timezone, { weekday: 'short' });
   return (
     <span className={`ep-date ${small ? 'ep-date--small' : ''}`.trim()} aria-hidden="true">
       {!small && <span className="ep-date-month">{month}</span>}
-      <span className="ep-date-day">{small ? day.padStart(2, '0') : day}</span>
+      <span className="ep-date-day">{day}</span>
       <span className="ep-date-week">{small ? month : weekday}</span>
     </span>
   );
 }
 
-function Stat({ label, children }) {
+function Stat({ label, children, className = '' }) {
   return (
-    <div className="pop-number">
+    <div className={`pop-number ${className}`.trim()}>
       <span className="pop-number-label">{label}</span>
       <span className="pop-number-value">{children}</span>
     </div>
@@ -154,21 +154,10 @@ function MapTile({ event, place }) {
   const venue = place?.name || event.location;
   return (
     <section className="pop-tile ep-map" aria-label={venue ? `Map: ${venue}` : 'Map'}>
-      {hasPoint && <MiniMap lat={lat} lon={lon} />}
-      {venue && <span className="ep-map-venue">{venue}</span>}
-      <div className="ep-map-foot">
-        {event.walk_minutes != null && (
-          <span className="ep-map-walk">
-            <Footprints size={14} aria-hidden="true" />
-            {`${event.walk_minutes} min`}
-            <span className="sr-only"> walk</span>
-          </span>
-        )}
-        {event.place_id && (
-          <Link className="ep-map-directions" to={`/map?to=${encodeURIComponent(event.place_id)}`}>
-            <Navigation size={14} aria-hidden="true" /> Directions
-          </Link>
-        )}
+      <h3 className="pop-tile-title" aria-hidden="true">Where</h3>
+      <div className="ep-map-box">
+        {hasPoint && <MiniMap lat={lat} lon={lon} icon="event" />}
+        {venue && <span className="ep-map-venue">{venue}</span>}
       </div>
     </section>
   );
@@ -306,8 +295,14 @@ export default function EventPopup({
   const timer = countdown(event, now);
   const item = { type: 'event', id: event.id, title: event.title };
   const numbers = [];
-  if (timer) numbers.push(<Stat key="timer" label={timer.label}>{timer.value}</Stat>);
-  if (event.start) numbers.push(<Stat key="time" label="Time">{formatEventRange(event, timezone)}</Stat>);
+  if (timer) numbers.push(<Stat key="timer" label={timer.label} className="is-live">{timer.value}</Stat>);
+  if (event.start) {
+    const [from, to] = formatEventRange(event, timezone).split(' – ');
+    // "5:00 to 6:00 PM": the start drops a meridiem the end repeats.
+    const meridiem = /\s?[AP]M$/;
+    const start = to && from.match(meridiem)?.[0].trim() === to.match(meridiem)?.[0].trim() ? from.replace(meridiem, '') : from;
+    numbers.push(<Stat key="time" label="Time">{start}{to && <small>{` to ${to}`}</small>}</Stat>);
+  }
   if (event.walk_minutes != null && physical) {
     numbers.push(<Stat key="walk" label="Walk">{event.walk_minutes}<small> min</small></Stat>);
   }
@@ -326,7 +321,7 @@ export default function EventPopup({
           <div className="pop-band-text">
             <p className="pop-eyebrow">
               {timer?.live && <span className="ep-live">Happening now</span>}
-              {event.calendar && <span>{event.calendar}</span>}
+              {event.calendar && <span className="ep-kind"><span className="ep-dot" aria-hidden="true" />{event.calendar}</span>}
             </p>
             <h2 id={titleId} className="pop-title">{event.title}</h2>
             {event.categories?.length > 0 && (
@@ -335,38 +330,12 @@ export default function EventPopup({
               </ul>
             )}
           </div>
-          <div className="pop-actions">
-            {event.start && (
-              <button type="button" className="pop-btn pop-btn--primary" onClick={() => downloadEventIcs(event)}>
-                <CalendarPlus size={15} aria-hidden="true" /> Add to calendar
-              </button>
-            )}
-            {onSave ? (
-              <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
-                <Bookmark size={15} aria-hidden="true" /> {saved ? 'Saved' : 'Save'}
-              </button>
-            ) : (
-              event.id && (
-                <SaveButton
-                  className="pop-save"
-                  item={{
-                    kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
-                  }}
-                />
-              )
-            )}
-            {onAsk && (
-              <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
-                <MessageSquare size={15} aria-hidden="true" /> Ask
-              </button>
-            )}
-            {closeButton}
-          </div>
+          {closeButton && <div className="pop-actions pop-actions--close">{closeButton}</div>}
         </div>
         {numbers.length > 0 && <div className="pop-numbers">{numbers}</div>}
       </header>
       <div className="pop-body ep-body">
-        <div className="ep-bento">
+        <div className="ep-col">
           {showImage && (
             <figure className="pop-tile ep-image">
               <img src={event.image_url} alt="" onError={() => setImageOk(false)} />
@@ -374,25 +343,54 @@ export default function EventPopup({
           )}
           <About text={event.description} />
           <Details details={details} url={event.url} />
-          <MapTile event={event} place={place.data?.place} />
         </div>
-        {(related.atVenue.length > 0 || related.inCategory.length > 0) && (
-          <div className="ep-lists">
-            <EventList
-              title={`Also at ${venueName}`}
-              events={related.atVenue}
-              timezone={timezone}
-              onOpenEvent={onOpenEvent}
-            />
-            <EventList
-              title={`More in ${related.category}`}
-              events={related.inCategory}
-              timezone={timezone}
-              onOpenEvent={onOpenEvent}
-            />
-          </div>
-        )}
+        <div className="ep-col">
+          <MapTile event={event} place={place.data?.place} />
+          <EventList
+            title={`Also at ${venueName}`}
+            events={related.atVenue}
+            timezone={timezone}
+            onOpenEvent={onOpenEvent}
+          />
+          <EventList
+            title={`More in ${related.category}`}
+            events={related.inCategory}
+            timezone={timezone}
+            onOpenEvent={onOpenEvent}
+          />
+        </div>
       </div>
+      <footer className="pop-foot">
+        {event.start && (
+          <button type="button" className="pop-btn pop-btn--primary" onClick={() => downloadEventIcs(event)}>
+            <Icon name="calendar_add_on" size={20} /> Add to calendar
+          </button>
+        )}
+        {event.place_id && (
+          <Link className="pop-btn" to={`/map?to=${encodeURIComponent(event.place_id)}`}>
+            <Icon name="directions_walk" size={20} /> Directions
+          </Link>
+        )}
+        {onAsk && (
+          <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
+            <Icon name="forum" size={20} /> Ask
+          </button>
+        )}
+        {onSave ? (
+          <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
+            <Bookmark size={20} aria-hidden="true" /> {saved ? 'Saved' : 'Save'}
+          </button>
+        ) : (
+          event.id && (
+            <SaveButton
+              className="pop-save"
+              item={{
+                kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
+              }}
+            />
+          )
+        )}
+      </footer>
     </article>
   );
 }
