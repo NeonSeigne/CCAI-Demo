@@ -15,13 +15,8 @@ import AnswerPanel, { buildSuggestions, latestVisuals } from '../components/Answ
 import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
-import { usePlanner } from '../contexts/PlannerContext';
 import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
-import PlanPanel from '../components/planner/PlanPanel';
-import PlanSheet, { usePlanPlacement } from '../components/planner/PlanSheet';
-import { creditTotal, shortTerm } from '../components/planner/planFormat';
 import { useOpenCourse } from '../utils/openCourse';
-import '../styles/PlanPanel.css';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
@@ -78,16 +73,6 @@ const ChatPageView = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const skipAutoScrollRef = useRef(false);
 
-  // Semester plan (design 3A, 5A, 15A, 16A): the Plan toggle opens the plan in
-  // the right-panel slot, a tablet drawer or a phone bottom sheet.
-  const planner = usePlanner();
-  const planPlacement = usePlanPlacement();
-  const [isPlanOpen, setIsPlanOpen] = useState(false);
-  const [planSnap, setPlanSnap] = useState('half');
-  const [planCourse, setPlanCourse] = useState(null);
-  const planToggleRef = useRef(null);
-  // A proposal handed to the planner before this page opened isn't reopened.
-  const lastProposalRef = useRef(chat.liveProposalId);
 
 
 
@@ -271,24 +256,7 @@ const ChatPageView = () => {
   const handleCourseSelect = (identifier) => {
     const course = (identifier || '').trim();
     if (!course) return;
-    // With the plan open, a course opens in its slot with "Back to plan" (5A).
-    if (isPlanOpen && planPlacement !== 'phone') {
-      setPlanCourse(course);
-      return;
-    }
     openCourse(course);
-  };
-
-  const openPlan = () => {
-    planner?.ensureLoaded();
-    setPlanSnap('half');
-    setIsPlanOpen(true);
-  };
-
-  const closePlan = () => {
-    setIsPlanOpen(false);
-    setPlanCourse(null);
-    window.requestAnimationFrame?.(() => planToggleRef.current?.focus());
   };
 
   const handleSendMessage = async (inputMessage, activeAdvisorIds = null, options) => {
@@ -376,47 +344,11 @@ const ChatPageView = () => {
   const firstQuestion = messages.find((m) => m.type === 'user')?.content;
   const chatTitle = firstQuestion || (hasMessages && currentSessionTitle) || 'New chat';
   const answerVisuals = latestVisuals(messages);
-  const planView = planner?.view;
-  const pendingProposal = planView?.proposal && (planView.proposal.status || 'pending') === 'pending'
-    ? planView.proposal
-    : null;
-  const planPeek = planView
-    ? [
-      shortTerm(planView.report?.term || planView.plan?.term),
-      creditTotal(planView.report?.credits) != null ? `${creditTotal(planView.report.credits)} cr` : null,
-      pendingProposal ? '1 proposal' : null,
-    ].filter(Boolean).join(' · ')
-    : null;
   const suggestions = buildSuggestions({
     visuals: answerVisuals,
     starters: config?.homepage?.starters || [],
     asked: messages.filter((m) => m.type === 'user').map((m) => m.content || ''),
   });
-
-  const renderPlanPanel = (variant) => (
-    <PlanPanel
-      variant={variant}
-      onClose={closePlan}
-      onPrefill={(text) => setComposerMessage(text)}
-      courseId={planCourse}
-      onOpenCourse={(id) => (planPlacement === 'phone' ? handleCourseSelect(id) : setPlanCourse(id))}
-      onBack={() => setPlanCourse(null)}
-      onOpenCoursePage={openCourse}
-    />
-  );
-
-  // ChatProvider hands a streamed proposal to the planner; here it opens the
-  // panel. On phones the sheet rises to 45% so the card and the changed rows
-  // show together (15A).
-  const { liveProposalId } = chat;
-  useEffect(() => {
-    if (!liveProposalId || lastProposalRef.current === liveProposalId) return;
-    lastProposalRef.current = liveProposalId;
-    if (planPlacement === 'tablet') return;
-    setIsPlanOpen(true);
-    setPlanSnap((snap) => (isPlanOpen ? snap : 'half'));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveProposalId]);
 
   return (
     <OnboardingTour>
@@ -456,17 +388,6 @@ const ChatPageView = () => {
             </button>
             <h1 className="chat-title">{chatTitle}</h1>
             <div className="chat-head-actions">
-              {planner && (
-                <button
-                  ref={planToggleRef}
-                  type="button"
-                  className="plan-toggle"
-                  aria-expanded={isPlanOpen}
-                  onClick={() => (isPlanOpen ? closePlan() : openPlan())}
-                >
-                  Plan
-                </button>
-              )}
               <ExportButton
                 hasMessages={hasConversationMessages}
                 currentSessionId={currentSessionId}
@@ -651,12 +572,6 @@ const ChatPageView = () => {
               </div>
             )}
 
-            {planner && planPlacement === 'phone' && !isPlanOpen && planPeek && (
-              <button type="button" className="plan-peek" onClick={openPlan} aria-label={`Open plan: ${planPeek}`}>
-                {planPeek}
-              </button>
-            )}
-
             <EnhancedChatInput
               compact
               onSendMessage={handleInputSubmit}
@@ -682,34 +597,12 @@ const ChatPageView = () => {
         </div>
       </main>
 
-      {isPlanOpen && planPlacement === 'desktop' ? (
-        <aside className="plan-slot" aria-label="Plan">
-          {renderPlanPanel('panel')}
-        </aside>
-      ) : (
-        <AnswerPanel
-          visuals={answerVisuals}
-          authToken={authToken}
-          timezone={config?.school?.timezone}
-          onAsk={(text) => handleSendMessage(text)}
-        />
-      )}
-
-      {isPlanOpen && planPlacement === 'tablet' && (
-        <aside
-          className="plan-drawer"
-          aria-label="Plan"
-          onKeyDown={(event) => { if (event.key === 'Escape') closePlan(); }}
-        >
-          {renderPlanPanel('drawer')}
-        </aside>
-      )}
-
-      {isPlanOpen && planPlacement === 'phone' && (
-        <PlanSheet snap={planSnap} onSnap={setPlanSnap} onClose={closePlan}>
-          {renderPlanPanel('sheet')}
-        </PlanSheet>
-      )}
+      <AnswerPanel
+        visuals={answerVisuals}
+        authToken={authToken}
+        timezone={config?.school?.timezone}
+        onAsk={(text) => handleSendMessage(text)}
+      />
 
       {isSettingsOpen && (
         <SettingsModal

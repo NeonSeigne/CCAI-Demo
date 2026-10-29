@@ -536,3 +536,21 @@ class TestSharedSearch(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSectionIds(unittest.TestCase):
+    """Catalog section rows carry the id the planner's pick_section op expects."""
+
+    def test_uva_rows_use_the_class_number(self):
+        from app.sources.academics import _section_row
+        row = _section_row({"id": "12345", "section": "001", "type": "Lecture"})
+        self.assertEqual(row["id"], "12345")
+        self.assertEqual(row["section"], "001")
+
+    def test_cu_rows_use_the_crn(self):
+        from app.sources.academics import _section_row
+        self.assertEqual(_section_row({"crn": "40123", "section": "010"})["id"], "40123")
+
+    def test_uw_rows_fall_back_to_the_section_number(self):
+        from app.sources.academics import _section_row
+        self.assertEqual(_section_row({"section": "001"})["id"], "001")

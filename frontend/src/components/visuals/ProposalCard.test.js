@@ -2,7 +2,8 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import ProposalCard from './ProposalCard';
 import VisualBlock from './VisualBlock';
-import PlanPanel from '../planner/PlanPanel';
+import { MemoryRouter } from 'react-router-dom';
+import SemesterView from '../planner/semester/SemesterView';
 import { PlannerProvider } from '../../contexts/PlannerContext';
 import * as api from '../../api/planner';
 import { apiError, diff, plan, proposal, report, view } from '../planner/plannerFixtures';
@@ -21,6 +22,10 @@ jest.mock('../../api/planner', () => {
     getSuggestions: jest.fn(),
   };
 });
+jest.mock('../../api/campus', () => ({
+  ...jest.requireActual('../../api/campus'),
+  getCatalogCourse: jest.fn(() => Promise.reject(new Error('offline'))),
+}));
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
 jest.mock('../../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({ config: { app: {}, school: { slug: 'uva' } } }),
@@ -28,11 +33,14 @@ jest.mock('../../contexts/AppConfigContext', () => ({
 
 const card = (p = proposal(), extra = {}) => ({ type: 'proposed_change', proposal: p, ...extra });
 
+// withPanel: the card beside the semester view of the proposal's term (C1).
 const renderCard = (visual = card(), { withPanel = false } = {}) => render(
-  <PlannerProvider>
-    <ProposalCard visual={visual} />
-    {withPanel && <PlanPanel />}
-  </PlannerProvider>,
+  <MemoryRouter>
+    <PlannerProvider>
+      <ProposalCard visual={visual} />
+      {withPanel && <SemesterView term="Spring 2027" />}
+    </PlannerProvider>
+  </MemoryRouter>,
 );
 
 // Let the plan fetch each card starts settle before the test ends.
@@ -74,19 +82,20 @@ test('Ready: label, action heading, biggest consequence first, rows, unknowns ab
   await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
 });
 
-test('Applying, then Applied · Undo while it is the latest edit; the panel agrees', async () => {
+test('Applying, then Applied · Undo while it is the latest edit; the semester view agrees', async () => {
   const accept = deferred();
   api.acceptProposal.mockReturnValue(accept.promise);
   api.undoEdit.mockResolvedValue({ plan: plan({ revision: 6 }), report: report(), undo_label: null });
   renderCard(card(), { withPanel: true });
-  expect(await screen.findByText('Preview · not applied')).toBeInTheDocument();
+  expect(await screen.findByRole('group', { name: 'Pending change' })).toBeInTheDocument();
+  expect(document.querySelector('.sv-card.is-ghost-in')).toBeInTheDocument();
 
-  // The panel has its own Accept for the same proposal; act on the card's.
+  // The semester view has its own Accept for the same proposal; act on the card's.
   const cardEl = () => document.querySelector('.proposal-card');
   fireEvent.click(within(cardEl()).getByRole('button', { name: 'Accept' }));
   expect(within(cardEl()).getByRole('button', { name: 'Applying…' })).toBeDisabled();
   expect(within(cardEl()).getByRole('button', { name: 'Discard' })).toBeDisabled();
-  // The panel's buttons wait on the same call.
+  // The semester view's buttons wait on the same call.
   expect(within(screen.getByRole('group', { name: 'Pending change' })).getByRole('button', { name: 'Applying…' })).toBeDisabled();
 
   accept.resolve({
@@ -94,12 +103,35 @@ test('Applying, then Applied · Undo while it is the latest edit; the panel agre
     report: report(),
   });
   expect(await screen.findByText('Applied')).toBeInTheDocument();
-  expect(screen.queryByText('Preview · not applied')).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Undo: moved ECON 3010 to Fall 2027, added ECON 3300' })).toBeInTheDocument();
+  expect(screen.queryByRole('group', { name: 'Pending change' })).not.toBeInTheDocument();
+  expect(document.querySelector('.sv-card.is-ghost-in')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Undo: moved ECON 3010 to Fall 2027, added ECON 3300' })).toBeEnabled();
 
   fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
   expect(await screen.findByText('Undone')).toBeInTheDocument();
-  expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 5 });
+  expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 5 }, expect.anything());
+});
+
+test('an accept with no answer at all shows "Couldn\'t save · Retry"; Retry applies it', async () => {
+  const down = () => Object.assign(new Error('Network request failed'), { status: 0, network: true });
+  api.acceptProposal
+    .mockRejectedValueOnce(down())
+    .mockResolvedValueOnce({ plan: plan({ revision: 5 }), report: report() });
+  api.getPlan
+    .mockResolvedValueOnce(view({ proposal: proposal() }))
+    .mockRejectedValueOnce(down())
+    .mockRejectedValueOnce(down())
+    .mockRejectedValueOnce(down());
+  render(<PlannerProvider retryDelays={[0, 0, 0]}><ProposalCard visual={card()} /></PlannerProvider>);
+  await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
+
+  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  expect(await screen.findByText(/Couldn't save/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+  expect(await screen.findByText('Applied')).toBeInTheDocument();
+  expect(api.acceptProposal).toHaveBeenCalledTimes(2);
 });
 
 test('Discarded: one muted line', async () => {

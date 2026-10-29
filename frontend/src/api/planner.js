@@ -8,7 +8,7 @@
  *
  *   {kind: 'conflict', revision}              revision_conflict (another window)
  *   {kind: 'needs_review', proposal}          accept: the plan moved, check again
- *   {kind: 'refused', reason}                 accept/undo can't go ahead
+ *   {kind: 'refused', reason}                 accept/undo/redo can't go ahead
  *   {kind: 'edit', code, message, course}     422 unknown_course, couldnt_verify_course, ...
  *   {kind: 'unavailable'} / {kind: 'other'}   network, 5xx, anything else
  */
@@ -28,8 +28,16 @@ const query = (params = {}) => {
 
 const path = (value) => encodeURIComponent(String(value));
 
-/** GET the plan view: `{plan, report, proposal: {…, diff}|null, undo_label}`. */
-export const getPlan = (token, options) => request(token, '/api/planner/plan', options);
+/**
+ * GET the plan view: `{plan, report, proposal: {…, diff}|null, undo_label, redo_label}`.
+ * With `term` the report is checked for that term (422 `unknown_term` for one
+ * the school doesn't know).
+ */
+export const getPlan = (token, { term } = {}, options) =>
+  request(token, `/api/planner/plan${query({ term })}`, options);
+
+/** GET the degree board: every planned term, completed courses, the waffle. */
+export const getDegree = (token, options) => request(token, '/api/planner/degree', options);
 
 /** GET the school's program files: `[{id, name, type}]`. */
 export const listPrograms = async (token, options) => {
@@ -37,7 +45,7 @@ export const listPrograms = async (token, options) => {
   return Array.isArray(data) ? data : [];
 };
 
-/** The student's own edit: resolves to `{plan, report, undo_label, notes}`. */
+/** The student's own edit: resolves to `{plan, report, undo_label, redo_label, notes}`. */
 export const postEdits = (token, { ops, expected_revision, idempotency_key }, options) =>
   request(token, '/api/planner/edits', {
     ...options,
@@ -45,9 +53,29 @@ export const postEdits = (token, { ops, expected_revision, idempotency_key }, op
     body: { ops, expected_revision, idempotency_key },
   });
 
-/** Store `ops` as the one pending proposal: resolves to `{proposal}` (with its diff). */
-export const createProposal = (token, { ops, expected_revision }, options) =>
-  request(token, '/api/planner/proposals', { ...options, method: 'POST', body: { ops, expected_revision } });
+/** A request body with `term` only when one is given. */
+const withTerm = (body, term) => (term ? { ...body, term } : body);
+
+/**
+ * Store `ops` as the one pending proposal: resolves to `{proposal}` (with its
+ * diff, drawn for `term` when given and kept as `proposal.term`).
+ */
+export const createProposal = (token, { ops, expected_revision, term }, options) =>
+  request(token, '/api/planner/proposals', {
+    ...options,
+    method: 'POST',
+    body: withTerm({ ops, expected_revision }, term),
+  });
+
+export const propose = createProposal;
+
+/** The diff a proposal of `ops` would carry, seen in `term`; writes nothing. Resolves to `{diff, revision}`. */
+export const preview = (token, { ops, expected_revision, term }, options) =>
+  request(token, '/api/planner/preview', {
+    ...options,
+    method: 'POST',
+    body: withTerm({ ops, expected_revision }, term),
+  });
 
 /** The diff `ops` would make, with nothing saved: resolves to `{diff, revision}`. */
 export const previewEdits = (token, { ops, expected_revision }, options) =>
@@ -61,9 +89,15 @@ export const acceptProposal = (token, id, options) =>
 export const discardProposal = (token, id, options) =>
   request(token, `/api/planner/proposals/${path(id)}/discard`, { ...options, method: 'POST' });
 
-/** Walk back the latest edit: resolves to `{plan, report, undo_label}`. */
+/** Walk back the latest edit: resolves to `{plan, report, undo_label, redo_label}`. */
 export const undoEdit = (token, { expected_revision }, options) =>
   request(token, '/api/planner/undo', { ...options, method: 'POST', body: { expected_revision } });
+
+/** Re-apply the step after the undo pointer: resolves to `{plan, report, undo_label, redo_label}`. */
+export const redoEdit = (token, { expected_revision }, options) =>
+  request(token, '/api/planner/redo', { ...options, method: 'POST', body: { expected_revision } });
+
+export const redo = redoEdit;
 
 /** Up to five labelled courses: resolves to `{items, reason}`. */
 export const getSuggestions = (token, { q, term } = {}, options) =>

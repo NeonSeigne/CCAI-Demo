@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { changedRowKeys, consequenceRows, literalOps } from '../planner/proposalDiff';
-import '../../styles/PlanPanel.css';
+import useAcceptProposal from '../planner/useAcceptProposal';
+import '../../styles/PlanCards.css';
 
 /**
  * Chat card for a `proposed_change` visual (design 2A, 6A, 11A).
@@ -84,6 +85,7 @@ export default function ProposalCard({ visual }) {
   const [literalBusy, setLiteralBusy] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [undone, setUndone] = useState(false);
+  const acceptProposal = useAcceptProposal();
 
   // Once per card: the planner object changes with every view and status, and
   // a failed load would otherwise retry on each change.
@@ -153,8 +155,11 @@ export default function ProposalCard({ visual }) {
   const [lead, ...rest] = rows;
   const applying = state === 'applying';
   const discarding = outcome?.status === 'discarding';
+  const held = !!outcome?.held;
   const busy = applying || discarding || literalBusy;
   const canAct = !!planner && state !== 'refused';
+  // A direct edit landed after this proposal was made: Discard only (D9).
+  const stale = !!planner?.pendingProposal?.stale && planner.pendingProposal.id === reviewed?.id;
 
   const dropInstead = async () => {
     setLiteralBusy(true);
@@ -192,23 +197,32 @@ export default function ProposalCard({ visual }) {
       {(outcome?.error || localError) && state !== 'refused' && (
         <p className="pc-refused" role="alert">{outcome?.error || localError}</p>
       )}
+      {held && (
+        <p className="pc-refused" role="alert">
+          Couldn't save <span aria-hidden="true">·</span>
+          {' '}
+          <button type="button" className="pp-link" onClick={planner.retry}>Retry</button>
+        </p>
+      )}
       {canAct && (
         <div className="pc-actions">
-          <button
-            type="button"
-            className="pp-btn is-primary"
-            disabled={busy}
-            onClick={() => planner.accept(reviewed)}
-          >
-            {applying && <span className="pc-spinner" aria-hidden="true" />}
-            {applying ? 'Applying…' : 'Accept'}
-          </button>
-          {state !== 'needs_review' && (
+          {!stale && (
+            <button
+              type="button"
+              className="pp-btn is-primary"
+              disabled={busy || held}
+              onClick={() => acceptProposal(reviewed)}
+            >
+              {applying && <span className="pc-spinner" aria-hidden="true" />}
+              {applying ? 'Applying…' : 'Accept'}
+            </button>
+          )}
+          {(state !== 'needs_review' || stale) && (
             <button type="button" className="pp-btn" disabled={busy} onClick={() => planner.discard(reviewed)}>
               Discard
             </button>
           )}
-          {diff?.literal_differs && state !== 'needs_review' && (
+          {diff?.literal_differs && state !== 'needs_review' && !stale && (
             <button type="button" className="pp-btn" disabled={busy} onClick={dropInstead}>
               Drop it instead
             </button>
