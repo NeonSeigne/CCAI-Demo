@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import CourseVisualCard from './CourseVisualCard';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import { useCourseRatings } from '../../hooks/useCampusDetail';
+import { PlannerContext } from '../../contexts/PlannerContext';
 import { cuPopupCourse, uvaPopupCourse, uwPopupCourse } from '../../pages/__fixtures__/popups';
 
 jest.mock('../../hooks/useCourseDetail');
@@ -11,12 +12,6 @@ jest.mock('../../hooks/useCampusDetail', () => ({ useCourseRatings: jest.fn() })
 jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token' }),
 }));
-jest.mock('cytoscape', () => {
-  const cytoscape = jest.fn(() => ({ on: jest.fn(), destroy: jest.fn() }));
-  cytoscape.use = jest.fn();
-  return { __esModule: true, default: cytoscape };
-});
-jest.mock('cytoscape-fcose', () => ({ __esModule: true, default: {} }));
 
 const serve = (data) => useCourseDetail.mockReturnValue({
   data, error: null, loading: false, retry: jest.fn(),
@@ -60,6 +55,22 @@ describe('CourseVisualCard', () => {
 
     renderCard({ type: 'course_schedule', course: 'COMP SCI 400' });
     expect(screen.getByText('LEC 001')).toBeInTheDocument();
+  });
+
+  it('marks prerequisites the plan has done', () => {
+    serve(uwPopupCourse());
+    const planner = { view: { plan: { profile: { completed: [{ id: 'MATH 240' }] }, courses: [] } }, ensureLoaded: jest.fn() };
+    render(
+      <MemoryRouter>
+        <PlannerContext.Provider value={planner}>
+          <CourseVisualCard visual={{ type: 'course_prereq_map', course: 'COMP SCI 400' }} />
+        </PlannerContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('heading', { name: 'Prerequisites for COMP SCI 400' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'MATH 240' })).toHaveAccessibleDescription('done');
+    expect(screen.getByRole('group', { name: 'One of' })).toBeInTheDocument();
+    expect(planner.ensureLoaded).toHaveBeenCalled();
   });
 
   it('renders UVA grades by instructor, with ratings when they arrive', () => {
