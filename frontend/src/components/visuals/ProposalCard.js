@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { changedRowKeys, consequenceRows, literalOps } from '../planner/proposalDiff';
-import '../../styles/PlanPanel.css';
+import '../../styles/PlanCards.css';
 
 /**
  * Chat card for a `proposed_change` visual (design 2A, 6A, 11A).

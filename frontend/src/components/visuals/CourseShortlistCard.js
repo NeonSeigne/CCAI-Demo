@@ -3,7 +3,7 @@ import { usePlanner } from '../../contexts/PlannerContext';
 import { plannerError } from '../../api/planner';
 import { creditSpan, statusWord } from '../planner/planFormat';
 import ProposalCard from './ProposalCard';
-import '../../styles/PlanPanel.css';
+import '../../styles/PlanCards.css';
 
 /**
  * Chat card for a `course_shortlist` visual (design 19A).

@@ -21,6 +21,7 @@ import {
   statusWord,
 } from './planFormat';
 import { previewOf } from './proposalDiff';
+import '../../styles/PlanCards.css';
 import '../../styles/PlanPanel.css';
 
 /**
