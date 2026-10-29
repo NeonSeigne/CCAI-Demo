@@ -218,3 +218,26 @@ With it, `plan_summary` says "planning Fall 2027", `plan_suggest` checks
 suggestions for that term, and `plan_edit` gives an `add` with no `term` that
 term and draws the proposal's diff for it (`proposal.term`). Without it everything uses `plan.term`. `GET /api/planner/suggestions`
 returns `{items, reason, term}`.
+
+## Catalog course summary (`GET /api/catalog/{id}`, `sources/academics.course_summary`)
+
+Fields the planner rules decide; the frontend reads them and never recomputes.
+
+```
+summary = {
+  ...,                                   # identifier, title, grades, sections, ... (see course_summary)
+  "difficulty": "easier"|"typical"|"harder"|null,   # always present (eng review R5)
+}
+```
+
+`difficulty` uses the planner's per-school rule (`facts.difficulty_of`):
+"harder" is the course facts' `harder` flag (the school's
+`planner.harder_below_gpa`, else the hardest third of the snapshot's grade
+data, `csv_snapshot._hardest_third`); of the rest, an average GPA at or above
+`planner.easier_from_gpa` (default 3.4, `facts.EASIER_FROM_GPA`; read with
+`getattr`, so it takes effect once `PlannerConfig` declares the field) is "easier",
+anything else "typical". null when the course has no average GPA or the school
+has no "harder" cutoff. Per school: UVA all three labels; UW "harder" below
+3.4, so with the default easier cutoff a UW course is "harder" or "easier",
+never "typical", until its pack sets `easier_from_gpa`; CU always null (FOSE
+publishes no grades).

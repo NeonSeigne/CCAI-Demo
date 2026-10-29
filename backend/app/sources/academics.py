@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 from app.config import get_settings
-from app.planner.facts import CourseFacts, Meeting, PrereqNode, Section
+from app.planner.facts import CourseFacts, Meeting, PrereqNode, Section, difficulty_of
 
 logger = logging.getLogger(__name__)
 
@@ -488,14 +488,26 @@ def _grade_history(result: Dict[str, Any]) -> List[Dict[str, Any]]:
     return sorted(history, key=lambda h: _term_order(h["term"]))
 
 
+def easier_from_gpa() -> Optional[float]:
+    """The school's "easier" cutoff when its pack sets one (else the default)."""
+    value = getattr(get_settings().planner, "easier_from_gpa", None)
+    return float(value) if isinstance(value, (int, float)) else None
+
+
+def course_difficulty(facts: Optional[CourseFacts]) -> Optional[str]:
+    """``easier`` / ``typical`` / ``harder`` / None by the school's rule (R5)."""
+    return difficulty_of(facts, easier_from_gpa())
+
+
 async def _facts_fields(identifier: str) -> Dict[str, Any]:
-    """``credits``, ``gen_ed`` and ``prereq_tree`` from the planner's course
-    facts for the next term (the sources cache what the summary already read).
-    A field the school doesn't publish is left out."""
+    """``difficulty``, ``credits``, ``gen_ed`` and ``prereq_tree`` from the
+    planner's course facts for the next term (the sources cache what the
+    summary already read). ``difficulty`` is always present (None when
+    unknown); any other field the school doesn't publish is left out."""
     facts = (await course_facts([identifier], next_term())).get(identifier)
     if facts is None or facts.known != "yes":
-        return {}
-    out: Dict[str, Any] = {}
+        return {"difficulty": None}
+    out: Dict[str, Any] = {"difficulty": course_difficulty(facts)}
     if facts.credits:
         out["credits"] = {"min": facts.credits[0], "max": facts.credits[1]}
     if facts.gen_ed:

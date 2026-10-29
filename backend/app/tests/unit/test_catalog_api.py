@@ -338,6 +338,7 @@ class TestCU(CatalogTestCase):
         self.assertFalse(body["sections"]["seats_published"])
         self.assertIsNone(body["sections"]["seats_open"])
         self.assertEqual(body["instructors"], ["K. Nielsen", "H. Hu"])
+        self.assertIsNone(body["difficulty"])  # no grade data at CU
         for missing in ("grades", "prerequisites", "next_courses"):
             self.assertNotIn(missing, body)
             self.assertFalse(body["capabilities"][missing])
