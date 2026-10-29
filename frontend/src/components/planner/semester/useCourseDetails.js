@@ -19,7 +19,7 @@ export function clearCourseDetailsCache() {
 
 const once = (cache, key, load) => {
   if (!cache.has(key)) {
-    const run = load().catch(() => null);
+    const run = Promise.resolve().then(load).catch(() => null);
     cache.set(key, run);
   }
   return cache.get(key);
