@@ -1,8 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   DndContext, DragOverlay, KeyboardSensor, PointerSensor, TouchSensor,
-  pointerWithin, rectIntersection, useSensor, useSensors,
+  pointerWithin, useSensor, useSensors,
 } from '@dnd-kit/core';
+import { centerWithin, targetCoordinates } from './keyboard';
 import '../../styles/dnd.css';
 
 /**
@@ -38,10 +39,13 @@ export const announcements = {
   cancel: (active) => `Cancelled. ${titleOf(active)} was not moved.`,
 };
 
-/** Pointer position first; keyboard drags have none, so fall back to overlap. */
+/**
+ * Pointer and touch drags hit the target under the pointer; keyboard drags
+ * (no pointer) hit the target holding the dragged item's centre, so lifting
+ * and dropping in place drops nowhere.
+ */
 export function collisionDetection(args) {
-  const hits = pointerWithin(args);
-  return hits.length ? hits : rectIntersection(args);
+  return args.pointerCoordinates ? pointerWithin(args) : centerWithin(args);
 }
 
 const accepts = (over, item) => {
@@ -58,7 +62,7 @@ export default function DndProvider({ children }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
-    useSensor(KeyboardSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: targetCoordinates }),
   );
 
   const onDragStart = useCallback(({ active }) => {
@@ -77,7 +81,7 @@ export default function DndProvider({ children }) {
     setDragging(null);
     liftRef.current = null;
     const item = itemOf(active);
-    const target = accepts(over, item) && !over.disabled ? over : null;
+    const target = over && accepts(over, item) && !over.disabled ? over : null;
     setMessage(announcements.end(active, target));
     if (target) target.data.current.onDrop?.(item);
   }, []);
@@ -99,7 +103,7 @@ export default function DndProvider({ children }) {
       onDragCancel={onDragCancel}
     >
       {children}
-      <DragOverlay dropAnimation={null}>
+      <DragOverlay dropAnimation={null} zIndex={1400}>
         {dragging ? <div className="dnd-chip">{dragging.title}</div> : null}
       </DragOverlay>
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{message}</div>

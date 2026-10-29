@@ -2,6 +2,7 @@ import React from 'react';
 import {
   act, fireEvent, render, screen, waitFor,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AppShell from '../shell/AppShell';
 import CampusRail from '../CampusRail';
@@ -36,9 +37,16 @@ jest.mock('../EnhancedChatInput', () => ({ placeholder }) => <textarea aria-labe
 
 const COURSE = { type: 'course', id: 'ECON 3720', title: 'Intermediate Macroeconomics' };
 
+const mockSaveClick = jest.fn();
+
 function Card() {
   const drag = useDraggableItem(COURSE);
-  return <div ref={drag.ref} {...drag.handleProps} className={drag.className}>ECON 3720</div>;
+  return (
+    <div ref={drag.ref} {...drag.handleProps} className={drag.className} data-testid="card">
+      <span>ECON 3720</span>
+      <button type="button" onClick={mockSaveClick}>Save</button>
+    </div>
+  );
 }
 
 function AskButton() {
@@ -71,20 +79,35 @@ const renderAt = (path, saved = { count: 0 }) => render(
 const tick = () => act(() => new Promise((resolve) => { setTimeout(resolve, 0); }));
 
 /** Space lifts, an arrow moves, Space drops (D18). */
-async function keyboardDrag() {
-  const card = screen.getByText('ECON 3720');
+async function keyboardDrag({ arrows = 1 } = {}) {
+  const card = screen.getByTestId('card');
   card.focus();
   fireEvent.keyDown(card, { code: 'Space', key: ' ' });
   await tick();
-  fireEvent.keyDown(document, { code: 'ArrowRight', key: 'ArrowRight' });
-  await tick();
+  for (let i = 0; i < arrows; i += 1) {
+    fireEvent.keyDown(document, { code: 'ArrowDown', key: 'ArrowDown' });
+    // eslint-disable-next-line no-await-in-loop
+    await tick();
+  }
   fireEvent.keyDown(document, { code: 'Space', key: ' ' });
   await tick();
 }
 
-const RECT = {
-  x: 0, y: 0, top: 0, left: 0, right: 200, bottom: 200, width: 200, height: 200, toJSON: () => {},
-};
+const box = (left, top, width, height) => ({
+  x: left, y: top, left, top, width, height, right: left + width, bottom: top + height, toJSON: () => {},
+});
+const NONE = box(0, 0, 0, 0);
+
+/**
+ * jsdom has no layout. Give the card (and the chip that follows it), the
+ * dock and the Saved rail item boxes of their own, apart from each other.
+ */
+function layout() {
+  if (this.matches?.('[data-testid="card"]') || this.querySelector?.(':scope > .dnd-chip')) return box(400, 300, 200, 60);
+  if (this.matches?.('aside.cc-dock')) return box(1080, 0, 360, 900);
+  if (this.matches?.('li.dnd-target')) return box(0, 200, 260, 44);
+  return NONE;
+}
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -92,8 +115,7 @@ beforeEach(() => {
   window.matchMedia = (media) => ({
     matches: !/max-width/.test(media), media, addEventListener: () => {}, removeEventListener: () => {},
   });
-  // jsdom has no layout: give every element the same box so drags overlap targets.
-  jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(RECT);
+  jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(layout);
   jest.spyOn(global, 'fetch').mockImplementation(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
 });
 
@@ -101,7 +123,7 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 test('keyboard drag announces the lift and the drop politely', async () => {
   renderAt('/courses');
-  const card = screen.getByText('ECON 3720');
+  const card = screen.getByTestId('card');
   card.focus();
   fireEvent.keyDown(card, { code: 'Space', key: ' ' });
   await tick();
@@ -109,6 +131,7 @@ test('keyboard drag announces the lift and the drop politely', async () => {
   expect(region).toHaveAttribute('aria-live', 'polite');
   fireEvent.keyDown(document, { code: 'ArrowRight', key: 'ArrowRight' });
   await tick();
+  expect(screen.getByText(/Intermediate Macroeconomics is over Ask\.$/)).toBeInTheDocument();
   fireEvent.keyDown(document, { code: 'Space', key: ' ' });
   await tick();
   expect(screen.getByText('Dropped Intermediate Macroeconomics on Ask.')).toBeInTheDocument();
@@ -116,7 +139,7 @@ test('keyboard drag announces the lift and the drop politely', async () => {
 
 test('valid targets get a dashed outline at drag start, and Escape cancels', async () => {
   renderAt('/courses');
-  const card = screen.getByText('ECON 3720');
+  const card = screen.getByTestId('card');
   card.focus();
   fireEvent.keyDown(card, { code: 'Space', key: ' ' });
   await tick();
@@ -148,7 +171,63 @@ test('dropping on Saved saves once, without navigating', async () => {
     kind: 'course', key: 'ECON 3720', display_name: 'Intermediate Macroeconomics',
   });
   expect(screen.getByText('Dropped Intermediate Macroeconomics on Saved.')).toBeInTheDocument();
-  expect(screen.getByText('ECON 3720')).toBeInTheDocument();
+  expect(screen.getByTestId('card')).toBeInTheDocument();
+});
+
+test('lifting and dropping in place drops on nothing', async () => {
+  renderAt('/courses');
+  await keyboardDrag({ arrows: 0 });
+  expect(screen.getByText('Dropped Intermediate Macroeconomics. Nothing changed.')).toBeInTheDocument();
+  expect(mockChat.attach).not.toHaveBeenCalled();
+});
+
+test('arrows step between the targets that take the item', async () => {
+  const saved = {
+    count: 0, isSaved: jest.fn(() => false), save: jest.fn(() => Promise.resolve({})),
+  };
+  // /saved has both the rail's Saved item and the dock, in reading order.
+  render(
+    <MemoryRouter initialEntries={['/saved']}>
+      <SavedContext.Provider value={saved}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route path="/saved" element={<div><CampusRail /><Card /></div>} />
+          </Route>
+        </Routes>
+      </SavedContext.Provider>
+    </MemoryRouter>,
+  );
+  const card = screen.getByTestId('card');
+  card.focus();
+  fireEvent.keyDown(card, { code: 'Space', key: ' ' });
+  await tick();
+  fireEvent.keyDown(document, { code: 'ArrowDown', key: 'ArrowDown' });
+  await tick();
+  expect(screen.getByText(/Intermediate Macroeconomics is over Ask\.$/)).toBeInTheDocument();
+  fireEvent.keyDown(document, { code: 'ArrowDown', key: 'ArrowDown' });
+  await tick();
+  expect(screen.getByText(/Intermediate Macroeconomics is over Saved\.$/)).toBeInTheDocument();
+  fireEvent.keyDown(document, { code: 'ArrowUp', key: 'ArrowUp' });
+  await tick();
+  expect(screen.getByText(/Intermediate Macroeconomics is over Ask\.$/)).toBeInTheDocument();
+  fireEvent.keyDown(document, { code: 'Escape', key: 'Escape' });
+  await tick();
+  expect(mockChat.attach).not.toHaveBeenCalled();
+  expect(saved.save).not.toHaveBeenCalled();
+  await screen.findByText('Your chats will show up here.');
+});
+
+test('Enter on a button inside a draggable card clicks it and starts no drag', async () => {
+  renderAt('/courses');
+  const save = screen.getByRole('button', { name: 'Save' });
+  save.focus();
+  userEvent.keyboard('{Enter}');
+  await tick();
+  expect(mockSaveClick).toHaveBeenCalledTimes(1);
+  fireEvent.keyDown(save, { code: 'Space', key: ' ' });
+  await tick();
+  expect(screen.queryByText(/Picked up/)).not.toBeInTheDocument();
+  expect(screen.getByTestId('card')).not.toHaveClass('is-dragging');
 });
 
 test('an already-saved item only pulses the count', async () => {
