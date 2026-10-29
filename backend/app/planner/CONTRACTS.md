@@ -100,7 +100,11 @@ diff = {
   "unknowns": [str],                    # "Prerequisites not published for UVA"
   "literal_differs": str|null,          # 11A: "You said drop; I moved ECON 3010 to fall"
   "added_courses": [report course rows], # title, credits, labels of proposed additions
-  "schedule": {"blocks": [...]},        # week blocks of proposed additions (dashed in the grid)
+  "schedule": {                         # the shown term's week (tab-workspaces R16)
+    "blocks_in": [...],                 # after-blocks of added, moved-in or re-sectioned courses (dashed)
+    "blocks_out": [...],                # before-blocks that disappear (faded)
+    "blocks": [...],                    # alias of blocks_in, for PlanPanel until it migrates
+  },
 }
 ```
 

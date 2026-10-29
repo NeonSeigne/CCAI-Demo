@@ -14,7 +14,10 @@ through the same three steps:
 3. ``inverse_ops`` and ``undo_label`` record how to walk the edit back.
 
 ``diff`` compares the reports before and after, and lists every rule whose
-counts or status change (R16), not only status flips.
+counts or status change (R16), not only status flips. Its week blocks show
+what an edit does to the shown term's week (tab-workspaces R16):
+``blocks_in`` are the after-blocks of every course whose blocks change
+(added, moved in, re-sectioned), ``blocks_out`` the before-blocks that go.
 """
 
 from __future__ import annotations
@@ -347,6 +350,26 @@ def _unknowns(report: Dict[str, Any], changed: Optional[set] = None, rule_ids: O
     return list(dict.fromkeys(found))
 
 
+def _blocks_by_course(report: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+    found: Dict[str, List[Dict[str, Any]]] = {}
+    for block in (report.get("schedule") or {}).get("blocks") or []:
+        found.setdefault(block.get("course"), []).append(block)
+    return found
+
+
+def schedule_change(before: Dict[str, Any], after: Dict[str, Any]) -> Dict[str, Any]:
+    """``{blocks_in, blocks_out, blocks}`` for the shown term's week.
+
+    A course whose blocks differ between the reports contributes its after
+    blocks to ``blocks_in`` and its before blocks to ``blocks_out``.
+    ``blocks`` repeats ``blocks_in`` for the clients that read the old name.
+    """
+    old, new = _blocks_by_course(before), _blocks_by_course(after)
+    blocks_in = [b for course, blocks in new.items() if blocks != old.get(course) for b in blocks]
+    blocks_out = [b for course, blocks in old.items() if blocks != new.get(course) for b in blocks]
+    return {"blocks_in": blocks_in, "blocks_out": blocks_out, "blocks": blocks_in}
+
+
 def _literal_differs(asked: Optional[str], ops: List[Dict[str, Any]]) -> Optional[str]:
     if not asked:
         return None
@@ -409,9 +432,9 @@ def diff(
         ))),
         "literal_differs": _literal_differs(asked, ops),
         # What the panel needs to draw a proposed addition: its report row
-        # (title, credits, labels) and its week blocks (design 1A, 18A).
+        # (title, credits, labels) and the week blocks that come and go
+        # (design 1A, 18A; tab-workspaces R16).
         "added_courses": [c for c in after.get("courses") or [] if c.get("id") in courses["added"]],
-        "schedule": {"blocks": [b for b in (after.get("schedule") or {}).get("blocks") or []
-                                if b.get("course") in courses["added"]]},
+        "schedule": schedule_change(before, after),
     }
 
