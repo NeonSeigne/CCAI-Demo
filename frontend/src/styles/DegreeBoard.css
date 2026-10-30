@@ -413,6 +413,7 @@
 
 .dg-col-title h3 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -634,7 +635,7 @@
   scroll-snap-align: start;
 }
 
-.dg-past h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.dg-past h3 { margin: 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
 
 .dg-past-terms { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; flex: 1; }
 
