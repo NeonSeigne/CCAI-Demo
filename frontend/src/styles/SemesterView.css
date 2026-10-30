@@ -671,11 +671,6 @@
   font-weight: 600;
 }
 
-.sv-menu .MuiMenuItem-root { gap: 8px; font: 13px var(--font-app); }
-.sv-menu .MuiMenuItem-root svg { width: 18px; height: 18px; color: var(--muted); }
-.sv-menu .MuiMenuItem-root.is-danger,
-.sv-menu .MuiMenuItem-root.is-danger svg { color: var(--difficulty-harder-ink); }
-
 @media (max-width: 700px) {
   .sv-card { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
   .sv-card-side { padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--line); }

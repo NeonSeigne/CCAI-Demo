@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import { MoreHorizRounded, SwapHorizRounded, CloseRounded, DragIndicatorRounded, PersonOutlineRounded, StarRounded, CheckCircleOutlineRounded, LockOutlined, DriveFileMoveRounded } from '../../icons';
+import Menu, { MenuItem } from '../../menus/Menu';
+import { MoreHorizRounded, SwapHorizRounded, CloseRounded, DragIndicatorRounded, PersonOutlineRounded, StarRounded, CheckCircleOutlineRounded, LockOutlined } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { creditSpan } from '../planFormat';
 import { meetingClock as clockText } from '../../../modules/campus';
@@ -238,31 +237,23 @@ export default function CourseCard({
             >
               <MoreHorizRounded aria-hidden="true" />
             </button>
+            {/* The system menu (components/menus): 260px, 21px icons (menus.html). */}
             <Menu
               anchorEl={menuButton.current}
               open={!!menu}
               onClose={closeMenu}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              slotProps={{ paper: { className: 'sv-menu' } }}
+              label={menu === 'move' ? `Move ${id} to` : `${id} actions`}
             >
               {menu === 'move'
-                ? moveTerms.map((term) => (
-                  <MenuItem key={term} onClick={() => { closeMenu(); onMove?.(id, term); }}>{term}</MenuItem>
+                ? moveTerms.map((term, index) => (
+                  <MenuItem key={term} icon="calendar_month" autoFocus={index === 0} onSelect={() => { closeMenu(); onMove?.(id, term); }}>
+                    {term}
+                  </MenuItem>
                 ))
                 : [
-                  <MenuItem key="move" onClick={() => setMenu('move')}>
-                    <DriveFileMoveRounded aria-hidden="true" />
-                    Move to…
-                  </MenuItem>,
-                  <MenuItem key="swap" onClick={() => { closeMenu(); onSwap?.(id); }}>
-                    <SwapHorizRounded aria-hidden="true" />
-                    Swap section
-                  </MenuItem>,
-                  <MenuItem key="remove" className="is-danger" onClick={() => { closeMenu(); onRemove?.(id); }}>
-                    <CloseRounded aria-hidden="true" />
-                    Remove
-                  </MenuItem>,
+                  <MenuItem key="move" icon="drive_file_move" onSelect={() => setMenu('move')}>Move to…</MenuItem>,
+                  <MenuItem key="swap" icon="swap_horiz" onSelect={() => { closeMenu(); onSwap?.(id); }}>Swap section</MenuItem>,
+                  <MenuItem key="remove" icon="close" danger onSelect={() => { closeMenu(); onRemove?.(id); }}>Remove</MenuItem>,
                 ]}
             </Menu>
           </div>

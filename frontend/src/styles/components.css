@@ -489,7 +489,8 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
 .MuiMenu-paper .MuiMenuItem-root .ms { color: var(--muted); font-size: 21px; }
 
 .cc-menu-item:hover,
-.MuiMenu-paper .MuiMenuItem-root:hover { background: var(--raised); }
+.MuiMenu-paper .MuiMenuItem-root:hover,
+.MuiMenu-paper .MuiMenuItem-root.Mui-focusVisible { background: var(--raised); }
 
 .cc-menu-item.is-on,
 .cc-menu-item[aria-checked="true"],
