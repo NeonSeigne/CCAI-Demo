@@ -192,51 +192,6 @@
   border-radius: 99px;
 }
 
-.chat-frame .compact-composer {
-  max-width: 760px;
-  margin: 0;
-  padding: 0;
-}
-
-/* One row: + · text · docs · mic · send, inside a 999px pill. The two
-   original rows dissolve into the pill with display: contents. */
-.compact-composer .floating-input-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 56px;
-  padding: 7px 7px 7px 8px;
-  border: 1px solid rgba(17, 17, 20, 0.12);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: 0 6px 24px rgba(17, 17, 20, 0.08);
-}
-
-.compact-composer .text-input-row,
-.compact-composer .controls-row { display: contents; }
-
-.compact-composer .file-controls { order: 0; gap: 6px; }
-.compact-composer .text-input-row .main-textarea { order: 1; flex: 1; min-width: 0; padding: 8px 4px; font-size: 16px; }
-.compact-composer .controls-row > div:last-child { order: 2; }
-
-.compact-composer .main-textarea::placeholder {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compact-composer .composer-plus-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 99px;
-}
-
-.compact-composer .send-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 99px;
-}
-
 /* ---- Narrow screens ------------------------------------------------------ */
 @media (max-width: 1099px) {
   .chat-frame .answer-panel { display: none; }

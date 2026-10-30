@@ -148,21 +148,6 @@
   padding: 8px 12px 12px;
 }
 
-/* In the dock the composer is a hairline card, not a floating one. */
-.cc-dock-composer .compact-composer { max-width: none; margin: 0; padding: 0; }
-.cc-dock-composer div.cc-composer .floating-input-box {
-  gap: 8px;
-  padding: 12px 10px 10px 16px;
-  border-color: var(--control);
-  box-shadow: none;
-}
-.cc-dock-composer div.cc-composer .main-textarea { font-size: 15px; }
-
-@media (max-width: 700px) {
-  /* Phones keep 16px so iOS doesn't zoom into the field. */
-  .cc-dock-composer div.cc-composer .main-textarea { font-size: 16px; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cc-dock-icon-btn { transition: none; }
 }

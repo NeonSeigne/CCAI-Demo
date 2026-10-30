@@ -34,8 +34,6 @@ jest.mock('../../contexts/AuthContext', () => ({
 jest.mock('../../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({ config: { app: { institution: 'UVA' } } }),
 }));
-jest.mock('../chat/DockConversation', () => () => <div>Conversation</div>);
-jest.mock('../EnhancedChatInput', () => ({ placeholder }) => <textarea aria-label="Message" placeholder={placeholder} />);
 
 const COURSE = { type: 'course', id: 'ECON 3720', title: 'Intermediate Macroeconomics' };
 
