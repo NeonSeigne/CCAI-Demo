@@ -119,12 +119,12 @@ export function proposalRows(diff) {
     key: `add:${id}`, kind: 'course', icon: 'add', code: id, title: added.get(id)?.title || null, value: added.get(id)?.term || null,
   }));
   (courses.removed || []).forEach((id) => rows.push({
-    key: `remove:${id}`, kind: 'course', icon: 'remove', code: id, value: 'Removed',
+    key: `remove:${id}`, kind: 'course', icon: 'delete', code: id, value: 'Removed',
   }));
 
   if (diff.literal_differs) {
     rows.push({
-      key: 'literal', kind: 'literal', icon: 'info', label: 'Not what you asked', note: diff.literal_differs,
+      key: 'literal', kind: 'literal', icon: 'warning', label: 'Not what you asked', note: diff.literal_differs,
     });
   }
 

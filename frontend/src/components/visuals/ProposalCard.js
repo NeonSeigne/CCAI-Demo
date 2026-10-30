@@ -178,10 +178,7 @@ export default function ProposalCard({ visual }) {
               Undo
             </button>
           )}
-          <ContextLink className="vc-btn" to={DEGREE_LINK}>
-            <Icon name="route" size={20} />
-            My degree
-          </ContextLink>
+          <ContextLink className="vc-btn" to={DEGREE_LINK}>My degree</ContextLink>
         </div>
         {localError && <div className="vc-body"><Failure text={localError} /></div>}
       </div>

@@ -73,7 +73,7 @@ const deferred = () => {
 };
 
 // Each row's cells, joined with spaces, without the icons' ligature names.
-const rowTexts = () => [...document.querySelectorAll('.vc-diff > li')].map((li) => [...li.children].map((cell) => cell.textContent).join(' ').replace(/arrow_forward|swap_horiz|functions|check|close|help|info|add|remove|bar_chart|school/g, '').replace(/\s+/g, ' ').trim());
+const rowTexts = () => [...document.querySelectorAll('.vc-diff > li')].map((li) => [...li.children].map((cell) => cell.textContent).join(' ').replace(/arrow_forward|swap_horiz|functions|check|close|help|warning|add|delete|bar_chart|school/g, '').replace(/\s+/g, ' ').trim());
 
 beforeEach(() => {
   jest.clearAllMocks();
