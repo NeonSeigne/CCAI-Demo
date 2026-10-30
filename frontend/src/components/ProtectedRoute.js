@@ -1,16 +1,13 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import BootScreen from './BootScreen';
 
 export function ProtectedRoute() {
   const { isAuthenticated, authReady } = useAuth();
 
   if (!authReady) {
-    return (
-      <div className="auth-boot-screen" role="status" aria-live="polite">
-        Checking session…
-      </div>
-    );
+    return <BootScreen />;
   }
 
   if (!isAuthenticated) {
@@ -24,11 +21,7 @@ export function PublicOnlyRoute() {
   const { isAuthenticated, authReady } = useAuth();
 
   if (!authReady) {
-    return (
-      <div className="auth-boot-screen" role="status" aria-live="polite">
-        Checking session…
-      </div>
-    );
+    return <BootScreen />;
   }
 
   if (isAuthenticated) {

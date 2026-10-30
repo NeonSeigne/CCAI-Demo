@@ -1,0 +1,105 @@
+/* Boot screen and page loading (boot.html): the school frame is real, the
+   page inside it is its own layout in raised (DESIGN.md States). */
+.bt-frame {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-app);
+}
+
+.bt-rail.campus-rail { position: sticky; top: 0; height: 100vh; }
+.bt-nav { display: grid; gap: 10px; padding: 4px 6px; }
+.bt-nav i { display: block; height: 40px; border-radius: var(--r-full); background: var(--deep-raised); opacity: 0.7; }
+.bt-nav i:first-child { opacity: 1; }
+.bt-rail .bt-toggle { margin-top: auto; }
+
+.bt-main { flex: 1 1 0; min-width: 0; padding: 28px 36px 40px; box-sizing: border-box; }
+.bt-phone-header.campus-phone-header,
+.bt-tabbar { display: none; }
+
+.bt-page { min-width: 0; }
+.cc-shell-page > .bt-page { padding: 28px 36px 40px; }
+
+.bt-sk { display: block; background: var(--raised); border-radius: var(--r-sm); }
+.bt-home { max-width: 1040px; margin: 0 auto; padding-top: 36px; }
+.bt-home .bt-l1,
+.bt-home .bt-l2 { background: var(--line); }
+.bt-l1 { width: 260px; max-width: 70%; height: 16px; margin-bottom: 14px; }
+.bt-l2 { width: 560px; max-width: 90%; height: 34px; margin-bottom: 22px; border-radius: var(--r-md); }
+
+.bt-comp {
+  display: block;
+  height: 118px;
+  box-sizing: border-box;
+  padding: 22px;
+  border-radius: var(--r-2xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+
+.bt-comp .bt-sk { width: 46%; height: 16px; }
+
+.bt-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+  align-items: start;
+}
+
+.bt-side { display: grid; gap: 16px; }
+
+.bt-panel {
+  padding: 20px 20px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+}
+
+.bt-h { width: 110px; height: 16px; margin-bottom: 14px; }
+
+.bt-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 64px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.bt-h + .bt-row { border-top: 0; }
+.bt-panel.is-small .bt-row { grid-template-columns: 44px 1fr; }
+.bt-a { height: 14px; }
+.bt-b { width: 80%; height: 14px; }
+.bt-b2 { width: 50%; height: 12px; margin-top: 8px; }
+.bt-c { height: 24px; border-radius: var(--r-full); }
+
+@media (max-width: 700px) {
+  .bt-frame { flex-direction: column; }
+  .bt-phone-header.campus-phone-header { display: flex; }
+  .bt-main { padding: 18px 16px 96px; }
+  .cc-shell-page > .bt-page { padding: 18px 16px 96px; }
+  .bt-home { padding-top: 6px; }
+  .bt-l2 { height: 26px; }
+  .bt-bento { grid-template-columns: 1fr; margin-top: 20px; }
+  .bt-side { display: none; }
+
+  .bt-tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    justify-items: center;
+    padding: 6px 4px calc(18px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+
+  .bt-tabbar i { display: block; width: 40px; height: 32px; border-radius: var(--r-full); background: var(--raised); }
+}
+
+.bt-home.is-page { max-width: 1120px; padding-top: 12px; }
+.bt-title { width: 260px; margin-bottom: 24px; }

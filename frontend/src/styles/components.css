@@ -300,17 +300,6 @@
 }
 
 /* Auth boot / session check */
-.auth-boot-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--canvas);
-  color: var(--muted);
-  font-family: var(--font-app);
-  font-size: 0.9375rem;
-}
-
 /* ==========================================================================
    Shared components (DESIGN.md "Home colors"): buttons, chips, the segmented
    control, tags, panels, menus and dialogs. Controls are fully round, panels
