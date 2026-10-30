@@ -44,9 +44,12 @@ export function mapPageLink(origin, place) {
 
 const CLOCK = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/;
 
-/** "7:30 am" -> 450; null when it isn't a clock. */
+/** "7:30 AM" -> 450, "Noon" -> 720, "Midnight" -> 0; null when it isn't a clock. */
 function clockMinutes(text) {
-  const match = CLOCK.exec(String(text).trim());
+  const value = String(text).trim().toLowerCase();
+  if (value === 'noon') return 12 * 60;
+  if (value === 'midnight') return 0;
+  const match = CLOCK.exec(value);
   if (!match) return null;
   const h = Number(match[1]) % 12 + (match[3] === 'pm' ? 12 : 0);
   return h * 60 + Number(match[2] || 0);
