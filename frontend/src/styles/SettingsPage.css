@@ -1,0 +1,108 @@
+/* Settings (settings.html): panels of form rows. Roles only. */
+.st-main.campus-main { padding: 28px 36px 40px; }
+
+.st-column {
+  max-width: 760px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.st-column h1 { margin: 0 0 4px; font-size: 28px; }
+
+.st-panel { scroll-margin-top: 24px; }
+.st-panel .cc-panel-head { padding-bottom: 6px; }
+.st-panel .cc-panel-head h2 { font-size: 16px; }
+.st-theme .cc-panel-head { padding-bottom: 18px; }
+
+.st-row {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 12px 22px;
+}
+
+.st-row + .st-row { border-top: 1px solid var(--rule); }
+.st-row > label { font-size: 13px; font-weight: 700; }
+
+.st-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.st-input::placeholder { color: var(--faint); }
+.st-input:focus { outline: none; border-color: transparent; box-shadow: 0 0 0 2px var(--ink); }
+.st-input:disabled { background: var(--raised); border-color: transparent; color: var(--muted); }
+
+.st-select { position: relative; display: block; min-width: 0; }
+.st-select select { appearance: none; -webkit-appearance: none; padding-right: 42px; cursor: pointer; color-scheme: light dark; }
+.st-select .ms { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+.st-foot {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 22px 18px;
+}
+
+.st-danger,
+.st-danger .ms { color: var(--harder); }
+
+.st-warn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 4px 22px 8px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--raised);
+  font-weight: 600;
+}
+
+.st-warn .ms { color: var(--harder); }
+
+.st-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 22px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.st-status.is-error .ms { color: var(--error); }
+.st-status.is-good .ms { color: var(--good); }
+
+/* The theme toggle on paper (settings.html .tt.on-paper). */
+.cc-theme-toggle.st-toggle {
+  width: 180px;
+  height: 40px;
+  background: var(--raised);
+}
+
+.cc-theme-toggle.st-toggle button { color: var(--muted); font-size: 13px; }
+.cc-theme-toggle.st-toggle button .ms { font-size: 19px !important; }
+.cc-theme-toggle.st-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
+.cc-theme-toggle.st-toggle button:hover:not([aria-pressed="true"]) { color: var(--ink); }
+
+@media (max-width: 700px) {
+  .st-main.campus-main { padding: 18px 16px 48px; }
+  .st-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 18px; }
+  .st-foot { padding: 12px 18px 18px; }
+  .st-foot .cc-btn { flex: 1; }
+  .st-warn { margin: 4px 18px 8px; }
+  .st-status { margin: 4px 18px 0; }
+}

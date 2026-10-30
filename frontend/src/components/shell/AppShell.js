@@ -4,13 +4,13 @@ import React, {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CampusRail, { RecentChatsContext, useRecentChats } from '../CampusRail';
 import ChatDock from '../ChatDock';
-import SettingsModal from '../SettingsModal';
 import { AccountMenu } from '../menus';
 import { DndProvider } from '../dnd';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChatContext } from '../../contexts/ChatContext';
 import { ChatDockProvider } from '../../contexts/ChatDockContext';
 import { PageColumnContext } from './PageColumnContext';
+import { modelLabel } from '../../pages/SettingsPage';
 import '../../styles/AppShell.css';
 
 /** Pages that are the ask themselves, so they show no dock (D17). */
@@ -23,8 +23,6 @@ const onPath = (paths, pathname) => paths.some(
   (path) => pathname === path || pathname.startsWith(`${path}/`),
 );
 
-/** "gemini" -> "Gemini": the account menu's Model value. */
-const modelLabel = (backend) => (backend ? backend.charAt(0).toUpperCase() + backend.slice(1) : '');
 
 /** The student's model name, read once the account menu first opens. */
 function useModelName(authToken, wanted) {
@@ -46,18 +44,17 @@ function useModelName(authToken, wanted) {
 /**
  * The signed-in layout (eng R15): rail | page column | chat dock, inside one
  * drag-and-drop context. The shell renders the rail, the phone header and
- * tab bar, the account menu and Settings once (C2); pages render only their
- * main region. Pop-ups render into the page column (usePageColumn), so the
+ * tab bar and the account menu once (C2); its Profile, Settings and Model
+ * open the Settings page. Pages render only their main region. Pop-ups render into the page column (usePageColumn), so the
  * rail and dock stay usable and readable.
  */
 export default function AppShell({ children }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
+  const { authToken, handleSignOut } = useAuth();
   const chat = useContext(ChatContext);
   const [railSlot, setRailSlot] = useState(null);
   const [pageColumn, setPageColumn] = useState(null);
-  const [settingsTab, setSettingsTab] = useState(null);
   const [accountAnchor, setAccountAnchor] = useState(null);
   const [accountSeen, setAccountSeen] = useState(false);
   const dockAvailable = !onPath(NO_DOCK, pathname);
@@ -109,22 +106,12 @@ export default function AppShell({ children }) {
               anchorEl={accountAnchor}
               onClose={() => setAccountAnchor(null)}
               modelName={modelName}
-              onProfile={() => setSettingsTab('profile')}
-              onSettings={() => setSettingsTab('profile')}
-              onModel={() => setSettingsTab('model')}
+              onProfile={() => navigate('/settings#profile')}
+              onSettings={() => navigate('/settings')}
+              onModel={() => navigate('/settings#model')}
               onHelp={() => window.dispatchEvent(new CustomEvent('open-user-guide', { detail: { leftInset: 0 } }))}
               onSignOut={signOut}
             />
-            {settingsTab && (
-              <SettingsModal
-                user={user}
-                authToken={authToken}
-                initialTab={settingsTab}
-                onUserUpdate={handleUserUpdate}
-                onSignOut={signOut}
-                onClose={() => setSettingsTab(null)}
-              />
-            )}
           </DndProvider>
         </ChatDockProvider>
       </RecentChatsContext.Provider>

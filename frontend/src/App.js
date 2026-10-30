@@ -16,6 +16,7 @@ import ChatPage from './pages/ChatPage';
 import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import EventsPage from './pages/EventsPage';
+import SettingsPage from './pages/SettingsPage';
 import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
@@ -86,6 +87,7 @@ export function AppRoutes() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<ChatSearchPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route
             path="/saved"
             element={(
