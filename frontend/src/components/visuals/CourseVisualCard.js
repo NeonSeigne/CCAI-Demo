@@ -55,7 +55,9 @@ const NONE = [];
  * The prerequisite graph card: done and this-term states from the student's
  * plan when there is one (PlannerProvider), plain nodes otherwise.
  */
-function PrereqCard({ payload, tree, unlocks, onCourse }) {
+function PrereqCard({
+  payload, tree, chain, unlocks, onCourse,
+}) {
   const planner = usePlanner();
   const { timezone } = useSchool();
   const plan = planner?.view?.plan;
@@ -64,10 +66,11 @@ function PrereqCard({ payload, tree, unlocks, onCourse }) {
   useEffect(() => { plannerRef.current?.ensureLoaded?.(); }, []);
   const states = useMemo(() => (plan ? prereqStates(plan, dateIn(timezone)) : undefined), [plan, timezone]);
   const titles = useMemo(() => ({ [payload.identifier]: titleCase(payload.title || '') }), [payload]);
-  const heading = tree ? `Prerequisites for ${payload.identifier}` : 'Unlocks';
+  const hasPrereqs = Boolean(tree || chain);
+  const heading = hasPrereqs ? `Prerequisites for ${payload.identifier}` : 'Unlocks';
 
   return (
-    <section className="vc-card vc-prereq" aria-label={tree ? 'Prerequisites' : 'Unlocks'}>
+    <section className="vc-card vc-prereq" aria-label={hasPrereqs ? 'Prerequisites' : 'Unlocks'}>
       <div className="vc-head">
         <Icon name="account_tree" size={20} />
         <h3>{heading}</h3>
@@ -75,15 +78,35 @@ function PrereqCard({ payload, tree, unlocks, onCourse }) {
       <PrereqGraph
         course={payload.identifier}
         tree={tree}
+        chain={chain}
         unlocks={unlocks}
         states={states}
         titles={titles}
         onOpenCourse={onCourse}
         label={heading}
         size="tile"
+        variant="chat"
       />
     </section>
   );
+}
+
+/**
+ * The chain under a course: `prereq_chain` when the catalog sent one, else
+ * the courses its prerequisite text names (UVA) as one level; null without either.
+ */
+export function chainOf(payload) {
+  const chain = payload?.prereq_chain;
+  if (chain?.courses?.some((c) => c?.id && c.depth >= 1)) return chain;
+  const named = (payload?.prerequisites?.courses || []).filter((c) => c?.identifier);
+  if (!named.length) return null;
+  return {
+    root: payload.identifier,
+    courses: named.map((c) => ({
+      id: c.identifier, title: c.title || null, depth: 1, requires: [], known: true,
+    })),
+    complete: false,
+  };
 }
 
 /** The card for one `course_*` ref, from the catalog summary; null when the school lacks the data. */
@@ -120,9 +143,10 @@ function HydratedCard({
       return instructors.length ? <InstructorsTab rows={instructors} /> : null;
     case 'course_prereq_map': {
       const tree = payload.prereq_tree && prereqCourses(payload.prereq_tree).length ? payload.prereq_tree : null;
+      const chain = chainOf(payload);
       const unlocks = payload.next_courses?.length ? payload.next_courses : NONE;
-      if (!tree && !unlocks.length) return null;
-      return <PrereqCard payload={payload} tree={tree} unlocks={unlocks} onCourse={onCourse} />;
+      if (!tree && !chain && !unlocks.length) return null;
+      return <PrereqCard payload={payload} tree={tree} chain={chain} unlocks={unlocks} onCourse={onCourse} />;
     }
     // No catalog source lists similar courses.
     default:

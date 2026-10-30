@@ -172,3 +172,90 @@ describe('PrereqGraph', () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+describe('PrereqGraph in chat (variant="chat")', () => {
+  // The chat-prereq mockup: MATH 1210 and ECON 2010 → ECON 3010 → ECON 4010, which opens two more.
+  const CHAIN = {
+    root: 'ECON 4010',
+    courses: [
+      { id: 'ECON 4010', title: 'Game Theory', depth: 0, requires: ['ECON 3010'], known: true },
+      { id: 'ECON 3010', title: 'Intermediate Micro', depth: 1, requires: ['MATH 1210', 'ECON 2010'], known: true },
+      { id: 'MATH 1210', title: 'Calculus I', depth: 2, requires: [], known: true },
+      { id: 'ECON 2010', title: 'Microeconomics', depth: 2, requires: [], known: true },
+    ],
+    complete: true,
+  };
+  const UNLOCKS = [{ identifier: 'ECON 4190', title: 'Industrial Org.' }, { identifier: 'ECON 4210', title: 'International Trade' }];
+  const STATES = { 'MATH 1210': 'done', 'ECON 2010': 'done', 'ECON 3010': 'now' };
+
+  test('draws the chain by depth, one edge per requirement, with the student\'s states and "Also opens"', () => {
+    const { container } = render(
+      <PrereqGraph
+        course="ECON 4010"
+        chain={CHAIN}
+        unlocks={UNLOCKS}
+        states={STATES}
+        titles={{ 'ECON 4010': 'Game Theory' }}
+        variant="chat"
+        size="tile"
+        onOpenCourse={jest.fn()}
+      />,
+    );
+    expect(edges(container)).toEqual([
+      'MATH 1210 -> ECON 3010',
+      'ECON 2010 -> ECON 3010',
+      'ECON 3010 -> ECON 4010',
+      'ECON 4010 -> ECON 4190',
+      'ECON 4010 -> ECON 4210',
+    ]);
+    const xs = ['MATH 1210', 'ECON 3010', 'ECON 4010', 'ECON 4190'].map((id) => rectOf(container, id).x);
+    expect([...xs].sort((a, b) => a - b)).toEqual(xs);
+    expect(container.querySelector('[data-from="MATH 1210"]')).toHaveClass('is-done');
+    expect(container.querySelector('[data-from="ECON 3010"]')).toHaveClass('is-now');
+    expect(screen.getByRole('button', { name: 'ECON 3010' })).toHaveAccessibleDescription('this term');
+    expect(screen.getByText('Intermediate Micro')).toBeInTheDocument();
+    // The mockup's node size.
+    const rect = node(container, 'ECON 3010').querySelector('rect');
+    expect([rect.getAttribute('width'), rect.getAttribute('height')]).toEqual(['176', '60']);
+    expect(screen.getByText('Also opens')).toBeInTheDocument();
+    expect(screen.queryByText('Unlocks')).not.toBeInTheDocument();
+  });
+
+  test('a chain with one level and no tree (UVA) edges each course into the one asked', () => {
+    const chain = { root: 'CS 2100', courses: [{ id: 'CS 1110', depth: 1, requires: [] }, { id: 'CS 1111', depth: 1, requires: [] }] };
+    const { container } = render(<PrereqGraph course="CS 2100" chain={chain} variant="chat" />);
+    expect(edges(container)).toEqual(['CS 1110 -> CS 2100', 'CS 1111 -> CS 2100']);
+  });
+
+  test('the narrow chat layout folds what it opens into "+N more" naming the hidden numbers', () => {
+    const original = global.ResizeObserver;
+    let report;
+    global.ResizeObserver = class {
+      constructor(callback) { report = callback; }
+
+      observe() {}
+
+      disconnect() {}
+    };
+    try {
+      const { container } = render(
+        <PrereqGraph course="ECON 4010" chain={CHAIN} unlocks={UNLOCKS} states={STATES} variant="chat" size="tile" />,
+      );
+      act(() => report([{ contentRect: { width: 340 } }]));
+      expect(container.querySelector('.pg')).toHaveClass('is-chat', 'is-vertical');
+      expect(screen.getByRole('img', { name: '+2 more' })).toBeInTheDocument();
+      expect(screen.getByText('4190 · 4210')).toBeInTheDocument();
+      expect(rectOf(container, '+2 more').y).toBe(rectOf(container, 'ECON 4010').y);
+      expect(node(container, 'ECON 3010').querySelector('rect').getAttribute('width')).toBe('150');
+      expect(screen.getByText('Also opens')).toBeInTheDocument();
+    } finally {
+      global.ResizeObserver = original;
+    }
+  });
+
+  test('the pop-up keeps its look: 148px nodes and "Unlocks"', () => {
+    const { container } = render(<PrereqGraph course="COMP SCI 400" tree={UW_TREE} unlocks={['COMP SCI 537']} />);
+    expect(node(container, 'MATH 240').querySelector('rect').getAttribute('width')).toBe('148');
+    expect(screen.getByText('Unlocks')).toBeInTheDocument();
+  });
+});

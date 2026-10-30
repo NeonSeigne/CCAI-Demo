@@ -486,6 +486,12 @@
 .vc-prereq .pg { padding: 4px 20px 16px; }
 .vc-prereq .pg-legend { margin-top: 12px; }
 
+/* The chat look (variant="chat", chat-prereq): smaller type on the narrow layout. */
+.pg.is-chat.is-vertical .pg-code { font-size: 10.5px; }
+.pg.is-chat.is-vertical .pg-title { font-size: 12px; }
+.pg.is-chat .pg-node.is-asked .pg-title { fill: rgba(255, 255, 255, 0.75); }
+.pg.is-chat .pg-node.is-more .pg-title { fill: var(--muted); }
+
 /* ---- Proposed change ----------------------------------------------------- */
 .vc-proposal .vc-head .vc-tag { flex-shrink: 0; }
 .vc-proposal-title { margin: 0 0 4px; font-size: 15.5px; font-weight: 700; }

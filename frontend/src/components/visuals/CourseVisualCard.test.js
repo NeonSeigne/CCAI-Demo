@@ -95,3 +95,50 @@ describe('CourseVisualCard', () => {
     expect(await screen.findByText('LEC 100')).toBeInTheDocument();
   });
 });
+
+describe('prerequisite card in chat', () => {
+  it('draws the UVA chain from prereq_chain with the plan\'s states and "Also opens"', async () => {
+    serve({
+      identifier: 'ECON 4010',
+      title: 'GAME THEORY',
+      prerequisites: { text: 'Prerequisite: ECON 3010.', courses: [{ identifier: 'ECON 3010', title: 'Intermediate Micro' }] },
+      prereq_chain: {
+        root: 'ECON 4010',
+        courses: [
+          { id: 'ECON 4010', depth: 0, requires: ['ECON 3010'] },
+          { id: 'ECON 3010', title: 'Intermediate Micro', depth: 1, requires: ['MATH 1210'] },
+          { id: 'MATH 1210', title: 'Calculus I', depth: 2, requires: [] },
+        ],
+        complete: true,
+      },
+      next_courses: [{ identifier: 'ECON 4190', title: 'Industrial Org.' }],
+    });
+    const planner = {
+      view: { plan: { profile: { completed: [{ id: 'MATH 1210' }] }, courses: [] } },
+      ensureLoaded: jest.fn(),
+    };
+    render(
+      <MemoryRouter>
+        <PlannerContext.Provider value={planner}>
+          <CourseVisualCard visual={{ type: 'course_prereq_map', course: 'ECON 4010' }} />
+        </PlannerContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('heading', { name: 'Prerequisites for ECON 4010' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'MATH 1210' })).toHaveAccessibleDescription('done');
+    // eslint-disable-next-line testing-library/no-node-access
+    expect(document.querySelector('[data-from="MATH 1210"][data-to="ECON 3010"]')).toHaveClass('is-done');
+    expect(screen.getByText('Also opens')).toBeInTheDocument();
+  });
+
+  it('falls back to the courses the prerequisite text names', async () => {
+    serve({
+      identifier: 'CS 2100',
+      title: 'DATA STRUCTURES',
+      prerequisites: { text: 'Prerequisite: CS 1110 or CS 1111.', courses: [{ identifier: 'CS 1110' }, { identifier: 'CS 1111' }] },
+    });
+    renderCard({ type: 'course_prereq_map', course: 'CS 2100' });
+    expect(await screen.findByRole('heading', { name: 'Prerequisites for CS 2100' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'CS 1110' })).toBeInTheDocument();
+  });
+});
