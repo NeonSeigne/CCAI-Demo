@@ -51,21 +51,23 @@ function ActionRow({ message, checkedVisual }) {
   return (
     <div className="answer-meta">
       {checkedVisual && <VisualBlock visual={checkedVisual} />}
-      <button type="button" className="answer-act" aria-label={copied ? 'Copied' : 'Copy'} onClick={copy}>
-        <Icon name={copied ? 'check' : 'content_copy'} size={20} />
-      </button>
-      {canRate && THUMBS.map((thumb) => (
-        <button
-          key={thumb.value}
-          type="button"
-          className="answer-act"
-          aria-label={thumb.label}
-          aria-pressed={feedback === thumb.value}
-          onClick={() => rate(thumb.value)}
-        >
-          <Icon name={thumb.icon} size={20} filled={feedback === thumb.value} />
+      <span className="answer-acts">
+        <button type="button" className="answer-act" aria-label={copied ? 'Copied' : 'Copy'} onClick={copy}>
+          <Icon name={copied ? 'check' : 'content_copy'} size={20} />
         </button>
-      ))}
+        {canRate && THUMBS.map((thumb) => (
+          <button
+            key={thumb.value}
+            type="button"
+            className="answer-act"
+            aria-label={thumb.label}
+            aria-pressed={feedback === thumb.value}
+            onClick={() => rate(thumb.value)}
+          >
+            <Icon name={thumb.icon} size={20} filled={feedback === thumb.value} />
+          </button>
+        ))}
+      </span>
     </div>
   );
 }
@@ -152,7 +154,6 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
     // Paragraph styling with proper spacing
     p: ({ children }) => (
       <p style={{
-        marginBottom: '0.75rem',
         lineHeight: '1.6',
         fontWeight: 500,
         color: 'var(--ink)'
