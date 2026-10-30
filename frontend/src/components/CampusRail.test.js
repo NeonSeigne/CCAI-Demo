@@ -49,35 +49,53 @@ test('Ask is current on the chat page', async () => {
   await screen.findByText('Your chats will show up here.');
 });
 
-test('Saved shows the saved count in the rail and the tab bar', async () => {
+test('Saved has no count in the rail or the tab bar (D5)', async () => {
   jest.spyOn(global, 'fetch').mockImplementation(() => ok([]));
   renderRail({ saved: { count: 3 } });
-  expect(within(rail()).getByRole('link', { name: /^Saved/ })).toHaveTextContent('3');
+  expect(within(rail()).getByRole('link', { name: 'Saved' })).toHaveTextContent(/^bookmarkSaved$/);
   const tabs = within(screen.getByRole('navigation', { name: 'Main tabs' }));
-  expect(tabs.getByRole('link', { name: /Saved/ })).toHaveTextContent('3');
+  expect(tabs.getByRole('link', { name: /Saved/ })).not.toHaveTextContent('3');
   expect(tabs.getAllByRole('link')).toHaveLength(5);
   await screen.findByText('Your chats will show up here.');
 });
 
-test('New chat, six recent chats and All chats', async () => {
+test('six plain recent rows; no New chat or All chats (D5)', async () => {
   jest.spyOn(global, 'fetch').mockImplementation(() => ok(SESSIONS));
-  const onNewChat = jest.fn();
   const onSelectSession = jest.fn();
-  const onShowAllChats = jest.fn();
-  renderRail({ currentSessionId: 's1', onNewChat, onSelectSession, onShowAllChats });
+  renderRail({ currentSessionId: 's1', onSelectSession });
 
   const nav = within(rail());
   await nav.findByText('Chat 0');
-  expect(nav.getAllByRole('button', { name: /^Chat \d/ })).toHaveLength(6);
+  const rows = nav.getAllByRole('button', { name: /^Chat \d/ });
+  expect(rows).toHaveLength(6);
+  rows.forEach((row) => expect(row.querySelector('.ms')).toBeNull());
   expect(nav.queryByText('Chat 6')).not.toBeInTheDocument();
   expect(nav.getByRole('button', { name: 'Chat 1' })).toHaveAttribute('aria-current', 'page');
+  expect(nav.queryByRole('button', { name: /New chat/ })).not.toBeInTheDocument();
+  expect(nav.queryByRole('button', { name: 'All chats' })).not.toBeInTheDocument();
 
-  fireEvent.click(nav.getByRole('button', { name: /New chat/ }));
-  expect(onNewChat).toHaveBeenCalled();
   fireEvent.click(nav.getByRole('button', { name: 'Chat 2' }));
   expect(onSelectSession).toHaveBeenCalledWith('s2');
-  fireEvent.click(nav.getByRole('button', { name: 'All chats' }));
-  expect(onShowAllChats).toHaveBeenCalled();
+});
+
+test('the rail user row and the phone header avatar open the account menu', async () => {
+  jest.spyOn(global, 'fetch').mockImplementation(() => ok([]));
+  const onOpenAccount = jest.fn();
+  renderRail({ onOpenAccount });
+  const user = within(rail()).getByRole('button', { name: 'Account' });
+  expect(user).toHaveAttribute('aria-haspopup', 'menu');
+  expect(user).toHaveTextContent('AL');
+  expect(user).toHaveTextContent('Ada');
+  fireEvent.click(user);
+  expect(onOpenAccount).toHaveBeenCalledTimes(1);
+  expect(within(rail()).queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument();
+
+  const header = screen.getByRole('banner');
+  expect(within(header).getByText('Campus Companion')).toBeInTheDocument();
+  expect(within(header).queryByRole('button', { name: 'Settings' })).not.toBeInTheDocument();
+  fireEvent.click(within(header).getByRole('button', { name: 'Account' }));
+  expect(onOpenAccount).toHaveBeenCalledTimes(2);
+  await screen.findByText('Your chats will show up here.');
 });
 
 test('a failed chats request says so and retries', async () => {
@@ -128,10 +146,10 @@ test('the rail shows the school mark and name, and the theme toggle above the pr
   expect(nav.getByText('UW–Madison')).toBeInTheDocument();
 
   const toggle = nav.getByRole('group', { name: 'Theme' });
-  const settings = nav.getByRole('button', { name: 'Settings' });
+  const account = nav.getByRole('button', { name: 'Account' });
   // eslint-disable-next-line no-bitwise
-  expect(toggle.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(toggle.contains(settings)).toBe(false);
+  expect(toggle.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(toggle.contains(account)).toBe(false);
 
   const stop = (name) => within(toggle).getByRole('button', { name });
   expect(stop('Auto')).toHaveAttribute('aria-pressed', 'true');
