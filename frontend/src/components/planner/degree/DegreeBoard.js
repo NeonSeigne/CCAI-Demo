@@ -2,20 +2,28 @@ import React, {
   useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { UndoRounded, RedoRounded } from '../../icons';
+import { Icon } from '../../icons';
 import { usePlanner } from '../../../contexts/PlannerContext';
 import { useOpenCourse } from '../../../utils/openCourse';
 import { useDropToast } from '../../dnd';
 import { InlineError } from '../../catalog/CatalogParts';
+import PanelState from '../../panel/PanelState';
+import { PhoneSheet, PHONE_SHEET } from '../../../modules/sheet';
+import useMediaMatch from '../../../hooks/useMediaMatch';
 import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
 import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
 import SetupDialog from './SetupDialog';
+import ProgramMenu from './ProgramMenu';
 import RouteMap, { RouteList } from './RouteMap';
-import { NOT_PLACED, routeModel } from './routeModel';
+import { DetailCard, RequirementsPanel } from './RoutePanels';
+import {
+  allStops, degreeCounts, firstStop, routeModel,
+} from './routeModel';
 import {
   creditsOf, groupTone, nextTerm, parseTerm, pastTerms, sortTerms, termOrder,
 } from './degreeFormat';
+import { termClashes } from './clashes';
 import '../../../styles/DegreeBoard.css';
 
 const PULSE_MS = 700;
@@ -76,9 +84,55 @@ export function dropAction(item, term, planCourses, completedIds = new Set()) {
   return 'add';
 }
 
+/** The counts row (transit-a; Phase 8.2): big figures with their labels, 2×2 on phone. */
+export function CountsRow({ counts, showNotPlaced }) {
+  const figures = [
+    [counts.done, 'credits done'],
+    [counts.now, 'this term'],
+    [counts.planned, 'planned'],
+    ...(showNotPlaced ? [[counts.notPlaced, 'not placed']] : []),
+  ];
+  return (
+    <ul className="dg-counts" aria-label="Totals">
+      {figures.map(([value, label]) => (
+        <li key={label} className="dg-count"><b>{value}</b><span>{label}</span></li>
+      ))}
+    </ul>
+  );
+}
+
+/** Map | Semesters (design Q2: full width under the title on phone). */
+function ViewSwitch({ value, onChange, wide = false }) {
+  return (
+    <div className={`dg-seg dg-view-switch ${wide ? 'is-wide' : ''}`.trim()} role="group" aria-label="View">
+      <button type="button" aria-pressed={value === 'map'} onClick={() => onChange('map')}>Map</button>
+      <button type="button" aria-pressed={value === 'semesters'} onClick={() => onChange('semesters')}>Semesters</button>
+    </div>
+  );
+}
+
+/** The route's layout in raised while the degree loads (DESIGN.md States). */
+function RouteSkeleton() {
+  return (
+    <div data-testid="degree-skeleton">
+      <PanelState status="loading" label="Loading your route">
+        <div className="dg-skel">
+          <span className="pnl-block dg-skel-route" />
+          <div className="dg-skel-grid">
+            <span className="pnl-block" />
+            <span className="pnl-block" />
+          </div>
+        </div>
+      </PanelState>
+    </div>
+  );
+}
+
 /**
- * My degree (design D4, D5, D8, D13, D17–D19, D22; eng R12–R14; CEO O2):
- * the waffle and totals on top, then term columns that scroll sideways.
+ * My degree (design D4, D5, D8, D13, D17–D19, D22; eng R12–R14; CEO O2;
+ * alignment Phase 8): the title row and the counts row, then the route map
+ * with Requirements and the selected course, or the waffle and term columns
+ * that scroll sideways.
  * Courses drag between terms and onto "+" slots, Browse rows drag in, and
  * every card's ⋯ menu does the same without dragging.
  *
@@ -86,7 +140,7 @@ export function dropAction(item, term, planCourses, completedIds = new Set()) {
  * once); titles, credits and labels come from the degree read, refetched
  * whenever the plan moves past it.
  */
-export default function DegreeBoard({ head = null }) {
+export default function DegreeBoard({ tabs = null }) {
   const planner = usePlanner();
   const [, setSearchParams] = useSearchParams();
   const toast = useDropToast();
@@ -164,16 +218,30 @@ export default function DegreeBoard({ head = null }) {
   const waffle = degree?.waffle || null;
   const groups = useMemo(() => waffle?.groups || [], [waffle]);
 
+  const route = useMemo(() => routeModel(degree, planCourses, profile), [degree, planCourses, profile]);
+  const hasRoute = route.lines.length > 0;
+  const showMap = hasRoute && boardView === 'map';
+
+  // One colour per requirement (Phase 8.5): a rule takes its route line's colour everywhere on the page.
+  const toneOf = useCallback(
+    (group, index) => (group?.rule_id && route.ruleTones[`${group.program_id}:${group.rule_id}`]) || groupTone(group, index),
+    [route],
+  );
+
   const tones = useMemo(() => {
     const out = {};
-    groups.forEach((group, index) => { if (group.title) out[group.title] = groupTone(group, index); });
+    groups.forEach((group, index) => { if (group.title) out[group.title] = toneOf(group, index); });
+    (degree?.rules || []).forEach((rule) => {
+      const tone = route.ruleTones[`${rule.program_id}:${rule.rule_id}`];
+      if (tone && rule.title && !out[rule.title]) out[rule.title] = tone;
+    });
     return out;
-  }, [groups]);
+  }, [groups, degree, route, toneOf]);
 
   const courseTone = useCallback((id) => {
     const index = groups.findIndex((group) => group.rule_id && (group.courses || []).includes(id));
-    return index === -1 ? 'other' : groupTone(groups[index], index);
-  }, [groups]);
+    return index === -1 ? 'other' : toneOf(groups[index], index);
+  }, [groups, toneOf]);
 
   const terms = useMemo(() => boardTerms(degree, planCourses), [degree, planCourses]);
 
@@ -198,14 +266,27 @@ export default function DegreeBoard({ head = null }) {
       credits,
       load: same && courses.length ? fromServer.difficulty?.label || null : null,
       limits: fromServer?.credits?.limits || null,
+      clashes: termClashes(courses),
     };
   }), [terms, planCourses, details, degree]);
 
   const past = useMemo(() => pastTerms(completed), [completed]);
 
-  const route = useMemo(() => routeModel(degree, planCourses, profile), [degree, planCourses, profile]);
-  const hasRoute = route.lines.length > 0;
-  const showMap = hasRoute && boardView === 'map';
+  const counts = useMemo(
+    () => degreeCounts(degree, planCourses, route.notPlaced),
+    [degree, planCourses, route.notPlaced],
+  );
+
+  // The selected stop (design Q7): the student's pick, else the first this-term stop, else the first planned.
+  const phone = useMediaMatch(PHONE_SHEET);
+  const [picked, setPicked] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const stops = useMemo(() => allStops(route), [route]);
+  const selectedStop = stops.find((s) => s.id === picked) || firstStop(route);
+  const selectStop = useCallback((id) => {
+    setPicked(id);
+    if (phone) setSheetOpen(true);
+  }, [phone]);
 
   const titles = useMemo(() => {
     const out = {};
@@ -264,121 +345,152 @@ export default function DegreeBoard({ head = null }) {
     }
   }, [needsProgram, openSetup]);
 
-  let top = null;
-  if (loadState === 'loading' && !degree) top = <DegreeSummarySkeleton />;
-  else if (hasPrograms && programIds.length && waffle && groups.length) {
-    top = <DegreeSummary name={program?.name || null} waffle={waffle} />;
-  }
 
-  const lastTerm = [...route.terms].reverse().find((t) => t !== NOT_PLACED);
+  const lastTerm = route.terms[route.terms.length - 1];
+  const viewSwitch = hasRoute ? <ViewSwitch value={boardView} onChange={chooseView} wide={phone} /> : null;
 
   let board;
   if (showMap) {
+    const card = (
+      <DetailCard
+        stop={selectedStop}
+        onOpen={openCourse}
+        onClose={phone ? () => setSheetOpen(false) : undefined}
+      />
+    );
     board = (
       <div className="rt-view">
-        <section className="rt-card" aria-labelledby="rt-title">
-          <h3 id="rt-title">{lastTerm ? `Route to ${lastTerm}` : 'Route'}</h3>
-          <RouteMap model={route} onOpen={openCourse} />
-        </section>
-        <RouteList model={route} onOpen={openCourse} />
+        {phone ? (
+          <RouteList
+            model={route}
+            meta={`${counts.done} credits done · ${counts.done + counts.now + counts.planned} placed`}
+            selected={sheetOpen ? selectedStop?.id : null}
+            onSelect={selectStop}
+          />
+        ) : (
+          <section className="rt-panel rt-card" aria-labelledby="rt-title">
+            <div className="rt-panel-h">
+              <h2 id="rt-title">{lastTerm ? `Route to ${lastTerm}` : 'Route'}</h2>
+              {viewSwitch}
+            </div>
+            <RouteMap model={route} selected={selectedStop?.id || null} onSelect={selectStop} onOpen={openCourse} />
+          </section>
+        )}
+        <div className="rt-grid">
+          {!phone && <RequirementsPanel rows={route.requirements} />}
+          {selectedStop && (
+            <PhoneSheet open={sheetOpen} onClose={() => setSheetOpen(false)} labelledBy="rt-detail-title">
+              {card}
+            </PhoneSheet>
+          )}
+          {phone && <RequirementsPanel rows={route.requirements} />}
+        </div>
       </div>
     );
   } else if (loadState === 'error' && !degree) {
-    board = <InlineError message="Couldn't load" onRetry={() => fetchDegree(true)} />;
+    board = <PanelState status="error" message="Couldn't load" onRetry={() => fetchDegree(true)} />;
+  } else if (!degree && boardView === 'map') {
+    board = <RouteSkeleton />;
   } else if (!degree) {
     board = (
-      <div className="dg-terms" aria-busy="true">
-        <TermColumnSkeleton />
-      </div>
+      <>
+        <DegreeSummarySkeleton />
+        <div className="dg-terms" aria-busy="true">
+          <TermColumnSkeleton />
+        </div>
+      </>
     );
   } else {
+    const showSummary = hasPrograms && programIds.length > 0 && waffle && groups.length > 0;
     board = (
-      <div className="dg-terms" role="region" aria-label="Terms" tabIndex={0}>
-        {past.length > 0 && (
-          <PastColumn
-            past={past}
-            courseTone={courseTone}
-            expanded={showPast}
-            onToggle={() => setShowPast((on) => !on)}
-            onEditCompleted={() => openSetup(1)}
-          />
-        )}
-        {showPast && [...past].reverse().map((entry) => (
-          <PastTermColumn key={entry.term} entry={entry} onOpen={openCourse} />
-        ))}
-        {columns.map((column) => (
-          <TermColumn
-            key={column.term}
-            term={column.term}
-            courses={column.courses}
-            credits={column.credits}
-            load={column.load}
-            limits={column.limits}
-            terms={terms}
-            tones={tones}
-            showRequirements={hasPrograms}
-            current={column.term === degree.term}
-            pulseId={pulseId}
-            onDrop={onDrop}
-            onOpen={openCourse}
-            onMove={(course, term) => move(course.id, term)}
-            onRemove={remove}
-            onOpenSemester={openSemester}
-          />
-        ))}
-      </div>
+      <>
+        {showSummary && <DegreeSummary name={program?.name || null} waffle={waffle} toneOf={toneOf} />}
+        {viewSwitch && !phone && <div className="dg-viewbar">{viewSwitch}</div>}
+        <div className="dg-terms" role="region" aria-label="Terms" tabIndex={0}>
+          {past.length > 0 && (
+            <PastColumn
+              past={past}
+              courseTone={courseTone}
+              expanded={showPast}
+              onToggle={() => setShowPast((on) => !on)}
+              onEditCompleted={() => openSetup(1)}
+            />
+          )}
+          {showPast && [...past].reverse().map((entry) => (
+            <PastTermColumn key={entry.term} entry={entry} onOpen={openCourse} />
+          ))}
+          {columns.map((column) => (
+            <TermColumn
+              key={column.term}
+              term={column.term}
+              courses={column.courses}
+              credits={column.credits}
+              load={column.load}
+              limits={column.limits}
+              clashes={column.clashes}
+              terms={terms}
+              tones={tones}
+              showRequirements={hasPrograms}
+              current={column.term === degree.term}
+              pulseId={pulseId}
+              onDrop={onDrop}
+              onOpen={openCourse}
+              onMove={(course, term) => move(course.id, term)}
+              onRemove={remove}
+              onOpenSemester={openSemester}
+            />
+          ))}
+        </div>
+      </>
     );
   }
 
+  /** The program menu's choice saves through one planner edit, like setup's Program step. */
+  const chooseProgram = (next) => {
+    const op = { op: 'set_profile', program_ids: [next.id] };
+    if (next.catalog_year) op.catalog_year = next.catalog_year;
+    edit([op]).catch(() => {});
+  };
+
   return (
     <div className="dg-board">
-      <div className="dg-toolbar">
-        {head}
-        {program && (
-          <div className="dg-program">
-            <h2>
-              <button type="button" className="dg-program-btn" onClick={() => openSetup(0)}>{program.name}</button>
-            </h2>
-            {profile.catalog_year && <span className="dg-catalog">Catalog {profile.catalog_year}</span>}
-          </div>
-        )}
+      <div className="dg-titlerow">
+        <h1>My degree</h1>
+        {program && <ProgramMenu program={program} programs={programs} onChoose={chooseProgram} />}
         {!program && hasPrograms && (
-          <button type="button" className="cc-btn dg-program-pick" onClick={() => openSetup(0)}>Program</button>
+          <button type="button" className="dg-btn" onClick={() => openSetup(0)}>Program</button>
         )}
-        {hasRoute && (
-          <div className="cc-segmented dg-view-switch" role="group" aria-label="View">
-            <button type="button" aria-pressed={boardView === 'map'} onClick={() => chooseView('map')}>Map</button>
-            <button type="button" aria-pressed={boardView === 'semesters'} onClick={() => chooseView('semesters')}>
-              Semesters
-            </button>
-          </div>
-        )}
-        <div className="dg-history">
-          <button
-            type="button"
-            className="dg-icon-btn"
-            aria-label={undoLabel || 'Undo'}
-            title={undoLabel || 'Undo'}
-            disabled={!canUndo}
-            onClick={onUndo}
-          >
-            <UndoRounded fontSize="small" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="dg-icon-btn"
-            aria-label={redoLabel || 'Redo'}
-            title={redoLabel || 'Redo'}
-            disabled={!canRedo}
-            onClick={onRedo}
-          >
-            <RedoRounded fontSize="small" aria-hidden="true" />
-          </button>
-        </div>
+        <div className="dg-spacer" />
+        {tabs && <div className="dg-tabs dg-hide-phone">{tabs}</div>}
+        <button
+          type="button"
+          className="dg-icon-btn dg-hide-phone"
+          aria-label={undoLabel || 'Undo'}
+          title={undoLabel || 'Undo'}
+          disabled={!canUndo}
+          onClick={onUndo}
+        >
+          <Icon name="undo" size={20} />
+        </button>
+        <button
+          type="button"
+          className="dg-icon-btn dg-hide-phone"
+          aria-label={redoLabel || 'Redo'}
+          title={redoLabel || 'Redo'}
+          disabled={!canRedo}
+          onClick={onRedo}
+        >
+          <Icon name="redo" size={20} />
+        </button>
+        <button type="button" className="dg-btn is-primary" onClick={() => setSearchParams({ view: 'browse' })}>
+          <Icon name="add" size={20} />
+          Add course
+        </button>
       </div>
+      {phone && viewSwitch}
 
+      {degree && <CountsRow counts={counts} showNotPlaced={hasRoute} />}
       {queueState === 'error' && <InlineError message="Couldn't save" onRetry={retry} />}
-      {top}
       {board}
 
       <SetupDialog
@@ -389,6 +501,7 @@ export default function DegreeBoard({ head = null }) {
         degree={degree}
         terms={terms}
         titles={titles}
+        ruleTones={route.ruleTones}
       />
     </div>
   );

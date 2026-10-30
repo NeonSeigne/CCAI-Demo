@@ -17,73 +17,200 @@
 .tone-c6 { --tone: var(--course-6); --tone-tint: var(--course-6-tint); --tone-ink: var(--course-6-ink); }
 .tone-other { --tone: var(--muted); --tone-tint: var(--gauge-track); --tone-ink: var(--muted); }
 
-/* ---- Toolbar: tabs, program, undo / redo ---------------------------------- */
-.dg-toolbar {
+/* One colour per requirement (Phase 8.5): a rule takes its route line's colour. */
+.tone-l1 { --tone: var(--line-1); }
+.tone-l2 { --tone: var(--line-2); }
+.tone-l3 { --tone: var(--line-3); }
+.tone-l4 { --tone: var(--course-4); }
+.tone-l5 { --tone: var(--course-5); }
+.tone-l6 { --tone: var(--course-6); }
+:is(.tone-l1, .tone-l2, .tone-l3, .tone-l4, .tone-l5, .tone-l6) {
+  --tone-tint: color-mix(in srgb, var(--tone) 28%, var(--surface));
+  --tone-ink: color-mix(in srgb, var(--tone) 70%, var(--ink));
+}
+
+/* ---- Title row (transit-a: h1, program, spacer, tabs, undo, redo, Add course) */
+.dg-titlerow {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
-
-.dg-program {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  min-width: 0;
-}
-
-.dg-program h2 {
+.dg-titlerow h1 {
   margin: 0;
-  font-size: 22px;
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
 }
+.dg-spacer { flex: 1; }
 
-/* The program name opens the setup dialog at step 1. */
-.dg-program-btn {
-  padding: 0;
+/* The Courses tabs as system.css .seg: fully round, no count. */
+.dg-titlerow .cc-tabs,
+.dg-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: var(--raised);
+}
+.dg-titlerow .cc-tab,
+.dg-seg button {
+  position: relative;
+  min-height: 0;
+  padding: 7px 16px;
   border: 0;
-  background: none;
-  color: inherit;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--muted);
   font: inherit;
-  letter-spacing: inherit;
-  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
   cursor: pointer;
 }
-.dg-program-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
-.dg-program-btn:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); border-radius: 4px; }
-
-.dg-catalog { font-size: 13px; font-weight: 600; color: var(--muted); }
-
-.dg-view-switch { margin-left: auto; }
-.dg-view-switch + .dg-history { margin-left: 0; }
-
-.dg-history {
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
+/* 44px hit areas round the 37px items (design Q19). */
+.dg-titlerow .cc-tab::after,
+.dg-seg button::after { content: ""; position: absolute; inset: -4px 0; }
+.dg-titlerow .cc-tab.is-selected,
+.dg-seg button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(20, 23, 31, 0.12);
 }
+.dg-titlerow .cc-tab-count { display: none; }
+.dg-seg.is-wide { display: flex; }
+.dg-seg.is-wide button { flex: 1; }
 
+/* Buttons (system.css .btn): 42px, fully round, 700 14.5px. */
+.dg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease-out, background-color 150ms ease-out;
+}
+.dg-btn:hover { background: var(--raised); }
+.dg-btn:active { transform: scale(0.95); }
+.dg-btn.is-primary { border-color: var(--signal); background: var(--signal); color: var(--on-signal); }
+.dg-btn.is-primary:hover { background: var(--signal-hover); }
+.dg-program-btn .ms { margin-right: -4px; }
+
+/* Ghost icon buttons: 42px, no border (system.css .btn.icon.ghost). */
 .dg-icon-btn {
-  width: 40px;
-  height: 40px;
+  position: relative;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid var(--control);
+  border: 0;
   border-radius: var(--r-full);
-  background: var(--surface);
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
   transition: transform 120ms ease-out;
 }
-
+.dg-icon-btn::after { content: ""; position: absolute; inset: -1px; }
 .dg-icon-btn:disabled { color: var(--muted); opacity: 0.45; cursor: not-allowed; }
 .dg-icon-btn:not(:disabled):hover { background: var(--raised); }
 .dg-icon-btn:not(:disabled):active { transform: scale(0.95); }
+
+/* The program menu (menus.html "Program"). */
+.dg-menu.MuiPaper-root {
+  width: 260px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-float);
+}
+.dg-menu .MuiList-root { padding: 0; }
+.dg-menu .dg-menu-head {
+  padding: 10px 12px 6px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.dg-menu .dg-menu-item {
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--r-lg);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+.dg-menu .dg-menu-item .ms { color: var(--muted); }
+.dg-menu .dg-menu-item:hover,
+.dg-menu .dg-menu-item.Mui-focusVisible { background: var(--raised); }
+.dg-menu .dg-menu-item.is-on { background: var(--tint); color: var(--tint-ink); }
+.dg-menu .dg-menu-item.is-on .ms { color: var(--tint-ink); }
+
+/* ---- Counts row (transit-a .figs) ---------------------------------------- */
+.dg-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 28px;
+  margin: -6px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.dg-count b {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.dg-count span { margin-left: 6px; color: var(--muted); font-size: 14px; }
+
+.dg-viewbar { display: flex; justify-content: flex-end; }
+
+/* The Semester view's tab row (CoursesPage). */
+.dg-toolbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* r7's clash pill beside the credits band. */
+.dg-clash {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  background: var(--difficulty-harder-tint);
+  color: var(--difficulty-harder-ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Loading: the route's layout in raised. */
+.dg-skel { display: flex; flex-direction: column; gap: 16px; }
+.dg-skel .pnl-block { display: block; border-radius: var(--r-xl); }
+.dg-skel-route { height: 360px; }
+.dg-skel-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
+.dg-skel-grid .pnl-block { height: 280px; }
+
+@media (max-width: 700px) {
+  .dg-titlerow h1 { font-size: 23px; }
+  .dg-hide-phone { display: none !important; }
+  .dg-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+  .dg-skel-grid { grid-template-columns: 1fr; }
+}
+
 
 /* ---- Summary: Finish / open count, totals, waffle, key -------------------- */
 .dg-summary {
@@ -286,6 +413,7 @@
 
 .dg-col-title h3 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -428,7 +556,8 @@
 .dg-gpa.is-none { background: var(--gauge-track); color: var(--ink); }
 .dg-grade { background: var(--gauge-track); color: var(--ink); }
 
-.dg-card-more { width: 32px; height: 32px; border-color: transparent; color: var(--muted); }
+.dg-card-more { width: 32px; height: 32px; color: var(--muted); }
+.dg-card-more::after { inset: -6px; }
 
 .dg-card-title {
   margin: 0;
@@ -506,7 +635,7 @@
   scroll-snap-align: start;
 }
 
-.dg-past h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.dg-past h3 { margin: 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
 
 .dg-past-terms { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; flex: 1; }
 
@@ -561,7 +690,8 @@
 .dg-editor-title { font-size: 13px; color: var(--muted); }
 
 /* ---- Setup dialog (docs/designs/setup-dialog.md) ------------------------ */
-.su-dialog.MuiDialog-paper { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
+.su-dialog.MuiDialog-paper { max-width: 760px; border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
+.su-dialog.is-program.MuiDialog-paper { max-width: 880px; }
 
 /* The band is the band sheet's (modules/sheet); the steps sit in its eyebrow. */
 .su-band.pop-band { padding: 18px 20px 18px 24px; }
@@ -570,6 +700,17 @@
 .su-steps { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; padding: 0; list-style: none; flex: 1; }
 .su-steps li { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--on-deep-soft); }
 .su-steps li.is-on { color: var(--on-deep); }
+/* Steps joined by short rules (first-run B: 34px × 1.5px). */
+.su-steps { gap: 6px; }
+.su-steps li + li::before {
+  content: "";
+  width: 34px;
+  height: 1.5px;
+  margin-right: 6px;
+  background: color-mix(in srgb, var(--on-deep) 24%, transparent);
+}
+/* Phone: "2 of 3" and a three-segment bar instead of the steps. */
+.su-progress { display: none; }
 .su-num {
   display: inline-grid;
   place-items: center;
@@ -671,14 +812,124 @@
 .su-chip.is-on { background: var(--deep); border-color: var(--deep); color: var(--on-deep); }
 html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-color: var(--tint-strong); color: var(--tint-ink); }
 
-.su-upload { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 14px; }
 .su-soft { font-size: 12.5px; color: var(--muted); }
-.su-file { font-size: 13.5px; font-weight: 700; }
-.su-found { margin: 14px 0 0; font-size: 14px; font-weight: 700; }
-.su-completed .dg-editor-list { max-height: none; }
-.su-flag { font-size: 12.5px; font-weight: 700; color: var(--domain-student-life-ink); white-space: nowrap; }
-.dg-editor-row.is-flagged { background: var(--domain-student-life-tint); }
-.su-credits { margin-left: auto; font-family: var(--font-code); font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+
+/* Completed (first-run B): drop zone | found panel. */
+.su-completed { display: grid; grid-template-columns: 1fr 1.25fr; gap: 18px; align-items: start; }
+.su-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  align-self: stretch;
+  min-height: 240px;
+  padding: 26px;
+  border: 1.5px dashed var(--control);
+  border-radius: var(--r-lg);
+  background: var(--raised);
+  text-align: center;
+}
+.su-drop.is-over { border-color: var(--signal); background: var(--tint); }
+.su-drop-glyph { color: var(--muted); }
+.su-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+}
+.su-file-ok { color: var(--good); }
+.su-found-panel { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-lg); }
+.su-found-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--raised);
+  font-size: 14px;
+}
+.su-completed .dg-editor-list { margin: 0; max-height: none; }
+.su-row {
+  display: grid;
+  grid-template-columns: 20px 92px minmax(0, 1fr) 44px 30px;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.su-found-head + .dg-editor-list .su-row:first-child { border-top: 1px solid var(--line); }
+.su-found-panel > .dg-editor-list:first-child .su-row:first-child { border-top: 0; }
+.su-row input[type="checkbox"] { width: 16px; height: 16px; margin: 0; accent-color: var(--ink); }
+.su-code { font-family: var(--font-code); font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.su-row-title { min-width: 0; overflow: hidden; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
+.su-row.is-flagged { background: var(--domain-student-life-tint); }
+.su-flag { color: var(--domain-student-life-ink); font-weight: 600; }
+/* Grades read as plain values; the select stays so a grade can change. */
+.su-grade {
+  width: 100%;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: right;
+  text-align-last: right;
+  appearance: none;
+  cursor: pointer;
+}
+span.su-grade { cursor: default; }
+.su-credits { color: var(--muted); text-align: right; white-space: nowrap; }
+.su-add { display: flex; flex-direction: column; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--line); }
+.su-add input {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+/* First term: the compact preview (b3-first-term). */
+.su-preview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 22px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.su-grid { display: grid; grid-template-columns: repeat(10, 14px); gap: 3px; }
+.su-grid i { width: 14px; height: 14px; box-sizing: border-box; border: 1.5px dashed var(--open); border-radius: 3px; }
+.su-grid i.is-done { border: 0; background: var(--tone); }
+.su-figures { display: flex; gap: 22px; margin-bottom: 12px; }
+.su-figures div { display: flex; flex-direction: column; }
+.su-figures b { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+.su-figures span { color: var(--muted); font-size: 12px; }
+.su-open { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.su-open li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+.su-open li i { width: 9px; height: 9px; border-radius: 2px; background: var(--tone); }
+.su-open li.is-met { color: var(--muted); font-weight: 500; }
 
 @media (max-width: 1099px) {
   .su-program { grid-template-columns: 1fr; }
@@ -699,11 +950,32 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
   .su-band.pop-band { padding: 16px 12px 14px 16px; }
   .su-band .pop-actions--close { top: 16px; right: 12px; }
   .su-band .pop-title { font-size: 22px; }
-  .su-steps li:not(.is-on) { font-size: 0; gap: 0; }
+  .su-steps { display: none; }
+  .su-progress { display: flex; align-items: center; gap: 12px; flex: 1; font-size: 13px; font-weight: 700; color: var(--on-deep-soft); }
+  .su-bar { display: flex; flex: 1; gap: 4px; }
+  .su-bar i { flex: 1; height: 3px; border-radius: var(--r-full); background: color-mix(in srgb, var(--on-deep) 24%, transparent); }
+  .su-bar i.is-done { background: var(--good); }
+  .su-bar i.is-on { background: var(--on-deep); }
+  .su-completed { grid-template-columns: 1fr; }
+  .su-drop { min-height: 0; padding: 0; border: 0; background: none; align-items: flex-start; }
+  .su-drop-glyph, .su-drop .su-soft { display: none; }
+  .su-upload-btn { width: 100%; justify-content: center; }
+  .su-file { padding: 0; border: 0; background: none; }
+  .su-found-panel { border: 0; border-radius: 0; }
+  .su-found-head { padding: 10px 0; background: none; }
+  .su-row { grid-template-columns: 20px minmax(0, 1fr) 44px 24px; grid-template-areas: "tick code grade cr" "tick title grade cr"; row-gap: 2px; padding: 10px 0; }
+  .su-row input[type="checkbox"] { grid-area: tick; }
+  .su-row .su-code { grid-area: code; font-size: 12px; }
+  .su-row .su-row-title { grid-area: title; }
+  .su-row .su-grade { grid-area: grade; }
+  .su-row .su-credits { grid-area: cr; }
+  .su-add { padding: 8px 0; }
+  .su-add input { min-height: 44px; }
+  .su-preview { grid-template-columns: 1fr; }
   .su-body { flex: 1; max-height: none; padding: 14px 16px; }
   .su-foot { padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
   .su-foot-end { flex: 1; }
-  .su-foot-end .cc-btn-primary { flex: 1; }
+  .su-foot-end .cc-btn-primary { flex: 2; }
 }
 
 /* ---- Loading ------------------------------------------------------------ */
@@ -726,5 +998,4 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
   .dg-terms { scroll-snap-type: x mandatory; }
   .dg-col { flex: 0 0 100%; min-width: 100%; }
   .dg-past { flex: 0 0 100%; }
-  .dg-program h2 { font-size: 19px; }
 }

@@ -225,7 +225,8 @@ describe('waffle and top bar', () => {
     );
     expect(screen.queryByText('Finish')).not.toBeInTheDocument();
     expect(screen.getByText('Open requirements')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Economics B.A.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'My degree' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Economics B.A.' })).toHaveAttribute('aria-haspopup', 'menu');
     const table = screen.getByRole('table', { name: 'Economics B.A. credits' });
     expect(within(table).getByRole('row', { name: /Core theory 0 7 2 0 9/ })).toBeInTheDocument();
   });
@@ -649,6 +650,37 @@ describe('Setup: Completed step', () => {
     expect(planner.edit).not.toHaveBeenCalled();
   });
 
+  test('first-run B layout: drop zone with the file chip, "Found N" with credits, plain grades, Course code at the foot', async () => {
+    uploadTranscript.mockResolvedValue({
+      rows: [
+        { id: 'STAT 2120', title: 'Intro Statistics', grade: 'B', credits: 4, ticked: true, checked: true, in_catalog: true },
+        { id: 'AP MATH', title: null, grade: null, credits: null, ticked: false, checked: true, in_catalog: false },
+      ],
+    });
+    renderBoard();
+    const dialog = await openEditor();
+    fireEvent.change(within(dialog).getByLabelText('Transcript file'), {
+      target: { files: [new File(['x'], 'transcript-fall-2026.pdf', { type: 'application/pdf' })] },
+    });
+    expect(await within(dialog).findByText('Found 2')).toBeInTheDocument();
+    expect(within(dialog).getByText('transcript-fall-2026.pdf')).toBeInTheDocument();
+    // Only rows with credits on record count: STAT 2120 from the transcript.
+    expect(within(dialog).getByText('4 cr')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Grade for STAT 2120')).toHaveValue('B');
+    expect(within(dialog).getByLabelText('Grade for ECON 2020')).toHaveDisplayValue('—');
+    const search = within(dialog).getByPlaceholderText('Course code');
+    expect(search.closest('.su-add').previousElementSibling).toHaveClass('dg-editor-list');
+  });
+
+  test('a dropped file is read like a chosen one', async () => {
+    uploadTranscript.mockResolvedValue({ rows: [] });
+    renderBoard();
+    const dialog = await openEditor();
+    const file = new File(['x'], 'scan.pdf', { type: 'application/pdf' });
+    fireEvent.drop(dialog.querySelector('.su-drop'), { dataTransfer: { files: [file] } });
+    await waitFor(() => expect(uploadTranscript).toHaveBeenCalledWith('token', file));
+  });
+
   test('an unreadable transcript says so and keeps the list', async () => {
     uploadTranscript.mockRejectedValue(Object.assign(new Error('422'), { status: 422 }));
     renderBoard();
@@ -662,11 +694,26 @@ describe('Setup: Completed step', () => {
 });
 
 describe('Setup dialog', () => {
-  test('the program name opens Program; graduate programs are grouped apart', async () => {
+  test('the program button opens the program menu; graduate programs are grouped apart', async () => {
+    const programs = [...PROGRAMS, {
+      id: 'mpp', name: 'Master of Public Policy', type: 'graduate', catalog_year: 2026, rules: [],
+    }];
+    const { planner } = renderBoard(makePlanner({ programs }));
+    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
+    const menu = await screen.findByRole('menu', { name: 'Programs' });
+    expect(within(menu).getByText('Undergraduate')).toBeInTheDocument();
+    expect(within(menu).getByText('Graduate')).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitemradio', { name: 'Economics B.A.' })).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Master of Public Policy' }));
+    expect(planner.edit).toHaveBeenCalledWith([{ op: 'set_profile', program_ids: ['mpp'], catalog_year: 2026 }]);
+  });
+
+  test('setup opens at Program from the Completed step; graduate programs are grouped apart', async () => {
     const programs = [...PROGRAMS, { id: 'mpp', name: 'Master of Public Policy', type: 'graduate', rules: [] }];
     renderBoard(makePlanner({ programs }));
-    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Program' });
+    let dialog = await openEditorFromPast();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+    dialog = await screen.findByRole('dialog', { name: 'Program' });
     expect(within(dialog).getByText('Undergraduate')).toBeInTheDocument();
     expect(within(dialog).getByText('Graduate')).toBeInTheDocument();
     expect(within(dialog).getByRole('radio', { name: /Economics B.A./ })).toBeChecked();
@@ -684,13 +731,17 @@ describe('Setup dialog', () => {
 
   test('First term saves set_term on Done and closes', async () => {
     const { planner } = renderBoard();
-    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
-    let dialog = await screen.findByRole('dialog', { name: 'Program' });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
-    dialog = await screen.findByRole('dialog', { name: 'Completed' });
+    let dialog = await openEditorFromPast();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
     dialog = await screen.findByRole('dialog', { name: 'First term' });
     expect(within(dialog).getByRole('radio', { name: 'Spring 2027' })).toBeChecked();
+    // The compact preview: credits done, open requirements, met chips struck through.
+    expect(within(dialog).getByText('Credits done').previousElementSibling).toHaveTextContent('6');
+    expect(within(dialog).getByText('Open requirements').previousElementSibling).toHaveTextContent('1');
+    const chips = within(dialog).getByRole('list', { name: 'Requirements' });
+    expect(within(chips).getByText('Introductory').tagName).toBe('S');
+    expect(within(chips).getByText('Core theory').tagName).not.toBe('S');
+    expect(within(dialog).getByText('3 of 3')).toBeInTheDocument();
     // The board's trailing empty term isn't one set_term accepts.
     expect(within(dialog).queryByRole('radio', { name: 'Spring 2028' })).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('radio', { name: 'Fall 2027' }));
@@ -745,6 +796,96 @@ describe('Map and Semesters (Phase 2 P.3)', () => {
     unmount();
     renderBoard(withRoute());
     expect(screen.getByRole('button', { name: 'Semesters' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('the counts row tops both views; the waffle sits below it on Semesters only', () => {
+    renderBoard(withRoute());
+    const counts = screen.getByRole('list', { name: 'Totals' });
+    // Done 6 (ECON 2010, ECON 2020), this term 3 (ECON 3020), planned 4 (ECON 3720), 3 open slots.
+    expect(within(counts).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      '6credits done', '3this term', '4planned', '3not placed',
+    ]);
+    expect(screen.queryByTestId('degree-waffle')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Semesters' }));
+    expect(screen.getByRole('list', { name: 'Totals' })).toBeInTheDocument();
+    expect(screen.getByTestId('degree-waffle')).toBeInTheDocument();
+  });
+
+  test('the route panel holds the switch and runs to graduation', () => {
+    const planner = withRoute();
+    planner.degree.graduation = { term: 'Spring 2029', source: 'class_year' };
+    renderBoard(planner);
+    const panel = screen.getByRole('region', { name: 'Route to Spring 2029' });
+    expect(within(panel).getByRole('button', { name: 'Map' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Requirements' })).toBeInTheDocument();
+  });
+
+  test('the first this-term stop is preselected and fills the card; a click picks another', () => {
+    renderBoard(withRoute());
+    // The plan's term is Spring 2027, so ECON 3020 is this term's first stop.
+    const card = screen.getByRole('region', { name: 'Intermediate Macro' });
+    expect(card).toHaveAttribute('aria-live', 'polite');
+    expect(within(card).getByText('ECON 3020 · 3 credits')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ECON 3020, Spring 2027, this term' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'ECON 3720, Fall 2027, planned' }));
+    expect(screen.getByRole('region', { name: 'Econometrics' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Econometrics' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('course=ECON+3720');
+  });
+
+  test('with no this-term or planned stop, the card hides', () => {
+    const planner = withRoute();
+    planner.view.plan.courses = [];
+    renderBoard(planner);
+    expect(screen.getByRole('region', { name: 'Requirements' })).toBeInTheDocument();
+    expect(document.querySelector('.rt-detail')).toBeNull();
+  });
+
+  test('requirement rows and board tags take the line colours', () => {
+    const planner = withRoute();
+    planner.degree.terms = planner.degree.terms.map((t, i) => (i === 0
+      ? { ...t, courses: [{ ...t.courses[0], requirements: ['Intermediate macro'] }] } : t));
+    renderBoard(planner);
+    const rows = within(screen.getByRole('region', { name: 'Requirements' })).getAllByRole('row');
+    expect(rows[0]).toHaveTextContent('Introductory economics1 of 2');
+    expect(rows[0]).toHaveClass('rt-l1');
+    fireEvent.click(screen.getByRole('button', { name: 'Semesters' }));
+    const core = within(column('Spring 2027')).getByRole('list', { name: 'Counts toward' });
+    expect(core.querySelector('.dg-key-dot')).toHaveClass('tone-l2');
+  });
+
+  test('the title row: Add course goes to Browse; no catalog year', () => {
+    renderBoard(withRoute());
+    expect(screen.queryByText(/Catalog/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add course' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/courses?view=browse');
+  });
+
+  describe('on a phone', () => {
+    let original;
+    beforeEach(() => {
+      original = window.matchMedia;
+      window.matchMedia = (query) => ({
+        matches: query.includes('max-width: 700px'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      });
+    });
+    afterEach(() => { window.matchMedia = original; });
+
+    test('the switch sits under the title, the route is "Your route", and a stop opens the card in a sheet', async () => {
+      renderBoard(withRoute());
+      expect(screen.getByRole('group', { name: 'View' })).toHaveClass('is-wide');
+      expect(screen.getByRole('heading', { name: 'Your route' })).toBeInTheDocument();
+      expect(screen.getByText('6 credits done · 13 placed')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'ECON 3720, Fall 2027, planned' }));
+      const sheet = await screen.findByRole('dialog', { name: 'Econometrics' });
+      expect(within(sheet).getByText('Core theory')).toBeInTheDocument();
+      fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Econometrics' })).not.toBeInTheDocument());
+    });
   });
 
   test('without route data there is no switch and the board shows', () => {

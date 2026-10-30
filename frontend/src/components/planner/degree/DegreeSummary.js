@@ -22,10 +22,10 @@ function FinishDate({ term }) {
  * totals; the waffle (one square per credit, filled column by column,
  * group after group) with its key, an accessible summary and a hidden table.
  */
-export default function DegreeSummary({ name, waffle }) {
+export default function DegreeSummary({ name, waffle, toneOf }) {
   // Whole squares; every number below is read from the same rounding.
-  const { groups, totals } = waffleModel(waffle);
-  const squares = waffleSquares(waffle);
+  const { groups, totals } = waffleModel(waffle, toneOf);
+  const squares = waffleSquares(waffle, toneOf);
   const summary = waffleSummary(name, waffle);
   const openCount = openRequirements(waffle);
 

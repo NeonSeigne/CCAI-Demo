@@ -25,8 +25,8 @@ jest.mock('../contexts/AppConfigContext', () => ({
 jest.mock('../components/catalog/CampusPageShell', () => ({ children, className }) => (
   <main id="main-content" className={className}>{children}</main>
 ));
-jest.mock('../components/planner/degree/DegreeBoard', () => ({ head }) => (
-  <div data-testid="degree-board">{head}</div>
+jest.mock('../components/planner/degree/DegreeBoard', () => ({ tabs }) => (
+  <div data-testid="degree-board">{tabs}</div>
 ));
 jest.mock('../components/planner/semester/SemesterView', () => ({ term }) => (
   <div data-testid="semester-view">{term}</div>
