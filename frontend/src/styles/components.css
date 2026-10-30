@@ -375,20 +375,6 @@
 
 .cc-btn-hero { min-height: 48px; padding: 0 22px; font-size: 15.5px; }
 
-/* MUI's outlined button is the secondary button: ink on surface with a control
-   hairline (the theme would colour it signal, which is unreadable as text). */
-.MuiButton-outlined.MuiButton-root {
-  border-color: var(--control);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.MuiButton-outlined.MuiButton-root:hover { border-color: var(--control); background: var(--raised); }
-
-/* Text buttons are the ghost button. */
-.MuiButton-text.MuiButton-colorPrimary { color: var(--ink); }
-.MuiButton-text.MuiButton-colorPrimary:hover { background: var(--raised); }
-
 /* ---- Chips ------------------------------------------------------------------ */
 .cc-chip {
   min-height: 36px;

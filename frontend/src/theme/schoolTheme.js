@@ -75,9 +75,15 @@ export function buildMuiTheme(roles, mode) {
     },
     typography: {
       fontFamily: 'var(--font-app)',
+      ...Object.fromEntries(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((variant) => [
+        variant, { fontFamily: 'var(--font-display)', fontWeight: 700, letterSpacing: '-0.02em' },
+      ])),
       button: { textTransform: 'none', fontWeight: 700 },
+      // A plain label, never an all-caps eyebrow (DESIGN.md Do's and Don'ts).
+      overline: { textTransform: 'none', letterSpacing: 0, fontSize: 13, fontWeight: 700, lineHeight: 1.5 },
     },
-    shape: { borderRadius: 12 },
+    // 1, so sx radii are pixels; components use the --r-* ramp by name.
+    shape: { borderRadius: 1 },
     breakpoints: { values: { xs: 0, sm: 701, md: 1100, lg: 1280, xl: 1280 } },
     components: {
       MuiAppBar: {
@@ -135,29 +141,92 @@ export function buildMuiTheme(roles, mode) {
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: {
-          root: { borderRadius: 'var(--r-full)', fontWeight: 700 },
+          root: {
+            minHeight: 42, padding: '0 18px', borderRadius: 'var(--r-full)', fontWeight: 700,
+            transition: 'transform 120ms ease-out, background-color 150ms ease',
+            '&:active': { transform: 'scale(0.95)' },
+            '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active': { transform: 'none' } },
+          },
           containedPrimary: {
             backgroundColor: 'var(--signal)',
             color: 'var(--on-signal)',
             '&:hover': { backgroundColor: 'var(--signal-hover)' },
           },
+          // Danger: ink with an icon, never red alone (UW: red is the school colour).
+          containedError: {
+            backgroundColor: 'var(--harder)',
+            color: 'var(--surface)',
+            '&:hover': { backgroundColor: 'var(--harder)', opacity: 0.9 },
+          },
+          outlined: {
+            borderColor: 'var(--control)', backgroundColor: 'var(--surface)', color: 'var(--ink)',
+            '&:hover': { borderColor: 'var(--control)', backgroundColor: 'var(--raised)' },
+          },
+          text: { color: 'var(--ink)', '&:hover': { backgroundColor: 'var(--raised)' } },
         },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 'var(--r-lg)',
+            backgroundColor: 'var(--surface)',
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--control)' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--control)' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--ink)', borderWidth: 1 },
+          },
+        },
+      },
+      // The segmented control: a raised round track, the choice on surface.
+      MuiToggleButtonGroup: {
+        styleOverrides: {
+          root: { gap: 2, padding: 3, borderRadius: 'var(--r-full)', backgroundColor: 'var(--raised)' },
+          grouped: {
+            border: 0,
+            borderRadius: 'var(--r-full) !important',
+            margin: 0,
+          },
+        },
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            border: 0, borderRadius: 'var(--r-full)', padding: '6px 14px', textTransform: 'none',
+            fontWeight: 700, color: 'var(--muted)',
+            '&.Mui-selected, &.Mui-selected:hover': {
+              backgroundColor: 'var(--surface)', color: 'var(--ink)', boxShadow: 'var(--shadow-rest)',
+            },
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: { borderRadius: 'var(--r-lg)', fontWeight: 600, alignItems: 'center' },
+          filledSuccess: { backgroundColor: 'var(--ink)', color: 'var(--surface)' },
+          filledError: { backgroundColor: 'var(--ink)', color: 'var(--surface)' },
+          filledInfo: { backgroundColor: 'var(--ink)', color: 'var(--surface)' },
+        },
+      },
+      MuiSnackbarContent: {
+        styleOverrides: { root: { borderRadius: 'var(--r-lg)', backgroundColor: 'var(--ink)', color: 'var(--surface)' } },
       },
       MuiIconButton: {
         styleOverrides: {
           root: { color: 'var(--muted)', '&:hover': { backgroundColor: 'var(--raised)', color: 'var(--ink)' } },
         },
       },
+      // Rows inside a panel are r-md; only rail nav items are pills.
       MuiListItemButton: {
         styleOverrides: {
           root: {
-            borderRadius: 'var(--r-full)',
+            borderRadius: 'var(--r-md)',
             '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'var(--tint)', color: 'var(--tint-ink)' },
           },
         },
       },
       MuiTooltip: {
-        styleOverrides: { tooltip: { backgroundColor: 'var(--ink)', color: 'var(--surface)', fontSize: 12 } },
+        styleOverrides: {
+          tooltip: { backgroundColor: 'var(--ink)', color: 'var(--surface)', fontSize: 12, borderRadius: 'var(--r-sm)' },
+        },
       },
     },
   });
