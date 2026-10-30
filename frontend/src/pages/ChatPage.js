@@ -219,7 +219,6 @@ const ChatPageView = () => {
               <div className={`welcome-state ${chatPhase === 'transitioning' ? 'is-leaving' : ''}`}>
                 <div className="chat-hero-copy">
                   <h2>What do you need on campus today?</h2>
-                  <p>Ask about courses, events or places at {config?.app?.institution || 'your school'}.</p>
                 </div>
               </div>
             )}

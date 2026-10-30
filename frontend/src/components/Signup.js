@@ -143,9 +143,6 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
             <BookOpen className="logo-icon" />
           </div>
           <h1 className="signup-title">Join Our Community</h1>
-          <p className="signup-subtitle">
-            {config?.login?.signup_subtitle || 'Create your account to get personalized guidance from expert advisors'}
-          </p>
         </div>
 
         {/* Main Signup Form */}

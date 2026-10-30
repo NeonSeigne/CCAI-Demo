@@ -262,7 +262,6 @@ const EnhancedChatInput = ({
               <div className="no-documents">
                 <FileText size={24} />
                 <p>No documents uploaded yet</p>
-                <span>Upload documents to reference them in your conversations</span>
               </div>
             ) : (
               uploadedDocuments.map((doc) => (

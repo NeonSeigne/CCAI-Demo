@@ -343,7 +343,6 @@ const CampusMapPage = () => {
   const { authToken } = useAuth();
   const { config } = useAppConfig();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
 
   // URL context from chat cards (14A), read once.
@@ -553,7 +552,6 @@ const CampusMapPage = () => {
         <div className="map-layout">
           <div className="map-side">
             <header className="map-header">
-              <p className="campus-kicker">{school}</p>
               <h1>Campus map</h1>
             </header>
 

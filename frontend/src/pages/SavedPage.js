@@ -312,7 +312,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const originId = useRef(null);
   const loadRun = useRef(0);
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
   const syncRail = () => savedContext?.reload?.();
 
@@ -745,13 +744,9 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
     <div className="saved-page">
       <main className="saved-main" id="main-content">
         <header className="saved-header">
-          <p className="saved-kicker">{school}</p>
           <h1>Saved</h1>
         </header>
         {body}
-        {status === 'ready' && (items.length > 0 || collections.length > 0) && (
-          <p className="saved-footnote">Anything you save from a page or an answer card lands in Unsorted until you file it.</p>
-        )}
       </main>
 
       <ConfirmDialog

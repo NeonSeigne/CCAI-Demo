@@ -116,7 +116,7 @@ test('Next up lists the coming events with walking times from the start place', 
     state: expect.objectContaining({ pendingPrompt: 'How do I get to Bryant Hall?' }),
   }));
   expect(within(board).getByRole('link', { name: 'All events today' })).toHaveAttribute('href', '/events');
-  expect(within(board).getByText('From UVA Events')).toBeInTheDocument();
+  expect(within(board).queryByText('From UVA Events')).not.toBeInTheDocument();
 });
 
 test('Next up says so when nothing else is on', async () => {

@@ -302,7 +302,7 @@ export default function CourseComparePage() {
       school={school}
     />
   ) : (
-    <p className="cmp-add cmp-add-full">Compare up to {MAX_TICKED}. Remove one to add another.</p>
+    <p className="cmp-add cmp-add-full">Compare up to {MAX_TICKED}</p>
   );
 
   return (
@@ -310,7 +310,6 @@ export default function CourseComparePage() {
       <div className="cc-page">
         <header className="cc-page-head">
           <div>
-            <p className="cc-kicker">{school}</p>
             <h1>Compare courses</h1>
           </div>
           <CoursesTabs

@@ -10,13 +10,6 @@ import '../styles/CampusRail.css';
 import '../styles/CampusHome.css';
 import '../styles/CampusLanding.css';
 
-// What each answer domain draws from; shown beside that domain's starters.
-const DOMAIN_SOURCES = {
-  academics: 'Course grades, instructors and sections',
-  student_life: 'Events from the campus calendars',
-  campus: 'Walking times and the campus map',
-};
-
 /** Signed-out landing page: what Campus Companion answers, and a way in. */
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -25,7 +18,6 @@ const OnboardingPage = () => {
   const [devLoginLoading, setDevLoginLoading] = useState(false);
   const [devLoginError, setDevLoginError] = useState('');
 
-  const school = config?.app?.institution || config?.app?.title || 'your campus';
   const starters = config?.homepage?.starters || [];
 
   const handleDevLogin = async () => {
@@ -95,12 +87,7 @@ const OnboardingPage = () => {
 
       <main className="landing-main">
         <section className="landing-hero">
-          <p className="campus-kicker">{school}</p>
           <h1>Ask about courses, events and places on campus.</h1>
-          <p className="landing-lede">
-            One short answer, with the grades, times and walking distances in cards
-            underneath and the sources it checked listed at the end.
-          </p>
           <button type="button" className="landing-cta" onClick={() => navigate('/auth')}>
             Sign in to start asking
             <ArrowRight size={17} strokeWidth={2.4} aria-hidden="true" />
@@ -120,7 +107,6 @@ const OnboardingPage = () => {
                       aria-hidden="true"
                     />
                     <strong>{group.title}</strong>
-                    {DOMAIN_SOURCES[group.domain] && <span>{DOMAIN_SOURCES[group.domain]}</span>}
                   </div>
                   <ul className="landing-prompts">
                     {group.prompts.map((prompt) => <li key={prompt}>“{prompt}”</li>)}

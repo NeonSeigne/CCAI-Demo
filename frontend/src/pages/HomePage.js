@@ -281,7 +281,6 @@ const HomePage = () => {
               )}
               <div className="ah-panel-foot">
                 <Link className="ah-more" to="/events">All events today</Link>
-                {today.source?.length > 0 && <p className="campus-footnote">From {today.source.join(', ')}</p>}
               </div>
             </section>
 

@@ -224,8 +224,6 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
   letter-spacing: -0.02em;
 }
 
-.ev-tz { margin-left: auto; font-size: 13px; color: var(--muted); }
-
 .ev-listed { margin: 0; font-size: 13px; color: var(--muted); }
 
 .ev-banner,
@@ -666,7 +664,6 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
   .ev-chips { flex-wrap: nowrap; overflow-x: auto; margin-right: -16px; padding-right: 16px; scrollbar-width: none; }
   .ev-chip-btn { flex: 0 0 auto; }
   .ev-search { max-width: none; }
-  .ev-tz { margin-left: 0; width: 100%; }
   .ev-feature { padding: 18px; }
   .ev-feature-title { font-size: 17px; }
   .ev-row {

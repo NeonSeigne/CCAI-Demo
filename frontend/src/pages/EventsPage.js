@@ -18,7 +18,7 @@ import { getCampusOrigin, listEvents, listPlaces, setCampusOrigin } from '../api
 import { downloadEventIcs } from '../utils/ics';
 import {
   WINDOWS, WINDOW_IDS, addDays, dayKey, formatDay, isAllDayLike, listingDay, minutesOfDay, relativeDay,
-  windowDays, windowHeading, windowLabel, windowPhrase, zoneName, coversDay,
+  windowDays, windowHeading, windowLabel, windowPhrase, coversDay,
 } from '../utils/eventWindows';
 import '../styles/CampusHome.css';
 import '../styles/EventsPage.css';
@@ -697,7 +697,6 @@ const EventsPage = () => {
   const phone = useViewport() === 'phone';
   const now = useNow();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const configZone = config?.school?.timezone;
 
   const view = VIEWS.some((v) => v.id === params.get('view')) ? params.get('view') : 'next';
@@ -872,7 +871,6 @@ const EventsPage = () => {
   }
 
   const partialError = result.status === 'ready' && result.data?.error;
-  const tzName = zoneName(timezone);
 
   return (
     <EventOpenContext.Provider value={openEvent}>
@@ -882,7 +880,6 @@ const EventsPage = () => {
             <header className="ev-header">
               <div className="ev-title-row">
                 <div>
-                  <p className="campus-kicker">{school}</p>
                   <h1>Events</h1>
                 </div>
                 <div className="ev-tabs" role="tablist" aria-label="Events view">
@@ -978,7 +975,6 @@ const EventsPage = () => {
                     <ChevronRight size={18} aria-hidden="true" />
                   </button>
                 )}
-                {tzName && <span className="ev-tz">Times in {tzName}</span>}
               </div>
 
               {partialError && (
@@ -998,11 +994,6 @@ const EventsPage = () => {
               {body}
             </section>
 
-            {sourceText && (
-              <p className="campus-footnote ev-foot">
-                From {sourceText} · Add to calendar downloads an .ics file for Google, Apple or Outlook Calendar
-              </p>
-            )}
           </div>
         </main>
 

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, BookOpen, Phone } from './icons';
-import { useAppConfig } from '../contexts/AppConfigContext';
 import CopyrightNotice from './CopyrightNotice';
 import '../styles/Login.css';
 
 const Login = ({ onNavigateToSignup, onAuthSuccess }) => {
-  const { config } = useAppConfig();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -106,9 +104,6 @@ const Login = ({ onNavigateToSignup, onAuthSuccess }) => {
             <BookOpen className="logo-icon" />
           </div>
           <h1 className="login-title">Welcome Back</h1>
-          <p className="login-subtitle">
-            {config?.login?.subtitle || 'Sign in to continue'}
-          </p>
         </div>
 
         {/* Main Login Form */}

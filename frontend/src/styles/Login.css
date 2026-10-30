@@ -81,13 +81,6 @@
   line-height: 1.2;
 }
 
-.login-subtitle {
-  font-size: 16px;
-  color: var(--muted);
-  margin: 0;
-  line-height: 1.5;
-}
-
 /* Form Container */
 .login-form-container {
   padding: 32px;
@@ -423,10 +416,6 @@
   
   .login-title {
     font-size: 24px;
-  }
-  
-  .login-subtitle {
-    font-size: 15px;
   }
   
   .login-form-container {

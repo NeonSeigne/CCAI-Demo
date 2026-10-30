@@ -576,7 +576,6 @@ function BrowseView({ tabs }) {
       <div className="cc-page">
         <header className="cc-page-head">
           <div>
-            <p className="cc-kicker">{school}</p>
             <h1>Courses</h1>
           </div>
           {tabs({ count: ticked.length, onCompare: goCompare })}

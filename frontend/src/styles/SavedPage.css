@@ -27,13 +27,6 @@
 
 .saved-header { display: flex; flex-direction: column; gap: 4px; }
 
-.saved-kicker {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
 .saved-header h1 {
   margin: 0;
   font-size: clamp(28px, 4vw, 36px);
@@ -404,12 +397,6 @@
 .saved-ph-bar.is-short { width: 35%; }
 
 @keyframes saved-appear { to { opacity: 1; } }
-
-.saved-footnote {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
 
 /* ---- Phone picker (27A) --------------------------------------------------- */
 .saved-picker { display: none; }

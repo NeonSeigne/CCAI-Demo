@@ -30,13 +30,6 @@
   flex-wrap: wrap;
 }
 
-.cc-kicker {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
 .cc-page-head h1 {
   margin: 0;
   font-size: clamp(26px, 3.4vw, 32px);
