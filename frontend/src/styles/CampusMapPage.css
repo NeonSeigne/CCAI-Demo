@@ -1,7 +1,8 @@
-/* Campus map page (DESIGN.md "Map"): a list column beside the map, round
-   category pins, the place card over the map; a bottom sheet on phone.
-   Layout shell (.campus-home, .campus-main, .campus-kicker) comes from
-   CampusHome.css. Tokens only, no hex. */
+/* Campus map page (DESIGN.md "Map", map.html): a 360px list column beside a
+   full-colour map, round category pins, the place card floating over the
+   map. Tablet: the card sits under the map. Phone: the map first with a
+   floating search pill, the card in the page under it. Layout shell
+   (.campus-home, .campus-main) comes from CampusHome.css. Tokens only, no hex. */
 
 .map-page ::selection { background: var(--tint); color: var(--ink); }
 .map-page :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
@@ -9,9 +10,10 @@
 .map-main { padding: 0; }
 
 .map-layout {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  min-height: 100vh;
+  grid-template-columns: 360px minmax(0, 1fr);
+  height: 100vh;
   font-variant-numeric: tabular-nums;
 }
 
@@ -20,9 +22,13 @@
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 24px 20px 32px;
+  min-height: 0;
+  padding: 24px 20px;
+  overflow-y: auto;
   background: var(--canvas);
 }
+
+.map-header { display: flex; flex-direction: column; gap: 4px; }
 
 .map-header h1 {
   margin: 2px 0 0;
@@ -32,47 +38,20 @@
   letter-spacing: -0.03em;
 }
 
-/* ---- Walking route ---------------------------------------------------------- */
-.map-panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  box-shadow: var(--shadow-rest);
-}
+/* ---- "Starting from {place} · Change" (design Q3) ---------------------- */
+.map-start-line { position: relative; }
 
-.map-panel-kicker {
-  font-size: 13px;
+.map-start-text {
+  margin: 0;
+  font-size: 14px;
   font-weight: 600;
   color: var(--muted);
 }
 
-.map-start-block {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.map-start-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-}
-
-.map-start-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-}
+.map-start-text strong { color: var(--ink); font-weight: 700; }
 
 .map-link-btn {
+  position: relative;
   min-height: 32px;
   padding: 0 4px;
   border: 0;
@@ -80,84 +59,14 @@
   color: var(--ink);
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
 }
 
-.map-choose-start {
-  align-self: flex-start;
-  min-height: 42px;
-  padding: 0 18px;
-  border: 1px solid var(--control);
-  border-radius: var(--r-full);
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.map-dest {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 10px;
-  border-top: 1px solid var(--rule);
-}
-
-.map-dest-name { font-size: 14px; font-weight: 600; color: var(--muted); }
-
-.map-dest-minutes {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--good);
-}
-
-.map-dest-metres { font-size: 13.5px; color: var(--muted); }
-
-.map-dest-unavailable { font-size: 15px; font-weight: 700; color: var(--ink); }
-
-.map-dest-placeholder {
-  display: block;
-  width: 120px;
-  height: 26px;
-  border-radius: var(--r-sm);
-  background: var(--raised);
-}
-
-.map-osm-link {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  margin-top: 6px;
-  padding: 0 14px;
-  border: 1px solid var(--control);
-  border-radius: var(--r-full);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 13.5px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.map-osm-link:hover { background: var(--raised); }
-
-.map-placeholder-line {
-  display: block;
-  width: 50%;
-  height: 14px;
-  border-radius: var(--r-sm);
-  background: var(--raised);
-}
-
-.map-placeholder-line.is-wide { width: 80%; height: 22px; }
+/* 44px to tap (design Q19). */
+.map-link-btn::after { content: ""; position: absolute; inset: -6px 0; }
 
 /* ---- Start picker popover (a 24px menu) ------------------------------------- */
 .map-picker {
@@ -261,6 +170,7 @@
 .map-filters { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .map-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -277,6 +187,9 @@
   transition: transform 120ms ease-out;
 }
 
+/* 34px drawn, 44px to tap (design Q19). */
+.map-chip::after { content: ""; position: absolute; inset: -5px 0; }
+
 .map-chip:active { transform: scale(0.95); }
 
 .map-chip.is-on {
@@ -290,8 +203,6 @@ html[data-theme="dark"] .map-chip.is-on {
   border-color: var(--tint-strong);
   color: var(--tint-ink);
 }
-
-.map-chip-count { font-size: 12.5px; font-weight: 600; opacity: 0.7; }
 
 /* ---- Place list --------------------------------------------------------------- */
 .map-list { display: flex; flex-direction: column; gap: 10px; }
@@ -307,26 +218,20 @@ html[data-theme="dark"] .map-chip.is-on {
   overflow: hidden;
 }
 
-.map-row {
-  display: flex;
-  align-items: center;
-  padding-right: 6px;
-  border-top: 1px solid var(--rule);
-}
+.map-row { border-top: 1px solid var(--rule); }
 
 .map-row:first-child { border-top: 0; }
 
 .map-row.is-selected { background: var(--tint); color: var(--tint-ink); }
 
 .map-row-main {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 60px;
-  padding: 10px 8px 10px 14px;
+  padding: 10px 14px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -357,7 +262,7 @@ html[data-theme="dark"] .map-chip.is-on {
   font-weight: 700;
 }
 
-.map-row-hours {
+.map-row-kind {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -365,22 +270,11 @@ html[data-theme="dark"] .map-chip.is-on {
   font-weight: 600;
   color: var(--muted);
 }
-.map-row.is-selected .map-row-hours { color: var(--tint-ink); }
 
-.map-row-walk {
-  max-width: 84px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-}
+.map-row-walk { font-size: 13.5px; font-weight: 800; color: var(--good); white-space: nowrap; }
 
-.map-row-minutes { font-size: 13.5px; font-weight: 800; color: var(--good); white-space: nowrap; }
-.map-row-distance { font-size: 12px; font-weight: 600; color: var(--muted); }
-.map-row.is-selected .map-row-minutes,
-.map-row.is-selected .map-row-distance { color: var(--tint-ink); }
-
-.map-row .cc-save { border-radius: var(--r-full); color: inherit; }
+.map-row.is-selected .map-row-kind,
+.map-row.is-selected .map-row-walk { color: var(--tint-ink); }
 
 .map-row.is-placeholder .map-row-name { color: var(--muted); }
 
@@ -415,20 +309,11 @@ html[data-theme="dark"] .map-chip.is-on {
 
 .map-state[role="alert"] p { color: var(--error); }
 
-.map-footnote {
-  margin: 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.map-footnote a { color: inherit; }
-
 /* ---- Map ------------------------------------------------------------------ */
 .map-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: relative;
   min-width: 0;
+  min-height: 0;
 }
 
 .map-frame {
@@ -450,20 +335,24 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6);
 }
 
-/* Round category pins; the selected one large, in signal. */
+/* Round category pins with the light shadow; the selected one large, in signal. */
 .map-canvas .map-pin {
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: var(--surface);
-  color: var(--muted);
-  box-shadow: var(--shadow-float);
+  color: var(--ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-.map-canvas .map-pin .ms { font-size: 19px; }
-.map-canvas .map-pin--dining,
-.map-canvas .map-pin--arts { color: var(--life); }
+.map-canvas .map-pin .ms {
+  font-size: 19px;
+  font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 20;
+}
+
+.map-canvas .map-pin--dining { color: var(--life); }
 .map-canvas .map-pin--library { color: var(--academics); }
+.map-canvas .map-pin--academic { color: var(--muted); }
 .map-canvas .map-pin--landmark,
 .map-canvas .map-pin--recreation,
 .map-canvas .map-pin--health { color: var(--campus); }
@@ -471,33 +360,18 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 .map-canvas .map-pin.is-selected {
   background: var(--signal);
   color: var(--on-signal);
-  box-shadow: 0 0 0 5px var(--surface), var(--shadow-float);
+  box-shadow: 0 0 0 5px var(--surface), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .map-canvas .map-pin.is-selected .ms { font-size: 24px; }
 
-/* The starting place: a blue dot with a halo. */
+/* The starting place: a blue dot with a white ring and a halo. */
 .map-canvas .map-start {
-  stroke: var(--surface);
-  stroke-width: 3;
-  fill: var(--academics);
-  fill-opacity: 1;
-}
-
-/* The walking route draws from the start to the place (22A). */
-.map-canvas .map-route-line {
-  stroke: var(--good);
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: map-route-draw 240ms ease-out forwards;
-}
-
-@keyframes map-route-draw {
-  to { stroke-dashoffset: 0; }
+  box-sizing: border-box;
+  border: 3px solid var(--band-text);
+  border-radius: 50%;
+  background: var(--academics);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--academics) 22%, transparent);
 }
 
 .map-canvas .leaflet-control-attribution {
@@ -511,26 +385,13 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 
 .map-canvas .leaflet-control-attribution a { color: inherit; }
 
-.map-canvas .leaflet-control-zoom {
-  border: 0;
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow-float);
-  overflow: hidden;
-}
-
-.map-canvas .leaflet-control-zoom a {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--line);
-}
-
-/* ---- Place card ------------------------------------------------------------ */
+/* ---- Place card: floats over the map (desktop) ----------------------------- */
 .map-card {
   position: absolute;
   top: 20px;
   right: 20px;
   z-index: 500;
-  width: min(380px, calc(100% - 40px));
+  width: 380px;
   max-height: calc(100% - 40px);
   display: flex;
 }
@@ -538,55 +399,58 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 .map-card .pop-sheet { flex: 1; height: auto; }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-canvas .map-route-line {
-    animation: none;
-    stroke-dashoffset: 0;
-  }
   .map-chip { transition: none; }
 }
 
-/* ---- Phone: map on top, the list under it, the card as a bottom sheet ------ */
-@media (max-width: 700px) {
+/* ---- Tablet (design Q17): the card sits in the flow under the map ---------- */
+@media (max-width: 1099px) {
   .map-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-height: 0;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    grid-template-rows: 60vh auto;
+    height: auto;
+    min-height: 100vh;
+    align-content: start;
   }
 
-  .map-side { display: contents; }
-
-  .map-header { order: 1; padding: 18px 16px 0; }
-  .map-header h1 { font-size: 23px; }
-  .map-search { order: 2; margin: 0 16px; }
-  .map-filters {
-    order: 3;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 0 16px;
-    scrollbar-width: none;
-  }
-  .map-chip { flex: 0 0 auto; }
-  .map-stage { order: 4; position: relative; height: 360px; }
-  .map-panel { order: 5; margin: 0 16px; }
-  .map-list { order: 6; margin: 0 16px; }
-  .map-footnote { order: 7; margin: 0 16px 24px; }
+  .map-side { grid-row: 1 / span 2; overflow: visible; }
+  .map-stage { grid-column: 2; grid-row: 1; }
 
   .map-card {
-    position: fixed;
+    position: relative;
     top: auto;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1300;
+    right: auto;
+    grid-column: 2;
+    grid-row: 2;
     width: auto;
-    max-height: 78vh;
+    max-height: none;
+    margin: -28px 0 0;
   }
 
-  .map-card .pop-sheet {
-    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+  .map-card .pop-sheet { border-radius: var(--r-2xl) var(--r-2xl) 0 0; box-shadow: none; }
+  .map-card .pop-scroll { overflow: visible; }
+}
+
+/* ---- Phone: map first with a floating search pill, the card under it ------- */
+@media (max-width: 700px) {
+  .map-main { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+
+  .map-layout { display: block; min-height: 0; }
+
+  .map-side { display: contents; }
+  .map-header,
+  .map-filters,
+  .map-list { display: none; }
+
+  .map-search {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    right: 16px;
+    z-index: 4;
+    box-shadow: var(--shadow-float);
   }
+
+  .map-stage { height: 420px; }
 
   .map-card .pop-grab { display: block; }
 }

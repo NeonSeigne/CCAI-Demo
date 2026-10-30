@@ -162,3 +162,9 @@ test('the My degree tab opens the degree board', async () => {
   fireEvent.click(screen.getByRole('tab', { name: 'My degree' }));
   expect(screen.getByTestId('location')).toHaveTextContent(/^\/courses\?view=degree$/);
 });
+
+test('a column heading opens that course in the pop-up', async () => {
+  renderPage('COMP SCI 300,COMP SCI 400');
+  fireEvent.click(await screen.findByRole('button', { name: /^COMP SCI 400.*Programming III/ }));
+  expect(screen.getByTestId('location')).toHaveTextContent('course=COMP+SCI+400');
+});

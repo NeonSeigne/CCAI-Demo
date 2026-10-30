@@ -6,7 +6,7 @@
 export { schoolFacts, useSchool } from './school';
 export {
   campusDay, clockTime, countdown, dateLabel, dateParts, durationText, endLine, eventRange,
-  eventTime, eventWhen, formatIn, isAllDay, isMultiDay, lastsADay, meetingClock, openingClock,
+  eventTime, eventWhen, formatIn, hourText, isAllDay, isMultiDay, lastsADay, meetingClock, openingClock,
   rangeParts, spanText, spokenDate,
 } from './time';
 export {

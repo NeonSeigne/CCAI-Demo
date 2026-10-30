@@ -49,7 +49,7 @@ function CampusSheet({
   );
 }
 
-const SIZE = { course: 'wide', event: 'medium', place: 'narrow' };
+const SIZE = { course: 'course', event: 'medium', place: 'narrow' };
 const TITLE_ID = { course: 'course-popup-title', event: 'event-popup-title', place: 'place-popup-title' };
 
 /**
@@ -69,7 +69,7 @@ export default function PopupHost() {
   if (!open) return null;
   const titleId = TITLE_ID[open.kind];
   const body = open.kind === 'course'
-    ? <CourseSheet courseId={open.id} onAsk={ask} onClose={close} titleId={titleId} />
+    ? <CourseSheet courseId={open.id} onClose={close} titleId={titleId} />
     : (
       <CampusSheet
         kind={open.kind}

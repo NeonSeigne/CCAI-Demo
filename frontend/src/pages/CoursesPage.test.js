@@ -368,14 +368,12 @@ describe('Browse | My degree (D5)', () => {
     expect(await screen.findByTestId('semester-view')).toHaveTextContent('Fall 2027');
   });
 
-  test('clicking a Browse row previews it inline and replaces ?selected=, without ?course=', async () => {
+  test('clicking a Browse row opens the course pop-up with a pushed ?course=', async () => {
     uwStarters();
     renderWithPlanner(plannerWith([]));
     fireEvent.click(await screen.findByRole('button', { name: /^COMP SCI 400 Programming III/ }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Programming III' })).toBeInTheDocument();
-    expect(screen.getByTestId('location')).toHaveTextContent('selected=COMP+SCI+400');
-    expect(screen.getByTestId('location')).not.toHaveTextContent('course=');
-    expect(screen.getByTestId('nav-type')).toHaveTextContent('REPLACE');
+    expect(screen.getByTestId('location')).toHaveTextContent('course=COMP+SCI+400');
+    expect(screen.getByTestId('nav-type')).toHaveTextContent('PUSH');
   });
 
   test('Details in the preview opens the course pop-up with a pushed ?course=', async () => {

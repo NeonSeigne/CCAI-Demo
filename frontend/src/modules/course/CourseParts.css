@@ -69,26 +69,32 @@
   .crs-section .crs-tag { flex-basis: auto; }
 }
 
-/* Prerequisite tags with the student's state. */
-.crs-prereqs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+/* Prerequisite tags with the student's state (course-popup.html `.tag.plan`). */
+.crs-prereqs { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .crs-prereq {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  height: 28px;
+  padding: 0 10px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-full);
   background: var(--raised);
-  color: var(--ink);
+  color: var(--muted);
   font: inherit;
-  font-family: var(--font-display);
+  font-family: var(--font-code);
   font-size: 11px;
   font-weight: 700;
 }
 button.crs-prereq { cursor: pointer; }
+/* 28px drawn, 44px to tap (design Q19). */
+button.crs-prereq::after { content: ""; position: absolute; inset: -8px 0; }
+button.crs-prereq:hover { color: var(--ink); }
 .crs-prereq.is-done { background: var(--good-tint); color: var(--good); }
-.crs-prereq.is-now { box-shadow: inset 0 0 0 2px var(--signal); }
+.crs-prereq.is-now { background: var(--tint); color: var(--tint-ink); }
 
-/* Stat tiles (design Q5): tiles without data are left out; the rest share the width. */
+/* Stat tiles (design Q5): the number above its label; tiles without data
+   are left out and the rest share the width. */
 .crs-tiles {
   display: grid;
   grid-template-columns: repeat(var(--crs-tiles), minmax(0, 1fr));
@@ -98,20 +104,55 @@ button.crs-prereq { cursor: pointer; }
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 12px 14px;
+  min-width: 0;
+  padding: 10px 12px;
   border-radius: var(--r-lg);
   background: var(--band-raised);
   color: var(--band-text);
 }
-.crs-tile-label { font-size: 13px; font-weight: 700; color: var(--band-text-soft); }
-.crs-tile-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.crs-tile-value small { font-family: var(--font-app); font-size: 13px; }
+.crs-tile-label { font-size: 13px; font-weight: 600; color: var(--band-text-soft); }
+.crs-tile-value {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.crs-tile-value small { font-family: var(--font-app); font-size: 13px; letter-spacing: 0; }
 .crs-tile-value.is-easier { color: var(--band-easier-text); }
 .crs-tile-value.is-typical { color: var(--band-typical-text); }
 .crs-tile-value.is-harder { color: var(--band-harder-text); }
 .crs-tile-value.is-a { color: var(--band-a-text); }
 .crs-tile-value.is-df { color: var(--band-df-text); }
 
+/* ---- The pop-up's pieces (course-popup.html) ------------------------------- */
+
+/* Grade bars: neutral, the largest group in signal, square bottoms, no percentages. */
+.crs-bars--popup .crs-bar-fill { background: var(--raised); border-radius: 4px 4px 0 0; }
+.crs-bars--popup .crs-bar.is-top .crs-bar-fill { background: var(--signal); }
+
+/* Section rows: code, time, instructor, tag, with full-bleed rules. */
+.crs-sections--popup { gap: 0; }
+.crs-sections--popup .crs-section {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  gap: 14px;
+  padding: 11px 18px;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  font-size: 14.5px;
+}
+.crs-sections--popup .crs-section-code { font-family: var(--font-code); font-size: 11px; font-weight: 700; color: var(--muted); }
+.crs-sections--popup .crs-section-when { color: var(--ink); font-weight: 500; }
+.crs-sections--popup .crs-tag { padding: 3px 8px; border-radius: var(--r-full); font-size: 12.5px; }
+.crs-sections--popup .crs-tag--waiting { background: var(--tint); color: var(--tint-ink); }
+/* Snapshot and full rows: the neutral tag with ink text (design Q14). */
+.crs-sections--popup .crs-tag--snapshot,
+.crs-sections--popup .crs-tag--full { background: var(--raised); color: var(--ink); }
+
 @media (max-width: 700px) {
-  .crs-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Phone (design Q14): the tag drops to a second line; the instructor hides. */
+  .crs-sections--popup .crs-section { grid-template-columns: 44px minmax(0, 1fr); row-gap: 4px; }
+  .crs-sections--popup .crs-section .crs-tag { grid-column: 2; justify-self: start; }
 }

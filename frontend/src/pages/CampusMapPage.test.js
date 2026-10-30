@@ -1,6 +1,8 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  act, fireEvent, render, screen, waitFor, within,
+} from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as campus from '../api/campus';
 import CampusMapPage, { OSM_ATTRIBUTION } from './CampusMapPage';
 
@@ -15,8 +17,15 @@ jest.mock('../api/campus', () => ({
 
 // Leaflet needs a real layout engine; the map is aria-hidden and the list is
 // its accessible equivalent, so tests stub the map and assert on the list.
+const mockMap = {
+  setView: jest.fn(),
+  getContainer: () => global.document.createElement('div'),
+  attributionControl: { setPrefix: jest.fn() },
+};
 jest.mock('react-leaflet', () => ({
-  MapContainer: ({ children }) => <div data-testid="leaflet-map">{children}</div>,
+  MapContainer: ({ children, zoomControl }) => (
+    <div data-testid="leaflet-map" data-zoom-control={String(zoomControl)}>{children}</div>
+  ),
   TileLayer: ({ attribution }) => <div data-testid="tiles">{attribution}</div>,
   // Pins are mouse-only in the app; the stub exposes Leaflet's click handler as a button.
   Marker: ({ position, icon, eventHandlers }) => (
@@ -28,11 +37,7 @@ jest.mock('react-leaflet', () => ({
       onClick={eventHandlers?.click}
     />
   ),
-  CircleMarker: ({ className, center }) => (
-    <span data-testid="map-start" data-center={center.join(',')} className={className} />
-  ),
-  Polyline: ({ positions }) => <div data-testid="route-line" data-points={positions.length} />,
-  useMap: () => ({ fitBounds: jest.fn(), setView: jest.fn(), getContainer: () => global.document.createElement('div') }),
+  useMap: () => mockMap,
 }));
 
 jest.mock('../contexts/AuthContext', () => ({
@@ -49,42 +54,31 @@ jest.mock('../components/SaveButton', () => ({ item }) => (
   <button type="button" aria-label={`Save ${item.display_name}`}>Save</button>
 ));
 
-const ORIGIN = { id: 'college-library', name: 'College Library', category: 'library', lat: 43.0766, lon: -89.4012 };
-const LIBRARIES = [
-  { id: 'geography', name: 'Geography Library', category: 'library', lat: 43.0757, lon: -89.4040, hours: null, open_now: null, open_until: null, walk_minutes: 2, distance_m: 210 },
-  { id: 'memorial', name: 'Memorial Library', category: 'library', lat: 43.0751, lon: -89.3984, hours: 'Mo-Su 08:00-21:45', open_now: true, open_until: '2026-10-27T21:45:00-05:00', walk_minutes: 5, distance_m: 412 },
-  { id: 'steenbock', name: 'Steenbock Library', category: 'library', lat: 43.0763, lon: -89.4128, hours: null, open_now: null, open_until: null, walk_minutes: 16, distance_m: 1200 },
-  { id: 'business', name: 'Business Library', category: 'library', lat: 43.0730, lon: -89.4020, hours: null, open_now: null, open_until: null, walk_minutes: 18, distance_m: 1350 },
-  { id: 'law', name: 'Law Library', category: 'library', lat: 43.0748, lon: -89.4011, hours: null, open_now: null, open_until: null, walk_minutes: 20, distance_m: 1500 },
-];
-const CATEGORIES = { library: 5, dining: 26, health: 0 };
-const ROUTE = {
-  geometry: { type: 'LineString', coordinates: [[-89.4012, 43.0766], [-89.4000, 43.0760], [-89.3984, 43.0751]] },
-  distance_m: 412,
-  minutes: 5,
-  source: 'osrm',
-  attribution: 'Routes © OSRM, data © OpenStreetMap contributors (ODbL)',
+const ORIGIN = {
+  id: 'college-library', name: 'College Library', category: 'library', lat: 43.0766, lon: -89.4012,
 };
+const place = (id, name, category, minutes, extra = {}) => ({
+  id, name, category, lat: 43.07 + minutes / 1000, lon: -89.40, hours: null, open_now: null, walk_minutes: minutes, ...extra,
+});
+const PLACES = [
+  { ...ORIGIN, walk_minutes: 0, distance_m: 0 },
+  place('memorial', 'Memorial Library', 'library', 5, {
+    hours: 'Mo-Su 08:00-21:45', open_now: true, open_until: '2026-10-27T21:45:00-05:00',
+  }),
+  place('union', 'Memorial Union', 'dining', 6),
+  place('bascom', 'Bascom Hall', 'academic', 7),
+  place('lakeshore', 'Lakeshore Path', 'landmark', 8),
+  place('nick', 'The Nick', 'recreation', 9),
+  place('chazen', 'Chazen Museum', 'arts', 10),
+  place('steenbock', 'Steenbock Library', 'library', 16),
+  place('business', 'Business Library', 'library', 18),
+  place('law', 'Law Library', 'library', 20),
+];
 
-function placesResponse({ category, limit }) {
-  if (limit === 1) {
-    return { places: [LIBRARIES[0]], categories: CATEGORIES, suggested: null, from: ORIGIN, default_category: 'library' };
-  }
-  if (category === 'library') {
-    return {
-      places: LIBRARIES,
-      categories: CATEGORIES,
-      suggested: { id: 'memorial', label: 'Nearest open library' },
-      from: ORIGIN,
-      default_category: 'library',
-    };
-  }
-  return { places: [], categories: CATEGORIES, suggested: null, from: ORIGIN, default_category: 'library' };
-}
-
-function LocationProbe() {
-  const location = useLocation();
-  return <pre data-testid="location">{JSON.stringify({ pathname: location.pathname, state: location.state })}</pre>;
+function placesResponse({ category, q }) {
+  let places = category ? PLACES.filter((p) => p.category === category) : PLACES;
+  if (q) places = places.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+  return { places, from: ORIGIN };
 }
 
 function renderPage(entry = '/map') {
@@ -92,23 +86,22 @@ function renderPage(entry = '/map') {
     <MemoryRouter initialEntries={[entry]}>
       <Routes>
         <Route path="/map" element={<CampusMapPage />} />
-        <Route path="/chat" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>,
   );
 }
 
 const rowButton = (name) => screen.getByRole('button', { name: new RegExp(`^${name}`) });
-// With the place sheet open the list is hidden, but it keeps its selection (D21).
-const hiddenRow = (name) => screen.getByRole('button', { name: new RegExp(`^${name}`), hidden: true });
+const card = (name) => screen.findByRole('region', { name });
 
 beforeEach(() => {
   jest.clearAllMocks();
   campus.getCampusOrigin.mockResolvedValue({ place: ORIGIN, is_default: true });
   campus.listPlaces.mockImplementation((token, params) => Promise.resolve(placesResponse(params)));
-  campus.getRoute.mockResolvedValue(ROUTE);
   campus.getPlace.mockImplementation((token, id) => Promise.resolve({
-    place: id === ORIGIN.id ? ORIGIN : { id, name: 'Union South', category: 'dining', lat: 43.0716, lon: -89.4077, open_now: null },
+    place: PLACES.find((p) => p.id === id) || {
+      id, name: 'Union South', category: 'dining', lat: 43.0716, lon: -89.4077, open_now: null,
+    },
   }));
   campus.setCampusOrigin.mockImplementation((token, id) => Promise.resolve({
     place: { id, name: 'Union South', category: 'dining', lat: 43.0716, lon: -89.4077 },
@@ -116,96 +109,50 @@ beforeEach(() => {
   }));
 });
 
-test('titles the page and selects the suggested place with its label, route and minutes', async () => {
+test('lays out the list column as the mockup and opens the card for the nearest place on load', async () => {
   renderPage();
   expect(screen.getByRole('heading', { level: 1, name: 'Campus map' })).toBeInTheDocument();
-  expect(await screen.findByText('Nearest open library')).toBeInTheDocument();
-  expect(screen.getByText('Starting from')).toBeInTheDocument();
-  expect(screen.getByText('College Library')).toBeInTheDocument();
-  expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'true');
-  expect(await screen.findByText('412 m along paths')).toBeInTheDocument();
-  expect(screen.getByText('Walking to Memorial Library')).toBeInTheDocument();
-  expect(campus.getRoute).toHaveBeenCalledWith('test-token', { from: 'college-library', to: 'memorial' }, expect.anything());
-  expect(screen.getByTestId('route-line')).toHaveAttribute('data-points', '3');
-  // Rows: hours copy and walk times (R9), only Save beside each row (31A).
-  expect(screen.getByText('Open until 9:45 PM')).toBeInTheDocument();
-  expect(screen.getAllByText('Hours not listed').length).toBeGreaterThan(0);
-  expect(screen.getByRole('button', { name: 'Save Memorial Library' })).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /Directions/ })).not.toBeInTheDocument();
-  // Category from default_category, counts from `categories`.
-  expect(screen.getByRole('button', { name: /^Libraries\s*5/ })).toHaveAttribute('aria-pressed', 'true');
-  // Map is hidden from assistive tech; OSM attribution is visible.
+
+  // Four chips, All on.
+  const chips = screen.getByRole('group', { name: 'Place categories' });
+  expect(within(chips).getAllByRole('button').map((b) => b.lastChild.textContent))
+    .toEqual(['All', 'Dining', 'Study', 'Rec']);
+  expect(within(chips).getByRole('button', { name: /All/ })).toHaveAttribute('aria-pressed', 'true');
+
+  // Eight rows: name, category, walk; "Here" for the start place; no Save on rows.
+  await screen.findByText('Memorial Library');
+  const list = screen.getByRole('region', { name: 'All, nearest first' });
+  expect(within(list).getAllByRole('button')).toHaveLength(8);
+  const here = rowButton('College Library');
+  expect(within(here).getByText('Here')).toBeInTheDocument();
+  expect(within(here).getByText('Library')).toBeInTheDocument();
+  expect(within(rowButton('Memorial Union')).getByText('Dining')).toBeInTheDocument();
+  expect(within(rowButton('Memorial Union')).getByText('6 min')).toBeInTheDocument();
+  expect(within(list).queryByRole('button', { name: /^Save/ })).not.toBeInTheDocument();
+  expect(screen.queryByText('Business Library')).not.toBeInTheDocument();
+  expect(screen.queryByText(/See \d+ more/)).not.toBeInTheDocument();
+
+  // The card is open for the selection without a click, and focus stays put.
+  expect(here).toHaveAttribute('aria-pressed', 'true');
+  const sheet = await card('College Library');
+  expect(within(sheet).getByRole('heading', { name: 'College Library' })).not.toHaveFocus();
+  expect(within(sheet).getByText('Here')).toBeInTheDocument();
+
+  // No route panel, no route request, no footnote; the attribution stays without Leaflet's prefix.
+  expect(campus.getRoute).not.toHaveBeenCalled();
+  expect(screen.queryByRole('region', { name: 'Walking route' })).not.toBeInTheDocument();
+  expect(screen.queryByText(/Places and walking routes/)).not.toBeInTheDocument();
+  expect(screen.getByTestId('tiles')).toHaveTextContent(OSM_ATTRIBUTION);
+  expect(mockMap.attributionControl.setPrefix).toHaveBeenCalledWith(false);
+  expect(screen.getByTestId('leaflet-map')).toHaveAttribute('data-zoom-control', 'false');
   expect(screen.getByTestId('leaflet-map').closest('[aria-hidden="true"]')).not.toBeNull();
-  expect(screen.getAllByText(OSM_ATTRIBUTION).length).toBeGreaterThan(0);
-  expect(screen.getByText(/Routes © OSRM/)).toBeInTheDocument();
 });
 
-test('labels the fallback suggestion exactly as the API gives it', async () => {
-  campus.listPlaces.mockImplementation((token, params) => {
-    const data = placesResponse(params);
-    return Promise.resolve(params.limit === 1 ? data : { ...data, suggested: { id: 'geography', label: 'Nearest library' } });
-  });
+test('keeps one "Starting from {place} · Change" line under the title', async () => {
   renderPage();
-  expect(await screen.findByText('Nearest library')).toBeInTheDocument();
-  expect(rowButton('Geography Library')).toHaveAttribute('aria-pressed', 'true');
-});
-
-test('?to= overrides the suggestion and ?from= sets the start for this view', async () => {
-  renderPage('/map?from=college-library&to=steenbock&category=library');
-  await waitFor(() => expect(rowButton('Steenbock Library')).toHaveAttribute('aria-pressed', 'true'));
-  expect(screen.queryByText('Nearest open library')).not.toBeInTheDocument();
-  expect(campus.getPlace).toHaveBeenCalledWith('test-token', 'college-library', expect.anything());
-  await waitFor(() => expect(campus.getRoute).toHaveBeenCalledWith(
-    'test-token', { from: 'college-library', to: 'steenbock' }, expect.anything(),
-  ));
-});
-
-test('clicking a row selects it, redraws the route and updates the panel', async () => {
-  renderPage();
-  await screen.findByText('412 m along paths');
-  campus.getRoute.mockResolvedValueOnce({ ...ROUTE, minutes: 16, distance_m: 1200 });
-  fireEvent.click(rowButton('Steenbock Library'));
-  expect(hiddenRow('Steenbock Library')).toHaveAttribute('aria-pressed', 'true');
-  expect(hiddenRow('Memorial Library')).toHaveAttribute('aria-pressed', 'false');
-  expect(await screen.findByText('1.2 km along paths')).toBeInTheDocument();
-  expect(screen.getByText('Walking to Steenbock Library')).toBeInTheDocument();
-  expect(screen.queryByText('Nearest open library')).not.toBeInTheDocument();
-  expect(campus.getRoute).toHaveBeenLastCalledWith('test-token', { from: 'college-library', to: 'steenbock' }, expect.anything());
-});
-
-test('a failed route shows "Walking route unavailable" and drops the old line and time', async () => {
-  renderPage();
-  await screen.findByText('412 m along paths');
-  expect(screen.getByTestId('route-line')).toBeInTheDocument();
-  campus.getRoute.mockRejectedValueOnce(Object.assign(new Error('Walking route unavailable.'), { status: 503 }));
-  fireEvent.click(rowButton('Geography Library'));
-  expect(await screen.findByText('Walking route unavailable')).toBeInTheDocument();
-  expect(screen.queryByTestId('route-line')).not.toBeInTheDocument();
-  expect(screen.queryByText(/along paths/)).not.toBeInTheDocument();
-  const panel = screen.getByRole('region', { name: 'Walking route' });
-  expect(within(panel).queryByText(/\d+ min/)).not.toBeInTheDocument();
-});
-
-test('a row opens the place card over the map beside the list; Ask attaches; closing returns focus to the row', async () => {
-  renderPage();
-  await screen.findByText('Nearest open library');
-  campus.getPlace.mockResolvedValue({ place: { ...LIBRARIES[1], address: '728 State St' } });
-  fireEvent.click(rowButton('Memorial Library'));
-
-  const sheet = await screen.findByRole('region', { name: 'Memorial Library' });
-  expect(within(sheet).getByText('728 State St')).toBeInTheDocument();
-  // The card floats over the map; the list stays beside it with the place selected.
-  expect(screen.getByRole('region', { name: /nearest first/ })).toBeInTheDocument();
-  expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'true');
-  // D21: no header Ask button; the sheet has Ask.
-  expect(screen.queryByRole('button', { name: /Ask about this route/ })).not.toBeInTheDocument();
-  fireEvent.click(within(sheet).getByRole('button', { name: 'Ask about Memorial Library' }));
-  expect(mockAsk).toHaveBeenCalledWith({ type: 'place', id: 'memorial', title: 'Memorial Library' });
-
-  fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
-  expect(screen.queryByRole('region', { name: 'Memorial Library' })).not.toBeInTheDocument();
-  expect(rowButton('Memorial Library')).toHaveAttribute('aria-pressed', 'true');
-  await waitFor(() => expect(rowButton('Memorial Library')).toHaveFocus());
+  const line = (await screen.findByText(/Starting from/)).closest('p');
+  expect(line).toHaveTextContent('Starting from College Library · Change');
+  expect(within(line).getByRole('button', { name: 'Change starting place (now College Library)' })).toBeInTheDocument();
 });
 
 test('Change opens a place search; picking saves the start with PUT; Escape closes', async () => {
@@ -213,7 +160,7 @@ test('Change opens a place search; picking saves the start with PUT; Escape clos
   try {
     renderPage();
     await act(async () => { await Promise.resolve(); });
-    await screen.findByText('Nearest open library');
+    await screen.findByText('Memorial Library');
     fireEvent.click(screen.getByRole('button', { name: /Change starting place/ }));
     const dialog = screen.getByRole('dialog', { name: 'Choose a starting place' });
     fireEvent.keyDown(dialog, { key: 'Escape' });
@@ -222,119 +169,122 @@ test('Change opens a place search; picking saves the start with PUT; Escape clos
     fireEvent.click(screen.getByRole('button', { name: /Change starting place/ }));
     campus.listPlaces.mockImplementationOnce(() => Promise.resolve({
       places: [{ id: 'union-south', name: 'Union South', category: 'dining', lat: 43.0716, lon: -89.4077 }],
-      categories: CATEGORIES,
-      suggested: null,
     }));
     fireEvent.change(screen.getByLabelText('Start from'), { target: { value: 'union' } });
     await act(async () => { jest.advanceTimersByTime(300); });
     fireEvent.click(await screen.findByRole('button', { name: /Union South/ }));
     await act(async () => { jest.runOnlyPendingTimers(); });
     expect(campus.setCampusOrigin).toHaveBeenCalledWith('test-token', 'union-south');
-    await waitFor(() => expect(screen.getByText('Union South')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Starting from/).closest('p')).toHaveTextContent('Union South'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    await waitFor(() => expect(campus.getRoute).toHaveBeenLastCalledWith(
-      'test-token', { from: 'union-south', to: 'memorial' }, expect.anything(),
+    await waitFor(() => expect(campus.listPlaces).toHaveBeenLastCalledWith(
+      'test-token', { category: '', from: 'union-south', limit: 25 }, expect.anything(),
     ));
   } finally {
     jest.useRealTimers();
   }
 });
 
-test('shows "Choose a starting point" when no start is set', async () => {
+test('offers "Choose a starting point" when no start is set', async () => {
   campus.getCampusOrigin.mockResolvedValue({ place: null, is_default: true });
   renderPage();
   expect(await screen.findByRole('button', { name: 'Choose a starting point' })).toBeInTheDocument();
-  await screen.findByText('Nearest open library');
-  expect(campus.getRoute).not.toHaveBeenCalled();
+  expect(screen.queryByText(/Starting from/)).not.toBeInTheDocument();
 });
 
-test('an empty category says so and offers Show all', async () => {
-  renderPage('/map?category=health');
-  expect(await screen.findByText('No health places on the campus map')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
+test('?to= selects that place and opens its card; ?from= sets the start for this view', async () => {
+  renderPage('/map?from=college-library&to=steenbock');
+  expect(await card('Steenbock Library')).toBeInTheDocument();
+  expect(campus.getPlace).toHaveBeenCalledWith('test-token', 'college-library', expect.anything());
+});
+
+test('a row opens its card; Ask attaches; closing returns focus to the row', async () => {
+  renderPage();
+  await card('College Library');
+  fireEvent.click(rowButton('Memorial Union'));
+  const sheet = await card('Memorial Union');
+  await waitFor(() => expect(within(sheet).getByRole('heading', { name: 'Memorial Union' })).toHaveFocus());
+  expect(rowButton('Memorial Union')).toHaveAttribute('aria-pressed', 'true');
+  expect(rowButton('College Library')).toHaveAttribute('aria-pressed', 'false');
+
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Ask about Memorial Union' }));
+  expect(mockAsk).toHaveBeenCalledWith({ type: 'place', id: 'union', title: 'Memorial Union' });
+
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }));
+  expect(screen.queryByRole('region', { name: 'Memorial Union' })).not.toBeInTheDocument();
+  await waitFor(() => expect(rowButton('Memorial Union')).toHaveFocus());
+});
+
+test('Directions opens OpenStreetMap walking directions from the start in a new tab', async () => {
+  const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+  try {
+    renderPage();
+    await card('College Library');
+    fireEvent.click(rowButton('Memorial Library'));
+    const sheet = await card('Memorial Library');
+    fireEvent.click(within(sheet).getByRole('button', { name: /Directions/ }));
+    expect(open).toHaveBeenCalledWith(
+      expect.stringContaining('openstreetmap.org/directions?engine=fossgis_osrm_foot&route=43.076600,-89.401200;'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+  } finally {
+    open.mockRestore();
+  }
+});
+
+test('clicking a pin opens its card', async () => {
+  renderPage();
+  await card('College Library');
+  const pin = screen.getAllByTestId('map-marker')
+    .find((marker) => marker.dataset.center === `${PLACES[3].lat},${PLACES[3].lon}`);
+  fireEvent.click(pin);
+  expect(await card('Bascom Hall')).toBeInTheDocument();
+  expect(rowButton('Bascom Hall')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('the start place gets its own marker and the selected pin is drawn large', async () => {
+  const { container } = renderPage();
+  await card('College Library');
+  expect(container.querySelector('.map-start')).not.toBeNull();
+  expect(container.querySelectorAll('.map-pin.is-selected')).toHaveLength(1);
+});
+
+test('Study filters to libraries; an empty category says so and offers Show all', async () => {
+  renderPage();
+  await screen.findByText('Memorial Library');
+  fireEvent.click(screen.getByRole('button', { name: /Study/ }));
   await waitFor(() => expect(campus.listPlaces).toHaveBeenLastCalledWith(
-    'test-token', { category: '', from: 'college-library', limit: 25 }, expect.anything(),
+    'test-token', { category: 'library', from: 'college-library', limit: 25 }, expect.anything(),
   ));
-  expect(screen.getByRole('button', { name: /^All places/ })).toHaveAttribute('aria-pressed', 'true');
+  expect(await screen.findByText('Business Library')).toBeInTheDocument();
+  expect(screen.queryByText('Memorial Union', { selector: '.map-row-name' })).not.toBeInTheDocument();
+
+  campus.listPlaces.mockImplementation((token, params) => Promise.resolve(
+    params.category === 'recreation' ? { places: [] } : placesResponse(params),
+  ));
+  fireEvent.click(screen.getByRole('button', { name: /Rec/ }));
+  expect(await screen.findByText('No recreation places on the campus map')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Show all' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: /All/ })).toHaveAttribute('aria-pressed', 'true'));
 });
 
 test('a failed list shows "Couldn\'t load places" and Retry reloads it', async () => {
   campus.listPlaces.mockRejectedValueOnce(new Error('down'));
-  renderPage('/map?category=library');
+  renderPage();
   expect(await screen.findByText("Couldn't load places")).toBeInTheDocument();
-  expect(screen.getByRole('heading', { level: 1, name: 'Campus map' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
-  expect(await screen.findByText('Nearest open library')).toBeInTheDocument();
+  expect(await screen.findByText('Memorial Library')).toBeInTheDocument();
   expect(screen.queryByText("Couldn't load places")).not.toBeInTheDocument();
 });
 
-test('shows the 3 nearest and "See N more" expands the list inline', async () => {
+test('Search places asks for matching places and opens the first match', async () => {
   renderPage();
-  await screen.findByText('Nearest open library');
-  expect(screen.queryByText('Business Library')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'See 2 more libraries' }));
-  expect(screen.getByText('Business Library')).toBeInTheDocument();
-  expect(screen.getByText('Law Library')).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /See \d+ more/ })).not.toBeInTheDocument();
-});
-
-test('Open in OpenStreetMap opens walking directions in a new tab', async () => {
-  renderPage();
-  await screen.findByText('Nearest open library');
-  const link = screen.getByRole('link', { name: /Open in OpenStreetMap/ });
-  expect(link).toHaveAttribute('target', '_blank');
-  expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
-  expect(link.getAttribute('href')).toBe(
-    'https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=43.076600,-89.401200;43.075100,-89.398400',
-  );
-});
-
-test('the starting place\'s own row reads "Your starting place", not 0 min', async () => {
-  campus.listPlaces.mockImplementation((token, params) => {
-    const data = placesResponse(params);
-    const here = { ...ORIGIN, hours: null, open_now: null, open_until: null, walk_minutes: 0, distance_m: 0 };
-    return Promise.resolve({ ...data, places: [here, ...data.places] });
-  });
-  renderPage();
-  await screen.findByText('Nearest open library');
-  const row = rowButton('College Library');
-  expect(within(row).getByText('Your starting place')).toBeInTheDocument();
-  expect(within(row).queryByText('0 min')).not.toBeInTheDocument();
-});
-
-test('clicking a pin opens its place sheet and moves focus to the name', async () => {
-  renderPage();
-  await screen.findByText('Nearest open library');
-  campus.getPlace.mockResolvedValue({ place: LIBRARIES[0] });
-  const pin = screen.getAllByTestId('map-marker')
-    .find((marker) => marker.dataset.center === `${LIBRARIES[0].lat},${LIBRARIES[0].lon}`);
-  fireEvent.click(pin);
-  const heading = await screen.findByRole('heading', { name: 'Geography Library' });
-  await waitFor(() => expect(heading).toHaveFocus());
-  expect(hiddenRow('Geography Library')).toHaveAttribute('aria-pressed', 'true');
-});
-
-test('changing the category closes the place sheet', async () => {
-  renderPage();
-  await screen.findByText('Nearest open library');
-  campus.getPlace.mockResolvedValue({ place: LIBRARIES[1] });
-  fireEvent.click(rowButton('Memorial Library'));
-  expect(await screen.findByRole('region', { name: 'Memorial Library' })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /^Dining/ }));
-  await waitFor(() => expect(screen.queryByRole('region', { name: 'Memorial Library' })).not.toBeInTheDocument());
-});
-
-test('Search places asks for matching places and shows every match', async () => {
-  renderPage();
-  await screen.findByText('Nearest open library');
-  campus.listPlaces.mockImplementation((token, params) => Promise.resolve(
-    params.q ? { ...placesResponse(params), places: [LIBRARIES[3], LIBRARIES[4]] } : placesResponse(params),
-  ));
+  await card('College Library');
   fireEvent.change(screen.getByLabelText('Search places'), { target: { value: 'law' } });
   await waitFor(() => expect(campus.listPlaces).toHaveBeenLastCalledWith(
-    'test-token', { category: 'library', from: 'college-library', limit: 25, q: 'law' }, expect.anything(),
+    'test-token', { category: '', from: 'college-library', limit: 25, q: 'law' }, expect.anything(),
   ));
-  expect(await screen.findByText('Law Library')).toBeInTheDocument();
-  expect(screen.getByText('Business Library')).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /See \d+ more/ })).not.toBeInTheDocument();
+  expect(await card('Law Library')).toBeInTheDocument();
+  expect(rowButton('Law Library')).toHaveAttribute('aria-pressed', 'true');
 });

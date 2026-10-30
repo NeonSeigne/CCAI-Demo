@@ -200,10 +200,22 @@ export function meetingClock(time) {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}`;
 }
 
-/** Opening hours' "07:30" -> "7:30 am", "24:00" -> "12 am", "12:00" -> "12 pm". */
+/**
+ * Opening hours' "07:30" -> "7:30 AM", "07:00" -> "7 AM", "12:00" -> "Noon",
+ * "00:00" and "24:00" -> "Midnight" (the place card's hours, DESIGN.md "Map").
+ */
 export function openingClock(hours, minutes) {
   const h = Number(hours) % 24;
-  const suffix = h < 12 ? 'am' : 'pm';
+  const m = Number(minutes) || 0;
+  if (!m && h === 0) return 'Midnight';
+  if (!m && h === 12) return 'Noon';
+  const suffix = h < 12 ? 'AM' : 'PM';
   const h12 = h % 12 === 0 ? 12 : h % 12;
-  return Number(minutes) ? `${h12}:${String(minutes).padStart(2, '0')} ${suffix}` : `${h12} ${suffix}`;
+  return m ? `${h12}:${String(m).padStart(2, '0')} ${suffix}` : `${h12} ${suffix}`;
+}
+
+/** "11 PM" or "11:30 PM" for an instant in the campus zone (the "Open until" tile); null when it isn't a date. */
+export function hourText(value, timezone) {
+  const clock = clockTime(value, timezone);
+  return clock ? clock.replace(':00 ', ' ') : null;
 }

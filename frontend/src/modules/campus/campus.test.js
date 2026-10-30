@@ -3,7 +3,7 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import {
   countdown, dateLabel, durationText, endLine, eventRange, eventTime, eventWhen, meetingClock,
   openingClock, openUntil, rangeParts, schoolFacts, spanText, walkParts, walkText, weekHours,
-  StartPlaceProvider, useStartPlace, useSchool, distanceText, hasPhysicalLocation,
+  StartPlaceProvider, useStartPlace, useSchool, distanceText, hasPhysicalLocation, hourText,
 } from '.';
 import { getCampusOrigin, setCampusOrigin } from '../../api/campus';
 
@@ -139,9 +139,16 @@ describe('clocks', () => {
   test('class meetings and opening hours', () => {
     expect(meetingClock('13:05')).toBe('1:05');
     expect(meetingClock('09:00')).toBe('9:00');
-    expect(openingClock('07', '30')).toBe('7:30 am');
-    expect(openingClock('24', '00')).toBe('12 am');
-    expect(openingClock('12', '00')).toBe('12 pm');
+    expect(openingClock('07', '30')).toBe('7:30 AM');
+    expect(openingClock('07', '00')).toBe('7 AM');
+    expect(openingClock('23', '00')).toBe('11 PM');
+    expect(openingClock('24', '00')).toBe('Midnight');
+    expect(openingClock('00', '00')).toBe('Midnight');
+    expect(openingClock('12', '00')).toBe('Noon');
+    expect(openingClock('12', '30')).toBe('12:30 PM');
+    expect(hourText('2026-10-30T03:00:00Z', NY)).toBe('11 PM');
+    expect(hourText('2026-10-30T03:30:00Z', NY)).toBe('11:30 PM');
+    expect(hourText(null, NY)).toBeNull();
   });
 });
 
@@ -183,9 +190,14 @@ describe('place hours', () => {
 
   test('the week, today on its own row in the campus zone', () => {
     const rows = weekHours('Mo-Fr 07:00-23:00; Sa-Su 10:00-18:00', NY, NOW);
-    expect(rows.map((row) => row.label)).toEqual(['Mon–Wed', 'Thu', 'Fri', 'Sat–Sun']);
-    expect(rows.find((row) => row.today).label).toBe('Thu');
-    expect(rows[0].text).toBe('7 am – 11 pm');
+    expect(rows.map((row) => row.label)).toEqual(['Mon–Wed', 'Thursday', 'Friday', 'Sat–Sun']);
+    expect(rows.find((row) => row.today).label).toBe('Thursday');
+    expect(rows[0].text).toBe('7 AM – 11 PM');
+    expect(weekHours('Mo-Th 07:00-24:00; Fr 07:00-18:00; Sa 10:00-18:00; Su 12:00-23:00', NY, NOW)
+      .map((row) => [row.label, row.text])).toEqual([
+      ['Mon–Wed', '7 AM – Midnight'], ['Thursday', '7 AM – Midnight'], ['Friday', '7 AM – 6 PM'],
+      ['Saturday', '10 AM – 6 PM'], ['Sunday', 'Noon – 11 PM'],
+    ]);
     expect(weekHours('PH off', NY, NOW)).toBeNull();
   });
 });
