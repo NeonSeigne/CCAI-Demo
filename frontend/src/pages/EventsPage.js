@@ -6,9 +6,11 @@ import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/ico
 import { useOpenEvent } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
 import {
-  eventRange as formatEventRange, eventTime as formatEventTime, hasPhysicalLocation, isHere, useSchool, useStartPlace,
-  walkText,
+  eventRange as formatEventRange, eventTime as formatEventTime, eventWhen, hasPhysicalLocation, isHere, useSchool,
+  useStartPlace, walkText,
 } from '../modules/campus';
+import { KindDot, placeName } from '../components/events/eventKind';
+import EventActionsSheet from '../components/events/EventActionsSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { listEvents, listPlaces } from '../api/campus';
 import { downloadEventIcs } from '../utils/ics';
@@ -82,9 +84,16 @@ export function pickNextUp(events, now) {
   return live.sort(byStart)[0] || events[0] || null;
 }
 
-/** "2:00 PM – 5:00 PM" today; "Tomorrow 9:00 AM – 10:00 AM" or "Thu, Oct 29 9:00 AM" on other days (13A). */
+/** "12:00 to 1:00 PM" (the start drops a meridiem the end repeats), "Until Nov 30" or "All day". */
+export function spanLine(event, timezone) {
+  const when = eventWhen(event, timezone);
+  if (when.allDay || when.multiDay || !when.start) return when.range;
+  return when.end ? `${when.start} to ${when.end}` : when.start;
+}
+
+/** "12:00 to 1:00 PM" today; "Tomorrow 9:00 to 10:00 AM" or "Thu, Oct 29 9:00 AM" on other days (13A). */
 function featureWhen(event, timezone, todayKey) {
-  const range = formatEventRange(event, timezone);
+  const range = spanLine(event, timezone);
   const day = dayKey(event.start, timezone);
   if (day === todayKey || event.ongoing) return range;
   return isAllDayLike(event) ? `${relativeDay(day, todayKey)} · ${range}` : `${relativeDay(day, todayKey)} ${range}`;
@@ -116,7 +125,7 @@ function WalkTime({ event, className = '', to = false }) {
     <span className={`ev-walk ${className}`.trim()}>
       <Icon name="directions_walk" size={18} />
       {walk}{!isHere(event.walk_minutes) && <span className="sr-only"> walk</span>}
-      {to && <span className="ev-walk-to">{` to ${event.location}`}</span>}
+      {to && <span className="ev-walk-to">{` to ${placeName(event)}`}</span>}
     </span>
   );
 }
@@ -124,7 +133,7 @@ function WalkTime({ event, className = '', to = false }) {
 function DirectionsLink({ event, compact = false }) {
   if (!event.place_id || !isPhysical(event)) return null;
   const to = `/map?to=${encodeURIComponent(event.place_id)}`;
-  const label = `Directions to ${event.location}`;
+  const label = `Directions to ${placeName(event)}`;
   return compact ? (
     <Link className="ev-icon-btn" to={to} aria-label={label} title="Directions">
       <Icon name="directions" size={21} />
@@ -184,40 +193,53 @@ function NextUp({ event, timezone, todayKey, now }) {
           <p className="ev-feature-meta">
             {walkText(event.walk_minutes) && isPhysical(event) ? <WalkTime event={event} to /> : (
               <span className="ev-feature-place">
-                <Icon name="location_on" size={18} /> {event.location}
+                <Icon name="location_on" size={18} /> {placeName(event)}
               </span>
             )}
           </p>
         )}
       </div>
-      <div className="ev-feature-actions">
-        <CalendarButton event={event} className="ev-mark-btn" />
-        <DirectionsLink event={event} />
-        <SaveButton item={saveItem(event)} className="ev-save" />
-      </div>
+      <CalendarButton event={event} className="ev-mark-btn" />
     </article>
   );
 }
 
+/** The row's time column: "12:00" over "to 1:00 PM"; "All day"; "7:00 PM" over "Until Nov 30". */
+export function rowTime(event, timezone) {
+  const when = eventWhen(event, timezone);
+  if (when.allDay || isAllDayLike(event)) return { start: 'All day', end: null };
+  if (when.multiDay || !when.start) return { start: when.time, end: when.endLine };
+  return { start: when.start, end: when.end ? `to ${when.end}` : null };
+}
+
+/** Phones: a long press on a row opens its actions sheet. */
+const EventActionsContext = createContext(null);
+
 function EventRow({ event, timezone }) {
-  const until = isAllDayLike(event) ? null : formatEventRange(event, timezone).split(' – ')[1];
+  const time = rowTime(event, timezone);
+  const place = placeName(event);
+  const openActions = useContext(EventActionsContext);
   return (
-    <li className="ev-row">
+    <li
+      className="ev-row"
+      onContextMenu={openActions ? (e) => { e.preventDefault(); openActions(event); } : undefined}
+    >
       <span className="ev-row-time">
-        <span className="ev-row-start">{formatEventTime(event, timezone)}</span>
-        {until && <small>{`to ${until}`}</small>}
+        <span className="ev-row-start">{time.start}</span>
+        {time.end && <small>{time.end}</small>}
       </span>
       <span className="ev-row-text">
         <EventTitle event={event} />
-        {event.location && (
-          <span className="ev-row-place"><span className="ev-dot" aria-hidden="true" />{event.location}</span>
+        {place && (
+          <span className="ev-row-place"><KindDot event={event} className="ev-row-dot" />{place}</span>
         )}
       </span>
       <span className="ev-row-walk"><WalkTime event={event} /></span>
       <span className="ev-row-actions">
         <DirectionsLink event={event} compact />
+        {!(event.place_id && isPhysical(event)) && <span className="ev-icon-slot" aria-hidden="true" />}
         <CalendarButton event={event} compact />
-        <SaveButton item={saveItem(event)} className="ev-save" />
+        {saveItem(event) ? <SaveButton item={saveItem(event)} className="ev-save" /> : <span className="ev-icon-slot" aria-hidden="true" />}
       </span>
     </li>
   );
@@ -228,7 +250,7 @@ function DayGroups({ groups, timezone, todayKey }) {
     <section className="ev-day" key={key} aria-labelledby={`ev-day-${key}`}>
       <h3 className="ev-day-heading" id={`ev-day-${key}`}>
         {key === todayKey || key === addDays(todayKey, 1)
-          ? `${relativeDay(key, todayKey)} · ${formatDay(key, { weekday: 'short', month: 'short', day: 'numeric' })}`
+          ? `${relativeDay(key, todayKey)} · ${formatDay(key, { month: 'short', day: 'numeric' })}`
           : formatDay(key, { weekday: 'long', month: 'short', day: 'numeric' })}
       </h3>
       <ul className="ev-rows">
@@ -790,6 +812,8 @@ const EventsPage = () => {
   // A row opens the event pop-up (?event=ID), which the shell's pop-up host
   // shows over the page column (D3); the row is its seed while it loads.
   const openEvent = useOpenEvent();
+  const [actionsFor, setActionsFor] = useState(null);
+  useEffect(() => { if (!phone) setActionsFor(null); }, [phone]);
 
   let body;
   if (result.status === 'error') {
@@ -853,129 +877,134 @@ const EventsPage = () => {
 
   return (
     <EventOpenContext.Provider value={openEvent}>
-      <div className="campus-home ev-page">
-        <main className="campus-main ev-main" id="main-content">
-          <div className="ev-column">
-            <header className="ev-header">
-              <div className="ev-title-row">
-                <div>
-                  <h1>Events</h1>
+      <EventActionsContext.Provider value={phone ? setActionsFor : null}>
+        <div className="campus-home ev-page">
+          <main className="campus-main ev-main" id="main-content">
+            <div className="ev-column">
+              <header className="ev-header">
+                <div className="ev-title-row">
+                  <div>
+                    <h1>Events</h1>
+                  </div>
+                  <div className="ev-tabs" role="tablist" aria-label="Events view">
+                    {VIEWS.map(({ id, label }) => (
+                      <button
+                        key={id}
+                        id={`ev-tab-${id}`}
+                        ref={(node) => { tabRefs.current[id] = node; }}
+                        type="button"
+                        role="tab"
+                        aria-selected={view === id}
+                        aria-controls="ev-panel"
+                        tabIndex={view === id ? 0 : -1}
+                        className={`ev-tab ${view === id ? 'is-current' : ''}`}
+                        onClick={() => update({ view: id === 'next' ? '' : id })}
+                        onKeyDown={onTabKey}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="ev-tabs" role="tablist" aria-label="Events view">
-                  {VIEWS.map(({ id, label }) => (
+                <StartPlace
+                  origin={origin}
+                  authToken={authToken}
+                  onSave={origin.save}
+                />
+              </header>
+
+              <div className="ev-controls">
+                <div className="ev-chips" role="group" aria-label="When">
+                  {WINDOWS.map((w) => (
                     <button
-                      key={id}
-                      id={`ev-tab-${id}`}
-                      ref={(node) => { tabRefs.current[id] = node; }}
+                      key={w.id}
                       type="button"
-                      role="tab"
-                      aria-selected={view === id}
-                      aria-controls="ev-panel"
-                      tabIndex={view === id ? 0 : -1}
-                      className={`ev-tab ${view === id ? 'is-current' : ''}`}
-                      onClick={() => update({ view: id === 'next' ? '' : id })}
-                      onKeyDown={onTabKey}
+                      className={`ev-chip-btn ${windowId === w.id ? 'is-current' : ''}`}
+                      aria-pressed={windowId === w.id}
+                      onClick={() => update({ window: w.id === 'today' ? '' : w.id })}
                     >
-                      {label}
+                      {w.label}
                     </button>
                   ))}
                 </div>
+                <form
+                  className="ev-search"
+                  role="search"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    lastSent.current = draft.trim();
+                    update({ q: draft.trim() }, { replace: true });
+                  }}
+                >
+                  <Icon name="search" size={20} />
+                  <label htmlFor="ev-search-input" className="sr-only">Search events</label>
+                  <input
+                    id="ev-search-input"
+                    type="search"
+                    value={draft}
+                    placeholder="Search events"
+                    onChange={(event) => setDraft(event.target.value)}
+                  />
+                </form>
               </div>
-              <StartPlace
-                origin={origin}
-                authToken={authToken}
-                onSave={origin.save}
-              />
-            </header>
 
-            <div className="ev-controls">
-              <div className="ev-chips" role="group" aria-label="When">
-                {WINDOWS.map((w) => (
-                  <button
-                    key={w.id}
-                    type="button"
-                    className={`ev-chip-btn ${windowId === w.id ? 'is-current' : ''}`}
-                    aria-pressed={windowId === w.id}
-                    onClick={() => update({ window: w.id === 'today' ? '' : w.id })}
-                  >
-                    {w.label}
-                  </button>
-                ))}
-              </div>
-              <form
-                className="ev-search"
-                role="search"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  lastSent.current = draft.trim();
-                  update({ q: draft.trim() }, { replace: true });
-                }}
+              <section
+                id="ev-panel"
+                role="tabpanel"
+                aria-labelledby={`ev-tab-${view}`}
+                aria-busy={loading}
+                className="ev-panel"
               >
-                <Icon name="search" size={20} />
-                <label htmlFor="ev-search-input" className="sr-only">Search events</label>
-                <input
-                  id="ev-search-input"
-                  type="search"
-                  value={draft}
-                  placeholder="Search events"
-                  onChange={(event) => setDraft(event.target.value)}
-                />
-              </form>
-            </div>
-
-            <section
-              id="ev-panel"
-              role="tabpanel"
-              aria-labelledby={`ev-tab-${view}`}
-              aria-busy={loading}
-              className="ev-panel"
-            >
-              <div className="ev-results-head">
-                {view === 'calendar' && !phone && (
-                  <button
-                    type="button"
-                    className="ev-icon-btn"
-                    disabled={windowIndex <= 0}
-                    aria-label={windowIndex > 0 ? `Previous: ${windowLabel(WINDOW_IDS[windowIndex - 1])}` : 'Previous'}
-                    onClick={() => update({ window: WINDOW_IDS[windowIndex - 1] === 'today' ? '' : WINDOW_IDS[windowIndex - 1] })}
-                  >
-                    <ChevronLeft size={18} aria-hidden="true" />
-                  </button>
-                )}
-                <h2 className="ev-heading">{heading}</h2>
-                {view === 'calendar' && !phone && (
-                  <button
-                    type="button"
-                    className="ev-icon-btn"
-                    disabled={windowIndex >= WINDOW_IDS.length - 1}
-                    aria-label={windowIndex < WINDOW_IDS.length - 1 ? `Next: ${windowLabel(WINDOW_IDS[windowIndex + 1])}` : 'Next'}
-                    onClick={() => update({ window: WINDOW_IDS[windowIndex + 1] })}
-                  >
-                    <ChevronRight size={18} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-
-              {partialError && (
-                <div className="ev-banner" role="status">
-                  <span>{result.data.error}</span>
-                  <button type="button" className="ev-link-btn" onClick={() => setAttempt((n) => n + 1)}>
-                    <RefreshCw size={14} aria-hidden="true" /> Retry
-                  </button>
+                {/* The window's name heads the results; it shows only in the week
+                    calendar, where it sits between the arrows. */}
+                <div className={`ev-results-head ${view === 'calendar' && !phone ? '' : 'sr-only'}`.trim()}>
+                  {view === 'calendar' && !phone && (
+                    <button
+                      type="button"
+                      className="ev-icon-btn"
+                      disabled={windowIndex <= 0}
+                      aria-label={windowIndex > 0 ? `Previous: ${windowLabel(WINDOW_IDS[windowIndex - 1])}` : 'Previous'}
+                      onClick={() => update({ window: WINDOW_IDS[windowIndex - 1] === 'today' ? '' : WINDOW_IDS[windowIndex - 1] })}
+                    >
+                      <ChevronLeft size={18} aria-hidden="true" />
+                    </button>
+                  )}
+                  <h2 className="ev-heading">{heading}</h2>
+                  {view === 'calendar' && !phone && (
+                    <button
+                      type="button"
+                      className="ev-icon-btn"
+                      disabled={windowIndex >= WINDOW_IDS.length - 1}
+                      aria-label={windowIndex < WINDOW_IDS.length - 1 ? `Next: ${windowLabel(WINDOW_IDS[windowIndex + 1])}` : 'Next'}
+                      onClick={() => update({ window: WINDOW_IDS[windowIndex + 1] })}
+                    >
+                      <ChevronRight size={18} aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
-              )}
-              {result.status === 'ready' && events.length > 0 && listedInside && <ListedThrough date={listedThrough} />}
 
-              <p className="sr-only" role="status" aria-live="polite">
-                {result.status === 'ready' ? `${events.length} ${events.length === 1 ? 'event' : 'events'} for ${windowPhrase(windowId, todayKey)}` : ''}
-              </p>
+                {partialError && (
+                  <div className="ev-banner" role="status">
+                    <span>{result.data.error}</span>
+                    <button type="button" className="ev-link-btn" onClick={() => setAttempt((n) => n + 1)}>
+                      <RefreshCw size={14} aria-hidden="true" /> Retry
+                    </button>
+                  </div>
+                )}
+                {result.status === 'ready' && events.length > 0 && listedInside && <ListedThrough date={listedThrough} />}
 
-              {body}
-            </section>
+                <p className="sr-only" role="status" aria-live="polite">
+                  {result.status === 'ready' ? `${events.length} ${events.length === 1 ? 'event' : 'events'} for ${windowPhrase(windowId, todayKey)}` : ''}
+                </p>
 
-          </div>
-        </main>
-      </div>
+                {body}
+              </section>
+
+            </div>
+          </main>
+        </div>
+        {phone && <EventActionsSheet event={actionsFor} onClose={() => setActionsFor(null)} />}
+      </EventActionsContext.Provider>
     </EventOpenContext.Provider>
   );
 };
