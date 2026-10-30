@@ -10,6 +10,7 @@ import PlaceSheet, { CATEGORY_ICONS } from '../components/map/PlaceSheet';
 import useAsk from '../hooks/useAsk';
 import useMediaMatch from '../hooks/useMediaMatch';
 import { useAuth } from '../contexts/AuthContext';
+import { useDockClosedByDefault } from '../contexts/ChatDockContext';
 import { getPlace, listPlaces } from '../api/campus';
 import { useSchool, useStartPlace, walkText } from '../modules/campus';
 import '../styles/CampusHome.css';
@@ -289,6 +290,7 @@ function StartLine({
 }
 
 const CampusMapPage = () => {
+  useDockClosedByDefault('map');
   const [searchParams] = useSearchParams();
   const { authToken } = useAuth();
   const { timezone } = useSchool();

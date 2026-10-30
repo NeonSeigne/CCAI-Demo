@@ -7,7 +7,7 @@ import AppShell from './AppShell';
 import { usePageColumn } from './PageColumnContext';
 import AppDialog from '../AppDialog';
 import { SavedContext } from '../../contexts/SavedContext';
-import { DOCK_COLLAPSED_KEY } from '../../contexts/ChatDockContext';
+import { DOCK_COLLAPSED_KEY, DOCK_OPEN_ON_KEY, useDockClosedByDefault } from '../../contexts/ChatDockContext';
 
 const mockChat = {
   messages: [],
@@ -53,6 +53,11 @@ function Page({ children }) {
       <main>{children}</main>
     </div>
   );
+}
+
+function QuietPage({ page, children }) {
+  useDockClosedByDefault(page);
+  return <Page>{children}</Page>;
 }
 
 function PageWithDialog() {
@@ -117,6 +122,40 @@ describe('chat dock by width (D17)', () => {
     renderShell();
     fireEvent.click(screen.getByRole('button', { name: 'Collapse Ask' }));
     expect(screen.getByRole('button', { name: 'Open Ask' })).toBeInTheDocument();
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test('Map and My degree start with the dock closed; opening it there is kept there (D3)', async () => {
+    const tree = (path) => (
+      <MemoryRouter initialEntries={[path]}>
+        <SavedContext.Provider value={{ count: 0 }}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/courses" element={<Page>Courses</Page>} />
+              <Route path="/map" element={<QuietPage page="map">Map</QuietPage>} />
+            </Route>
+          </Routes>
+        </SavedContext.Provider>
+      </MemoryRouter>
+    );
+    const { unmount } = render(tree('/map'));
+    expect(screen.queryByRole('heading', { name: 'Ask' })).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Courses' }));
+    expect(screen.getByRole('heading', { name: 'Ask' })).toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Campus map' }));
+    expect(screen.queryByRole('heading', { name: 'Ask' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Ask' }));
+    expect(screen.getByRole('heading', { name: 'Ask' })).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem(DOCK_OPEN_ON_KEY))).toEqual({ map: true });
+    expect(window.localStorage.getItem(DOCK_COLLAPSED_KEY)).toBeNull();
+    await screen.findByText('Your chats will show up here.');
+    unmount();
+
+    render(tree('/map'));
+    expect(screen.getByRole('heading', { name: 'Ask' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse Ask' }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Courses' }));
+    expect(screen.getByRole('heading', { name: 'Ask' })).toBeInTheDocument();
     await screen.findByText('Your chats will show up here.');
   });
 

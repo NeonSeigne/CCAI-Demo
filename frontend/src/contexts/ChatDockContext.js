@@ -1,5 +1,5 @@
 import React, {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
+  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import useMediaMatch from '../hooks/useMediaMatch';
 
@@ -10,12 +10,16 @@ import useMediaMatch from '../hooks/useMediaMatch';
  * a 400px drawer; 'sheet' (<= 700px) a bottom sheet the phone Ask tab opens.
  *
  * `available` is false where the page itself is the ask (/home, /chat).
+ * Map and My degree start with the dock closed (design D3) through
+ * `useDockClosedByDefault`; opening it there is remembered per page.
  * `placeholder` is the dock composer's wording for the page ("Ask about
  * these events"); a page can set its own with `useDockPlaceholder`.
  */
 export const ChatDockContext = createContext(null);
 
 export const DOCK_COLLAPSED_KEY = 'cc.chatDock.collapsed';
+/** {page: true | false}: the docked choice on pages where the dock starts closed. */
+export const DOCK_OPEN_ON_KEY = 'cc.chatDock.openOn';
 export const DOCK_WIDE = '(min-width: 1280px)';
 export const DOCK_MEDIUM = '(min-width: 701px)';
 export const SHEET_SNAPS = ['peek', 'half', 'full'];
@@ -36,6 +40,23 @@ const writeCollapsed = (value) => {
   }
 };
 
+const readOpenOn = () => {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(DOCK_OPEN_ON_KEY) || '{}');
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeOpenOn = (value) => {
+  try {
+    window.localStorage.setItem(DOCK_OPEN_ON_KEY, JSON.stringify(value));
+  } catch {
+    // As above: kept for this visit only.
+  }
+};
+
 /** 'docked' | 'drawer' | 'sheet' for the current width. */
 export function useDockMode() {
   const wide = useMediaMatch(DOCK_WIDE, true);
@@ -48,6 +69,9 @@ export function ChatDockProvider({ available = true, placeholder = null, childre
   const mode = useDockMode();
   const [pagePlaceholder, setPagePlaceholder] = useState(null);
   const [collapsed, setCollapsed] = useState(readCollapsed);
+  // The page on screen that starts with the dock closed ('map', 'degree'), and the choices made there.
+  const [quietPage, setQuietPage] = useState(null);
+  const [openOn, setOpenOn] = useState(readOpenOn);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [snap, setSnap] = useState('half');
   const [focusRequest, setFocusRequest] = useState(0);
@@ -60,16 +84,23 @@ export function ChatDockProvider({ available = true, placeholder = null, childre
   // The dock composer's unsent text ({ text, epoch }), kept while the dock is closed.
   const draftRef = useRef(null);
 
-  const open = available && (mode === 'docked' ? !collapsed : overlayOpen);
+  const dockedOpen = quietPage ? openOn[quietPage] === true : !collapsed;
+  const open = available && (mode === 'docked' ? dockedOpen : overlayOpen);
 
   const setOpen = useCallback((next) => {
-    if (mode === 'docked') {
+    if (mode !== 'docked') {
+      setOverlayOpen(next);
+    } else if (quietPage) {
+      setOpenOn((current) => {
+        const updated = { ...current, [quietPage]: Boolean(next) };
+        writeOpenOn(updated);
+        return updated;
+      });
+    } else {
       setCollapsed(!next);
       writeCollapsed(!next);
-    } else {
-      setOverlayOpen(next);
     }
-  }, [mode]);
+  }, [mode, quietPage]);
 
   const openDock = useCallback(() => {
     if (typeof document !== 'undefined') openerRef.current = document.activeElement;
@@ -110,6 +141,7 @@ export function ChatDockProvider({ available = true, placeholder = null, childre
     draftRef,
     placeholder: pagePlaceholder || placeholder || null,
     setPagePlaceholder,
+    setQuietPage,
   }), [
     available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus,
     claimComposerFocus, pagePlaceholder, placeholder,
@@ -129,6 +161,20 @@ export function useDockPlaceholder(text) {
     set(text || null);
     return () => set(null);
   }, [set, text]);
+}
+
+/**
+ * The docked dock starts closed while this page is on screen (design D3:
+ * Map and My degree). `page` names the page ('map', 'degree'): a student who
+ * opens the dock there keeps it open there, without changing other pages.
+ */
+export function useDockClosedByDefault(page) {
+  const set = useContext(ChatDockContext)?.setQuietPage;
+  useLayoutEffect(() => {
+    if (!set || !page) return undefined;
+    set(page);
+    return () => set((current) => (current === page ? null : current));
+  }, [set, page]);
 }
 
 /** The dock state, or null outside the app shell. */

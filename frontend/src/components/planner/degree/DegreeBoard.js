@@ -15,6 +15,7 @@ import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
 import SetupDialog from './SetupDialog';
 import { ProgramMenu } from '../../menus';
+import { useDockClosedByDefault } from '../../../contexts/ChatDockContext';
 import RouteMap, { RouteList } from './RouteMap';
 import { DetailCard, RequirementsPanel } from './RoutePanels';
 import {
@@ -141,6 +142,7 @@ function RouteSkeleton() {
  * whenever the plan moves past it.
  */
 export default function DegreeBoard({ tabs = null }) {
+  useDockClosedByDefault('degree');
   const planner = usePlanner();
   const [, setSearchParams] = useSearchParams();
   const toast = useDropToast();
