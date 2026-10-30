@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../icons';
+import useViewport from '../../hooks/useViewport';
 import {
   Menu, MenuItem, MenuSeparator, useMenu,
 } from '../menus';
@@ -12,11 +14,15 @@ import {
  * returns focus to the trigger, and on phones it rises as a sheet.
  *
  * destinations: [{id, name}] (the item's own home left out)
+ * extra: {icon, text, to | onSelect}, the row's own action, listed first on
+ *   phones, where the row shows only this menu's button
  */
 export default function SavedRowMenu({
-  name, destinations, onMove, onCreateAndMove, onRemove,
+  name, destinations, onMove, onCreateAndMove, onRemove, extra = null,
 }) {
   const menu = useMenu();
+  const navigate = useNavigate();
+  const phone = useViewport() === 'phone';
   const [view, setView] = useState('main'); // 'main' | 'move' | 'new'
   const [draft, setDraft] = useState('');
   const input = useRef(null);
@@ -60,6 +66,11 @@ export default function SavedRowMenu({
   let items;
   if (view === 'main') {
     items = [
+      ...(phone && extra ? [
+        <MenuItem key="extra" icon={extra.icon} onSelect={act(() => (extra.to ? navigate(extra.to) : extra.onSelect?.()))}>
+          {extra.text}
+        </MenuItem>,
+      ] : []),
       <MenuItem key="move" icon="drive_file_move" aria-haspopup="menu" onSelect={() => setView('move')}>
         Move to…
       </MenuItem>,

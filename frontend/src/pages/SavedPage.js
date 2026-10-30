@@ -155,6 +155,7 @@ function courseParts(course) {
       </span>
     ) : null,
     action: <RowAction icon="open_in_new" label={`Course page for ${code}`} to={`/courses?selected=${encodeURIComponent(code)}`} />,
+    menuAction: { icon: 'open_in_new', text: 'Course page', to: `/courses?selected=${encodeURIComponent(code)}` },
   };
 }
 
@@ -177,6 +178,7 @@ function eventParts(event, timezone) {
       </div>
     ),
     action: <RowAction icon="calendar_add_on" label={`Add ${event.title} to calendar`} onClick={() => downloadEventIcs(event)} />,
+    menuAction: { icon: 'calendar_add_on', text: 'Add to calendar', onSelect: () => downloadEventIcs(event) },
   };
 }
 
@@ -193,6 +195,7 @@ function placeParts(place, timezone) {
       </div>
     ),
     action: <RowAction icon="directions" label={`Directions to ${place.name}`} to={`/map?to=${encodeURIComponent(place.id)}`} />,
+    menuAction: { icon: 'directions', text: 'Directions', to: `/map?to=${encodeURIComponent(place.id)}` },
   };
 }
 
@@ -241,7 +244,8 @@ function SavedRow({ item, lookup, past, timezone, menu, onRetry, onRemove }) {
       <div className="saved-row-tag">{parts.tag}</div>
       <div className="saved-acts">
         {parts.action}
-        {menu}
+        {/* Phones show only ⋯ (saved.html); the row's own action moves into it. */}
+        {menu && parts.menuAction ? React.cloneElement(menu, { extra: parts.menuAction }) : menu}
       </div>
     </li>
   );
