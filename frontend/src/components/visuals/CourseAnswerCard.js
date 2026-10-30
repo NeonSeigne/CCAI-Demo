@@ -1,12 +1,16 @@
-import React, { useCallback } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import { useOpenCourse } from '../../utils/openCourse';
-import { ArrowRight, Icon, RefreshCw } from '../icons';
-import ContextLink from '../ContextLink';
+import { usePlanner } from '../../contexts/PlannerContext';
+import { plannerError } from '../../api/planner';
+import { Icon } from '../icons';
 import SaveButton from '../SaveButton';
-import { gradeSegments, primarySections, sectionName } from '../catalog/catalogFormat';
+import PanelState from '../panel/PanelState';
+import ProposalCard from './ProposalCard';
 import { termShort } from '../course/popupFormat';
 import {
-  creditsText, difficultyOf, DIFFICULTY_LABEL, gpaText, pctText, useCourse, useCourseRatings,
+  DIFFICULTY_LABEL, GradeBars, SectionRows, gpaText, useCourseFacts,
 } from '../../modules/course';
 import '../../styles/CourseVisuals.css';
 
@@ -21,6 +25,9 @@ const GRADE_TYPES = new Set([
 
 /** Course refs this card draws; other course_* types keep their own cards. */
 export const COURSE_ANSWER_TYPES = new Set([...GRADE_TYPES, 'course_instructors', 'course_schedule']);
+
+/** Section rows the course card lists (the pop-up has the rest). */
+const SECTION_ROWS = 4;
 
 /**
  * Collapses an answer's course refs into one `course_answer` item per course,
@@ -59,50 +66,31 @@ export function titleCase(text = '') {
     .join(' ');
 }
 
-const percent = (part, total) => (total ? (part * 100) / total : 0);
-
-/** Grades as bars, the biggest share in the school's colour. */
-function GradeBars({ grades }) {
-  const rows = gradeSegments(grades?.distribution);
-  if (!rows.length) return null;
-  const rounded = (value) => `${Math.round(value)}%`;
-  const students = Number(grades.students || 0);
-  const top = Math.max(...rows.map((row) => row.pct));
-
-  return (
-    <div className="vc-grades">
-      <div className="vc-cap">
-        <strong>Grades{grades.term ? `, ${grades.term}` : ''}</strong>
-        <span>
-          {grades.gpa != null && `GPA ${Number(grades.gpa).toFixed(2)}`}
-          {grades.gpa != null && students > 0 && ' · '}
-          {students > 0 && `${students.toLocaleString()} students`}
-        </span>
-      </div>
-      <div
-        className="vc-bars"
-        role="img"
-        aria-label={rows.map((row) => `${row.label} ${rounded(row.pct)}`).join(', ')}
-      >
-        {rows.map((row) => (
-          <span key={row.key} className="vc-bar">
-            <em>{rounded(row.pct)}</em>
-            <i className={row.pct === top ? 'is-top' : ''} style={{ height: `${Math.max(3, (row.pct / top) * 100)}%` }} />
-            <b>{row.label}</b>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+/** The element's width in px, 0 until measured (jsdom never measures). */
+function useWidth(ref) {
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  return width;
 }
 
-/** Average GPA by term as a line, the latest value labelled. */
+/**
+ * Average GPA by term as a line, the latest value labelled. Drawn at the
+ * column's real width, so its 11.5px labels stay 11.5px.
+ */
 function GpaTrend({ history }) {
+  const ref = useRef(null);
+  const measured = useWidth(ref);
   const points = (history || []).filter((row) => row && row.gpa != null);
-  if (points.length < 2) return null;
-  const W = 320;
+  const W = measured || 320;
   const H = 130;
   const pad = 22;
+  if (points.length < 2) return null;
   const values = points.map((p) => Number(p.gpa));
   const lo = Math.min(...values) - 0.1;
   const hi = Math.max(...values) + 0.1;
@@ -116,9 +104,11 @@ function GpaTrend({ history }) {
   const labelled = (i) => (points.length - 1 - i) % step === 0;
 
   return (
-    <div className="vc-trend">
-      <p className="vc-cap"><strong>Average GPA by term</strong></p>
+    <div className="vc-trend" ref={ref}>
+      <p className="vc-cap">Average GPA by term</p>
       <svg
+        width={measured || undefined}
+        height={H}
         viewBox={`0 0 ${W} ${H}`}
         role="img"
         aria-label={points.map((p) => `${p.term} ${gpaText(p.gpa)}`).join(', ')}
@@ -137,78 +127,8 @@ function GpaTrend({ history }) {
   );
 }
 
-function InstructorRow({ names, ratings, source, onMore }) {
-  const rated = [...(ratings || [])].filter((r) => r?.rating != null).sort((a, b) => b.rating - a.rating);
-  const top = rated[0] || (names[0] ? { name: names[0] } : null);
-  if (!top) return null;
-  const others = Math.max(names.length, rated.length) - 1;
-
-  return (
-    <div className="vc-section">
-      <span className="vc-section-label">Instructor</span>
-      <div className="vc-instructor">
-        <strong>{top.name}</strong>
-        {top.rating != null && (
-          <>
-            <span>
-              {Number(top.rating).toFixed(1)} quality
-              {top.difficulty != null && ` · ${Number(top.difficulty).toFixed(1)} difficulty`}
-              {top.num_ratings != null && ` · ${top.num_ratings} reviews`}
-            </span>
-            {source?.name && <small>{`${source.name}, out of 5`}</small>}
-          </>
-        )}
-        {others > 0 && (
-          <button type="button" className="vc-link" onClick={onMore}>
-            {others} more on the course page
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SeatRows({ sections }) {
-  const rows = primarySections(sections?.rows || []).filter((row) => row?.capacity);
-  if (!rows.length) return null;
-
-  return (
-    <div className="vc-section">
-      <span className="vc-section-label">Seats</span>
-      <ul className="vc-seats">
-        {rows.slice(0, 4).map((row, index) => {
-          const capacity = Number(row.capacity);
-          const taken = Number(row.enrolled || 0);
-          const full = taken >= capacity || row.is_open === false;
-          return (
-            <li key={`${row.section}-${index}`}>
-              <span className="vc-code">{sectionName(row)}</span>
-              <span className="vc-seat-track" aria-hidden="true">
-                <span style={{ width: `${Math.min(100, percent(taken, capacity))}%` }} className={full ? 'is-full' : ''} />
-              </span>
-              <span className={`vc-tag ${full ? 'is-full' : 'is-open'}`}>
-                {full ? 'Full' : `${capacity - taken} left`}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-/** Open seats across the lecture sections, when the school publishes counts. */
-function seatsOpen(sections) {
-  const rows = primarySections(sections?.rows || []).filter((row) => row?.capacity);
-  if (!rows.length) return null;
-  return rows.reduce((sum, row) => {
-    const left = Number(row.capacity) - Number(row.enrolled || 0);
-    return sum + (row.is_open === false ? 0 : Math.max(0, left));
-  }, 0);
-}
-
+/** A band tile: the number, then its label (ask-chat `.stats`). */
 function Stat({ value, label, tone }) {
-  if (value == null) return null;
   return (
     <div className={`vc-stat ${tone ? `is-${tone}` : ''}`.trim()}>
       <b>{value}</b>
@@ -217,32 +137,151 @@ function Stat({ value, label, tone }) {
   );
 }
 
-function Actions({ label, onOpen }) {
+/** The card's name: opens the course pop-up, drawn as the plain heading text. */
+function Opener({ onOpen, children }) {
+  return <button type="button" className="vc-opener" onClick={onOpen}>{children}</button>;
+}
+
+/** The difficulty card (chat-grades): four tiles at most, the grade bars and GPA by term. */
+function DifficultyCard({ facts, data, label, title, onOpen }) {
+  const tile = (key) => facts.tiles.find((t) => t.key === key);
+  // "Finished" has no completion data behind it at any school, so it is left out (Q5).
+  const tiles = [
+    tile('gpa') && { key: 'gpa', label: 'Average GPA', value: tile('gpa').value, tone: facts.difficulty },
+    tile('a') && { key: 'a', label: 'Got an A', value: tile('a').value },
+    tile('students') && { key: 'students', label: 'Class size', value: tile('students').value },
+  ].filter(Boolean);
+  const grades = facts.grades;
+  const caption = grades?.term ? `Grades, ${grades.term}` : 'Grades';
+
   return (
-    <div className="vc-foot">
-      <button type="button" className="vc-btn" onClick={onOpen}>
-        Course page
-      </button>
-      <SaveButton className="vc-save" item={{ kind: 'course', key: label, display_name: label }} />
-      <ContextLink className="vc-context-link" to={`/courses?selected=${encodeURIComponent(label)}`}>
-        Open in Courses <ArrowRight size={16} aria-hidden="true" />
-      </ContextLink>
-    </div>
+    <section className="vc-card vc-difficulty" aria-label={label}>
+      <div className="vc-head">
+        <Icon name="bar_chart" size={20} />
+        <h3>
+          <Opener onOpen={onOpen}>
+            <span className="vc-code">{label}</span>
+            {title ? ` · ${title}` : ''}
+          </Opener>
+        </h3>
+      </div>
+      <div className="vc-body">
+        {tiles.length > 0 && (
+          <div className="vc-kpis" style={{ '--vc-kpis': tiles.length }}>
+            {tiles.map((t) => (
+              <div key={t.key} className="vc-tile">
+                <span>{t.label}</span>
+                <b className={t.tone ? `is-${t.tone}` : undefined}>{t.value}</b>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="vc-two">
+          {grades && (
+            <div className="vc-grades">
+              <p className="vc-cap">{caption}</p>
+              <GradeBars
+                groups={grades.groups}
+                size="chat"
+                label={grades.groups.map((g) => `${g.label} ${Math.round(g.pct)}%`).join(', ')}
+              />
+            </div>
+          )}
+          <GpaTrend history={data.grade_history} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The course card (ask-chat): band with up to three tiles, section rows, Add to plan and Save. */
+function CourseCard({ facts, label, title, onOpen }) {
+  const planner = usePlanner();
+  const [adding, setAdding] = useState(false);
+  const [chosen, setChosen] = useState(null);
+  const [failed, setFailed] = useState(null);
+
+  const gpa = facts.tiles.find((t) => t.key === 'gpa');
+  const seats = facts.tiles.find((t) => t.key === 'seats');
+  const stats = [
+    gpa && {
+      key: 'gpa',
+      value: gpa.value,
+      label: facts.difficulty ? `Average GPA · ${DIFFICULTY_LABEL[facts.difficulty]}` : 'Average GPA',
+      tone: facts.difficulty,
+    },
+    facts.rating && { key: 'rating', value: facts.rating.rating, label: 'Instructor rating' },
+    seats && { key: 'seats', value: seats.value, label: 'Seats open' },
+  ].filter(Boolean);
+
+  // The chat rows lead with the section number alone ("001"); the pop-up keeps "LEC 001".
+  const sections = facts.sections && {
+    ...facts.sections,
+    rows: facts.sections.rows
+      .filter((row) => facts.sections.primary.includes(row.row))
+      .slice(0, SECTION_ROWS)
+      .map((row) => ({ ...row, name: row.row.section || row.name })),
+  };
+
+  const add = async () => {
+    setAdding(true);
+    setFailed(null);
+    try {
+      setChosen(await planner.propose([{ op: 'add', course: label }]));
+    } catch (err) {
+      setFailed(plannerError(err).message || "Couldn't add that course. Try again.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <section className="vc-card vc-course" aria-label={label}>
+      <div className="vc-band">
+        <span className="vc-band-code">{label}{facts.credits ? ` · ${facts.credits} credits` : ''}</span>
+        <h3><Opener onOpen={onOpen}>{title || label}</Opener></h3>
+        {stats.length > 0 && (
+          <div className="vc-stats" style={{ '--vc-stats': stats.length }}>
+            {stats.map((s) => <Stat key={s.key} value={s.value} label={s.label} tone={s.tone} />)}
+          </div>
+        )}
+      </div>
+      <SectionRows sections={sections} label="Sections" />
+      <div className="vc-foot">
+        {planner && (
+          <button type="button" className="vc-btn is-primary" disabled={adding} onClick={add}>
+            {adding ? <span className="vc-spinner" aria-hidden="true" /> : <Icon name="add" size={20} />}
+            Add to plan
+          </button>
+        )}
+        <SaveButton className="vc-btn vc-save-btn" label="Save" item={{ kind: 'course', key: label, display_name: label }} />
+      </div>
+      {failed && (
+        <p className="vc-alert vc-line" role="alert"><Icon name="error" size={20} />{failed}</p>
+      )}
+      {chosen && (
+        <div className="vc-chosen">
+          <ProposalCard visual={{ type: 'proposed_change', proposal: chosen }} />
+        </div>
+      )}
+    </section>
   );
 }
 
 /**
  * One card per course in an answer. A grades question gets the difficulty
- * card (four tiles, grade bars, GPA by term); anything that asks about
- * instructors or sections gets the course card (band, three stats, rows).
+ * card (tiles, grade bars, GPA by term); anything that asks about
+ * instructors or sections gets the course card (band, tiles, section rows).
  */
 export default function CourseAnswerCard({ visual, onSelectCourse }) {
   const openPopup = useOpenCourse();
   const courseId = (visual?.course || '').trim();
   const types = visual?.types || [];
-  const { data, error, loading, retry } = useCourse(courseId);
-  const wantsInstructors = types.includes('course_instructors');
-  const ratings = useCourseRatings(data?.identifier || courseId, { enabled: Boolean(data) && wantsInstructors });
+  const gradesOnly = types.some((type) => GRADE_TYPES.has(type))
+    && !types.includes('course_instructors') && !types.includes('course_schedule');
+  const {
+    facts, data, error, loading, retry,
+  } = useCourseFacts(courseId, { ratings: !gradesOnly });
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
@@ -251,92 +290,25 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
 
   if (!courseId) return null;
   if (loading) {
-    return <section className="vc-card vc-status" aria-busy="true">Loading {courseId}…</section>;
-  }
-  if (error || !data) {
     return (
-      <section className="vc-card vc-status">
-        <span>{error?.message || 'Course card unavailable.'}</span>
-        <button type="button" className="vc-btn" onClick={retry}>
-          <RefreshCw size={18} aria-hidden="true" /> Retry
-        </button>
+      <section className="vc-card vc-status-card">
+        <PanelState status="loading" label={`Loading ${courseId}`} rows={3} />
+      </section>
+    );
+  }
+  if (error || !facts) {
+    return (
+      <section className="vc-card vc-status-card">
+        <PanelState status="error" message={error?.message || 'Course card unavailable.'} onRetry={retry} />
       </section>
     );
   }
 
-  const label = data.identifier || courseId;
-  const title = titleCase(data.title || '');
-  const grades = data.grades || {};
-  const showGrades = types.some((type) => GRADE_TYPES.has(type));
-  const names = wantsInstructors ? data.instructors || [] : [];
-  const rated = wantsInstructors ? ratings.data?.ratings || [] : [];
-  const sections = types.includes('course_schedule') ? data.sections : null;
-  const tone = difficultyOf(data);
-
-  if (showGrades && !wantsInstructors && !sections) {
-    const students = grades.students ? Number(grades.students).toLocaleString('en-US') : null;
-    const tiles = [
-      { label: 'Average GPA', value: gpaText(grades.gpa), tone },
-      { label: 'Got an A', value: pctText(grades.pct_a) },
-      { label: 'D or F', value: pctText(grades.pct_df) },
-      { label: 'Class size', value: students },
-    ].filter((tile) => tile.value != null);
-    return (
-      <section className="vc-card vc-difficulty" aria-label={label}>
-        <div className="vc-head">
-          <Icon name="bar_chart" size={20} />
-          <h3><span className="vc-code">{label}</span> · {title}</h3>
-        </div>
-        <div className="vc-body">
-          {tiles.length > 0 && (
-            <div className="vc-kpis">
-              {tiles.map((tile) => (
-                <div key={tile.label} className="vc-tile">
-                  <span>{tile.label}</span>
-                  <b className={tile.tone ? `is-${tile.tone}` : undefined}>{tile.value}</b>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="vc-two">
-            <GradeBars grades={grades} />
-            <GpaTrend history={data.grade_history} />
-          </div>
-        </div>
-        <Actions label={label} onOpen={() => openCourse(label)} />
-      </section>
-    );
+  const label = facts.id || courseId;
+  const title = titleCase(facts.title || '');
+  const onOpen = () => openCourse(label);
+  if (gradesOnly) {
+    return <DifficultyCard facts={facts} data={data} label={label} title={title} onOpen={onOpen} />;
   }
-
-  const credits = creditsText(data.credits);
-  const topRating = rated.filter((r) => r?.rating != null).sort((a, b) => b.rating - a.rating)[0];
-
-  return (
-    <section className="vc-card vc-course" aria-label={label}>
-      <div className="vc-band">
-        <span className="vc-band-code">{label}{credits ? ` · ${credits} credits` : ''}</span>
-        <h3>{title}</h3>
-        <div className="vc-stats">
-          <Stat
-            value={showGrades || tone ? gpaText(grades.gpa) : null}
-            label={tone ? `Average GPA · ${DIFFICULTY_LABEL[tone]}` : 'Average GPA'}
-            tone={tone}
-          />
-          <Stat value={topRating ? Number(topRating.rating).toFixed(1) : null} label="Rating of 5" />
-          <Stat value={sections ? seatsOpen(sections) : null} label="Seats open" />
-        </div>
-      </div>
-      {showGrades && <div className="vc-section"><GradeBars grades={grades} /></div>}
-      {wantsInstructors && (
-        <InstructorRow
-          names={names}
-          ratings={rated}
-          source={ratings.data?.source}
-          onMore={() => openCourse(label)}
-        />
-      )}
-      <SeatRows sections={sections} />
-      <Actions label={label} onOpen={() => openCourse(label)} />
-    </section>
-  );
+  return <CourseCard facts={facts} label={label} title={title} onOpen={onOpen} />;
 }

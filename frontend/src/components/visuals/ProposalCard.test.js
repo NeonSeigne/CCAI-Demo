@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import SemesterView from '../planner/semester/SemesterView';
 import { PlannerProvider } from '../../contexts/PlannerContext';
 import * as api from '../../api/planner';
+import { proposalRows } from '../planner/proposalDiff';
 import { apiError, diff, plan, proposal, report, view } from '../planner/plannerFixtures';
 
 jest.mock('../../api/planner', () => {
@@ -33,6 +34,24 @@ jest.mock('../../contexts/AppConfigContext', () => ({
 
 const card = (p = proposal(), extra = {}) => ({ type: 'proposed_change', proposal: p, ...extra });
 
+// The chat-prereq mockup's change: ECON 4010 moves to Spring 2027, credits per term, prerequisites met.
+const MOCKUP_DIFF = diff({
+  heading: 'Move ECON 4010 to Spring 2027',
+  courses: {
+    added: [], removed: [], moved: [{ id: 'ECON 4010', from: 'Fall 2027', to: 'Spring 2027', title: 'Game Theory', credits: [3, 3] }],
+  },
+  rules: [],
+  credits: { before: [7, 7], after: [10, 10] },
+  terms: [
+    { term: 'Spring 2027', before: { min: 7, max: 7, status: 'met' }, after: { min: 10, max: 10, status: 'met' }, limits: null },
+    { term: 'Fall 2027', before: { min: 6, max: 6, status: 'met' }, after: { min: 3, max: 3, status: 'met' }, limits: null },
+  ],
+  prereqs: { status: 'met', courses: [{ id: 'ECON 4010', term: 'Spring 2027', status: 'met', reason: null }] },
+  difficulty: { before: 'Balanced', after: 'Balanced' },
+  unknowns: [],
+  added_courses: [],
+});
+
 // withPanel: the card beside the semester view of the proposal's term (C1).
 const renderCard = (visual = card(), { withPanel = false } = {}) => render(
   <MemoryRouter>
@@ -53,6 +72,9 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 
+// Each row's cells, joined with spaces, without the icons' ligature names.
+const rowTexts = () => [...document.querySelectorAll('.vc-diff > li')].map((li) => [...li.children].map((cell) => cell.textContent).join(' ').replace(/arrow_forward|swap_horiz|functions|check|close|help|warning|add|delete|bar_chart|school/g, '').replace(/\s+/g, ' ').trim());
+
 beforeEach(() => {
   jest.clearAllMocks();
   api.listPrograms.mockResolvedValue([]);
@@ -66,25 +88,69 @@ test('Checking: a message and skeleton rows, no buttons', async () => {
   await settle();
 });
 
-test('Ready: label, action heading, biggest consequence first, rows, unknowns above the buttons', async () => {
-  renderCard();
-  expect(screen.getByText('Proposed change')).toBeInTheDocument();
-  expect(screen.getByRole('heading', { name: 'Move ECON 3010 to Fall 2027, add ECON 3300' })).toBeInTheDocument();
-  // A rule count moving outranks difficulty, which outranks unchanged credits.
-  const lead = document.querySelector('.pc-lead');
-  expect(lead.querySelector('.vc-diff-label')).toHaveTextContent(/^Economics electives$/);
-  expect(lead.querySelector('.vc-arrow')).toHaveTextContent(/^1.*changes to 2 of 4$/);
-  const rows = [...document.querySelectorAll('.pc-row .vc-diff-label')].map((row) => row.textContent);
-  expect(rows[0]).toMatch(/^Difficulty estimate/);
-  expect(rows[1]).toMatch(/^Credits this term/);
-  expect(screen.getByText('? Prerequisites not published for UVA')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
-  expect(screen.getByRole('button', { name: 'Discard' })).toBeEnabled();
+test('Ready, as in the mockup: "Not applied", the move leads, credit rows per term, Prerequisites Met; Apply and Not now', async () => {
+  api.getPlan.mockResolvedValue(view({ proposal: proposal({ diff: MOCKUP_DIFF }) }));
+  renderCard(card(proposal({ diff: MOCKUP_DIFF })));
+  expect(screen.getByRole('heading', { name: 'Proposed change' })).toBeInTheDocument();
+  expect(screen.getByText('Not applied')).toHaveClass('vc-tag', 'is-now');
+  expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument();
+  expect(rowTexts()).toEqual([
+    'ECON 4010 Game Theory Fall 2027 changes to Spring 2027',
+    'Spring 2027 credits 7 changes to 10',
+    'Fall 2027 credits 6 changes to 3',
+    'Prerequisites Met',
+  ]);
+  const lead = document.querySelector('.vc-diff > li');
+  expect(lead.querySelector('.vc-code')).toHaveTextContent('ECON 4010');
+  expect(lead.querySelector('.vc-diff-icon')).toHaveClass('is-course');
+  expect(screen.getByText('Met').closest('li').querySelector('.vc-diff-icon')).toHaveClass('is-ok');
+  expect(screen.getByRole('button', { name: 'Apply' })).toHaveClass('is-primary');
+  expect(screen.getByRole('button', { name: 'Not now' })).toBeEnabled();
   expect(screen.queryByRole('button', { name: 'Drop it instead' })).not.toBeInTheDocument();
   await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
 });
 
-test('Applying, then Applied · Undo while it is the latest edit; the semester view agrees', async () => {
+test('rows rank: courses, "Not what you asked", problems, credits, changes, then unknowns without a "?" prefix', () => {
+  const rows = proposalRows(diff({
+    literal_differs: 'You said drop; I moved ECON 3010 to fall',
+    prereqs: { status: 'not_met', courses: [] },
+    clashes: { before: 'none', after: 'found' },
+    credits: { before: [17, 17], after: [20, 20] },
+  }));
+  expect(rows.map((r) => [r.kind, r.label || r.code])).toEqual([
+    ['course', 'ECON 3010'],
+    ['course', 'ECON 3300'],
+    ['literal', 'Not what you asked'],
+    ['problem', 'Prerequisites'],
+    ['problem', 'Clashes'],
+    ['credits', 'Credits this term'],
+    ['change', 'Economics electives'],
+    ['change', 'Difficulty estimate'],
+    ['unknown', 'Prerequisites not published for UVA'],
+  ]);
+  expect(rows[1]).toMatchObject({ title: 'Labor Economics', icon: 'add' });
+  expect(rows[3]).toMatchObject({ value: 'Not met', icon: 'close' });
+  expect(proposalRows(diff({ prereqs: { status: 'unknown', courses: [] }, unknowns: [] })).pop())
+    .toMatchObject({ kind: 'unknown', label: 'Prerequisites', value: 'Unknown', icon: 'help' });
+});
+
+test('a problem row demotes Apply to secondary; the difference and unknowns show as rows', async () => {
+  const problem = proposal({
+    diff: diff({ prereqs: { status: 'not_met', courses: [] }, literal_differs: 'You said drop; I moved ECON 3010 to fall' }),
+  });
+  api.getPlan.mockResolvedValue(view({ proposal: problem }));
+  renderCard(card(problem));
+  expect(screen.getByText('Not met').closest('li')).toHaveClass('is-problem');
+  expect(screen.getByText('Not what you asked')).toBeInTheDocument();
+  expect(screen.getByText('You said drop; I moved ECON 3010 to fall')).toHaveClass('vc-diff-note');
+  expect(screen.getByText('Prerequisites not published for UVA').closest('li')).toHaveClass('is-unknown');
+  expect(screen.queryByText(/^\? /)).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Apply' })).not.toHaveClass('is-primary');
+  expect(screen.getByRole('button', { name: 'Drop it instead' })).toBeInTheDocument();
+  await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
+});
+
+test('Saving: a spinner, Not now disabled; then the Applied tag with Undo and My degree; the semester view agrees', async () => {
   const accept = deferred();
   api.acceptProposal.mockReturnValue(accept.promise);
   api.undoEdit.mockResolvedValue({ plan: plan({ revision: 6 }), report: report(), undo_label: null });
@@ -92,11 +158,12 @@ test('Applying, then Applied · Undo while it is the latest edit; the semester v
   expect(await screen.findByRole('group', { name: 'Pending change' })).toBeInTheDocument();
   expect(document.querySelector('.sv-card.is-ghost-in')).toBeInTheDocument();
 
-  // The semester view has its own Accept for the same proposal; act on the card's.
   const cardEl = () => document.querySelector('.vc-proposal');
-  fireEvent.click(within(cardEl()).getByRole('button', { name: 'Accept' }));
-  expect(within(cardEl()).getByRole('button', { name: 'Applying…' })).toBeDisabled();
-  expect(within(cardEl()).getByRole('button', { name: 'Discard' })).toBeDisabled();
+  fireEvent.click(within(cardEl()).getByRole('button', { name: 'Apply' }));
+  const saving = within(cardEl()).getByRole('button', { name: 'Applying…' });
+  expect(saving).toBeDisabled();
+  expect(saving.querySelector('.vc-spinner')).toBeInTheDocument();
+  expect(within(cardEl()).getByRole('button', { name: 'Not now' })).toBeDisabled();
   // The semester view's buttons wait on the same call.
   expect(within(screen.getByRole('group', { name: 'Pending change' })).getByRole('button', { name: 'Applying…' })).toBeDisabled();
 
@@ -104,17 +171,19 @@ test('Applying, then Applied · Undo while it is the latest edit; the semester v
     plan: plan({ revision: 5, undo: { pointer: 1, stack: [{ label: 'Undo: moved ECON 3010 to Fall 2027, added ECON 3300', revision: 5 }] } }),
     report: report(),
   });
-  expect(await screen.findByText('Applied')).toBeInTheDocument();
+  expect(await screen.findByText('Applied')).toHaveClass('vc-tag', 'is-done');
+  expect(screen.queryByText('Not applied')).not.toBeInTheDocument();
+  expect(within(cardEl()).getByRole('link', { name: 'My degree' })).toHaveAttribute('href', '/courses?view=degree');
   expect(screen.queryByRole('group', { name: 'Pending change' })).not.toBeInTheDocument();
   expect(document.querySelector('.sv-card.is-ghost-in')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Undo: moved ECON 3010 to Fall 2027, added ECON 3300' })).toBeEnabled();
 
-  fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+  fireEvent.click(within(cardEl()).getByRole('button', { name: 'Undo' }));
   expect(await screen.findByText('Undone')).toBeInTheDocument();
   expect(api.undoEdit).toHaveBeenCalledWith('token', { expected_revision: 5 }, expect.anything());
 });
 
-test('an accept with no answer at all shows "Couldn\'t save · Retry"; Retry applies it', async () => {
+test('an accept with no answer at all shows "Couldn\'t save · Retry" in ink; Retry applies it', async () => {
   const down = () => Object.assign(new Error('Network request failed'), { status: 0, network: true });
   api.acceptProposal
     .mockRejectedValueOnce(down())
@@ -127,19 +196,34 @@ test('an accept with no answer at all shows "Couldn\'t save · Retry"; Retry app
   render(<PlannerProvider retryDelays={[0, 0, 0]}><ProposalCard visual={card()} /></PlannerProvider>);
   await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
   expect(await screen.findByText(/Couldn't save/)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
+  expect(screen.getByRole('alert')).toHaveClass('vc-alert');
+  expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
 
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
   expect(await screen.findByText('Applied')).toBeInTheDocument();
   expect(api.acceptProposal).toHaveBeenCalledTimes(2);
 });
 
-test('Discarded: one muted line', async () => {
+test('Failed: an ink error line with Retry, which applies again', async () => {
+  api.acceptProposal
+    .mockRejectedValueOnce(apiError(422, { error: 'bad_ops' }))
+    .mockResolvedValueOnce({ plan: plan({ revision: 5 }), report: report() });
+  renderCard();
+  await waitFor(() => expect(api.getPlan).toHaveBeenCalled());
+  fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+  const line = await screen.findByRole('alert');
+  expect(line).toHaveTextContent("Couldn't apply this change.");
+  fireEvent.click(within(line).getByRole('button', { name: 'Retry' }));
+  expect(await screen.findByText('Applied')).toBeInTheDocument();
+  expect(api.acceptProposal).toHaveBeenCalledTimes(2);
+});
+
+test('Not now: one muted "Discarded" line', async () => {
   api.discardProposal.mockResolvedValue({ proposal: proposal({ status: 'discarded' }) });
   renderCard();
-  fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
   expect(await screen.findByText('Discarded')).toBeInTheDocument();
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
   await settle();
@@ -158,7 +242,7 @@ test('Replaced and Expired: a muted reason, no buttons', async () => {
   await settle();
 });
 
-test('Needs review: changed rows highlighted, "Your plan changed, check again", Accept', async () => {
+test('Needs review: changed rows highlighted, "Your plan changed, check again", Apply', async () => {
   const refreshed = proposal({
     diff: diff({ credits: { before: [17, 17], after: [14, 14] } }),
   });
@@ -166,7 +250,7 @@ test('Needs review: changed rows highlighted, "Your plan changed, check again", 
     .mockRejectedValueOnce(apiError(409, { status: 'needs_review', proposal: refreshed }))
     .mockResolvedValueOnce({ plan: plan({ revision: 5 }), report: report() });
   renderCard();
-  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
   expect(await screen.findByText('Your plan changed, check again')).toBeInTheDocument();
   const credits = screen.getByText('Credits this term').closest('li');
@@ -174,19 +258,19 @@ test('Needs review: changed rows highlighted, "Your plan changed, check again", 
   expect(credits).toHaveTextContent('Changed');
   expect(credits.querySelector('.vc-arrow')).toHaveTextContent(/^17.*changes to 14$/);
   expect(screen.getByText('Difficulty estimate').closest('li')).not.toHaveClass('is-changed');
-  expect(screen.queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Not now' })).not.toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
   expect(await screen.findByText('Applied')).toBeInTheDocument();
   await settle();
 });
 
-test('Refused: the reason in the error style, no buttons', async () => {
+test('Refused: the reason in ink with an icon, no buttons', async () => {
   api.acceptProposal.mockRejectedValue(apiError(409, { status: 'refused', reason: 'ECON 3300 is no longer offered' }));
   renderCard();
-  fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
   const reason = await screen.findByText('ECON 3300 is no longer offered');
-  expect(reason).toHaveClass('vc-alert');
+  expect(reason.closest('.vc-alert')).toHaveAttribute('role', 'alert');
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
   await settle();
 });
@@ -213,12 +297,12 @@ test('"Drop it instead" proposes the literal remove and replaces this card', asy
     expected_revision: 4,
   }));
   expect(await screen.findByText('Replaced by a newer suggestion')).toBeInTheDocument();
-  expect(screen.getByRole('heading', { name: 'Remove ECON 3010, add ECON 3300' })).toBeInTheDocument();
+  expect(screen.getByText('Removed').closest('li')).toHaveTextContent('ECON 3010');
   expect(screen.getByTestId('planner-announcer')).toHaveTextContent('Proposed change ready: remove ECON 3010, add ECON 3300');
 });
 
 test('VisualBlock renders proposed_change; outside a provider it shows no buttons', () => {
   render(<VisualBlock visual={card()} />);
-  expect(screen.getByRole('heading', { name: 'Move ECON 3010 to Fall 2027, add ECON 3300' })).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'Accept' })).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Proposed change' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
 });
