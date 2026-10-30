@@ -51,6 +51,8 @@ class ToolContext:
     ids (R15) before it runs. ``active_term`` is the term open in the
     semester view, checked against the school's planner terms by the route
     (tab-workspaces O1); None when the student has none open.
+    ``campus_origin`` is the student's saved start place id (None when
+    unset; tools fall back to the school's default start place).
     """
 
     user_id: str
@@ -58,6 +60,7 @@ class ToolContext:
     plan_revision: Optional[int] = None
     options: Mapping[str, str] = field(default_factory=dict)
     active_term: Optional[str] = None
+    campus_origin: Optional[str] = None
 
 
 def _takes_context(executor: Callable) -> bool:

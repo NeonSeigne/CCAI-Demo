@@ -12,7 +12,6 @@ call leaves ``walk_minutes`` out.
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date, datetime, time as dtime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -49,13 +48,6 @@ def _matches(text: str, words: List[str]) -> bool:
     return all(w in text for w in words)
 
 
-async def _walk_minutes(origin: Dict[str, Any], targets: List[Dict[str, Any]]) -> Dict[str, int]:
-    # One table call per request (FOSSGIS rate-limits bursts); venues past the
-    # first 25 uncached ones get times once their pairs are cached.
-    rows = await asyncio.to_thread(routing.walking_table, origin, targets)
-    return {pid: row["minutes"] for pid, row in rows.items()}
-
-
 async def _decorate(events: List[Dict[str, Any]], origin: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Public fields (optional ones only when present) plus ``place_id``
     (matched venue), ``place_name`` (that place's name, ``None`` when the
@@ -75,7 +67,7 @@ async def _decorate(events: List[Dict[str, Any]], origin: Optional[Dict[str, Any
         out.append(item)
     if origin:
         targets = list({p["id"]: p for p in venue_cache.values() if p}.values())
-        minutes = await _walk_minutes(origin, targets) if targets else {}
+        minutes = await routing.walk_minutes(origin, targets)
         for item in out:
             if item.get("place_id") in minutes:
                 item["walk_minutes"] = minutes[item["place_id"]]

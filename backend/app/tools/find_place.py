@@ -3,9 +3,10 @@ find_place tool — campus buildings, libraries, dining, bus stops and walking d
 """
 
 import logging
+from datetime import datetime
 from typing import Any, Dict
 
-from app.sources import places
+from app.sources import ical_events, places
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,14 @@ async def execute(*, name: str = "", query: str = "", category: str = "", from_p
     else:
         matches = places.search("", category=category, limit=5)
 
-    results = [_with_distance(origin, p) if origin else places.public(p) for p in matches]
+    now = datetime.now(ical_events.school_zone())
+    results = []
+    for place in matches:
+        row = _with_distance(origin, place) if origin else places.public(place)
+        # ``open_now`` / ``open_until`` from the OSM hours, as on GET /api/places.
+        row["open_until"] = None
+        row.update(places.hours_status(place, now))
+        results.append(row)
     response: Dict[str, Any] = {"places": results, "query": query_meta}
     if origin:
         response["from"] = places.public(origin)

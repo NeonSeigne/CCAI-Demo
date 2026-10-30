@@ -148,7 +148,8 @@ def _with_id(item: Dict[str, Any], source: Dict[str, Any]) -> Dict[str, Any]:
 
 def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     """An event list card built from the events_search result itself. Rows
-    carry ``kind`` and ``place_name`` (null when unknown); the card groups
+    carry ``kind``, ``place_name`` and ``walk_minutes`` from the student's
+    start place (null when unknown); the card groups
     them by date from ``start`` in ``timezone`` (design Q10)."""
     events = [e for e in result.get("events") or [] if e.get("title")]
     if not events:
@@ -160,7 +161,7 @@ def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
             _with_id({
                 key: e.get(key)
                 for key in ("title", "start", "end", "all_day", "location", "url", "calendar", "ongoing",
-                            "kind", "place_name")
+                            "kind", "place_name", "walk_minutes")
             }, e)
             for e in events[:EVENT_CARD_LIMIT]
         ],
@@ -173,8 +174,15 @@ def _events_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     return [spec]
 
 
+_PLACE_CARD_KEYS = (
+    "name", "category", "lat", "lon", "map_url", "distance_m", "walk_minutes_estimate", "hours",
+    "open_now", "open_until", "access", "type", "floors",
+)
+
+
 def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
-    """A place card: matches, and distance from ``from`` when one was given."""
+    """A place card: matches with open-now, access, type and floors (null
+    when unknown), and distance from ``from`` when one was given."""
     places = result.get("places") or []
     if not places:
         return []
@@ -186,7 +194,7 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
         "places": [
             _with_id({
                 key: p.get(key)
-                for key in ("name", "category", "lat", "lon", "map_url", "distance_m", "walk_minutes_estimate", "hours")
+                for key in _PLACE_CARD_KEYS
             }, p)
             for p in places[:PLACE_CARD_LIMIT]
         ],

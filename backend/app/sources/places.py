@@ -242,6 +242,12 @@ def default_origin() -> Optional[Dict[str, Any]]:
     return find_in(load_places()[0], name) if name else None
 
 
+def start_place(place_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """A student's start place: the saved *place_id*, or the school's default
+    when none is saved or it no longer names a place."""
+    return (get(place_id) if place_id else None) or default_origin()
+
+
 def load_places() -> Tuple[List[Dict[str, Any]], Optional[str]]:
     """Return (places, error). ``error`` explains why lookups are unavailable."""
     path = places_path()

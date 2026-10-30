@@ -404,7 +404,7 @@ class ImprovedChatOrchestrator:
         tasks = []
         if "student_life" in selected and "campus" in selected:
             # Times each of its two passes itself, so events survive a slow campus pass.
-            tasks.append(self._events_then_campus(effective_llm, by_domain, user_message))
+            tasks.append(self._events_then_campus(effective_llm, by_domain, user_message, context=context))
             selected = [d for d in selected if d not in ("student_life", "campus")]
         tasks += [
             asyncio.wait_for(
@@ -489,7 +489,11 @@ class ImprovedChatOrchestrator:
         return dataclasses.replace(result, text=PLAN_RETRY_TEXT, used_tool=True)
 
     async def _events_then_campus(
-        self, llm: LLMClient, by_domain: Dict[str, List[str]], user_message: str
+        self,
+        llm: LLMClient,
+        by_domain: Dict[str, List[str]],
+        user_message: str,
+        context: Optional[ToolContext] = None,
     ) -> List[ToolCallResult]:
         """Run events first, then campus with the event venues it found.
 
@@ -497,7 +501,7 @@ class ImprovedChatOrchestrator:
         events answer.
         """
         events = await asyncio.wait_for(
-            self._tool_pass(llm, by_domain["student_life"], user_message), TOOL_PASS_TIMEOUT_S
+            self._tool_pass(llm, by_domain["student_life"], user_message, context=context), TOOL_PASS_TIMEOUT_S
         )
         venues = event_venues(events)
         campus_message = user_message
@@ -508,7 +512,7 @@ class ImprovedChatOrchestrator:
             )
         try:
             campus = await asyncio.wait_for(
-                self._tool_pass(llm, by_domain["campus"], campus_message), TOOL_PASS_TIMEOUT_S
+                self._tool_pass(llm, by_domain["campus"], campus_message, context=context), TOOL_PASS_TIMEOUT_S
             )
         except Exception as exc:  # noqa: BLE001 — keep the events answer
             logger.warning("Campus pass dropped after events: %r", exc)

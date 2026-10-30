@@ -50,14 +50,20 @@ def known_planner_term(term: Optional[str]) -> Optional[str]:
 
 def tool_context_for(user: User, active_term: Optional[str] = None) -> Optional[ToolContext]:
     """The tool context for *user*'s chat: their id, this deployment's school
-    (R2) and the semester open in the planner, when it is a known term (O1).
+    (R2), the semester open in the planner, when it is a known term (O1),
+    and their saved start place (event walk times).
 
     ``None`` for a legacy config without a school slug (no planner there).
     """
     school = get_settings().school.slug
     if not school or getattr(user, "id", None) is None:
         return None
-    return ToolContext(user_id=str(user.id), school=school, active_term=known_planner_term(active_term))
+    return ToolContext(
+        user_id=str(user.id),
+        school=school,
+        active_term=known_planner_term(active_term),
+        campus_origin=getattr(user, "campus_origin", None),
+    )
 
 
 def _session_history(session: Any) -> List[Dict[str, Any]]:
