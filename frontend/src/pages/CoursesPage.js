@@ -24,7 +24,6 @@ import { useDraggableItem } from '../components/dnd';
 import DegreeBoard from '../components/planner/degree/DegreeBoard';
 import '../styles/CoursesPage.css';
 import { isAbort, useDelayedFlag } from '../utils/loading';
-import { isPhoneWidth } from '../hooks/useViewport';
 
 const SemesterView = lazy(() => import('../components/planner/semester/SemesterView'));
 
@@ -297,7 +296,7 @@ function PreviewPlaceholder() {
 
 function BrowseView({ tabs }) {
   const navigate = useNavigate();
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const { authToken } = useAuth();
   const saved = useSaved();
   const { name: school } = useSchool();
@@ -449,22 +448,6 @@ function BrowseView({ tabs }) {
     setTicked((current) => current.filter((_, i) => i !== index));
   };
 
-  const openPreview = (id) => {
-    setSelectedId(id);
-    // The inline preview follows the row; the URL keeps it without a history entry.
-    setParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('selected', id);
-      return next;
-    }, { replace: true });
-    if (isPhoneWidth()) {
-      listScroll.current = window.scrollY;
-      setPhoneView('preview');
-      window.scrollTo?.(0, 0);
-      setTimeout(() => headingRef.current?.focus(), 0);
-    }
-  };
-
   /** The full course pop-up (app-wide host, `?course=`), as a new history entry. */
   const openDetails = useOpenCourse();
 
@@ -537,7 +520,7 @@ function BrowseView({ tabs }) {
             isSelected={course.identifier === selectedId}
             full={full}
             onTick={toggleTick}
-            onOpen={openPreview}
+            onOpen={openDetails}
           />
         ))}
       </ul>

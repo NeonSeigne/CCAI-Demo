@@ -47,7 +47,20 @@
 
 .cmp-col-head { position: relative; padding-right: 56px; }
 
-.cmp-col-name { display: flex; flex-direction: column; gap: 2px; }
+.cmp-col-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cmp-col-name:hover .cmp-col-title { text-decoration: underline; }
 .cmp-col-title { font-size: 15px; font-weight: 700; color: var(--ink); }
 
 .cmp-remove {

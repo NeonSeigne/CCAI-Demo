@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
 import '../styles/CourseComparePage.css';
 import { isAbort, useDelayedFlag } from '../utils/loading';
+import { useOpenCourse } from '../utils/openCourse';
 
 const countOf = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
@@ -191,6 +192,7 @@ function AddCourse({ ids, suggestions, suggestFrom, onAdd, inputRef, authToken, 
 
 export default function CourseComparePage() {
   const navigate = useNavigate();
+  const openCourse = useOpenCourse();
   const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
   const { name: school } = useSchool();
@@ -340,10 +342,10 @@ export default function CourseComparePage() {
                       const col = columns[id];
                       return (
                         <th key={id} scope="col" className="cmp-col-head">
-                          <div className="cmp-col-name">
+                          <button type="button" className="cmp-col-name" onClick={() => openCourse(col?.data?.identifier || id)}>
                             <span className="cc-code">{col?.data?.identifier || id}</span>
                             <span className="cmp-col-title">{col?.data?.title || titleOf(id)}</span>
-                          </div>
+                          </button>
                           <button
                             type="button"
                             className="cmp-remove"
