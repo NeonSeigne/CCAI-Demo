@@ -13,6 +13,7 @@ import { checklistCourses } from '../checklist';
 import { Icon } from '../../icons';
 import { groupTone, openRequirements, waffleModel } from './degreeFormat';
 import { SheetBand } from '../../../modules/sheet';
+import StartTermField from './StartTermField';
 
 const SEARCH_LIMIT = 8;
 const STEPS = ['Program', 'Completed', 'First term'];
@@ -434,20 +435,11 @@ export default function SetupDialog({
             ))}
           </div>
         </div>
-        <div className="su-field">
-          <label className="dg-label" htmlFor="su-start-term">Start term</label>
-          <select
-            id="su-start-term"
-            className="su-select"
-            value={startTerm || ''}
-            onChange={(event) => setStartTerm(event.target.value || null)}
-          >
-            <option value="" />
-            {[...new Set([...startTerms(), ...(startTerm ? [startTerm] : [])])].map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
+        <StartTermField
+          value={startTerm}
+          terms={[...new Set([...startTerms(), ...(startTerm ? [startTerm] : [])])]}
+          onChange={setStartTerm}
+        />
       </div>
     </div>,
 

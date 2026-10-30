@@ -1,0 +1,26 @@
+/* The setup dialog's Start term (setup-start-term.html). Roles only. */
+.stf-trigger.cc-btn {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 14px 0 18px;
+  font-weight: 700;
+}
+
+.stf-trigger.is-open { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.stf-trigger .ms { color: var(--ink); }
+.stf-value { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.stf-menu.MuiPaper-root { max-height: 340px; }
+.stf-menu .cc-menu-header { display: none; }
+
+@media (max-width: 700px) {
+  .stf-menu.MuiPaper-root { max-height: 70vh; }
+  .stf-menu .cc-menu-header {
+    display: block;
+    padding: 4px 14px 8px;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+}
