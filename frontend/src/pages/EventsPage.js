@@ -230,9 +230,10 @@ function NextUp({ event, timezone, todayKey, now }) {
     <article className="ev-feature" aria-labelledby="ev-feature-title">
       <div className="ev-feature-main">
         <p className="ev-feature-kicker">
-          <span>Next up</span>
-          <span aria-hidden="true">·</span>
-          <span className="ev-feature-when">{featureWhen(event, timezone, todayKey)}</span>
+          <span>
+            {'Next up · '}
+            <span className="ev-feature-when">{featureWhen(event, timezone, todayKey)}</span>
+          </span>
           {tag && <span className="ev-tag">{tag}</span>}
         </p>
         <h3 id="ev-feature-title" className="ev-feature-title"><EventTitle event={event} /></h3>
@@ -962,7 +963,7 @@ const EventsPage = () => {
 
               <div className="ev-controls">
                 <div className="ev-chips" role="group" aria-label="When">
-                  {WINDOWS.map((w) => (
+                  {WINDOWS.filter((w) => w.chip !== false).map((w) => (
                     <button
                       key={w.id}
                       type="button"

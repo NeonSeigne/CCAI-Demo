@@ -218,7 +218,10 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
 .ev-popover-search { max-width: none; }
 
 /* ---- Results ---------------------------------------------------------------- */
-.ev-panel { display: flex; flex-direction: column; gap: 14px; }
+.ev-panel { display: flex; flex-direction: column; gap: 16px; }
+
+/* events.html: 18px under the search, 16px under the Next up banner. */
+.ev-controls + .ev-panel { margin-top: 2px; }
 
 .ev-results-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
@@ -324,7 +327,7 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
   white-space: nowrap;
 }
 
-.ev-row-dot { margin-right: 6px; }
+.ev-row-dot { margin-right: 6px; vertical-align: -2px; }
 
 /* ---- Next up --------------------------------------------------------------- */
 .ev-feature {
@@ -456,6 +459,9 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
 
 .ev-row:first-child { border-top: 0; }
 
+/* A day's first row keeps its rule under the day heading (events.html). */
+.ev-day .ev-row:first-child { border-top: 1px solid var(--rule); }
+
 .ev-row-time { display: flex; flex-direction: column; min-width: 0; }
 
 .ev-row-start {
@@ -482,8 +488,7 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
 }
 
 .ev-row-place {
-  display: flex;
-  align-items: center;
+  display: block;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -497,6 +502,11 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
 .ev-row-actions { display: flex; align-items: center; gap: 2px; }
 
 .ev-icon-slot { flex: 0 0 40px; width: 40px; height: 40px; }
+
+/* Row actions: 38px, 2px apart (components.css .acts .ms); desktop only. */
+.ev-row-actions .ev-icon-btn,
+.ev-row-actions .ev-save,
+.ev-row-actions .ev-icon-slot { flex: 0 0 38px; width: 38px; height: 38px; }
 
 /* ---- Placeholders ------------------------------------------------------------ */
 .ev-ph-wrap { display: flex; flex-direction: column; gap: 8px; }
@@ -657,7 +667,6 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
   .ev-search { max-width: none; }
   .ev-feature { grid-template-columns: minmax(0, 1fr); }
   .ev-feature-title { font-size: 17px; }
-  .ev-feature .ev-mark-btn { justify-content: center; }
   .ev-row {
     grid-template-columns: 64px minmax(0, 1fr) auto;
     -webkit-touch-callout: none;

@@ -11,7 +11,8 @@ export const WINDOWS = [
   { id: 'tonight', label: 'Tonight' },
   { id: 'tomorrow', label: 'Tomorrow' },
   { id: 'this_weekend', label: 'This weekend' },
-  { id: 'this_week', label: 'This week' },
+  // Still a valid ?window= value, but not one of the page's chips (events.html).
+  { id: 'this_week', label: 'This week', chip: false },
   { id: 'next_7_days', label: 'Next 7 days' },
 ];
 
