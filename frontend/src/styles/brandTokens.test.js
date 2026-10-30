@@ -148,3 +148,52 @@ test('every var() names a defined token', () => {
     .map((m) => `${rel}: --${m[1]}`));
   expect([...new Set(missing)]).toEqual([]);
 });
+
+const withoutComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '');
+
+// Design Q18: phone up to 700px, tablet from 701px, desktop from 1100px, the
+// dock docked from 1280px. A max-width query names the last pixel before a
+// boundary, a min-width query the first one.
+const MEDIA_WIDTHS = { max: [700, 1099, 1279], min: [701, 1100, 1280] };
+
+test('media queries use only the 700, 1100 and 1280 breakpoints', () => {
+  const found = allSources().flatMap(([rel, text]) => [...withoutComments(text)
+    .matchAll(/\((max|min)-width:\s*(\d+)px\)/g)]
+    .filter((m) => !MEDIA_WIDTHS[m[1]].includes(Number(m[2])))
+    .map((m) => `${rel}: ${m[0]}`));
+  expect(found).toEqual([]);
+});
+
+// Course codes and numbers use --font-code; the monospace face is for
+// literal code blocks only (index.css `code, pre`).
+const FONT_MONO_ALLOWED = ['styles/brand-tokens.css', 'index.css'];
+
+test('--font-mono is used only for code blocks', () => {
+  const found = allSources()
+    .filter(([rel]) => !FONT_MONO_ALLOWED.includes(rel))
+    .filter(([, text]) => /--font-mono/.test(withoutComments(text)))
+    .map(([rel]) => rel);
+  expect(found).toEqual([]);
+});
+
+// Each class is owned by one stylesheet: the first class of a selector names
+// the stylesheet's own block (`.chat-frame .user-message` is ChatFrame's).
+// State classes (is-*, has-*) and MUI's and Leaflet's own classes are shared.
+test("a class is a selector's first class in one stylesheet only", () => {
+  const owners = {};
+  allSources().filter(([rel]) => rel.endsWith('.css')).forEach(([rel, text]) => {
+    [...withoutComments(text).matchAll(/([^{}]+)\{/g)]
+      .map((m) => m[1].trim())
+      .filter((selector) => !selector.startsWith('@') && !/^(from|to|[\d.%,\s]+)$/.test(selector))
+      .flatMap((selector) => selector.split(','))
+      .forEach((part) => {
+        const first = part.replace(/\[[^\]]*\]|:[a-z-]+\([^)]*\)/g, '').match(/\.(-?[_a-zA-Z][\w-]*)/);
+        if (!first || /^(Mui|leaflet|is-|has-)/.test(first[1])) return;
+        (owners[first[1]] = owners[first[1]] || new Set()).add(rel);
+      });
+  });
+  const shared = Object.entries(owners)
+    .filter(([, files]) => files.size > 1)
+    .map(([name, files]) => `.${name}: ${[...files].sort().join(', ')}`);
+  expect(shared).toEqual([]);
+});

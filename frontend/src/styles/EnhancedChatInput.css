@@ -516,3 +516,21 @@ div.cc-composer .main-textarea:focus-visible { outline: none; }
 
   div.cc-composer .mic-button.listening { animation: none; }
 }
+
+/* ---- Phones: the + menu rises from the bottom edge, like the app's menus
+   (components.css). MUI places popovers with inline top/left. ------------- */
+@media (max-width: 700px) {
+  .composer-plus-popover.MuiPaper-root {
+    top: auto !important;
+    bottom: 0;
+    left: 0 !important;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 8px 8px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    transform-origin: bottom center !important;
+  }
+}

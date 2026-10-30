@@ -358,15 +358,16 @@
 }
 
 .suggestion-button {
-  background: var(--canvas);
+  background: var(--surface);
   border: 1px solid var(--line);
   color: var(--ink);
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 9999px;
   cursor: pointer;
   text-align: left;
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -386,6 +387,7 @@
 }
 
 .suggestion-button:hover {
+  background: var(--canvas);
   border-color: var(--ink);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -405,10 +407,6 @@
 
 /* Responsive Design for Chat Page */
 @media (max-width: 700px) {
-  
-  .main-content {
-    padding: 24px 12px 120px 12px; /* Adjusted for mobile */
-  }
   
   .welcome-state {
     min-height: 50vh;
@@ -459,7 +457,7 @@
   
   .suggestion-button {
     padding: 10px 14px;
-    font-size: 12px;
+    font-size: 13px;
   }
 
 }
@@ -470,27 +468,6 @@
     transition: none;
   }
 }
-/* ---- Home Colors: the conversation (C.2) --------------------------------- */
-/* The student's message in the school's tint (ChatPage renders its own). */
-.chat-frame .messages-scroll .user-message {
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: 22px 22px 8px 22px;
-  background: var(--tint);
-  color: var(--tint-ink);
-  font-size: 15.5px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.chat-frame .messages-scroll .user-message p { color: inherit; }
-
-.chat-frame .answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
-
-@media (max-width: 700px) {
-  .chat-frame .messages-scroll .user-message { max-width: 88%; }
-}
-
 /* ---- "This answer" panel, right of the conversation ---------------------- */
 .answer-panel {
   flex: 0 0 300px;

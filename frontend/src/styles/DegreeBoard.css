@@ -560,7 +560,7 @@
 .dg-editor-title { font-size: 13px; color: var(--muted); }
 
 /* ---- Setup dialog (docs/designs/setup-dialog.md) ------------------------ */
-.cc-dialog .su-dialog { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
+.su-dialog.MuiDialog-paper { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
 
 .su-band { background: var(--band); color: var(--on-deep); padding: 18px 20px 18px 24px; }
 .su-steps { display: flex; align-items: center; gap: 12px; }
@@ -690,7 +690,7 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
 
 /* Phones: a tall bottom sheet (components.css places it at the bottom edge). */
 @media (max-width: 700px) {
-  .cc-dialog .su-dialog {
+  .su-dialog.MuiDialog-paper {
     margin: 0;
     width: 100%;
     max-width: 100%;

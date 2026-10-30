@@ -276,3 +276,31 @@
 }
 
 .chat-frame .single-response-wide { margin-bottom: 32px; }
+
+/* ---- Home Colors: the conversation (C.2) --------------------------------- */
+/* The student's message in the school's tint (ChatPage renders its own). */
+.chat-frame .messages-scroll .user-message {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 22px 22px 8px 22px;
+  background: var(--tint);
+  color: var(--tint-ink);
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.chat-frame .messages-scroll .user-message p { color: inherit; }
+
+.chat-frame .answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
+
+@media (max-width: 700px) {
+  .chat-frame .messages-scroll .user-message { max-width: 88%; }
+}
+
+/* The chat page's side panel lists what was checked; inline once it hides. */
+.chat-frame .answer-checked { display: none; }
+
+@media (max-width: 1099px) {
+  .chat-frame .answer-checked { display: block; }
+}

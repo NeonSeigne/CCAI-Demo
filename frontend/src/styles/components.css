@@ -1,21 +1,5 @@
 /* Theme tokens: see brand-tokens.css + md3-theme.css */
 
-.logo-container {
-  width: 40px;
-  height: 40px;
-  background: var(--ink);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--surface);
-}
-
 /* Message Components */
 .user-message-container {
   display: flex;
@@ -45,6 +29,9 @@
   width: 100%;
   min-width: 0;
 }
+
+/* Answers speak in one voice: no avatar column. */
+.advisor-message-container.is-plain { display: block; }
 
 .advisor-message-text {
   line-height: 1.6;
@@ -245,11 +232,6 @@
   max-width: 288px;
 }
 
-.input-container {
-  display: flex;
-  gap: 16px;
-}
-
 /* Footer Styles */
 .footer-text {
   color: var(--muted);
@@ -297,11 +279,6 @@
 /* Responsive Design */
 
 @media (max-width: 700px) {
-  .suggestion-button {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
   .advisor-message-text {
     font-size: 14px;
   }
@@ -596,10 +573,10 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* Menus and the composer's + menu rise from the bottom edge. MUI places
-     popovers with inline top/left, hence !important. */
-  .MuiMenu-paper.MuiPaper-root,
-  .composer-plus-popover.MuiPaper-root {
+  /* Menus rise from the bottom edge (the composer's + menu does the same in
+     EnhancedChatInput.css). MUI places popovers with inline top/left, hence
+     !important. */
+  .MuiMenu-paper.MuiPaper-root {
     top: auto !important;
     bottom: 0;
     left: 0 !important;

@@ -165,7 +165,7 @@ export function RecentChats({ recent, currentSessionId, onSelectSession, onShowA
 function SavedCount({ count, pulse = false }) {
   if (!count) return null;
   return (
-    <span className={`campus-nav-count ${pulse ? 'is-pulsing' : ''}`.trim()}>
+    <span className={`campus-nav-count ${pulse ? 'dnd-pulse' : ''}`.trim()}>
       {count}
       <span className="sr-only"> saved</span>
     </span>

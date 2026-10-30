@@ -238,7 +238,7 @@ test('an already-saved item only pulses the count', async () => {
   expect(saved.save).not.toHaveBeenCalled();
   await waitFor(() => expect(
     screen.getByRole('link', { name: /^Saved/ }).querySelector('.campus-nav-count'),
-  ).toHaveClass('is-pulsing'));
+  ).toHaveClass('dnd-pulse'));
 });
 
 test('useAsk attaches, opens the dock and focuses the composer without sending', async () => {
