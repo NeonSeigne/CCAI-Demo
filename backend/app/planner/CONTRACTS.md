@@ -356,3 +356,16 @@ times, or another course in the term can't be checked (e.g. "sections not
 chosen"); `section` is then the first bundle with no clash found, or null.
 Items rank offered, then prerequisites met, then fits / unknown / clashes.
 The `course_shortlist` visual passes all of these fields through.
+
+### Grade figures (`grades`, `cumulative`)
+
+```
+{"gpa", "students", "pct_a", "pct_df", "distribution": {bucket: count},
+ "buckets": [{"key": "A+", "label": "A+"}, ...],   # the school's own buckets, best grade first
+ "term"?, "labels"?: {"a", "df"}, "as_of"?}          # latest-term figure only
+```
+
+Each school keeps its own scale (eng review R11; the frontend groups them):
+UW `a, ab, b, bc, c, d, f` (labels A, AB, B, BC, C, D, F); UVA `A+, A, A-,
+B+, B, B-, C+, C, C-, DFW` (DFW counts D, F and withdrawals together). CU
+publishes no grades: no `grades`, `cumulative` or `buckets`.

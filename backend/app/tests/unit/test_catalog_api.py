@@ -218,6 +218,13 @@ class TestUWSummary(CatalogTestCase):
         self.assertIn("COMPSCI 200", {c["identifier"] for c in body["prerequisites"]["courses"]})
         self.assertIn("COMPSCI 400", {c["identifier"] for c in body["next_courses"]})
 
+    def test_grade_buckets_in_school_order(self):
+        with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
+            body = self.client.get("/api/catalog/COMP SCI 300").json()
+        for figure in (body["grades"], body["cumulative"]):
+            self.assertEqual([b["label"] for b in figure["buckets"]], ["A", "AB", "B", "BC", "C", "D", "F"])
+            self.assertEqual([b["key"] for b in figure["buckets"]], list(figure["distribution"]))
+
     def test_grade_history_oldest_first(self):
         with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap()):
             body = self.client.get("/api/catalog/COMP SCI 300").json()
@@ -506,6 +513,14 @@ class TestUVA(CatalogTestCase):
         self.assertEqual(body["sections"]["rows"][0]["instructors"], "Briana Morrison")
         self.assertNotIn("prereq_tree", body)
         self.assertNotIn("bldg", body["sections"]["rows"][0])
+
+    def test_grade_buckets_keep_uva_scale(self):
+        body = self.client.get("/api/catalog/CS 2100").json()
+        labels = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "DFW"]
+        for figure in (body["grades"], body["cumulative"]):
+            self.assertEqual([b["label"] for b in figure["buckets"]], labels)
+            self.assertEqual([b["key"] for b in figure["buckets"]], labels)
+            self.assertEqual(list(figure["distribution"]), labels)
 
     def test_section_rows_carry_times_instructor_and_waitlist(self):
         body = self.client.get("/api/catalog/CS 2100").json()

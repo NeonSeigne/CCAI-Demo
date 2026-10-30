@@ -341,6 +341,9 @@ def _grade_figure(summary: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]
         "pct_a": pct(_A_BUCKETS),
         "pct_df": pct(_DF_BUCKETS),
         "distribution": distribution,
+        # The school's own buckets, best grade first (UW a..f, UVA A+..C- then
+        # DFW); the frontend groups them per school (eng review R11).
+        "buckets": [{"key": key, "label": key.upper()} for key in distribution],
     }
 
 
