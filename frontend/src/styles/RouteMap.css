@@ -254,7 +254,15 @@
 .rt-line-card { padding: 14px 0; border-top: 1px solid var(--rule); }
 .rt-line-card:first-child { border-top: 0; }
 .rt-line-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; font-weight: 700; }
-.rt-line-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.rt-line-head h3 {
+  margin: 0;
+  /* A line's name is body text (transit-b.html .ln .name), not a display heading. */
+  font-family: var(--font-app);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: inherit;
+}
 .rt-line-head span { color: var(--muted); font-weight: 500; }
 .rt-line-card p { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
 

@@ -10,7 +10,9 @@
 
 /* Browse and Compare: the system's main padding (.main). */
 .cc-browse-page .cc-page-main,
-.cc-compare .cc-page-main { padding: 28px 36px 40px; }
+.cc-compare .cc-page-main,
+.cc-courses.is-degree .cc-page-main,
+.cc-courses.is-semester .cc-page-main { padding: 28px 36px 40px; }
 
 .cc-page {
   max-width: 1128px;
@@ -674,14 +676,18 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 @media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
   .cc-browse-page .cc-page-main,
-  .cc-compare .cc-page-main { padding: 24px 20px 40px; }
+  .cc-compare .cc-page-main,
+  .cc-courses.is-degree .cc-page-main,
+  .cc-courses.is-semester .cc-page-main { padding: 24px 20px 40px; }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
 @media (max-width: 700px) {
   .cc-page-main { padding: 20px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-browse-page .cc-page-main,
-  .cc-compare .cc-page-main { padding: 18px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
+  .cc-compare .cc-page-main,
+  .cc-courses.is-degree .cc-page-main,
+  .cc-courses.is-semester .cc-page-main { padding: 18px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-page { gap: 16px; }
   .cc-page-head h1 { font-size: 23px; }
   .cc-page-head .cc-tabs { width: 100%; }
