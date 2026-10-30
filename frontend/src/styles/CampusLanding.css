@@ -1,6 +1,6 @@
-/* Signed-out landing page, in the home page's Campus Companion style.
-   Brand mark, kicker and domain dots come from CampusRail.css and CampusHome.css. */
-.campus-landing {
+/* Signed-out landing (landing.html, design Q12): the first viewport in the
+   school's deep colour, then the questions students ask. Roles only. */
+.cl-landing {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -9,174 +9,147 @@
   font-family: var(--font-app);
 }
 
-.campus-landing :focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+.cl-landing :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+.cl-hero :focus-visible { outline: 2px solid var(--on-deep); outline-offset: 2px; }
+
+.cl-landing main { flex: 1; }
+
+.cl-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  overflow: hidden;
+  background: var(--deep);
+  color: var(--on-deep);
 }
 
-.landing-bar {
+.cl-bar {
+  position: relative;
+  z-index: 2;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 32px;
-}
-
-.landing-bar-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.landing-soft-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.landing-soft-btn:hover:not(:disabled) { background: var(--raised); }
-.landing-soft-btn:disabled { opacity: 0.6; cursor: default; }
-
-.landing-error {
-  margin: 0 32px;
-  font-size: 13px;
-  color: var(--error);
-  text-align: right;
-}
-
-.landing-main {
-  flex: 1;
-  width: 100%;
-  max-width: 860px;
-  box-sizing: border-box;
-  margin: 0 auto;
-  padding: clamp(32px, 9vh, 96px) 24px 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 56px;
-}
-
-.landing-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.landing-hero h1 {
-  margin: 0;
-  max-width: 16ch;
-  font-size: clamp(34px, 5.4vw, 56px);
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-}
-
-.landing-cta {
-  margin-top: 8px;
-  display: inline-flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 10px;
-  min-height: 50px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--surface);
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 22px 32px;
 }
 
-.landing-cta:hover { background: color-mix(in srgb, var(--ink) 85%, var(--surface)); }
+.cl-dev.cc-btn {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--on-deep) 28%, transparent);
+  color: var(--on-deep);
+}
 
-.landing-asks {
+.cl-dev.cc-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--on-deep) 10%, transparent); }
+
+.cl-error {
+  position: relative;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.landing-asks h2 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.landing-domains,
-.landing-prompts {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.landing-domains {
-  border-radius: 18px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-
-.landing-domain {
-  display: grid;
-  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
-  gap: 8px 24px;
-  padding: 18px 20px;
-}
-
-.landing-domain + .landing-domain { border-top: 1px solid var(--line); }
-
-.landing-domain-head {
-  display: grid;
-  grid-template-columns: 8px 1fr;
-  align-content: start;
   align-items: center;
-  gap: 2px 10px;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 32px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-deep);
 }
 
-.landing-domain-head strong { font-size: 15px; }
-
-.landing-domain-head > span:last-child {
-  grid-column: 2;
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--muted);
+.cl-lines {
+  position: absolute;
+  right: -40px;
+  bottom: -20px;
+  z-index: 0;
+  width: 52%;
+  max-width: 860px;
+  height: 80%;
 }
 
-.landing-prompts {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 15px;
-  line-height: 1.45;
+.cl-lines path { fill: none; stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; }
+.cl-lines .l1 { stroke: var(--line-1); }
+.cl-lines .l2 { stroke: var(--line-2); }
+.cl-lines .l3 { stroke: var(--line-3); }
+.cl-lines circle { fill: var(--deep); stroke: var(--on-deep); stroke-width: 5; }
+.cl-lines circle.now { fill: var(--signal); }
+
+.cl-copy {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  max-width: 780px;
+  padding: 0 0 12vh 9vw;
 }
 
-.landing-foot {
-  padding: 20px 32px 28px;
-  font-size: 12px;
-  color: var(--muted);
+.cl-lock { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.cl-mark.campus-brand-mark { width: 60px; height: 60px; font-size: 15px; }
+.cl-lock b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.cl-lock b + span { color: var(--on-deep-soft); font-size: 15px; font-weight: 600; }
+
+.cl-copy h1 {
+  max-width: 18ch;
+  margin: 0 0 32px;
+  font-size: 34px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
-.landing-foot p { margin: 0; }
-.landing-foot a { color: inherit; }
-.landing-foot a.footer-neon-link { display: inline-flex; align-items: center; gap: 4px; }
-.landing-foot .footer-neon-logo { display: inline-block; width: auto; height: 12px; margin: 0; }
+.cl-cta.cc-btn { min-height: 52px; padding: 0 24px; font-size: 16px; font-weight: 700; }
+
+/* The one entrance motion; instant under reduced motion (Q12). */
+.cl-rise { animation: cl-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes cl-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cl-rise { animation: none; }
+}
+
+.cl-asks { max-width: 1040px; margin: 0 auto; padding: 48px 32px 24px; box-sizing: border-box; }
+.cl-asks h2 { margin: 0 0 14px 4px; font-size: 16px; }
+
+.cl-questions { margin: 0; padding: 0; list-style: none; }
+
+.cl-q {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 13px 22px;
+  border-top: 1px solid var(--rule);
+}
+
+.cl-q:first-child { border-top: 0; }
+.cl-domain { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--muted); }
+.cl-q.is-cont .cl-domain { visibility: hidden; }
+.cl-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; }
+
+.cl-foot { padding: 18px 16px 32px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; }
+.cl-foot p { margin: 0; }
+.cl-foot a { color: inherit; }
+.cl-foot a.footer-neon-link { display: inline-flex; align-items: center; gap: 4px; }
+.cl-foot .footer-neon-logo { display: inline-block; width: auto; height: 12px; margin: 0; }
 
 @media (max-width: 700px) {
-  .landing-bar { padding: 14px 16px; }
-  .landing-bar .campus-brand-name { display: none; }
-  .landing-error { margin: 0 16px; }
-  .landing-main { padding: 28px 16px 48px; gap: 40px; }
-  .landing-domain { grid-template-columns: 1fr; padding: 16px; }
-  .landing-foot { padding: 16px; }
+  .cl-bar { padding: 14px 16px; }
+  .cl-toggle.cc-theme-toggle { width: 102px; height: 32px; }
+  .cl-error { margin: 0 16px; }
+  .cl-copy { align-self: end; padding: 0 20px 34vh; }
+  .cl-lock { margin-bottom: 28px; }
+  .cl-mark.campus-brand-mark { width: 52px; height: 52px; font-size: 13px; }
+  .cl-lock b { font-size: 18px; }
+  .cl-copy h1 { margin-bottom: 24px; font-size: 26px; }
+  .cl-cta.cc-btn { width: 100%; }
+  .cl-lines { right: -30%; bottom: -10px; width: 150%; height: 34%; }
+  .cl-asks { padding: 32px 16px 16px; }
+  .cl-q { grid-template-columns: 1fr; gap: 2px; padding: 12px 16px; }
+  .cl-q.is-cont .cl-domain { display: none; }
 }

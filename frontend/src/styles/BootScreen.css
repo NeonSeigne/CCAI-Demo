@@ -20,7 +20,8 @@
 .bt-tabbar { display: none; }
 
 .bt-page { min-width: 0; }
-.cc-shell-page > .bt-page { padding: 28px 36px 40px; }
+.bt-page { padding: 28px 36px 40px; }
+.bt-main > .bt-page { padding: 0; }
 
 .bt-sk { display: block; background: var(--raised); border-radius: var(--r-sm); }
 .bt-home { max-width: 1040px; margin: 0 auto; padding-top: 36px; }
@@ -81,7 +82,8 @@
   .bt-frame { flex-direction: column; }
   .bt-phone-header.campus-phone-header { display: flex; }
   .bt-main { padding: 18px 16px 96px; }
-  .cc-shell-page > .bt-page { padding: 18px 16px 96px; }
+  .bt-page { padding: 18px 16px 96px; }
+  .bt-main > .bt-page { padding: 0; }
   .bt-home { padding-top: 6px; }
   .bt-l2 { height: 26px; }
   .bt-bento { grid-template-columns: 1fr; margin-top: 20px; }

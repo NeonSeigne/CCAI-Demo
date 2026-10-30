@@ -87,16 +87,16 @@
 .st-status.is-good .ms { color: var(--good); }
 
 /* The theme toggle on paper (settings.html .tt.on-paper). */
-.cc-theme-toggle.st-toggle {
+.st-toggle.cc-theme-toggle {
   width: 180px;
   height: 40px;
   background: var(--raised);
 }
 
-.cc-theme-toggle.st-toggle button { color: var(--muted); font-size: 13px; }
-.cc-theme-toggle.st-toggle button .ms { font-size: 19px !important; }
-.cc-theme-toggle.st-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
-.cc-theme-toggle.st-toggle button:hover:not([aria-pressed="true"]) { color: var(--ink); }
+.st-toggle.cc-theme-toggle button { color: var(--muted); font-size: 13px; }
+.st-toggle.cc-theme-toggle button .ms { font-size: 19px !important; }
+.st-toggle.cc-theme-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
+.st-toggle.cc-theme-toggle button:hover:not([aria-pressed="true"]) { color: var(--ink); }
 
 @media (max-width: 700px) {
   .st-main.campus-main { padding: 18px 16px 48px; }

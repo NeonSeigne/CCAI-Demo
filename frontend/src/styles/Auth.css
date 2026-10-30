@@ -1,0 +1,169 @@
+/* Sign in and Create account (sign-in.html): one card in the school frame.
+   Prefix au-. Roles only. */
+.au-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--deep);
+  color: var(--ink);
+  font-family: var(--font-app);
+}
+
+.au-page :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+.au-bar :focus-visible { outline-color: var(--on-deep); }
+
+.au-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px;
+  color: var(--on-deep);
+}
+
+.au-mark.campus-brand-mark { width: 40px; height: 40px; font-size: 11px; }
+.au-brand { display: flex; flex-direction: column; min-width: 0; }
+.au-brand b { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.au-brand span { font-size: 13px; font-weight: 600; color: var(--on-deep-soft); }
+.au-toggle.cc-theme-toggle { margin-left: auto; }
+
+.au-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 440px);
+  justify-content: center;
+  padding: 24px 16px 20px;
+}
+
+.au-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 24px 28px 26px;
+  border-radius: var(--r-2xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+
+.au-switch.cc-segmented { display: flex; margin-bottom: 22px; }
+.au-switch.cc-segmented > button { flex: 1; justify-content: center; min-height: 36px; }
+
+.au-field { display: grid; gap: 6px; margin-bottom: 14px; min-width: 0; }
+.au-field > label,
+.au-label { font-size: 13px; font-weight: 700; }
+.au-field > label small { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+.au-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+
+.au-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.au-input > .ms { color: var(--muted); flex: none; }
+.au-input:focus-within { border-color: transparent; box-shadow: 0 0 0 2px var(--ink); }
+.au-input.is-error { border-color: var(--error); }
+
+.au-input input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 8px 0 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 15px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+.au-input input::placeholder { color: var(--faint); }
+.au-input input:focus { outline: none; }
+.au-input input:focus-visible { outline: none; }
+
+/* 34px eye inside the field, with a 44px hit area (design Q19). */
+.au-reveal {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.au-reveal::after { content: ""; position: absolute; inset: -5px; }
+.au-reveal:hover:not(:disabled) { background: var(--raised); }
+
+.au-error,
+.au-submit-error { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.au-error .ms,
+.au-submit-error .ms { color: var(--error); flex: none; }
+.au-submit-error { margin: 0 0 12px; font-size: 14px; }
+
+.au-forgot { display: flex; justify-content: flex-end; margin: -6px 0 10px; }
+.au-forgot .cc-btn { min-height: 34px; padding: 0 10px; font-size: 13.5px; color: var(--muted); }
+
+.au-wide.cc-btn { width: 100%; min-height: 48px; font-size: 15.5px; }
+.au-google { width: 18px; height: 18px; flex: none; }
+
+.au-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.au-or::before,
+.au-or::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+.au-social { display: grid; gap: 8px; }
+
+.au-chips { display: flex; gap: 8px; }
+.au-chips .cc-chip { flex: 1; min-width: 0; justify-content: center; padding: 0 8px; }
+
+.au-terms { margin: 4px 0 16px; color: var(--muted); font-size: 13px; font-weight: 600; }
+
+.au-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.au-foot { padding: 8px 16px 28px; text-align: center; color: var(--on-deep-soft); font-size: 13px; font-weight: 600; }
+.au-foot p { margin: 0; }
+.au-foot a { color: inherit; }
+.au-foot :focus-visible { outline-color: var(--on-deep); }
+.au-foot a.footer-neon-link { display: inline-flex; align-items: center; gap: 4px; }
+.au-foot .footer-neon-logo { display: inline-block; width: auto; height: 12px; margin: 0; }
+
+@media (max-width: 700px) {
+  .au-bar { padding: 12px 16px; }
+  .au-mark.campus-brand-mark { width: 34px; height: 34px; font-size: 9.5px; }
+  .au-brand span { display: none; }
+  .au-toggle.cc-theme-toggle { width: 102px; height: 32px; }
+  .au-wrap { padding: 10px 12px 16px; }
+  .au-card { padding: 18px 18px 22px; }
+  .au-pair { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
