@@ -10,7 +10,8 @@ import { uploadTranscript } from '../../../api/planner';
 import { useAuth } from '../../../contexts/AuthContext';
 import { GRADES, normalizeCourseId } from '../completedCourses';
 import { checklistCourses } from '../checklist';
-import DegreeSummary from './DegreeSummary';
+import { Icon } from '../../icons';
+import { groupTone, openRequirements, waffleModel } from './degreeFormat';
 import { SheetBand } from '../../../modules/sheet';
 
 const SEARCH_LIMIT = 8;
@@ -47,6 +48,42 @@ export function programGroups(programs) {
   ].filter((group) => group.programs.length);
 }
 
+/**
+ * First term's compact preview (first-run B, b3-first-term): a small credit
+ * grid with the credits done in their requirement colours, "Credits done",
+ * "Open requirements", and a chip per requirement, met ones struck through.
+ */
+export function FirstTermPreview({ waffle, toneOf }) {
+  const { groups, totals } = waffleModel(waffle, toneOf);
+  const done = groups.flatMap((g) => Array(g.earned).fill(g.tone));
+  const size = Math.max(50, Math.ceil((done.length + 1) / 10) * 10);
+  const rules = groups.filter((g) => g.rule_id);
+  return (
+    <div className="su-preview">
+      <div className="su-grid" aria-hidden="true">
+        {Array.from({ length: size }, (_, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <i key={i} className={done[i] ? `is-done tone-${done[i]}` : ''} />
+        ))}
+      </div>
+      <div>
+        <div className="su-figures">
+          <div><b>{totals.earned}</b><span>Credits done</span></div>
+          <div><b>{openRequirements(waffle)}</b><span>Open requirements</span></div>
+        </div>
+        <ul className="su-open" aria-label="Requirements">
+          {rules.map((g) => (
+            <li key={g.rule_id} className={`tone-${g.tone} ${g.status === 'met' ? 'is-met' : ''}`.trim()}>
+              <i aria-hidden="true" />
+              {g.status === 'met' ? <s>{g.title}</s> : g.title}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 /** A completed entry as `set_profile` takes it; credits only when the transcript gave them (R10). */
 const entryOf = (row) => {
   const entry = { id: row.id, grade: row.grade ?? null, term: row.term ?? null };
@@ -64,7 +101,7 @@ const sameEntry = (a, b) => (a.grade ?? null) === (b.grade ?? null)
  * the queued edit lands (R12). Opened at any step from the board.
  */
 export default function SetupDialog({
-  open, step: initialStep = 0, onClose, planner, degree, terms = [], titles = {},
+  open, step: initialStep = 0, onClose, planner, degree, terms = [], titles = {}, ruleTones = {},
 }) {
   const container = usePageColumn();
   const { authToken } = useAuth();
@@ -82,6 +119,7 @@ export default function SetupDialog({
   const [names, setNames] = useState({});
   const [found, setFound] = useState({});
   const [upload, setUpload] = useState({ status: 'idle', name: null, count: 0 });
+  const [dragOver, setDragOver] = useState(false);
   const [query, setQuery] = useState('');
   const debounced = useDebounced(query.trim());
   const [results, setResults] = useState({ status: 'idle', courses: [] });
@@ -154,6 +192,13 @@ export default function SetupDialog({
   ])];
   const titleOf = (id) => names[id] || titles[id] || null;
   const foundCount = foundIds.length;
+  const tickedCredits = [...rows.values()].reduce((sum, row) => {
+    const value = typeof row.credits === 'number' ? row.credits : found[row.id]?.credits;
+    return sum + (typeof value === 'number' ? value : 0);
+  }, 0);
+  // One colour per requirement (Phase 8.5): a rule's route-line colour, else the course colours.
+  const toneOf = (group, index) => (group?.rule_id && ruleTones[`${group.program_id}:${group.rule_id}`])
+    || groupTone(group, index);
 
   /** A row as it was saved, else as the transcript read it, so re-ticking restores it. */
   const restoredRow = (id) => saved.get(id) || entryOf({ id, ...(found[id] || {}) });
@@ -352,7 +397,7 @@ export default function SetupDialog({
           </header>
           <ul>
             {(program.rules || []).map((rule, index) => (
-              <li key={rule.id || rule.title} className={`tone-c${(index % 6) + 1}`}>
+              <li key={rule.id || rule.title} className={`tone-${ruleTones[`${program.id}:${rule.id}`] || `c${(index % 6) + 1}`}`}>
                 <i className="su-dot" aria-hidden="true" />
                 {rule.title}
               </li>
@@ -407,7 +452,18 @@ export default function SetupDialog({
     </div>,
 
     <div key="completed" className="su-completed">
-      <div className="su-upload">
+      {/* The dashed drop zone (first-run B): drop a file or choose one. */}
+      <div
+        className={`su-drop ${dragOver ? 'is-over' : ''}`.trim()}
+        onDragOver={(event) => { event.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragOver(false);
+          readTranscript(event.dataTransfer?.files?.[0]);
+        }}
+      >
+        <Icon name="upload" size={30} className="su-drop-glyph" />
         <input
           ref={fileInput}
           type="file"
@@ -418,7 +474,7 @@ export default function SetupDialog({
         />
         <button
           type="button"
-          className="cc-btn cc-btn-primary"
+          className="dg-btn is-primary su-upload-btn"
           disabled={upload.status === 'loading'}
           onClick={() => fileInput.current?.click()}
         >
@@ -426,83 +482,97 @@ export default function SetupDialog({
         </button>
         <span className="su-soft">PDF · DOCX · TXT</span>
         {upload.name && upload.status !== 'error' && (
-          <span className="su-file" aria-busy={upload.status === 'loading'}>{upload.name}</span>
+          <span className="su-file" aria-busy={upload.status === 'loading'}>
+            {upload.status === 'done' && <Icon name="check" size={18} className="su-file-ok" />}
+            {upload.name}
+          </span>
         )}
         {upload.status === 'error' && <InlineError message="Couldn't read this file" />}
       </div>
 
-      <div className="dg-editor-search">
-        <label htmlFor="su-search" className="sr-only">Search courses</label>
-        <input
-          id="su-search"
-          type="search"
-          value={query}
-          autoComplete="off"
-          placeholder="Course code or title"
-          onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              addFromSearch();
-            }
-          }}
-        />
-        {results.status === 'ready' && results.courses.length > 0 && (
-          <ul className="dg-editor-results" aria-label="Search results">
-            {results.courses.map((course) => (
-              <li key={course.identifier}>
-                <span>
-                  <span className="cc-code">{course.identifier}</span>
-                  {course.title && <span className="dg-editor-title"> {course.title}</span>}
-                </span>
-                <button
-                  type="button"
-                  className="cc-btn"
-                  aria-label={`Add ${course.identifier}`}
-                  disabled={rows.has(course.identifier)}
-                  onClick={() => add(course.identifier, course.title)}
-                >
-                  Add
-                </button>
-              </li>
-            ))}
-          </ul>
+      <div className="su-found-panel">
+        {foundCount > 0 && (
+          <div className="su-found-head">
+            <b>{`Found ${foundCount}`}</b>
+            <span className="su-soft">{`${tickedCredits} cr`}</span>
+          </div>
         )}
-        {results.status === 'error' && <InlineError message="Couldn't load" />}
+        <ul className="dg-editor-list" aria-label="Courses">
+          {courses.map((id) => {
+            const row = rows.get(id);
+            const title = titleOf(id);
+            const meta = found[id];
+            const flag = meta && (meta.in_catalog === false ? 'Not in catalog' : meta.checked === false ? 'Not checked' : null);
+            const credits = typeof row?.credits === 'number' ? row.credits : meta?.credits;
+            const options = row?.grade && !GRADES.includes(row.grade) ? [row.grade, ...GRADES] : GRADES;
+            return (
+              <li key={id} className={`su-row ${flag ? 'is-flagged' : ''}`.trim()}>
+                <input
+                  id={`su-tick-${id}`}
+                  type="checkbox"
+                  checked={Boolean(row)}
+                  onChange={() => toggle(id)}
+                />
+                <label htmlFor={`su-tick-${id}`} className="su-code">{id}</label>
+                {flag
+                  ? <span className="su-row-title su-flag">{flag}</span>
+                  : <span className="su-row-title">{title}</span>}
+                {row ? (
+                  <select
+                    className="su-grade"
+                    aria-label={`Grade for ${id}`}
+                    value={row.grade || ''}
+                    onChange={(event) => setGrade(id, event.target.value)}
+                  >
+                    <option value="">—</option>
+                    {options.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
+                  </select>
+                ) : <span className="su-grade">{meta?.grade || '—'}</span>}
+                <span className="su-credits">{credits != null ? credits : '—'}</span>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="su-add">
+          <label htmlFor="su-search" className="sr-only">Search courses</label>
+          <input
+            id="su-search"
+            type="search"
+            value={query}
+            autoComplete="off"
+            placeholder="Course code"
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                addFromSearch();
+              }
+            }}
+          />
+          {results.status === 'ready' && results.courses.length > 0 && (
+            <ul className="dg-editor-results" aria-label="Search results">
+              {results.courses.map((course) => (
+                <li key={course.identifier}>
+                  <span>
+                    <span className="su-code">{course.identifier}</span>
+                    {course.title && <span className="dg-editor-title"> {course.title}</span>}
+                  </span>
+                  <button
+                    type="button"
+                    className="dg-btn"
+                    aria-label={`Add ${course.identifier}`}
+                    disabled={rows.has(course.identifier)}
+                    onClick={() => add(course.identifier, course.title)}
+                  >
+                    Add
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {results.status === 'error' && <InlineError message="Couldn't load" />}
+        </div>
       </div>
-
-      {foundCount > 0 && <p className="su-found">Found {foundCount}</p>}
-      <ul className="dg-editor-list" aria-label="Courses">
-        {courses.map((id) => {
-          const row = rows.get(id);
-          const title = titleOf(id);
-          const meta = found[id];
-          const flag = meta && (meta.in_catalog === false ? 'Not in catalog' : meta.checked === false ? 'Not checked' : null);
-          const credits = typeof row?.credits === 'number' ? row.credits : meta?.credits;
-          const options = row?.grade && !GRADES.includes(row.grade) ? [row.grade, ...GRADES] : GRADES;
-          return (
-            <li key={id} className={`dg-editor-row ${flag ? 'is-flagged' : ''}`.trim()}>
-              <label className="dg-editor-check">
-                <input type="checkbox" checked={Boolean(row)} onChange={() => toggle(id)} />
-                <span className="cc-code">{id}</span>
-                {title && <span className="dg-editor-title">{title}</span>}
-                {flag && <span className="su-flag">{flag}</span>}
-              </label>
-              {credits != null && <span className="su-credits">{credits} cr</span>}
-              {row && (
-                <select
-                  aria-label={`Grade for ${id}`}
-                  value={row.grade || ''}
-                  onChange={(event) => setGrade(id, event.target.value)}
-                >
-                  <option value="">Grade</option>
-                  {options.map((grade) => <option key={grade} value={grade}>{grade}</option>)}
-                </select>
-              )}
-            </li>
-          );
-        })}
-      </ul>
     </div>,
 
     <div key="term" className="su-term">
@@ -520,9 +590,7 @@ export default function SetupDialog({
           </button>
         ))}
       </div>
-      {degree?.waffle?.groups?.length > 0 && (
-        <DegreeSummary name={program?.name || null} waffle={degree.waffle} />
-      )}
+      {degree?.waffle?.groups?.length > 0 && <FirstTermPreview waffle={degree.waffle} toneOf={toneOf} />}
     </div>,
   ];
 
@@ -537,12 +605,21 @@ export default function SetupDialog({
         aria-labelledby="su-title"
         fullWidth
         maxWidth="md"
-        slotProps={{ paper: { className: 'su-dialog' } }}
+        slotProps={{ paper: { className: `su-dialog ${step === 0 ? 'is-program' : ''}`.trim() } }}
       >
         <SheetBand
           className="su-band"
           eyebrow={(
-            <ol className="su-steps">
+            <>
+              <div className="su-progress">
+                <span>{`${step + 1} of ${STEPS.length}`}</span>
+                <span className="su-bar" aria-hidden="true">
+                  {STEPS.map((name, index) => (
+                    <i key={name} className={index < step ? 'is-done' : index === step ? 'is-on' : ''} />
+                  ))}
+                </span>
+              </div>
+              <ol className="su-steps">
               {STEPS.map((name, index) => {
                 let state = '';
                 if (index === step) state = 'is-on';
@@ -553,8 +630,9 @@ export default function SetupDialog({
                     {name}
                   </li>
                 );
-              })}
-            </ol>
+                })}
+              </ol>
+            </>
           )}
           title={STEPS[step]}
           titleId="su-title"

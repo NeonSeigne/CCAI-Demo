@@ -650,6 +650,37 @@ describe('Setup: Completed step', () => {
     expect(planner.edit).not.toHaveBeenCalled();
   });
 
+  test('first-run B layout: drop zone with the file chip, "Found N" with credits, plain grades, Course code at the foot', async () => {
+    uploadTranscript.mockResolvedValue({
+      rows: [
+        { id: 'STAT 2120', title: 'Intro Statistics', grade: 'B', credits: 4, ticked: true, checked: true, in_catalog: true },
+        { id: 'AP MATH', title: null, grade: null, credits: null, ticked: false, checked: true, in_catalog: false },
+      ],
+    });
+    renderBoard();
+    const dialog = await openEditor();
+    fireEvent.change(within(dialog).getByLabelText('Transcript file'), {
+      target: { files: [new File(['x'], 'transcript-fall-2026.pdf', { type: 'application/pdf' })] },
+    });
+    expect(await within(dialog).findByText('Found 2')).toBeInTheDocument();
+    expect(within(dialog).getByText('transcript-fall-2026.pdf')).toBeInTheDocument();
+    // Only rows with credits on record count: STAT 2120 from the transcript.
+    expect(within(dialog).getByText('4 cr')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Grade for STAT 2120')).toHaveValue('B');
+    expect(within(dialog).getByLabelText('Grade for ECON 2020')).toHaveDisplayValue('—');
+    const search = within(dialog).getByPlaceholderText('Course code');
+    expect(search.closest('.su-add').previousElementSibling).toHaveClass('dg-editor-list');
+  });
+
+  test('a dropped file is read like a chosen one', async () => {
+    uploadTranscript.mockResolvedValue({ rows: [] });
+    renderBoard();
+    const dialog = await openEditor();
+    const file = new File(['x'], 'scan.pdf', { type: 'application/pdf' });
+    fireEvent.drop(dialog.querySelector('.su-drop'), { dataTransfer: { files: [file] } });
+    await waitFor(() => expect(uploadTranscript).toHaveBeenCalledWith('token', file));
+  });
+
   test('an unreadable transcript says so and keeps the list', async () => {
     uploadTranscript.mockRejectedValue(Object.assign(new Error('422'), { status: 422 }));
     renderBoard();
@@ -704,6 +735,13 @@ describe('Setup dialog', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Skip' }));
     dialog = await screen.findByRole('dialog', { name: 'First term' });
     expect(within(dialog).getByRole('radio', { name: 'Spring 2027' })).toBeChecked();
+    // The compact preview: credits done, open requirements, met chips struck through.
+    expect(within(dialog).getByText('Credits done').previousElementSibling).toHaveTextContent('6');
+    expect(within(dialog).getByText('Open requirements').previousElementSibling).toHaveTextContent('1');
+    const chips = within(dialog).getByRole('list', { name: 'Requirements' });
+    expect(within(chips).getByText('Introductory').tagName).toBe('S');
+    expect(within(chips).getByText('Core theory').tagName).not.toBe('S');
+    expect(within(dialog).getByText('3 of 3')).toBeInTheDocument();
     // The board's trailing empty term isn't one set_term accepts.
     expect(within(dialog).queryByRole('radio', { name: 'Spring 2028' })).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('radio', { name: 'Fall 2027' }));
