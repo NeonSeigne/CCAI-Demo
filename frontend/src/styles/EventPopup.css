@@ -3,11 +3,6 @@
    (modules/sheet/BandSheet.css); the rules here bring them to the event
    detail mockup. */
 
-/* The mockup's dialog is 760px. */
-@media (min-width: 701px) {
-  .pop-dialog-paper:has(> .ep) { width: min(760px, calc(100vw - 32px)); }
-}
-
 .ep-date {
   display: inline-flex;
   flex-direction: column;
