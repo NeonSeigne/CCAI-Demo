@@ -179,7 +179,7 @@ adds no credits there, so the earned sum is the distinct earned credits.
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
 | POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
 | POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
-| GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
+| GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits, gpa, difficulty, fit, fit_reason, section, clashes_with}]}` (fit: see "Suggestion schedule fit") |
 | POST | `/api/planner/transcript` | multipart `file` (PDF, DOCX or TXT; 10 MB; PDF 40 pages) | `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}], counts: {rows, ticked, not_checked, not_in_catalog}}`; nothing stored, logs carry counts only; 413 `too_large`, 415 `unsupported_type`, 422 `no_file` / `too_many_pages` / `unreadable` (`planner/transcript.py`) |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
@@ -330,3 +330,29 @@ rows for the term, but FOSE names instructors by initial or last name only
 ("K. Nielsen", "Shandilya/Hoenigman"), which never match a full RMP name, so
 CU is in practice null; UW from Course Map's own ratings of the course's
 instructors (Course Map doesn't say who teaches which term, so `term` is null).
+
+## Suggestion schedule fit (eng review R9, `planner/suggest.schedule_fit`)
+
+Each suggestion item (`/api/planner/suggestions`, `plan_suggest`, the
+`course_shortlist` visual) also carries:
+
+```
+"gpa": n|null,                                   # the course's average GPA (facts.avg_gpa)
+"difficulty": "easier"|"typical"|"harder"|null,  # same rule as the catalog summary (R5)
+"fit": "fits"|"clashes"|"unknown",
+"fit_reason": str|null,                          # unknown: the checker's reason, e.g. "class times not published"
+"section": {"ids": [section ids],                # the chosen bundle, ready for pick_section
+            "meetings": [{"section", "kind", "day", "start", "end"}]}|null,
+"clashes_with": [course ids],                    # fit == "clashes": the plan courses its sections hit
+```
+
+The candidate's sections are tried in order (lectures first; for a bundled
+course, one of each required companion kind, the first that clashes with
+nothing), each through `checker.check_schedule` with the plan's courses in
+the term. `fits`: a bundle clashes with nothing and every course could be
+checked. `clashes`: every bundle clashes (`section` null). `unknown`: the
+candidate publishes no times (UW Course Map: always), a companion has no
+times, or another course in the term can't be checked (e.g. "sections not
+chosen"); `section` is then the first bundle with no clash found, or null.
+Items rank offered, then prerequisites met, then fits / unknown / clashes.
+The `course_shortlist` visual passes all of these fields through.

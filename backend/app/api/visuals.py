@@ -191,7 +191,11 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 _PROPOSAL_KEYS = ("id", "status", "summary", "ops", "diff", "term", "base_revision", "created_at", "expires_at")
-_SHORTLIST_KEYS = ("option_id", "id", "title", "why", "labels", "prereqs", "credits")
+_SHORTLIST_KEYS = (
+    "option_id", "id", "title", "why", "labels", "prereqs", "credits",
+    # Schedule fit (eng review R9): the first clash-free section, its times and the course GPA.
+    "gpa", "difficulty", "fit", "fit_reason", "section", "clashes_with",
+)
 
 
 def _proposal_specs(result: Dict[str, Any]) -> List[VisualSpec]:
