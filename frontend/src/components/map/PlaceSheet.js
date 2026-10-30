@@ -1,36 +1,32 @@
-import React, {
-  useEffect, useMemo, useRef, useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Accessibility, Bookmark, ChevronRight, Footprints, Globe, Icon, MapPin, MessageSquare, Phone,
-} from '../icons';
+import { Icon } from '../icons';
 import SaveButton from '../SaveButton';
-import { usePopupDrag } from '../popup/PopupParts';
+import PanelState from '../panel/PanelState';
 import { BandSheet, SheetActions, SheetBand } from '../../modules/sheet';
 import { useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
 import {
-  clockTime, distanceText, openState, walkParts, weekHours,
+  clockTime, endLine, hourText, walkParts, weekHours,
 } from '../../modules/campus';
 import '../../styles/PlaceSheet.css';
 
 /**
- * The map's place card (DESIGN.md "Map"): a band with the category, name and
- * tiles for Walk / Open / Floors / Access; then the photo with its Commons
- * credit, today's events here, weekly hours with today marked, address and
- * website; then Directions / Save / Ask / Call. Anything the place lacks is
- * not rendered, so a sparse place gets a short card (D21). The frame is the
- * band sheet's card layout (modules/sheet), with the compact band.
+ * The map's place card (DESIGN.md "Map", map.html): a band with the place's
+ * type and name and tiles for Walk / Open until / Floors / Access; then
+ * "Today here" and the week's hours with today marked; then Directions, Ask
+ * and the bookmark. A tile or label the place lacks is left out (design Q5),
+ * so a sparse place gets a short card. The frame is the band sheet's card
+ * layout (modules/sheet), with the compact band.
  *
  * Props
  *   placeId, place        the id to load; `place` (a list row) shows while it loads
  *   from                  start place id, for walking minutes
  *   timezone, now         the school's zone; a fixed clock for tests
- *   onClose()             the back control; hidden without it
+ *   onClose()             the close control; hidden without it
  *   onDirections(place)   Directions; without it, a link to /map?to=ID
  *   onAsk(item)           Ask; hidden without it
  *   onSave(item), saved   optional; without onSave the shared SaveButton is used
- *   onOpenEvent(event)    a row in Today
+ *   onOpenEvent(event)    a row in Today here
  *   titleId               id for the name, for aria-labelledby
  *   autoFocus             move focus to the name when the sheet opens
  */
@@ -49,78 +45,54 @@ export const CATEGORY_ICONS = {
   other: 'location_on',
 };
 
-const CATEGORY_LABELS = {
-  library: 'Library',
-  dining: 'Dining',
-  academic: 'Academic',
-  housing: 'Housing',
-  recreation: 'Recreation',
-  transit: 'Bus stop',
-  health: 'Health',
-  arts: 'Arts',
-  landmark: 'Landmark',
-  other: 'Place',
+/** OSM `wheelchair` (older place rows) -> the card's access value. */
+const WHEELCHAIR = { yes: 'yes', designated: 'yes', limited: 'limited', no: 'no' };
+
+const ACCESS = {
+  yes: { icon: 'accessible', label: 'Wheelchair accessible' },
+  limited: { icon: 'accessible', label: 'Limited wheelchair access', word: 'Limited' },
+  no: { icon: 'not_accessible', label: 'Not wheelchair accessible' },
 };
 
-/** "11:00 pm": the place card's lower-case clock. */
-const timeIn = (iso, timezone) => clockTime(iso, timezone)?.toLowerCase() || null;
-
-function Photo({ photo }) {
-  const [ok, setOk] = useState(true);
-  useEffect(() => { setOk(true); }, [photo?.url]);
-  if (!photo?.url || !ok) return null;
-  const credit = ['Photo:', [photo.author, photo.license].filter(Boolean).join(' · ')].join(' ');
-  return (
-    <figure className="ps-photo">
-      <img src={photo.url} alt="" onError={() => setOk(false)} />
-      {(photo.author || photo.license) && (
-        <figcaption className="ps-credit">
-          {photo.page
-            ? <a href={photo.page} target="_blank" rel="noopener noreferrer">{credit}</a>
-            : credit}
-        </figcaption>
-      )}
-    </figure>
-  );
+/** The place's floors: the card field, else OSM `building_levels`; null when unknown. */
+function floorsOf(place) {
+  const levels = Number.parseInt(place.floors ?? place.building_levels, 10);
+  return Number.isFinite(levels) && levels > 0 ? levels : null;
 }
 
-/** The band's tiles: Walk, Open, Floors, Access; one the place lacks is left out. */
+/** 'yes' | 'limited' | 'no' | null. */
+function accessOf(place) {
+  if (ACCESS[place.access]) return place.access;
+  return WHEELCHAIR[String(place.wheelchair || '').toLowerCase()] || null;
+}
+
+/**
+ * The band's tiles in order Walk, Open until, Floors, Access; a tile the
+ * place has no data for is left out (design Q5).
+ */
 export function placeTiles(place, timezone) {
   const tiles = [];
   const walk = walkParts(place.walk_minutes);
   if (walk) {
     tiles.push({
-      key: 'walk', label: 'Walk', value: walk.value, unit: walk.unit || null, sub: distanceText(place.distance_m) || null,
+      key: 'walk', className: 'ps-tile--walk', label: 'Walk', value: walk.value, unit: walk.unit || null,
     });
   }
-  const open = openState(place, timezone);
-  if (open.open !== null) {
-    const until = open.until ? open.until.toLowerCase() : null;
-    tiles.push({
-      key: 'open',
-      label: 'Open',
-      body: (
-        <span className="ps-open">
-          <strong className={place.open_now ? 'is-open' : 'is-closed'}>{place.open_now ? 'Open' : 'Closed'}</strong>
-          {until && <span className="pop-number-sub">{`until ${until}`}</span>}
-        </span>
-      ),
-    });
-  }
-  const levels = Number.parseInt(place.building_levels, 10);
-  if (Number.isFinite(levels) && levels > 0) tiles.push({ key: 'floors', label: 'Floors', value: levels });
-  const access = String(place.wheelchair || '').toLowerCase();
-  if (['yes', 'limited', 'no', 'designated'].includes(access)) {
-    const label = { yes: 'Wheelchair accessible', designated: 'Wheelchair accessible', limited: 'Limited wheelchair access', no: 'Not wheelchair accessible' }[access];
+  const until = place.open_now === true ? hourText(place.open_until, timezone) : null;
+  if (until) tiles.push({ key: 'open', className: 'ps-tile--open', label: 'Open until', value: until });
+  const floors = floorsOf(place);
+  if (floors) tiles.push({ key: 'floors', className: 'ps-tile--floors', label: 'Floors', value: floors });
+  const access = accessOf(place);
+  if (access) {
+    const { icon, label, word } = ACCESS[access];
     tiles.push({
       key: 'access',
+      className: 'ps-tile--access',
       label: 'Access',
-      body: access === 'no' ? (
-        <span className="pop-number-value ps-access-text">No<span className="sr-only">{`: ${label}`}</span></span>
-      ) : (
-        <span className={`ps-access ${access === 'limited' ? 'is-limited' : ''}`.trim()} role="img" aria-label={label} title={label}>
-          <Accessibility size={22} aria-hidden="true" />
-          {access === 'limited' && <span aria-hidden="true">Limited</span>}
+      body: (
+        <span className="ps-access" role="img" aria-label={label} title={label}>
+          <Icon name={icon} size={20} />
+          {word && <span aria-hidden="true">{word}</span>}
         </span>
       ),
     });
@@ -148,43 +120,54 @@ function Hours({ place, timezone, now }) {
   );
 }
 
-function TodayEvents({ events, timezone, onOpenEvent }) {
-  if (!events.length) return null;
-  return (
-    <section className="ps-section" aria-labelledby="ps-today-title">
-      <h3 id="ps-today-title" className="ps-section-title">
-        Today <span className="ps-count">{events.length}</span>
-      </h3>
+/** "6:00" for the time column: the clock without its meridiem (the end line carries it). */
+const startClock = (event, timezone) => (event.all_day
+  ? 'All day'
+  : (clockTime(event.start, timezone) || '').replace(/\s?[AP]M$/, ''));
+
+/** Today's events at the place, or "Nothing listed today" (DESIGN.md "States"). */
+function TodayHere({
+  events, status, timezone, onOpenEvent, onRetry,
+}) {
+  let body;
+  if (events.length) {
+    body = (
       <ul className="ps-events">
         {events.map((event) => {
-          const time = event.all_day ? 'All day' : timeIn(event.start, timezone);
-          const body = (
+          const end = endLine(event, timezone);
+          const inner = (
             <>
-              <span className="ps-event-time">{time}</span>
-              <span className="ps-event-title">{event.title}</span>
-              {onOpenEvent && <ChevronRight size={16} aria-hidden="true" />}
+              <span className="ps-event-time">{startClock(event, timezone)}</span>
+              <span className="ps-event-text">
+                <span className="ps-event-title">{event.title}</span>
+                {end && <span className="ps-event-end">{end}</span>}
+              </span>
             </>
           );
           return (
             <li key={event.id || `${event.title}-${event.start}`}>
               {onOpenEvent
-                ? <button type="button" className="ps-event" onClick={() => onOpenEvent(event)}>{body}</button>
-                : <div className="ps-event">{body}</div>}
+                ? <button type="button" className="ps-event" onClick={() => onOpenEvent(event)}>{inner}</button>
+                : <div className="ps-event">{inner}</div>}
             </li>
           );
         })}
       </ul>
+    );
+  } else if (status === 'loading') {
+    body = <PanelState status="loading" label="Loading today's events" rows={1} />;
+  } else if (status === 'error') {
+    body = <PanelState status="error" onRetry={onRetry} />;
+  } else {
+    body = <PanelState status="empty" />;
+  }
+  return (
+    <section className="ps-section" aria-labelledby="ps-today-title">
+      <h3 id="ps-today-title" className="ps-section-title">Today here</h3>
+      {body}
     </section>
   );
 }
-
-const hostOf = (url) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    return url;
-  }
-};
 
 export default function PlaceSheet({
   placeId,
@@ -210,8 +193,9 @@ export default function PlaceSheet({
   const here = (events.data?.events || [])
     .filter((event) => event.place_id && event.place_id === place?.id)
     .sort((a, b) => new Date(a.start) - new Date(b.start));
-
-  const drag = usePopupDrag({ type: 'place', id: place?.id, title: place?.name });
+  let eventsStatus = 'ready';
+  if (events.error) eventsStatus = 'error';
+  else if (events.loading) eventsStatus = 'loading';
 
   // Opening the sheet replaces what had focus (a list row or a pin), so focus
   // moves to the place's name; the page returns it when the sheet closes.
@@ -247,28 +231,19 @@ export default function PlaceSheet({
   }
 
   const item = { type: 'place', id: place.id, title: place.name };
-  const category = CATEGORY_LABELS[place.category] || null;
-  const photo = place.photo?.url ? place.photo : null;
 
   const band = (
     <SheetBand
       compact
-      eyebrow={(category || place.operator) && (
-        <>
-          {category && (
-            <span className={`ps-chip ps-chip--${place.category}`}>
-              <Icon name={CATEGORY_ICONS[place.category] || 'location_on'} size={18} />
-              {category}
-            </span>
-          )}
-          {place.operator && <span className="ps-operator">{place.operator}</span>}
-        </>
-      )}
+      eyebrow={place.type ? (
+        <span className="ps-kind">
+          <Icon name={CATEGORY_ICONS[place.category] || 'location_on'} size={18} />
+          {place.type}
+        </span>
+      ) : null}
       title={place.name}
       titleId={titleId}
       titleRef={headingRef}
-      drag={drag}
-      dragLabel={`Drag ${place.name}`}
       onClose={onClose}
       tiles={placeTiles(place, timezone)}
     />
@@ -278,12 +253,18 @@ export default function PlaceSheet({
     <SheetActions>
       {onDirections ? (
         <button type="button" className="pop-btn pop-btn--primary" onClick={() => onDirections(place)}>
-          <Footprints size={20} aria-hidden="true" /> Directions
+          <Icon name="directions_walk" size={20} /> Directions
         </button>
       ) : (
         <Link className="pop-btn pop-btn--primary" to={`/map?to=${encodeURIComponent(place.id)}`}>
-          <Footprints size={20} aria-hidden="true" /> Directions
+          <Icon name="directions_walk" size={20} /> Directions
         </Link>
+      )}
+      {onAsk && (
+        <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
+          <Icon name="forum" size={20} /> Ask
+          <span className="sr-only">{` about ${place.name}`}</span>
+        </button>
       )}
       {onSave ? (
         <button
@@ -294,20 +275,10 @@ export default function PlaceSheet({
           title={saved ? 'Saved' : 'Save'}
           onClick={() => onSave(item)}
         >
-          <Bookmark size={20} aria-hidden="true" />
+          <Icon name="bookmark" size={20} filled={Boolean(saved)} />
         </button>
       ) : (
         <SaveButton className="pop-save" item={{ kind: 'place', key: place.id, display_name: place.name }} />
-      )}
-      {onAsk && (
-        <button type="button" className="pop-btn pop-btn--icon" aria-label={`Ask about ${place.name}`} title="Ask" onClick={() => onAsk(item)}>
-          <MessageSquare size={20} aria-hidden="true" />
-        </button>
-      )}
-      {place.phone && (
-        <a className="pop-btn pop-btn--icon" href={`tel:${place.phone.replace(/[^\d+]/g, '')}`} aria-label={`Call ${place.name}`} title="Call">
-          <Phone size={20} aria-hidden="true" />
-        </a>
       )}
     </SheetActions>
   );
@@ -315,21 +286,14 @@ export default function PlaceSheet({
   return (
     <BandSheet kind="place" card titleId={titleId} band={band} actions={actions}>
       <div className="ps-content">
-        <Photo photo={photo} />
-        <TodayEvents events={here} timezone={timezone} onOpenEvent={onOpenEvent} />
+        <TodayHere
+          events={here}
+          status={eventsStatus}
+          timezone={timezone}
+          onOpenEvent={onOpenEvent}
+          onRetry={events.retry}
+        />
         <Hours place={place} timezone={timezone} now={now} />
-        {(place.address || place.website) && (
-          <p className="ps-links">
-            {place.address && (
-              <span className="ps-link"><MapPin size={18} aria-hidden="true" /><span className="sr-only">Address: </span>{place.address}</span>
-            )}
-            {place.website && (
-              <a className="ps-link" href={place.website} target="_blank" rel="noopener noreferrer">
-                <Globe size={18} aria-hidden="true" />{hostOf(place.website)}
-              </a>
-            )}
-          </p>
-        )}
       </div>
     </BandSheet>
   );

@@ -10,6 +10,7 @@ import { openingClock as clockText } from '../modules/campus/time';
 
 export const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const DAY_RE = /^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/;
 // The backend's time pattern (hours.py `_TIME`): 00:00 to 24:00. An end at or
 // before the start runs past midnight ("07:30-02:00").
@@ -79,8 +80,9 @@ export function weeklyHours(text) {
 }
 
 /**
- * Consecutive days with the same hours grouped ("Mon–Tue"), except `today`
- * (0..6, Monday first), which always gets its own row.
+ * Consecutive days with the same hours grouped ("Mon–Thu"), except `today`
+ * (0..6, Monday first), which always gets its own row. A day on its own
+ * reads in full ("Friday").
  */
 export function groupedHours(week, today) {
   const rows = [];
@@ -93,7 +95,7 @@ export function groupedHours(week, today) {
       rows.push({ ...entry, from: entry.label, today: entry.day === today });
     }
   });
-  return rows;
+  return rows.map((row) => (row.to ? row : { ...row, label: DAY_FULL[row.day] || row.label }));
 }
 
 /** Monday-first weekday index (0..6) of `now` in `timezone`. */
