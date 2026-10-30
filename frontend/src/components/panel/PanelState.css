@@ -1,0 +1,38 @@
+/* Panel states (components/panel/PanelState.js, DESIGN.md "States"). */
+.pnl-state { margin: 0; }
+
+.pnl-loading > div { display: grid; gap: 8px; }
+.pnl-block {
+  display: block;
+  border-radius: var(--r-md);
+  background: var(--raised);
+}
+.pnl-row { height: 44px; }
+
+.pnl-empty,
+.pnl-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.pnl-empty { color: var(--muted); }
+.pnl-error { flex-wrap: wrap; }
+
+.pnl-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pnl-retry:hover { background: var(--raised); }
