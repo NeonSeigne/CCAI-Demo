@@ -302,8 +302,8 @@ messages. UVA's pack now enables `course_prerequisites`.
 ```
 
 A key is left out where the source lacks it. UVA (snapshot): instructor per
-section, `meeting_times`, `waitlist` (the Spring 2027 and Fall 2026 files
-read 0 for every section today). CU (FOSE): instructor per section and
+section, `meeting_times`, `waitlist` (the summary reads `sections_url`, the
+Fall 2026 file; the Spring 2027 file reads 0 waiting everywhere today). CU (FOSE): instructor per section and
 `meeting_times`; no seats, no waitlist. UW (Course Map): seats only; no
 meeting times, no waitlist, and instructors per course, not per section.
 Snapshot data stays dated: `as_of` and `sections.as_of` carry the snapshot
