@@ -29,9 +29,10 @@ class DegreeBoardTests(PlannerTestCase):
         self.assertEqual(fall["difficulty"]["label"], "Light")
         (row,) = fall["courses"]
         self.assertEqual(row, {"id": "ECON 3020", "title": "ECON 3020 title", "credits": [3.0, 3.0], "avg_gpa": 2.9,
-                               "harder": True, "offered": "yes", "requirements": ["Economics electives"], "gen_ed": []})
+                               "harder": True, "offered": "yes", "requirements": ["Economics electives"], "gen_ed": [],
+                               "sections": [], "opens": [], "opens_complete": False})
         self.assertEqual(body["completed"], [{"id": "ECON 2010", "title": "ECON 2010 title", "credits": [3.0, 3.0],
-                                              "grade": "B+", "term": None}])
+                                              "grade": "B+", "term": None, "opens": [], "opens_complete": False}])
         (rule,) = body["rules"]
         self.assertEqual((rule["rule_id"], rule["planned"], rule["needed"]), ("el", 2, 4))
         self.assertEqual(body["route"]["lines"], [{"program_id": "econ-ba", "name": "Economics electives", "rule_ids": ["el"]}])

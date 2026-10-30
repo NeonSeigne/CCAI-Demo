@@ -132,8 +132,16 @@ degree = {
     "difficulty": {label, harder, graded, total},
     "courses": [{"id", "title", "credits": [min, max]|null, "avg_gpa": n|null,
                  "harder": bool|null, "offered": "yes"|"no"|"unknown",
-                 "requirements": [rule titles], "gen_ed": [str]|null}]}],
-  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term"}],
+                 "requirements": [rule titles], "gen_ed": [str]|null,
+                 "sections": [{"id", "kind"|null,              # the sections the plan picked ([] when none)
+                               "meetings": [{"day", "start", "end"}]|null,  # null: times not published
+                               "instructor": str|null}],       # CU (FOSE); null at UVA and UW
+                 "opens": [{"id", "title"|null, "in_plan": bool}],  # courses this one unlocks
+                 "opens_complete": bool}]}],                   # see "Opens" below
+  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term",
+                 "opens": [...], "opens_complete": bool}],
+  "graduation": {"term": "Spring 2029"|null,       # the spring of profile.class_year, else waffle.finish
+                 "source": "class_year"|"finish"|null},
   "rules": [report rule rows, across all terms],
   "waffle": {
     "total_credits": n|null,                       # largest total_credits of the student's programs
@@ -152,8 +160,14 @@ degree = {
   "route": {                                       # the route map (R2, R9)
     "lines": [{"program_id", "name", "rule_ids": [ids]}],  # a rule's `line`, else its title; file order
     "deadline": {"program_id", "rule_ids", "by_semester"}|null,
-    "slots": [{"program_id", "rule_id", "line", "open": n}], # courses a rule needs that the plan hasn't chosen
+    "slots": [{"program_id", "rule_id", "line", "open": n,   # courses a rule needs that the plan hasn't chosen
+               "wording": str|null,                # "Any ECON course, 2000 or above"; see "Slot wording"
+               "options": [ids]}],                 # a list rule's unchosen courses; [] for level rules
     "edges": [{"from": id, "to": id}],             # prerequisite links between courses in the plan
+    "terms": ["Fall 2025", ..., "Spring 2029"],    # every fall and spring from start_term (else the
+                                                   # earliest planned/completed term) to graduation.term
+                                                   # or the last planned term, whichever is later, plus
+                                                   # planned summer/winter terms; at most 16 + those
   },
 }
 ```
@@ -164,6 +178,23 @@ rule by the credits of the courses it took plus 3 per course still needed (a
 course with unknown credits counts 3). Each course's credits count once across
 the waffle: a course a `double_count` rule reuses is listed in that group but
 adds no credits there, so the earned sum is the distinct earned credits.
+
+Opens: with the source's own list of courses that name this one as a
+prerequisite (`CourseFacts.unlocks`, UW Course Map "following") `opens` is
+every such course, in or out of the plan, and `opens_complete` is true. Where
+the source has no such list (UVA, CU) `opens` holds only plan courses whose
+prerequisite trees name this one, and `opens_complete` is false: the card
+should not claim the list is whole. Ids are matched spacing-blind ("COMP SCI
+300" is "COMPSCI 300"). Titles are null when unknown.
+
+Slot wording comes only from the rule data: `level` reads "Any ECON course,
+3000 or above" ("Any ECON or MATH course, 3000 to 4999", "Any ECON course",
+"..., up to 4999"); `all_of` names the unchosen courses ("ECON 2020 and
+ECON 2030"); `n_of` and `credits_from` read "One of ECON 4010 or ECON 4020"
+(at most 3 named) or "One of 6 listed courses", excluded courses left out.
+`one_of_groups` and a level rule without subjects have `wording: null`.
+`CourseFacts` gained `unlocks: tuple[Unlock(course, title)] | None` and
+`Section.instructor: str | None`.
 
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 
