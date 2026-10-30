@@ -31,7 +31,9 @@ function PlusSlot({ term, index, onDrop, onAdd }) {
  * The credits line on the 12–18 band (D17, R12). A term the data doesn't
  * cover, or one whose facts didn't arrive, shows no number for unknown credits.
  */
-function CreditsBand({ credits, preview, limits }) {
+function CreditsBand({
+  credits, preview, limits, clashes = 0,
+}) {
   const band = limits || BAND;
   const known = credits.known;
   return (
@@ -58,6 +60,7 @@ function CreditsBand({ credits, preview, limits }) {
         <span className="dg-band-tick" style={{ left: pct(band.min) }} />
         <span className="dg-band-tick" style={{ left: pct(band.max) }} />
       </span>
+      {clashes > 0 && <span className="dg-clash">{`${clashes} ${clashes === 1 ? 'clash' : 'clashes'}`}</span>}
     </div>
   );
 }
@@ -68,7 +71,7 @@ function CreditsBand({ credits, preview, limits }) {
  * drops; while a course hovers, the header previews the new credits (D8).
  */
 export default function TermColumn({
-  term, courses, credits, load, limits, terms, tones, showRequirements, current, pulseId,
+  term, courses, credits, load, limits, clashes, terms, tones, showRequirements, current, pulseId,
   onDrop, onOpen, onMove, onRemove, onOpenSemester,
 }) {
   const target = useDropTarget({
@@ -101,7 +104,7 @@ export default function TermColumn({
           <h3 id={headingId}>{term}</h3>
           {load && <span className={`dg-load is-${LOAD_KEYS[load] || 'typical'}`}>{load}</span>}
         </div>
-        <CreditsBand credits={credits} preview={preview} limits={limits} />
+        <CreditsBand credits={credits} preview={preview} limits={limits} clashes={clashes} />
       </header>
       <ul className="dg-cards">
         {courses.map((course) => (
