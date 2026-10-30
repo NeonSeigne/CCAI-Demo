@@ -1,25 +1,25 @@
-/* The composer (components/chat/Composer.js), every surface. The chat page
-   and dock: a card with +, the scope chip, mic and a round signal Send;
-   `div.cc-composer` outranks the one-row pill rules further down. Home: the
-   large card (.ah-ask) at the end. */
+/* The composer (components/chat/Composer.js), every surface (components.css
+   .composer in the mockups): a card with the text on top and +, the scope
+   chip, mic and a round signal Send below. The dock's is a hairline card. */
 .enhanced-chat-input-container {
   position: relative;
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 16px;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
   font-family: var(--font-app);
 }
+
+.enhanced-chat-input-container.is-chat { max-width: 760px; margin: 0 auto; }
 
 /* ---- The card ------------------------------------------------------------ */
 div.cc-composer .floating-input-box {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: 14px;
   min-height: 0;
-  padding: 16px 12px 10px 20px;
+  padding: 16px 14px 12px 20px;
   border: 1px solid transparent;
   border-radius: var(--r-2xl);
   background: var(--surface);
@@ -46,7 +46,7 @@ div.cc-composer .main-textarea {
   background: transparent;
   color: var(--ink);
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 500;
   line-height: 1.5;
   overflow-y: auto;
@@ -155,13 +155,12 @@ div.cc-composer .send-button.disabled {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  margin-left: 4px;
   padding: 5px 12px 5px 8px;
   border-radius: var(--r-full);
   background: var(--raised);
   color: var(--muted);
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -444,9 +443,7 @@ div.cc-composer .send-button.disabled {
 
 /* ---- Phones --------------------------------------------------------------- */
 @media (max-width: 700px) {
-  .enhanced-chat-input-container { padding: 0 12px; }
-
-  div.cc-composer .floating-input-box { padding: 14px 10px 8px 16px; }
+  div.cc-composer .main-textarea { font-size: 16px; }
 
   .composer-scope { display: none; }
 
@@ -497,133 +494,17 @@ div.cc-composer .main-textarea:focus-visible { outline: none; }
   }
 }
 
-/* ---- One-row pill: the chat page and the dock ------------------------------ */
-.compact-composer.is-chat {
-  max-width: 760px;
-  margin: 0;
-  padding: 0;
-}
-
-/* One row: + · text · docs · mic · send, inside a 999px pill. The two
-   original rows dissolve into the pill with display: contents. */
-.compact-composer .floating-input-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 56px;
-  padding: 7px 7px 7px 8px;
-  border: 1px solid rgba(17, 17, 20, 0.12);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: 0 6px 24px rgba(17, 17, 20, 0.08);
-}
-
-.compact-composer .text-input-row,
-.compact-composer .controls-row { display: contents; }
-
-.compact-composer .file-controls { order: 0; gap: 6px; }
-.compact-composer .text-input-row .main-textarea { order: 1; flex: 1; min-width: 0; padding: 8px 4px; font-size: 16px; }
-.compact-composer .controls-row > div:last-child { order: 2; }
-
-.compact-composer .main-textarea::placeholder {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compact-composer .composer-plus-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 99px;
-}
-
-.compact-composer .send-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 99px;
-}
-
-/* In the dock the composer is a hairline card, not a floating one. */
-.compact-composer.is-dock { max-width: none; margin: 0; padding: 0; }
+/* ---- The dock: a hairline card, no shadow (events.html .dock .composer) -- */
 div.cc-composer.is-dock .floating-input-box {
   gap: 8px;
   padding: 12px 10px 10px 16px;
   border-color: var(--control);
   box-shadow: none;
 }
+
 div.cc-composer.is-dock .main-textarea { font-size: 15px; }
 
 @media (max-width: 700px) {
   /* Phones keep 16px so iOS doesn't zoom into the field. */
   div.cc-composer.is-dock .main-textarea { font-size: 16px; }
-}
-
-/* ---- Home: the large card ------------------------------------------------- */
-.ah-ask {
-  display: grid;
-  gap: 10px;
-  padding: 16px 14px 12px 20px;
-  border-radius: var(--r-2xl);
-  background: var(--surface);
-  box-shadow: var(--shadow-float);
-}
-
-.ah-ask:focus-within { box-shadow: var(--shadow-float), 0 0 0 2px var(--control); }
-
-.ah-ask textarea {
-  width: 100%;
-  min-height: 28px;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  resize: none;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 17px;
-  line-height: 1.5;
-}
-
-.ah-ask textarea::placeholder { color: var(--faint); }
-
-.ah-ask-row { display: flex; align-items: center; gap: 8px; }
-
-.ah-scope {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  margin-right: auto;
-  padding: 5px 12px 5px 8px;
-  border-radius: var(--r-full);
-  background: var(--raised);
-  color: var(--muted);
-  font-size: 13.5px;
-  font-weight: 500;
-}
-
-.ah-send {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: var(--signal);
-  color: var(--on-signal);
-  cursor: pointer;
-  transition: transform 120ms ease-out, background-color 120ms ease-out;
-}
-
-.ah-send:hover { background: var(--signal-hover); }
-.ah-send:active { transform: scale(0.95); }
-
-@media (max-width: 700px) {
-  .ah-scope { display: none; }
-  .ah-ask-row { justify-content: flex-end; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ah-send { transition: none; }
 }

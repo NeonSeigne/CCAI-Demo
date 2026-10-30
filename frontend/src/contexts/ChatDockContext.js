@@ -1,5 +1,5 @@
 import React, {
-  createContext, useCallback, useContext, useMemo, useRef, useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
 import useMediaMatch from '../hooks/useMediaMatch';
 
@@ -10,6 +10,8 @@ import useMediaMatch from '../hooks/useMediaMatch';
  * a 400px drawer; 'sheet' (<= 700px) a bottom sheet the phone Ask tab opens.
  *
  * `available` is false where the page itself is the ask (/home, /chat).
+ * `placeholder` is the dock composer's wording for the page ("Ask about
+ * these events"); a page can set its own with `useDockPlaceholder`.
  */
 export const ChatDockContext = createContext(null);
 
@@ -42,8 +44,9 @@ export function useDockMode() {
   return medium ? 'drawer' : 'sheet';
 }
 
-export function ChatDockProvider({ available = true, children }) {
+export function ChatDockProvider({ available = true, placeholder = null, children }) {
   const mode = useDockMode();
+  const [pagePlaceholder, setPagePlaceholder] = useState(null);
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [snap, setSnap] = useState('half');
@@ -105,9 +108,27 @@ export function ChatDockProvider({ available = true, children }) {
     askTabRef,
     openerRef,
     draftRef,
-  }), [available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus, claimComposerFocus]);
+    placeholder: pagePlaceholder || placeholder || null,
+    setPagePlaceholder,
+  }), [
+    available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus,
+    claimComposerFocus, pagePlaceholder, placeholder,
+  ]);
 
   return <ChatDockContext.Provider value={value}>{children}</ChatDockContext.Provider>;
+}
+
+/**
+ * A page's wording for the dock's composer while it is on screen:
+ * `useDockPlaceholder('Ask about this place')`. Cleared when the page leaves.
+ */
+export function useDockPlaceholder(text) {
+  const set = useContext(ChatDockContext)?.setPagePlaceholder;
+  useEffect(() => {
+    if (!set) return undefined;
+    set(text || null);
+    return () => set(null);
+  }, [set, text]);
 }
 
 /** The dock state, or null outside the app shell. */

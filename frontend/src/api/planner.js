@@ -36,6 +36,13 @@ const path = (value) => encodeURIComponent(String(value));
 export const getPlan = (token, { term } = {}, options) =>
   request(token, `/api/planner/plan${query({ term })}`, options);
 
+/**
+ * GET "Your classes today" (R12): `{date, weekday, show, reason, term,
+ * meetings: [{course, title, section, kind, start, end}], unscheduled}`.
+ * Show the card only when `show` is true.
+ */
+export const getToday = (token, options) => request(token, '/api/planner/today', options);
+
 /** GET the degree board: every planned term, completed courses, the waffle. */
 export const getDegree = (token, options) => request(token, '/api/planner/degree', options);
 
