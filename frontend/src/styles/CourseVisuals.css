@@ -12,7 +12,7 @@
   min-width: 0;
 }
 
-.answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
+.answer .advisor-message-text { font-size: 16px; font-weight: 500; line-height: 1.6; }
 
 .answer-cards.advisor-message-visuals {
   display: grid;
@@ -45,10 +45,39 @@
 
 .answer-sources a { color: inherit; text-underline-offset: 3px; }
 
-.answer .message-actions {
-  margin-top: -4px;
-  padding-top: 0;
-  border-top: 0;
+/* The meta row (ask-chat.html .meta): Checked chips, then copy and thumbs
+   as 36px round muted icons in 44px hit areas (design Q19). */
+.answer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin-top: -2px;
+  color: var(--muted);
+}
+
+.answer-meta .vc-checked { margin-right: 4px; }
+
+.answer-act {
+  width: 44px;
+  height: 44px;
+  margin: -4px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.answer-act:hover { background: var(--raised); color: var(--ink); }
+.answer-act[aria-pressed="true"] { color: var(--ink); }
+
+.answer-act:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -4px;
 }
 
 /* ---- The user's message: a tint bubble ---------------------------------- */

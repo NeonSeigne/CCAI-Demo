@@ -2,6 +2,9 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { useAuth } from './AuthContext';
 import { usePlanner } from './PlannerContext';
 import { parseServerTime } from '../utils/serverTime';
+import {
+  deleteChat, renameChat, setAnswerFeedback, setChatPinned,
+} from '../api/chatSessions';
 
 /**
  * The one conversation, mounted above the routes so it outlives any page
@@ -624,6 +627,46 @@ export function ChatProvider({ children }) {
     setAttachments((prev) => prev.filter((a) => !sameItem(a, item)));
   };
 
+  // The ⋯ menu's actions on the open chat. Each throws when the server refuses.
+  const renameSession = async (title) => {
+    const next = titleFor(title);
+    if (!sessionId || !next) return;
+    await renameChat(authToken, sessionId, next);
+    setSessionTitle(next);
+    bumpSessions();
+  };
+
+  const pinSession = async (pinned) => {
+    if (!sessionId) return;
+    await setChatPinned(authToken, sessionId, pinned);
+    bumpSessions();
+  };
+
+  const deleteSession = async () => {
+    if (sessionId) await deleteChat(authToken, sessionId);
+    resetConversation(null, '');
+    bumpSessions();
+  };
+
+  /**
+   * Thumbs on an answer ('up' | 'down' | null), shown at once and put back
+   * when the server refuses (the error is rethrown). Loaded answers carry
+   * their stored id as `id`; streamed ones as `message_id`.
+   */
+  const rateAnswer = async (message, feedback) => {
+    const storedId = 'message_id' in message ? message.message_id : message.id;
+    if (!sessionId || !storedId) throw new Error('This answer isn’t saved');
+    const previous = message.feedback ?? null;
+    const set = (value) => setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, feedback: value } : m)));
+    set(feedback);
+    try {
+      await setAnswerFeedback(authToken, sessionId, storedId, feedback);
+    } catch (error) {
+      set(previous);
+      throw error;
+    }
+  };
+
   const value = {
     messages,
     isLoading,
@@ -647,6 +690,10 @@ export function ChatProvider({ children }) {
     attachments,
     attach,
     removeAttachment,
+    renameSession,
+    pinSession,
+    deleteSession,
+    rateAnswer,
     activeTerm,
     setActiveTerm,
   };

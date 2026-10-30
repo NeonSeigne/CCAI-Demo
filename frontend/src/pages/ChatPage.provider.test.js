@@ -45,14 +45,16 @@ function AttachCourse() {
 }
 
 const renderApp = () => render(
-  <MemoryRouter initialEntries={['/chat']}>
+  <MemoryRouter initialEntries={['/map']}>
     <ChatProvider>
       <Link to="/chat">Chat</Link>
       <Link to="/map">Map</Link>
+      <Link to="/chat" state={{ startNew: true, pendingPrompt: 'Plan my semester', autoSend: true }}>Ask from home</Link>
       <AttachCourse />
       <Routes>
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/map" element={<p>Map page</p>} />
+        <Route path="/home" element={<p>Ask home</p>} />
       </Routes>
     </ChatProvider>
   </MemoryRouter>,
@@ -77,14 +79,13 @@ beforeEach(() => {
   });
 });
 
-const send = (text) => {
-  fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), { target: { value: text } });
-  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-};
-
 test('the conversation is still there after leaving the chat page and coming back', async () => {
-  const { container } = renderApp();
-  send('Plan my semester');
+  renderApp();
+  fireEvent.click(screen.getByRole('link', { name: 'Chat' }));
+  // No chat yet: /chat goes to the Ask home.
+  expect(await screen.findByText('Ask home')).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('link', { name: 'Ask from home' }));
   expect(await screen.findByText('Take ECON 1010 first.')).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('link', { name: 'Map' }));
@@ -94,6 +95,5 @@ test('the conversation is still there after leaving the chat page and coming bac
   fireEvent.click(screen.getByRole('link', { name: 'Chat' }));
   expect(screen.getByText('Take ECON 1010 first.')).toBeInTheDocument();
   expect(screen.getByText('Plan my semester', { selector: '.user-message p' })).toBeInTheDocument();
-  expect(container.querySelector('.welcome-state')).not.toBeInTheDocument();
-  expect(container.querySelector('.floating-input-area')).toHaveClass('phase-active');
+  expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask a follow-up');
 });

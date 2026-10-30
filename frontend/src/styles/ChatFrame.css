@@ -1,239 +1,78 @@
-/* Campus Companion chat frame: conversation | "This answer" panel, beside
-   the shell's rail. Scoped under .chat-frame so it overrides the older chat
-   layout rules. */
+/* The chat page (ask-chat.html, D4): header, one centred 760px thread, and
+   the composer held at the bottom of the window. The document scrolls. */
 .chat-frame {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-app);
 }
 
-.chat-frame .main-chat-area {
-  flex: 1;
-  min-width: 0;
-  margin-left: 0;
-  height: 100vh;
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 28px 36px 0;
+  box-sizing: border-box;
 }
-
-.chat-frame .modern-chat-page { background: var(--canvas); }
 
 .chat-frame :focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
 }
 
-/* ---- Header -------------------------------------------------------------- */
+/* ---- Header: the question in Unbounded, wrapping; bare muted icons ------- */
 .chat-head {
-  flex-shrink: 0;
-  height: 72px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 48px;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 .chat-title {
   flex: 1;
   min-width: 0;
-  max-width: 680px;
   margin: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
 }
 
-.chat-head-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.chat-head-btn,
-.chat-head-actions .MuiIconButton-root {
-  width: 36px;
-  height: 36px;
+/* 38px drawn, 44px to tap (design Q19). */
+.chat-head-btn {
+  width: 44px;
+  height: 44px;
+  margin: -3px;
+  flex: none;
+  display: grid;
+  place-items: center;
   padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.chat-head-actions .MuiIconButton-root svg { font-size: 18px; }
-.chat-head-btn:hover,
-.chat-head-actions .MuiIconButton-root:hover { background: var(--canvas); }
-
-/* ---- ⋯ menu ------------------------------------------------------------- */
-.chat-more-popover {
-  width: 300px;
-  margin-top: 6px;
-  border: 1px solid var(--line);
-  border-radius: 14px !important;
-  box-shadow: 0 8px 28px rgba(17, 17, 20, 0.12) !important;
-}
-
-.chat-more-menu {
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-app);
-}
-
-.chat-more-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-}
-
-.chat-more-section + .chat-more-section { border-top: 1px solid var(--line); }
-
-.chat-more-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 38px;
-  padding: 0 8px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 50%;
   background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
+  color: var(--muted);
   cursor: pointer;
 }
 
-.chat-more-item:hover { background: var(--canvas); }
+.chat-head-btn:hover:not(:disabled) { background: var(--raised); color: var(--ink); }
+.chat-head-btn:disabled { opacity: 0.4; cursor: default; }
 
-/* ---- Conversation -------------------------------------------------------- */
-.chat-frame .chat-content { padding-bottom: 0; }
+/* ---- Thread and composer -------------------------------------------------- */
+.chat-thread { flex: 1; width: 100%; }
 
-.chat-frame .messages-container,
-.chat-frame .messages-scroll { background: transparent; }
-
-.chat-frame .messages-scroll { padding: 8px 48px 24px; }
-.chat-frame .messages-scroll > * { max-width: 760px; }
-
-.chat-frame .welcome-state {
-  align-items: flex-start;
-  padding: clamp(24px, 6vh, 64px) 48px 24px;
-  background: transparent;
+.chat-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 12px 0 20px;
+  background: var(--canvas);
 }
 
-.chat-frame .chat-hero-copy {
-  width: min(760px, 100%);
-  text-align: left;
-}
+/* The student's message in the school's tint. */
+.chat-frame .messages-scroll .user-message-container { display: flex; justify-content: flex-end; }
 
-.chat-frame .chat-hero-copy h2 {
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-/* ---- Composer: suggestion chips + pill ----------------------------------- */
-.chat-frame .floating-input-area,
-.chat-frame .floating-input-area.phase-landing,
-.chat-frame .floating-input-area.phase-transitioning {
-  position: static;
-  top: auto;
-  bottom: auto;
-  left: auto;
-  right: auto;
-  max-width: none;
-  margin: 0;
-  padding: 8px 48px 24px;
-  align-items: stretch;
-  transition: none;
-}
-
-.chat-frame .floating-input-area > * { max-width: 760px; }
-
-.chat-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.chat-suggestion {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.chat-suggestion:hover:not(:disabled) { background: var(--canvas); border-color: rgba(17, 17, 20, 0.16); }
-.chat-suggestion:disabled { opacity: 0.5; cursor: default; }
-
-.chat-suggestion-dot {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 99px;
-}
-
-/* ---- Narrow screens ------------------------------------------------------ */
-@media (max-width: 1099px) {
-  .chat-frame .answer-panel { display: none; }
-}
-
-@media (max-width: 700px) {
-  .chat-head { height: 60px; padding: 0 16px; gap: 10px; }
-  .chat-title { font-size: 16px; }
-  .chat-frame .messages-scroll { padding: 4px 16px 16px; }
-  .chat-frame .welcome-state { padding: 24px 16px; }
-  .chat-frame .chat-hero-copy h2 { font-size: 30px; }
-  .chat-frame .floating-input-area,
-  .chat-frame .floating-input-area.phase-landing,
-  .chat-frame .floating-input-area.phase-transitioning { padding: 6px 12px 12px; }
-  .chat-suggestions { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .chat-suggestion { flex-shrink: 0; min-height: 40px; }
-}
-
-@media (max-width: 700px) {
-  /* Room for the phone header and tab bar (CampusRail.css). */
-  .chat-frame,
-  .chat-frame .main-chat-area,
-  .chat-frame .modern-chat-page { height: calc(100vh - 52px - 56px - env(safe-area-inset-bottom, 0px)); }
-}
-
-.chat-more-item svg { flex-shrink: 0; }
-
-/* ---- Messages ------------------------------------------------------------ */
-.chat-frame .user-message-container { margin-bottom: 28px; }
-
-.chat-frame .user-message {
-  max-width: 85%;
-  padding: 14px 18px;
-  border-radius: 20px 20px 6px 20px;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.chat-frame .single-response-wide { margin-bottom: 32px; }
-
-/* ---- Home Colors: the conversation (C.2) --------------------------------- */
-/* The student's message in the school's tint (ChatPage renders its own). */
 .chat-frame .messages-scroll .user-message {
   max-width: 80%;
   padding: 12px 16px;
@@ -245,17 +84,11 @@
   line-height: 1.45;
 }
 
-.chat-frame .messages-scroll .user-message p { color: inherit; }
-
-.chat-frame .answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
+.chat-frame .messages-scroll .user-message p { margin: 0; color: inherit; }
 
 @media (max-width: 700px) {
+  .chat-main { padding: 18px 16px 0; }
+  /* The composer sits above the fixed tab bar. */
+  .chat-bottom { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
   .chat-frame .messages-scroll .user-message { max-width: 88%; }
-}
-
-/* The chat page's side panel lists what was checked; inline once it hides. */
-.chat-frame .answer-checked { display: none; }
-
-@media (max-width: 1099px) {
-  .chat-frame .answer-checked { display: block; }
 }

@@ -1,89 +1,107 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useContext } from 'react';
+import React, {
+  useContext, useEffect, useRef, useState,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import {
+  Button, DialogActions, DialogContent, DialogTitle, TextField,
+} from '@mui/material';
 import Composer from '../components/chat/Composer';
 import Thread from '../components/chat/Thread';
-import ExportButton from '../components/ExportButton';
-import ChatMoreMenu from '../components/ChatMoreMenu';
-import AnswerPanel, { buildSuggestions, latestVisuals } from '../components/AnswerPanel';
-import { DOMAIN_COLORS } from '../components/domainColors';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import AppDialog from '../components/AppDialog';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { ChatMenu, useMenu } from '../components/menus';
+import { Icon } from '../components/icons';
+import { useToast } from '../components/Toast';
+import { RecentChatsContext } from '../components/CampusRail';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
+import { exportChat, shareChat } from '../utils/exportChat';
 import '../styles/ChatPage.css';
 import '../styles/ChatFrame.css';
-import useViewport from '../hooks/useViewport';
-import { schoolFacts } from '../modules/campus';
 
 /** location.state keys that carry a one-shot intent from another page. */
-const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
+const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew', 'openUpload'];
 
 const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
 
-/** How long the landing composer takes to move into the conversation. */
-const PHASE_MS = 280;
+// The placeholder title a chat gets before its first question ("Chat 10/27/2026").
+const DEFAULT_TITLE = /^Chat \d{1,2}\/\d{1,2}\/\d{4}$/;
 
+const hasIntent = (state) => Boolean(state) && typeof state === 'object' && INTENT_KEYS.some((key) => state[key]);
+
+/** The chat's title: a rename or the stored title, else the first question. */
+export function chatTitleOf(messages, sessionTitle) {
+  const firstQuestion = messages.find((m) => m.type === 'user')?.content;
+  if (sessionTitle && !DEFAULT_TITLE.test(sessionTitle)) return sessionTitle;
+  return firstQuestion || '';
+}
+
+function RenameDialog({ open, title, onCancel, onSave }) {
+  const [draft, setDraft] = useState(title);
+  useEffect(() => { if (open) setDraft(title); }, [open, title]);
+  return (
+    <AppDialog open={open} onClose={onCancel} maxWidth="xs" fullWidth aria-labelledby="chat-rename-title">
+      <form onSubmit={(event) => { event.preventDefault(); if (draft.trim()) onSave(draft); }}>
+        <DialogTitle id="chat-rename-title">Rename</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Title"
+            value={draft}
+            inputProps={{ maxLength: 200 }}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={!draft.trim()}>Save</Button>
+        </DialogActions>
+      </form>
+    </AppDialog>
+  );
+}
+
+/**
+ * The chat page (ask-chat.html, D4): one centred 760px column with the
+ * header (the question as an Unbounded title that wraps, Share and ⋯), the
+ * thread with its Checked chips inline, and the composer. There is no
+ * landing: a chat starts on the Ask home, and /chat with nothing to show
+ * goes there.
+ */
 const ChatPageView = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
-  const isMobile = useViewport() === 'phone';
+  const recent = useContext(RecentChatsContext);
+  const toast = useToast();
   const chat = useChat();
   const {
-    messages,
-    isLoading,
-    sessionId: currentSessionId,
-    sessionTitle: currentSessionTitle,
-    sessionEpoch,
+    messages, sessionId, sessionTitle,
   } = chat;
-  const hasMessages = messages.length > 0;
-  const hasConversationMessages = messages.some(isConversation);
-  // Text an intent puts in the composer without sending it.
+  const hasConversation = messages.some(isConversation);
+  // Text or the upload panel an intent puts in the composer without sending.
   const [prefill, setPrefill] = useState(null);
-  // Coming back to a conversation in progress opens it active.
-  const [chatPhase, setChatPhase] = useState(() => (hasConversationMessages ? 'active' : 'landing'));
-  const phaseRef = useRef(chatPhase);
-  phaseRef.current = chatPhase;
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const more = useMenu();
   const intentConsumedRef = useRef(false);
-  const phaseTimerRef = useRef(null);
-  const seenEpochRef = useRef(sessionEpoch);
 
-  useEffect(() => () => {
-    if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
-  }, []);
-
-  // newChat / openSession replaced the conversation: land or stay active to
-  // match what was loaded. Otherwise the first question moves the landing
-  // composer into the conversation. Before paint, so the welcome state never
-  // flashes over loaded messages.
-  useLayoutEffect(() => {
-    if (seenEpochRef.current !== sessionEpoch) {
-      seenEpochRef.current = sessionEpoch;
-      if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
-      setChatPhase(hasConversationMessages ? 'active' : 'landing');
-      return;
-    }
-    if (hasConversationMessages && phaseRef.current === 'landing') {
-      setChatPhase('transitioning');
-      if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
-      phaseTimerRef.current = window.setTimeout(() => setChatPhase('active'), PHASE_MS);
-    }
-  }, [sessionEpoch, hasConversationMessages]);
-
-  const ask = (text) => {
-    if (!text.trim()) return undefined;
-    return chat.send(text);
-  };
+  // Nothing to show and nothing on the way: the Ask home is where a chat starts.
+  // (A pop-up open over the page, ?course= and the like, stays.)
+  const arrivedEmptyRef = useRef(
+    !hasIntent(location.state) && !location.search && messages.length === 0 && !chat.isLoadingSession,
+  );
+  useEffect(() => {
+    if (arrivedEmptyRef.current) navigate('/home', { replace: true });
+  }, [navigate]);
 
   // Consume one-shot navigation intent from Home (session resume / new chat / prompt).
   useEffect(() => {
     if (!authToken || intentConsumedRef.current) return;
     const intent = location.state;
     // Only the known intent keys; other state (a pop-up's history marker) is not an intent.
-    if (!intent || typeof intent !== 'object' || !INTENT_KEYS.some((key) => intent[key])) {
-      return;
-    }
+    if (!hasIntent(intent)) return;
 
     intentConsumedRef.current = true;
     const applyIntent = async () => {
@@ -101,8 +119,8 @@ const ChatPageView = () => {
         } else if (intent.startNew) {
           await chat.newChat();
         }
-        if (intent.pendingPrompt) {
-          setPrefill({ text: intent.pendingPrompt });
+        if (intent.pendingPrompt || intent.openUpload) {
+          setPrefill({ text: intent.pendingPrompt, upload: Boolean(intent.openUpload) });
         }
       } finally {
         // Keep the query (?course= keeps its pop-up open).
@@ -115,95 +133,77 @@ const ChatPageView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, location.state, navigate]);
 
-  // Dialogs center over the conversation, right of the 260px rail.
-  const dialogInset = isMobile ? 0 : 260;
+  const chatTitle = chatTitleOf(messages, sessionTitle);
+  const pinned = Boolean(recent?.sessions?.find((session) => session.id === sessionId)?.pinned);
+  const failed = (message) => () => toast.show({ message, tone: 'error' });
 
-  useEffect(() => {
-    window.dispatchEvent(
-      new CustomEvent('dialog-inset-change', { detail: { leftInset: dialogInset } }),
-    );
-    return () => {
-      window.dispatchEvent(
-        new CustomEvent('dialog-inset-change', { detail: { leftInset: 0 } }),
-      );
-    };
-  }, [dialogInset]);
+  const share = () => shareChat({ title: chatTitle, messages })
+    .then((how) => { if (how === 'copied') toast.show({ message: 'Copied' }); })
+    .catch(failed('Couldn’t share'));
 
-  const firstQuestion = messages.find((m) => m.type === 'user')?.content;
-  const chatTitle = firstQuestion || (hasMessages && currentSessionTitle) || 'New chat';
-  const answerVisuals = latestVisuals(messages);
-  const suggestions = buildSuggestions({
-    visuals: answerVisuals,
-    starters: config?.homepage?.starters || [],
-    asked: messages.filter((m) => m.type === 'user').map((m) => m.content || ''),
-  });
+  const runExport = (format) => exportChat({ format, sessionId, authToken })
+    .catch(failed('Couldn’t export'));
 
   return (
     <div className="chat-frame">
-      <main className="main-chat-area" id="main-content">
-        <div className="modern-chat-page">
-          <header className="chat-head">
-            <h1 className="chat-title">{chatTitle}</h1>
-            <div className="chat-head-actions">
-              <ExportButton
-                hasMessages={hasConversationMessages}
-                currentSessionId={currentSessionId}
-                authToken={authToken}
-              />
-              <ChatMoreMenu
-                onSearchChats={() => navigate('/search')}
-                onOpenGuide={() => window.dispatchEvent(new CustomEvent(
-                  'open-user-guide',
-                  { detail: { leftInset: dialogInset } },
-                ))}
-              />
-            </div>
-          </header>
+      <main className="chat-main" id="main-content">
+        <header className="chat-head">
+          <h1 className="chat-title">{chatTitle}</h1>
+          <button
+            type="button"
+            className="chat-head-btn"
+            aria-label="Share"
+            disabled={!hasConversation}
+            onClick={share}
+          >
+            <Icon name="ios_share" size={22} />
+          </button>
+          <button type="button" className="chat-head-btn" aria-label="More" {...more.triggerProps}>
+            <Icon name="more_horiz" size={22} />
+          </button>
+          <ChatMenu
+            anchorEl={more.anchorEl}
+            onClose={more.closeMenu}
+            pinned={pinned}
+            onRename={sessionId ? () => setRenaming(true) : undefined}
+            onPin={sessionId ? (next) => chat.pinSession(next).catch(failed('Couldn’t pin')) : undefined}
+            onShare={hasConversation ? share : undefined}
+            onExport={hasConversation && sessionId ? runExport : undefined}
+            onSearchChats={() => navigate('/search')}
+            onDelete={sessionId ? () => setDeleting(true) : undefined}
+          />
+        </header>
 
-          {/* Main Content */}
-          <div className="chat-content">
-            {chatPhase !== 'active' && (
-              <div className={`welcome-state ${chatPhase === 'transitioning' ? 'is-leaving' : ''}`}>
-                <div className="chat-hero-copy">
-                  <h2>What do you need on campus today?</h2>
-                </div>
-              </div>
-            )}
-            <Thread variant="page" />
-          </div>
+        <div className="chat-thread">
+          <Thread variant="page" />
+        </div>
 
-          <div className={`floating-input-area phase-${chatPhase}`}>
-            {suggestions.length > 0 && (
-              <div className="chat-suggestions" aria-label="Suggested questions">
-                {suggestions.map((suggestion) => (
-                  <button
-                    type="button"
-                    key={suggestion.text}
-                    className="chat-suggestion"
-                    disabled={isLoading}
-                    onClick={() => ask(suggestion.text)}
-                  >
-                    <span
-                      className="chat-suggestion-dot"
-                      style={{ background: DOMAIN_COLORS[suggestion.domain] || 'var(--muted)' }}
-                      aria-hidden="true"
-                    />
-                    {suggestion.text}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <Composer surface="chat" prefill={prefill} />
-          </div>
+        <div className="chat-bottom">
+          <Composer surface="chat" prefill={prefill} />
         </div>
       </main>
 
-      <AnswerPanel
-        visuals={answerVisuals}
-        authToken={authToken}
-        timezone={schoolFacts(config).timezone}
-        onAsk={ask}
+      <RenameDialog
+        open={renaming}
+        title={chatTitle}
+        onCancel={() => setRenaming(false)}
+        onSave={(title) => {
+          setRenaming(false);
+          chat.renameSession(title).catch(failed('Couldn’t rename'));
+        }}
+      />
+      <ConfirmDialog
+        isOpen={deleting}
+        title="Delete this chat?"
+        confirmLabel="Delete"
+        tone="danger"
+        onCancel={() => setDeleting(false)}
+        onConfirm={() => {
+          setDeleting(false);
+          chat.deleteSession()
+            .then(() => navigate('/home'))
+            .catch(failed('Couldn’t delete'));
+        }}
       />
     </div>
   );

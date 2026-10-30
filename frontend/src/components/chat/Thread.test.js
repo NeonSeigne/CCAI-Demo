@@ -76,7 +76,7 @@ describe.each(['page', 'dock'])('the %s thread', (variant) => {
     const checked = screen.getByLabelText('Sources checked');
     expect(within(checked).getByText('Courses')).toBeInTheDocument();
     const answer = container.querySelector('.answer');
-    expect(answer.querySelectorAll('.message-action-button')).toHaveLength(3);
+    expect(within(answer).getAllByRole('button', { name: /Copy|Good answer|Bad answer/ })).toHaveLength(3);
   });
 
   test('shows errors, uploads and clarifications; a suggestion is sent', async () => {
@@ -108,4 +108,59 @@ test('the page thread is empty until there are messages; the dock keeps its scro
 
   const dock = renderThread('dock');
   expect(dock.container.querySelector('.cc-dock-messages')).toBeInTheDocument();
+});
+
+describe('answer feedback', () => {
+  const reply = (ok, body) => Promise.resolve({
+    ok, status: ok ? 200 : 500, text: () => Promise.resolve(JSON.stringify(body)),
+  });
+  const feedbackCalls = () => global.fetch.mock.calls
+    .filter(([url]) => url.endsWith('/api/chat-sessions/s1/messages/m2/feedback'));
+  const withFeedback = (handler) => {
+    const base = global.fetch.getMockImplementation();
+    global.fetch.mockImplementation((url, init) => (url.endsWith('/feedback') ? handler(init) : base(url, init)));
+  };
+
+  test('thumbs are aria-pressed toggles saved to the chat', async () => {
+    withFeedback((init) => reply(true, { message_id: 'm2', feedback: JSON.parse(init.body).feedback }));
+    renderThread('page');
+    await openSaved();
+    const up = screen.getByRole('button', { name: 'Good answer' });
+    const down = screen.getByRole('button', { name: 'Bad answer' });
+    expect(up).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(up);
+    expect(up).toHaveAttribute('aria-pressed', 'true');
+    expect(feedbackCalls()[0][1].method).toBe('PUT');
+    expect(JSON.parse(feedbackCalls()[0][1].body)).toEqual({ feedback: 'up' });
+
+    fireEvent.click(down);
+    await waitFor(() => expect(down).toHaveAttribute('aria-pressed', 'true'));
+    expect(up).toHaveAttribute('aria-pressed', 'false');
+
+    // Pressing the pressed one clears it.
+    fireEvent.click(down);
+    await waitFor(() => expect(down).toHaveAttribute('aria-pressed', 'false'));
+    expect(JSON.parse(feedbackCalls()[2][1].body)).toEqual({ feedback: null });
+  });
+
+  test('a failed save puts the thumb back', async () => {
+    withFeedback(() => reply(false, { detail: 'nope' }));
+    renderThread('page');
+    await openSaved();
+    const up = screen.getByRole('button', { name: 'Good answer' });
+    fireEvent.click(up);
+    expect(up).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() => expect(up).toHaveAttribute('aria-pressed', 'false'));
+  });
+
+  test('an answer saved with feedback shows it pressed', async () => {
+    const base = global.fetch.getMockImplementation();
+    global.fetch.mockImplementation((url, init) => (url.endsWith('/switch-chat')
+      ? json({ status: 'success', context: { messages: SAVED.map((m) => (m.id === 'm2' ? { ...m, feedback: 'down' } : m)) } })
+      : base(url, init)));
+    renderThread('page');
+    await openSaved();
+    expect(screen.getByRole('button', { name: 'Bad answer' })).toHaveAttribute('aria-pressed', 'true');
+  });
 });
