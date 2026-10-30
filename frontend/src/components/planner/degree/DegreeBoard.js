@@ -14,7 +14,7 @@ import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
 import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
 import SetupDialog from './SetupDialog';
-import ProgramMenu from './ProgramMenu';
+import { ProgramMenu } from '../../menus';
 import RouteMap, { RouteList } from './RouteMap';
 import { DetailCard, RequirementsPanel } from './RoutePanels';
 import {
@@ -446,7 +446,9 @@ export default function DegreeBoard({ tabs = null }) {
   }
 
   /** The program menu's choice saves through one planner edit, like setup's Program step. */
-  const chooseProgram = (next) => {
+  const chooseProgram = (id) => {
+    const next = (programs || []).find((p) => p.id === id);
+    if (!next) return;
     const op = { op: 'set_profile', program_ids: [next.id] };
     if (next.catalog_year) op.catalog_year = next.catalog_year;
     edit([op]).catch(() => {});
@@ -456,7 +458,15 @@ export default function DegreeBoard({ tabs = null }) {
     <div className="dg-board">
       <div className="dg-titlerow">
         <h1>My degree</h1>
-        {program && <ProgramMenu program={program} programs={programs} onChoose={chooseProgram} />}
+        {program && (
+          <ProgramMenu
+            programs={programs}
+            value={program.id}
+            onChange={chooseProgram}
+            label="Programs"
+            className="dg-program-btn"
+          />
+        )}
         {!program && hasPrograms && (
           <button type="button" className="dg-btn" onClick={() => openSetup(0)}>Program</button>
         )}

@@ -104,7 +104,6 @@
 .dg-btn:active { transform: scale(0.95); }
 .dg-btn.is-primary { border-color: var(--signal); background: var(--signal); color: var(--on-signal); }
 .dg-btn.is-primary:hover { background: var(--signal-hover); }
-.dg-program-btn .ms { margin-right: -4px; }
 
 /* Ghost icon buttons: 42px, no border (system.css .btn.icon.ghost). */
 .dg-icon-btn {
@@ -127,40 +126,6 @@
 .dg-icon-btn:disabled { color: var(--muted); opacity: 0.45; cursor: not-allowed; }
 .dg-icon-btn:not(:disabled):hover { background: var(--raised); }
 .dg-icon-btn:not(:disabled):active { transform: scale(0.95); }
-
-/* The program menu (menus.html "Program"). */
-.dg-menu.MuiPaper-root {
-  width: 260px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-float);
-}
-.dg-menu .MuiList-root { padding: 0; }
-.dg-menu .dg-menu-head {
-  padding: 10px 12px 6px;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.dg-menu .dg-menu-item {
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: var(--r-lg);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-}
-.dg-menu .dg-menu-item .ms { color: var(--muted); }
-.dg-menu .dg-menu-item:hover,
-.dg-menu .dg-menu-item.Mui-focusVisible { background: var(--raised); }
-.dg-menu .dg-menu-item.is-on { background: var(--tint); color: var(--tint-ink); }
-.dg-menu .dg-menu-item.is-on .ms { color: var(--tint-ink); }
 
 /* ---- Counts row (transit-a .figs) ---------------------------------------- */
 .dg-counts {

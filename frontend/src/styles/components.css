@@ -542,7 +542,12 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
   color: var(--ink);
   font: 700 14.5px var(--font-app);
   cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
 }
+.cc-menu-trigger:hover { background: var(--raised); }
+.cc-menu-trigger .ms { flex: none; }
+.cc-menu-trigger-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* A sheet at every width (event actions); on phones every menu is one. */
 .cc-menu--sheet.MuiPaper-root {
