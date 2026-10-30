@@ -115,7 +115,19 @@ export function gradeGroups(distribution, buckets) {
 
 const PRIMARY = new Set(['LEC', 'LECTURE']);
 
-export const sectionName = (row) => [row?.type, row?.section].filter(Boolean).join(' ') || 'Section';
+// Long type names (UVA's "Lecture") shortened to the codes the mockups use.
+const TYPE_CODE = {
+  LECTURE: 'LEC', DISCUSSION: 'DIS', LABORATORY: 'LAB', SEMINAR: 'SEM', STUDIO: 'STU', WORKSHOP: 'WKS',
+  'INDEPENDENT STUDY': 'IND', PRACTICUM: 'PRA', CLINICAL: 'CLN', DRILL: 'DRL',
+};
+const typeCode = (type) => {
+  if (!type) return null;
+  const upper = String(type).trim().toUpperCase();
+  return TYPE_CODE[upper] || (upper.length > 4 ? upper.slice(0, 3) : upper);
+};
+
+/** "LEC 001": the section's type code and number. */
+export const sectionName = (row) => [typeCode(row?.type), row?.section].filter(Boolean).join(' ') || 'Section';
 
 /** "MoWe 9:30–10:45" from parsed meeting times; null without them. */
 export function meetingText(times) {
@@ -167,7 +179,8 @@ export function sectionFacts(sections) {
     key: `${row.type || ''}-${row.section || ''}-${index}`,
     name: sectionName(row),
     type: row.type || null,
-    when: (row.meetings || []).filter(Boolean).join(', ') || meetingText(row.meeting_times),
+    // Parsed times read "MoWe 2:00–3:15"; the feed's own text is the fallback.
+    when: meetingText(row.meeting_times) || (row.meetings || []).filter(Boolean).join(', '),
     instructors: row.instructors || null,
     place: row.bldg || null,
     tag: seatTag(row, sections),

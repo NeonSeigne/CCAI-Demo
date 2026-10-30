@@ -108,6 +108,15 @@ function MapViewport({ focus, at }) {
   useEffect(() => {
     map?.attributionControl?.setPrefix?.(false);
   }, [map]);
+  // The column changes width after the map is made (the dock closes, the
+  // window resizes); Leaflet only fills the new size when told.
+  useEffect(() => {
+    const box = map?.getContainer?.();
+    if (!box || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => map.invalidateSize?.());
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [map]);
   useEffect(() => {
     if (!map || !focus) return;
     const size = map.getSize?.();
@@ -267,17 +276,21 @@ function StartLine({
       {origin ? (
         <p className="map-start-text">
           Starting from <strong>{origin.name}</strong>
-          <span aria-hidden="true"> · </span>
-          <button
-            type="button"
-            ref={buttonRef}
-            className="map-link-btn"
-            aria-label={`Change starting place (now ${origin.name})`}
-            aria-expanded={open}
-            onClick={onChange}
-          >
-            Change
-          </button>
+          {' '}
+          {/* The dot and Change wrap together (Q3). */}
+          <span className="map-start-change">
+            <span aria-hidden="true">· </span>
+            <button
+              type="button"
+              ref={buttonRef}
+              className="map-link-btn"
+              aria-label={`Change starting place (now ${origin.name})`}
+              aria-expanded={open}
+              onClick={onChange}
+            >
+              Change
+            </button>
+          </span>
         </p>
       ) : (
         <button type="button" ref={buttonRef} className="map-link-btn" aria-expanded={open} onClick={onChange}>

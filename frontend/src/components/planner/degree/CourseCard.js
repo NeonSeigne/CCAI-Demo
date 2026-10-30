@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import Menu, { MenuItem } from '../../menus/Menu';
 import { MoreHorizRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { creditSpan } from '../planFormat';
@@ -85,15 +84,15 @@ export default function CourseCard({
         anchorEl={menuButton.current}
         open={Boolean(menu)}
         onClose={close}
-        slotProps={{ list: { 'aria-label': menu === 'move' ? `Move ${course.id} to` : `${course.id} actions` } }}
+        label={menu === 'move' ? `Move ${course.id} to` : `${course.id} actions`}
       >
         {menu === 'move'
           ? others.map((t, index) => (
-            <MenuItem key={t} autoFocus={index === 0} onClick={() => { close(); onMove(course, t); }}>{t}</MenuItem>
+            <MenuItem key={t} icon="calendar_month" autoFocus={index === 0} onSelect={() => { close(); onMove(course, t); }}>{t}</MenuItem>
           ))
           : [
-            <MenuItem key="move" disabled={!others.length} onClick={() => setMenu('move')}>Move to…</MenuItem>,
-            <MenuItem key="remove" onClick={() => { close(); onRemove(course); }}>Remove</MenuItem>,
+            <MenuItem key="move" icon="drive_file_move" disabled={!others.length} onSelect={() => setMenu('move')}>Move to…</MenuItem>,
+            <MenuItem key="remove" icon="close" danger onSelect={() => { close(); onRemove(course); }}>Remove</MenuItem>,
           ]}
       </Menu>
     </li>

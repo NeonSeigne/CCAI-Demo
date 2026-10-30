@@ -189,6 +189,7 @@
 
 @media (max-width: 700px) {
   .dg-titlerow h1 { font-size: 23px; }
+  .dg-titletools { margin-left: 0; } /* Add course sits under the title, at the left (transit-b) */
   .dg-hide-phone { display: none !important; }
   .dg-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
   .dg-skel-grid { grid-template-columns: 1fr; }
@@ -269,7 +270,7 @@
   grid-auto-flow: column;
   grid-auto-columns: var(--dg-square);
   gap: 3px;
-  align-self: center;
+  align-self: start;
 }
 
 .dg-square {

@@ -61,8 +61,9 @@
   margin-bottom: 0.25rem;
 }
 
+/* No space above the first paragraph or below the last (components.css .ans). */
 .advisor-message-text p {
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.75rem;
 }
 
 .advisor-message-text p:last-child {
@@ -488,7 +489,8 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
 .MuiMenu-paper .MuiMenuItem-root .ms { color: var(--muted); font-size: 21px; }
 
 .cc-menu-item:hover,
-.MuiMenu-paper .MuiMenuItem-root:hover { background: var(--raised); }
+.MuiMenu-paper .MuiMenuItem-root:hover,
+.MuiMenu-paper .MuiMenuItem-root.Mui-focusVisible { background: var(--raised); }
 
 .cc-menu-item.is-on,
 .cc-menu-item[aria-checked="true"],
@@ -614,7 +616,7 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
   .cc-dialog.is-sheet .MuiDialog-paper {
     width: 100%;
     max-width: 100%;
-    max-height: calc(100dvh - 24px);
+    max-height: 94vh;
     margin: 0;
     border-radius: var(--r-2xl) var(--r-2xl) 0 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);

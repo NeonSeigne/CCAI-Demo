@@ -98,7 +98,7 @@ test('the date line, the heading and the composer lead the page; asking opens th
   expect(screen.getByText('Courses, events and places')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Voice input' })).toBeInTheDocument();
   const box = screen.getByRole('textbox', { name: 'Message' });
-  expect(box).toHaveAttribute('placeholder', 'Try “Which ECON 3010 section fits my schedule?”');
+  expect(box).toHaveAttribute('placeholder', 'Try "Which ECON 3010 section fits my schedule?"');
   fireEvent.change(box, { target: { value: 'Food near Clark Hall' } });
   fireEvent.click(screen.getByRole('button', { name: 'Send' }));
   expect(mockNavigate).toHaveBeenCalledWith('/chat', { state: { startNew: true, pendingPrompt: 'Food near Clark Hall', autoSend: true } });

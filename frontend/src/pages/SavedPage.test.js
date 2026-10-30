@@ -152,7 +152,7 @@ test('rows show live data per kind', async () => {
   const placeRow = within(row('memorial-library'));
   expect(await placeRow.findByText('Live memorial-library')).toBeInTheDocument();
   expect(placeRow.getByText('Open now')).toBeInTheDocument();
-  expect(placeRow.getByText('Walk time unavailable')).toBeInTheDocument();
+  expect(placeRow.queryByText(/walk/i)).not.toBeInTheDocument();
   expect(placeRow.getByRole('link', { name: 'Directions to Live memorial-library' }))
     .toHaveAttribute('href', '/map?to=memorial-library');
 });
@@ -411,8 +411,9 @@ test('walk times come from the starting place; off-campus events show none', asy
   const eventRow = within(await screen.findByTestId('saved-row-far'));
   expect(await eventRow.findByText('UWM Music Building, Milwaukee')).toBeInTheDocument();
   expect(eventRow.queryByText(/walk/i)).not.toBeInTheDocument();
-  expect(await within(row('college-library')).findByText('Your starting place')).toBeInTheDocument();
-  expect(await within(row('memorial-library')).findByText('Walk time unavailable')).toBeInTheDocument();
+  expect(await within(row('college-library')).findByText('Here')).toBeInTheDocument();
+  expect(await within(row('memorial-library')).findByText('Live memorial-library')).toBeInTheDocument();
+  expect(within(row('memorial-library')).queryByText(/walk/i)).not.toBeInTheDocument();
   expect(api.getPlace).toHaveBeenCalledWith('token', 'memorial-library', expect.objectContaining({ from: 'college-library' }));
 });
 

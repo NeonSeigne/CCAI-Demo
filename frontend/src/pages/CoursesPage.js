@@ -165,11 +165,14 @@ function CoursePreview({
         </div>
       </header>
 
-      <div className="cc-tiles">
-        <StatTile available={gradeTiles} value={formatGpa(grades?.gpa)} label={`avg GPA${termSuffix}`} tone={difficultyOf(data)} />
-        <StatTile available={gradeTiles} value={formatPct(grades?.pct_a)} label={`got ${labels.a}`} />
-        <StatTile available={gradeTiles} value={formatPct(grades?.pct_df)} label={`got ${labels.df}`} />
-      </div>
+      {/* No grades: no tiles (D7); the Grades section below says why. */}
+      {gradeTiles && (
+        <div className="cc-tiles">
+          <StatTile available value={formatGpa(grades?.gpa)} label={`avg GPA${termSuffix}`} tone={difficultyOf(data)} />
+          <StatTile available value={formatPct(grades?.pct_a)} label={`got ${labels.a}`} />
+          <StatTile available value={formatPct(grades?.pct_df)} label={`got ${labels.df}`} />
+        </div>
+      )}
 
       <section className="cc-pv-sect" aria-labelledby="cc-grades-h">
         <h3 id="cc-grades-h">

@@ -189,6 +189,9 @@
   cursor: pointer;
 }
 
+/* Each stop's hit area grows to 44px tall; the three share the track's width (Q19). */
+.cc-theme-toggle button::after { content: ""; position: absolute; inset: -9px 0; }
+
 .cc-theme-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
 .cc-theme-toggle button:hover:not([aria-pressed="true"]) { color: var(--on-deep); }
 

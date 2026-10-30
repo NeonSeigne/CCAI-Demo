@@ -49,6 +49,7 @@
 }
 
 .map-start-text strong { color: var(--ink); font-weight: 700; }
+.map-start-change { white-space: nowrap; }
 
 .map-link-btn {
   position: relative;
@@ -405,7 +406,7 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 /* ---- Tablet (design Q17): the card sits in the flow under the map ---------- */
 @media (max-width: 1099px) {
   .map-layout {
-    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
     grid-template-rows: 60vh auto;
     height: auto;
     min-height: 100vh;
@@ -421,10 +422,17 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
     right: auto;
     grid-column: 2;
     grid-row: 2;
+    z-index: 1; /* under the phone header and tab bar */
     width: auto;
     max-height: none;
     margin: -28px 0 0;
   }
+
+  /* A narrow card: tiles and actions wrap instead of clipping. */
+  .map-card .pop-band--compact .pop-numbers { flex-wrap: wrap; }
+  .map-card .pop-band--compact .pop-number { min-width: 96px; }
+  .map-card .pop-number-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .map-card .pop-sheet .pop-foot { flex-wrap: wrap; }
 
   .map-card .pop-sheet { border-radius: var(--r-2xl) var(--r-2xl) 0 0; box-shadow: none; }
   .map-card .pop-scroll { overflow: visible; }

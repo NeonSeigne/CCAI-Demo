@@ -38,6 +38,7 @@
 
 .ep .pop-number-value {
   font-size: 16px;
+  line-height: 1.5;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -56,6 +57,10 @@
 }
 
 .ep-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+/* No map and no "Also at" (D7): the details take the whole width. */
+.ep-col:empty { display: none; }
+.ep .ep-body:has(> .ep-col:empty) { grid-template-columns: minmax(0, 1fr); }
 
 .ep .pop-tile-title { font-size: 13.5px; }
 

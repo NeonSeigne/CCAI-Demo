@@ -10,7 +10,9 @@
 
 /* Browse and Compare: the system's main padding (.main). */
 .cc-browse-page .cc-page-main,
-.cc-compare .cc-page-main { padding: 28px 36px 40px; }
+.cc-compare .cc-page-main,
+.cc-courses.is-degree .cc-page-main,
+.cc-courses.is-semester .cc-page-main { padding: 28px 36px 40px; }
 
 .cc-page {
   max-width: 1128px;
@@ -465,10 +467,12 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 
 .cc-preview-by { margin: 0; color: var(--muted); font-size: 14px; }
 
-.cc-preview-actions { display: flex; align-items: center; gap: 8px; }
+.cc-preview-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cc-preview-actions .cc-btn { white-space: nowrap; }
 
 /* The bookmark as a round outlined icon button. */
-.cc-preview-save.cc-save { width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+.cc-preview-save.cc-save { position: relative; width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+.cc-preview-save.cc-save::after { content: ""; position: absolute; inset: -2px; }
 .cc-preview-save.cc-save:hover { background: var(--raised); }
 
 .cc-tiles {
@@ -590,6 +594,9 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 .cc-section-row + .cc-section-row { border-top: 1px solid var(--rule); }
 
 .cc-section-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-code);
   font-size: 11px;
   font-weight: 700;
@@ -655,6 +662,11 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   .cc-preview-side + .cc-preview-side { border-left: 0; border-top: 1px solid var(--rule); }
 }
 
+/* Narrow preview: the grade tiles stack. */
+@container (width <= 360px) {
+  .cc-tiles { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* The code sits above the title. */
 @container (width <= 440px) {
   .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
@@ -664,14 +676,18 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 @media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
   .cc-browse-page .cc-page-main,
-  .cc-compare .cc-page-main { padding: 24px 20px 40px; }
+  .cc-compare .cc-page-main,
+  .cc-courses.is-degree .cc-page-main,
+  .cc-courses.is-semester .cc-page-main { padding: 24px 20px 40px; }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
 @media (max-width: 700px) {
   .cc-page-main { padding: 20px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-browse-page .cc-page-main,
-  .cc-compare .cc-page-main { padding: 18px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
+  .cc-compare .cc-page-main,
+  .cc-courses.is-degree .cc-page-main,
+  .cc-courses.is-semester .cc-page-main { padding: 18px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-page { gap: 16px; }
   .cc-page-head h1 { font-size: 23px; }
   .cc-page-head .cc-tabs { width: 100%; }
@@ -693,6 +709,9 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   .cc-preview { position: static; }
 
   .cc-row { grid-template-columns: 40px minmax(0, 1fr); padding: 0 8px 0 4px; }
+  /* The code sits above the title (no container query on phones). */
+  .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cc-row-title { white-space: normal; }
   .cc-row-main { padding: 11px 6px 11px 4px; gap: 12px; }
   .cc-row-grip { display: none; }
 

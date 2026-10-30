@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NOT_PLACED, routeByTerm } from './routeModel';
 import { creditMin, parseTerm } from './degreeFormat';
 import '../../../styles/RouteMap.css';
@@ -6,6 +6,7 @@ import '../../../styles/RouteMap.css';
 // Geometry of the line map, in SVG units (transit-a.html: COL 108, LEFT 136, TOP 52).
 const LABEL_W = 136;
 const COL_W = 108;
+const MIN_COL_W = 84; // columns narrow to this before the map scrolls
 const TOP = 52;
 const FIRST_ROW = TOP + 52;
 const ROW_H = 100;
@@ -22,9 +23,9 @@ export const stopLabel = (stop) => [
  * Column edges and stop positions. Every column is one width unless a line
  * has three or more stops in it; stops that share a term spread across it.
  */
-function layout(model, columns) {
+function layout(model, columns, colW = COL_W) {
   const most = (term) => Math.max(1, ...model.lines.map((l) => l.stops.filter((s) => s.term === term).length));
-  const widths = columns.map((term) => Math.max(COL_W, most(term) * SPREAD + 12));
+  const widths = columns.map((term) => Math.max(colW, most(term) * SPREAD + 12));
   const lefts = widths.map((_, i) => LABEL_W + widths.slice(0, i).reduce((a, b) => a + b, 0));
   const col = (term) => {
     const i = columns.indexOf(term);
@@ -66,7 +67,19 @@ export default function RouteMap({
   model, selected = null, onSelect, onOpen,
 }) {
   const columns = [...model.terms, ...(model.notPlaced ? [NOT_PLACED] : [])];
-  const { at, col, width: right } = layout(model, columns);
+  // The panel's inner width: columns narrow (to 84) so the map fits before it scrolls.
+  const scrollRef = useRef(null);
+  const [room, setRoom] = useState(null);
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (!box || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => setRoom(box.clientWidth - 8));
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
+  const fit = room ? Math.floor((room - LABEL_W - 12) / Math.max(columns.length, 1)) : COL_W;
+  const colW = Math.max(MIN_COL_W, Math.min(COL_W, fit));
+  const { at, col, width: right } = layout(model, columns, colW);
   const width = right + 12;
   const height = FIRST_ROW + Math.max(model.lines.length - 1, 0) * ROW_H + 64;
   const currentIndex = columns.indexOf(model.current);
@@ -114,7 +127,7 @@ export default function RouteMap({
   const dueX = dueIndex !== -1 ? col(model.deadline.term).left + col(model.deadline.term).width : null;
 
   return (
-    <div className="rt-scroll" role="region" aria-label="Route map">
+    <div className="rt-scroll" ref={scrollRef} role="region" aria-label="Route map">
       <svg className="rt-map" width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="group">
         {currentIndex !== -1 && (
           <rect

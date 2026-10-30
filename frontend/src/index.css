@@ -28,6 +28,7 @@ h4 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.12;
 }
 
 /* Literal code blocks only; course codes use --font-code. */

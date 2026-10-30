@@ -96,7 +96,7 @@ describe('each surface decides the +, mic, scope chip and placeholder', () => {
     expect(screen.getByRole('button', { name: 'Add documents or skills' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Voice input' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Try “Where can I study late?”');
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Try "Where can I study late?"');
   });
 });
 

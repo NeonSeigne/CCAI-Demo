@@ -66,8 +66,8 @@ const kindSummary = (items) => {
 const dayLabel = (iso, timezone) => dateLabel(iso, timezone, { weekday: 'short', month: 'short', day: 'numeric' });
 
 function Walk({ minutes }) {
-  const walk = walkText(minutes, { here: 'Your starting place', suffix: ' walk' });
-  if (!walk) return <span className="saved-walk is-unavailable">Walk time unavailable</span>;
+  const walk = walkText(minutes, { suffix: ' walk' });
+  if (!walk) return null; // no walk time: leave it out (D7)
   return (
     <span className="saved-walk">
       <Icon name="directions_walk" size={16} />
@@ -112,7 +112,7 @@ const hoursText = (place, timezone) => {
   if (place.open_now === true) return 'Open now';
   const listed = typeof place.hours === 'string' && place.hours ? place.hours : null;
   if (place.open_now === false) return listed ? `Closed · ${listed}` : 'Closed now';
-  return listed || 'Hours not listed';
+  return listed; // null: no hours line (D7)
 };
 
 // ---- Rows -------------------------------------------------------------------
@@ -155,6 +155,7 @@ function courseParts(course) {
       </span>
     ) : null,
     action: <RowAction icon="open_in_new" label={`Course page for ${code}`} to={`/courses?selected=${encodeURIComponent(code)}`} />,
+    menuAction: { icon: 'open_in_new', text: 'Course page', to: `/courses?selected=${encodeURIComponent(code)}` },
   };
 }
 
@@ -177,6 +178,7 @@ function eventParts(event, timezone) {
       </div>
     ),
     action: <RowAction icon="calendar_add_on" label={`Add ${event.title} to calendar`} onClick={() => downloadEventIcs(event)} />,
+    menuAction: { icon: 'calendar_add_on', text: 'Add to calendar', onSelect: () => downloadEventIcs(event) },
   };
 }
 
@@ -187,12 +189,13 @@ function placeParts(place, timezone) {
       <div className="saved-row-w">
         <strong>{place.name}</strong>
         <span className="saved-meta">
-          <span>{hoursText(place, timezone)}</span>
+          {hoursText(place, timezone) && <span>{hoursText(place, timezone)}</span>}
           <Walk minutes={place.walk_minutes} />
         </span>
       </div>
     ),
     action: <RowAction icon="directions" label={`Directions to ${place.name}`} to={`/map?to=${encodeURIComponent(place.id)}`} />,
+    menuAction: { icon: 'directions', text: 'Directions', to: `/map?to=${encodeURIComponent(place.id)}` },
   };
 }
 
@@ -241,7 +244,8 @@ function SavedRow({ item, lookup, past, timezone, menu, onRetry, onRemove }) {
       <div className="saved-row-tag">{parts.tag}</div>
       <div className="saved-acts">
         {parts.action}
-        {menu}
+        {/* Phones show only ⋯ (saved.html); the row's own action moves into it. */}
+        {menu && parts.menuAction ? React.cloneElement(menu, { extra: parts.menuAction }) : menu}
       </div>
     </li>
   );

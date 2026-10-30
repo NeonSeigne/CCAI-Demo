@@ -230,9 +230,10 @@ function NextUp({ event, timezone, todayKey, now }) {
     <article className="ev-feature" aria-labelledby="ev-feature-title">
       <div className="ev-feature-main">
         <p className="ev-feature-kicker">
-          <span>Next up</span>
-          <span aria-hidden="true">·</span>
-          <span className="ev-feature-when">{featureWhen(event, timezone, todayKey)}</span>
+          <span>
+            {'Next up · '}
+            <span className="ev-feature-when">{featureWhen(event, timezone, todayKey)}</span>
+          </span>
           {tag && <span className="ev-tag">{tag}</span>}
         </p>
         <h3 id="ev-feature-title" className="ev-feature-title"><EventTitle event={event} /></h3>
@@ -668,18 +669,21 @@ function StartPlace({ origin, authToken, onSave }) {
       <Icon name="near_me" size={18} className="ev-start-icon" />
       <span className="ev-start-label">Starting from</span>
       <span className="ev-start-place">{label}</span>
-      <span aria-hidden="true" className="ev-muted">·</span>
-      <button
-        type="button"
-        ref={buttonRef}
-        className="ev-link-btn"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={`Change starting place${origin.place?.name ? ` (now ${origin.place.name})` : ''}`}
-        onClick={() => (open ? close() : setOpen(true))}
-      >
-        Change
-      </button>
+      {/* The dot and Change wrap together (Q3). */}
+      <span className="ev-start-change">
+        <span aria-hidden="true" className="ev-muted">·</span>
+        <button
+          type="button"
+          ref={buttonRef}
+          className="ev-link-btn"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={`Change starting place${origin.place?.name ? ` (now ${origin.place.name})` : ''}`}
+          onClick={() => (open ? close() : setOpen(true))}
+        >
+          Change
+        </button>
+      </span>
       {open && (
         <div
           className="ev-popover"
@@ -962,7 +966,7 @@ const EventsPage = () => {
 
               <div className="ev-controls">
                 <div className="ev-chips" role="group" aria-label="When">
-                  {WINDOWS.map((w) => (
+                  {WINDOWS.filter((w) => w.chip !== false).map((w) => (
                     <button
                       key={w.id}
                       type="button"

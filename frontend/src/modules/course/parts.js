@@ -45,23 +45,33 @@ export function GradeBars({ groups, size = 'popup', label = 'Grades' }) {
  * snapshot neutral). `variant="popup"` is the pop-up's row (course-popup.html):
  * the section code, the time, the instructor and the tag in four columns.
  */
+const POPUP_ROWS = 4;
+
 export function SectionRows({ sections, label = 'Sections', variant }) {
   if (!sections?.rows?.length) return null;
   if (variant === 'popup') {
+    // The pop-up lists up to four lectures, as course-popup.html does, so its
+    // actions stay in view; Browse lists every section.
+    const lectures = sections.rows.filter((row) => /^LEC(TURE)?$/i.test(String(row.type || '')));
+    const shown = (lectures.length ? lectures : sections.rows).slice(0, POPUP_ROWS);
+    const more = sections.rows.length - shown.length;
     return (
-      <ul className="crs-sections crs-sections--popup" aria-label={label}>
-        {sections.rows.map((row) => (
-          <li key={row.key} className="crs-section">
-            <span className="crs-section-code">
-              {row.type && <span className="sr-only">{`${row.type} `}</span>}
-              {row.row?.section || row.name}
-            </span>
-            <span className="crs-section-when">{row.when || ''}</span>
-            <span className="crs-section-who">{row.instructors || ''}</span>
-            {row.tag ? <span className={`crs-tag crs-tag--${row.tag.kind}`}>{row.tag.text}</span> : <span />}
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul className="crs-sections crs-sections--popup" aria-label={label}>
+          {shown.map((row) => (
+            <li key={row.key} className="crs-section">
+              <span className="crs-section-code">
+                {row.type && <span className="sr-only">{`${row.type} `}</span>}
+                {row.row?.section || row.name}
+              </span>
+              <span className="crs-section-when">{row.when || ''}</span>
+              <span className="crs-section-who">{row.instructors || ''}</span>
+              {row.tag ? <span className={`crs-tag crs-tag--${row.tag.kind}`}>{row.tag.text}</span> : <span />}
+            </li>
+          ))}
+        </ul>
+        {more > 0 && <p className="crs-sections-more">{`+${more} more sections`}</p>}
+      </>
     );
   }
   return (

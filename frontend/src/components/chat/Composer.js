@@ -45,7 +45,7 @@ export const FOLLOW_UP_PLACEHOLDER = 'Ask a follow-up';
 export function composerPlaceholder(surface, config, { followUp = false, page = null } = {}) {
   if (surface === 'home') {
     const first = config?.homepage?.starters?.[0]?.prompts?.[0];
-    return first ? `Try “${first}”` : DEFAULT_PLACEHOLDER;
+    return first ? `Try "${first}"` : DEFAULT_PLACEHOLDER;
   }
   if (surface === 'chat' && followUp) return FOLLOW_UP_PLACEHOLDER;
   if (surface === 'dock' && page) return page;

@@ -134,7 +134,16 @@ export function buildMuiTheme(roles, mode) {
       },
       MuiDialogContent: { styleOverrides: { root: { color: 'var(--ink)', padding: '8px 24px 24px' } } },
       MuiDialogActions: { styleOverrides: { root: { gap: 8, padding: '0 24px 20px' } } },
-      MuiBackdrop: { styleOverrides: { root: { backgroundColor: 'var(--scrim)' } } },
+      // Menus and popovers float without a scrim on tablet and desktop; on
+      // phones they rise as sheets over it (menus.html, R1).
+      MuiBackdrop: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'var(--scrim)',
+            '@media (min-width: 701px)': { '&.MuiBackdrop-invisible': { backgroundColor: 'transparent' } },
+          },
+        },
+      },
       MuiMenu: {
         styleOverrides: {
           paper: {

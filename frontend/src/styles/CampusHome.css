@@ -282,5 +282,4 @@
   .ah-what b { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .ah-acts { display: none; }
   .ah-cls, .ah-saved-row { padding-left: 16px; padding-right: 16px; }
-  .ah-panel-h, .ah-panel .pnl-state, .ah-more { padding-left: 16px; padding-right: 16px; }
 }

@@ -58,6 +58,9 @@
 
 .answer-meta .vc-checked { margin-right: 4px; }
 
+/* Copy and the thumbs stay together when the row wraps. */
+.answer-acts { display: flex; flex: none; align-items: center; gap: 8px; }
+
 .answer-act {
   width: 44px;
   height: 44px;
@@ -691,7 +694,7 @@ button.vc-srow-code:hover { color: var(--ink); text-decoration: underline; text-
 
 /* ---- Event list (chat-campus) ------------------------------------------- */
 .vc-evt-group + .vc-evt-group { border-top: 1px solid var(--rule); }
-.vc-events .vc-head { padding-bottom: 2px; }
+.vc-events .vc-head { padding-bottom: 6px; }
 .vc-zone { flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
 .vc-events-list { margin: 0; padding: 0; list-style: none; }
 
@@ -705,7 +708,6 @@ button.vc-srow-code:hover { color: var(--ink); text-decoration: underline; text-
   border-top: 1px solid var(--rule);
 }
 
-.vc-evt:first-child { border-top: 0; }
 
 .vc-time {
   font-family: var(--font-display);
