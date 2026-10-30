@@ -157,15 +157,6 @@ const FileUpload = ({ onFileUploaded, isUploading, onUploadStart, currentChatSes
     setUploadMessage('');
   };
 
-  const getFileIcon = (file) => {
-    const fileInfo = supportedTypes[file.type];
-    if (fileInfo) {
-      const Icon = fileInfo.icon;
-      return <Icon size={16} style={{ color: fileInfo.color }} />;
-    }
-    return <File size={16} />;
-  };
-
   return (
     <div className="file-upload-container">
       {/* Upload Status Banner */}
