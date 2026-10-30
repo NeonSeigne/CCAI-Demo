@@ -7,11 +7,12 @@
 /* Tiles share the band's width in the mockup's proportions; a missing tile is
    left out and the rest stretch (design Q5). */
 .ps .pop-band--compact .pop-numbers { display: flex; gap: 8px; }
-.ps .pop-band--compact .pop-number { flex: 1 1 0; }
-.ps .pop-number.ps-tile--walk { flex-grow: 0.9; }
-.ps .pop-number.ps-tile--open { flex-grow: 1.5; }
-.ps .pop-number.ps-tile--floors { flex-grow: 0.8; }
-.ps .pop-number.ps-tile--access { flex-grow: 0.9; }
+.ps .pop-band--compact .pop-number { flex: 10 1 0; min-width: 0; }
+/* map.html .9fr 1.5fr .8fr .9fr; whole numbers so one tile alone fills the row. */
+.ps .pop-number.ps-tile--walk { flex-grow: 9; }
+.ps .pop-number.ps-tile--open { flex-grow: 15; }
+.ps .pop-number.ps-tile--floors { flex-grow: 8; }
+.ps .pop-number.ps-tile--access { flex-grow: 9; }
 .ps .pop-band--compact .pop-number-value { font-weight: 600; }
 .ps .pop-band--compact .pop-title { margin-top: 6px; }
 

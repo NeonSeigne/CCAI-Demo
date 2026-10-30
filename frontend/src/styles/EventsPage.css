@@ -85,6 +85,7 @@
 }
 
 .ev-start-place { color: var(--ink); font-weight: 600; }
+.ev-start-change { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 
 /* "Change" is inline text in the mockup; its hit area grows without moving the line. */
 .ev-start .ev-link-btn { position: relative; min-height: 0; padding: 0; }

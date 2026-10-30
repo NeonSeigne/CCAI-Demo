@@ -669,18 +669,21 @@ function StartPlace({ origin, authToken, onSave }) {
       <Icon name="near_me" size={18} className="ev-start-icon" />
       <span className="ev-start-label">Starting from</span>
       <span className="ev-start-place">{label}</span>
-      <span aria-hidden="true" className="ev-muted">·</span>
-      <button
-        type="button"
-        ref={buttonRef}
-        className="ev-link-btn"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={`Change starting place${origin.place?.name ? ` (now ${origin.place.name})` : ''}`}
-        onClick={() => (open ? close() : setOpen(true))}
-      >
-        Change
-      </button>
+      {/* The dot and Change wrap together (Q3). */}
+      <span className="ev-start-change">
+        <span aria-hidden="true" className="ev-muted">·</span>
+        <button
+          type="button"
+          ref={buttonRef}
+          className="ev-link-btn"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={`Change starting place${origin.place?.name ? ` (now ${origin.place.name})` : ''}`}
+          onClick={() => (open ? close() : setOpen(true))}
+        >
+          Change
+        </button>
+      </span>
       {open && (
         <div
           className="ev-popover"
