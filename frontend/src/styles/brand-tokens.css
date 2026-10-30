@@ -3,14 +3,22 @@
  * Colour roles (--surface, --ink, --deep, --signal, --tint, ...) are written on
  * <html> by ThemeContext from src/theme/schoolTheme.js and the school's
  * app.theme, for the current light or dark mode. This file holds what doesn't
- * depend on the school: type, radii, shadows, the data palettes per mode, and
- * the older token names, which now point at the roles.
+ * depend on the school: type, radii, shadows and the data palettes per mode.
+ *
+ * Breakpoints (DESIGN.md Layout, design Q18; hooks/useViewport.js): phone up
+ * to --bp-phone, desktop from --bp-desktop, the Ask dock docked from
+ * --bp-dock. Media queries can't read custom properties, so stylesheets write
+ * the widths out: (max-width: 700px), (max-width: 1099px), (max-width: 1279px).
  */
 :root {
   --font-app: "Hanken Grotesk", sans-serif;
   --font-display: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-code: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --bp-phone: 700px;
+  --bp-desktop: 1100px;
+  --bp-dock: 1280px;
 
   /* One radius ramp, ordered by nesting: a child is never rounder than its parent. */
   --r-sm: 8px;

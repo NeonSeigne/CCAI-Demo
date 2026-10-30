@@ -125,7 +125,6 @@
   min-width: 0;
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -272,7 +271,6 @@
 
 .vc-band h3 {
   margin: 3px 0 0;
-  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -715,7 +713,6 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
   flex: 1;
   min-width: 0;
   margin: 4px 0 12px;
-  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -779,7 +776,6 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
 
 .course-section-heading h2 {
   margin: 0;
-  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;

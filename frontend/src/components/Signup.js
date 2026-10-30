@@ -352,7 +352,7 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
             {/* Submit Button */}
             <button 
               type="submit" 
-              className={`submit-btn btn-primary ${isLoading ? 'loading' : ''}`}
+              className={`submit-btn ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
               {isLoading ? (

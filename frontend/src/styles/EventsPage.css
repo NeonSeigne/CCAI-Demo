@@ -36,7 +36,6 @@
 
 .ev-title-row h1 {
   margin: 2px 0 0;
-  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.12;
@@ -647,7 +646,7 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
 
 .ev-hour-list { display: flex; flex-direction: column; gap: 8px; }
 .ev-hour-list-head { display: flex; align-items: center; justify-content: space-between; }
-.ev-hour-list-head h3 { margin: 0; font-family: var(--font-display); font-size: 14px; letter-spacing: -0.02em; }
+.ev-hour-list-head h3 { margin: 0; font-size: 14px; letter-spacing: -0.02em; }
 
 /* ---- Phone ----------------------------------------------------------------- */
 .ev-agenda { display: flex; flex-direction: column; gap: 10px; }
