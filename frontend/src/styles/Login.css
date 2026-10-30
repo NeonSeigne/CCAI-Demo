@@ -407,7 +407,7 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 480px) {
+@media (max-width: 700px) {
   .login-page {
     padding: 16px 12px;
   }

@@ -472,7 +472,7 @@ div.cc-composer .send-button.disabled {
 }
 
 /* ---- Phones --------------------------------------------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .enhanced-chat-input-container { padding: 0 12px; }
 
   div.cc-composer .floating-input-box { padding: 14px 10px 8px 16px; }

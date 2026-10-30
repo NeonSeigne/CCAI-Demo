@@ -14,6 +14,7 @@ import {
 } from '../api/campus';
 import '../styles/CampusHome.css';
 import '../styles/CampusMapPage.css';
+import { isAbort, useDelayedFlag } from '../utils/loading';
 
 /** OpenStreetMap standard tiles (tile usage policy: visible attribution). */
 export const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -21,7 +22,6 @@ export const OSM_ATTRIBUTION = '© OpenStreetMap contributors';
 
 const LIST_LIMIT = 25;
 const NEAREST_SHOWN = 3;
-const PLACEHOLDER_DELAY_MS = 300;
 const SEARCH_DEBOUNCE_MS = 300;
 
 /** Backend category ids → [chip label, lower-case plural for sentences]. */
@@ -40,22 +40,6 @@ const CATEGORY_NAMES = {
 const CATEGORY_ORDER = Object.keys(CATEGORY_NAMES);
 const chipLabel = (category) => (category ? CATEGORY_NAMES[category]?.[0] || category : 'All places');
 const pluralName = (category) => (category ? CATEGORY_NAMES[category]?.[1] || category : 'places');
-
-/** True after `active` has held for `ms` (placeholders after 300 ms, 9A). */
-function useDelayedFlag(active, ms = PLACEHOLDER_DELAY_MS) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setShown(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setShown(true), ms);
-    return () => clearTimeout(timer);
-  }, [active, ms]);
-  return shown;
-}
-
-const isAbort = (error) => error?.name === 'AbortError';
 
 const iconName = (category) => CATEGORY_ICONS[category] || 'location_on';
 

@@ -42,6 +42,6 @@
 
 .cc-toast-action:focus-visible { outline-color: var(--surface); }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cc-toast-region { bottom: calc(56px + 16px + env(safe-area-inset-bottom, 0px)); }
 }

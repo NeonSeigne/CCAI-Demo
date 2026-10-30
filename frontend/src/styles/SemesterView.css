@@ -153,8 +153,8 @@
   color: var(--muted);
 }
 
-/* D17: below 1440px the gauges become a row of three compact tiles. */
-@media (max-width: 1439px) {
+/* D17: below 1280px the gauges become a row of three compact tiles. */
+@media (max-width: 1279px) {
   .sv-body { grid-template-columns: minmax(0, 1fr); }
   .sv-side {
     display: grid;
@@ -164,7 +164,7 @@
   .sv-gauge-svg { max-width: 120px; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .sv-side { grid-template-columns: minmax(0, 1fr); }
   .sv-head { flex-wrap: wrap; }
 }
@@ -668,7 +668,7 @@
 .sv-menu .MuiMenuItem-root.is-danger,
 .sv-menu .MuiMenuItem-root.is-danger svg { color: var(--difficulty-harder-ink); }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .sv-card { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
   .sv-card-side { padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .sv-courses-tools { width: 100%; margin-left: 0; }

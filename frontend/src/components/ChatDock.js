@@ -88,7 +88,7 @@ function SheetHandle({ snap, onSnap, onClose }) {
 /**
  * The chat dock (design D17): the one conversation beside every page.
  * Docked at >= 1280px (collapses to a 48px strip), a 400px drawer at
- * 768–1279px, a bottom sheet under 768px (opened by the Ask tab). Dropping a
+ * 701–1279px, a bottom sheet at 700px and under (opened by the Ask tab). Dropping a
  * course, event or place on it attaches the item to the composer.
  */
 export default function ChatDock() {

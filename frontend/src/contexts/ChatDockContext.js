@@ -6,8 +6,8 @@ import useMediaMatch from '../hooks/useMediaMatch';
 /**
  * Where the chat dock sits and whether it's open (design D17):
  * 'docked' (>= 1280px) a 360px column that collapses to a 48px strip, the
- * choice remembered; 'drawer' (768–1279px) collapsed by default, opening as
- * a 400px drawer; 'sheet' (< 768px) a bottom sheet the phone Ask tab opens.
+ * choice remembered; 'drawer' (701–1279px) collapsed by default, opening as
+ * a 400px drawer; 'sheet' (<= 700px) a bottom sheet the phone Ask tab opens.
  *
  * `available` is false where the page itself is the ask (/home, /chat).
  */
@@ -15,7 +15,7 @@ export const ChatDockContext = createContext(null);
 
 export const DOCK_COLLAPSED_KEY = 'cc.chatDock.collapsed';
 export const DOCK_WIDE = '(min-width: 1280px)';
-export const DOCK_MEDIUM = '(min-width: 768px)';
+export const DOCK_MEDIUM = '(min-width: 701px)';
 export const SHEET_SNAPS = ['peek', 'half', 'full'];
 
 const readCollapsed = () => {

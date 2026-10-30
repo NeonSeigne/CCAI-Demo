@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { MessageSquare, Plus, Search, X } from '../components/icons';
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import {
-  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced, useDelayedFlag,
+  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced,
 } from '../components/catalog/CatalogParts';
 import {
   MAX_TICKED, askComparePrompt, askState, formatGpa, formatPct, gradesLabel,
@@ -14,8 +14,8 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
 import '../styles/CourseComparePage.css';
+import { isAbort, useDelayedFlag } from '../utils/loading';
 
-const isAbort = (error) => error?.name === 'AbortError';
 const countOf = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 
 const parseIds = (value) => {

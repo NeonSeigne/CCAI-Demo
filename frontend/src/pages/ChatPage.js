@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useMediaQuery } from '@mui/material';
 
 import { MessageCircle, Sparkles, FileText } from '../components/icons';
 
@@ -18,8 +17,8 @@ import { useOpenCourse } from '../utils/openCourse';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
-import muiTheme from '../theme/muiTheme';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
+import useViewport from '../hooks/useViewport';
 
 /** location.state keys that carry a one-shot intent from another page. */
 const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
@@ -32,7 +31,7 @@ const ChatPageView = () => {
   const location = useLocation();
   const { authToken } = useAuth();
   const { config } = useAppConfig();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const isMobile = useViewport() === 'phone';
   const chat = useChat();
   const {
     messages,

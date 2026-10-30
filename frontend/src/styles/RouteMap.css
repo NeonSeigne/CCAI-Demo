@@ -178,7 +178,7 @@
 
 /* The map on wide screens, the route on phones. */
 .rt-view .rt-list { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .rt-view .rt-card { display: none; }
   .rt-view .rt-list { display: flex; }
 }

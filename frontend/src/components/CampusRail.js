@@ -207,7 +207,7 @@ function SavedNavItem({ item, current, savedCount }) {
 /**
  * The Campus Companion left rail, in the school's deep colour: the round
  * school mark with the product and school names, the five page links, New
- * chat, recent chats, the theme toggle and the signed-in user. Under 768px it
+ * chat, recent chats, the theme toggle and the signed-in user. At 700px and under it
  * gives way to a school-coloured header and a bottom tab bar (26A).
  *
  * Pass `recent` (from useRecentChats) when the page also shows the chats, so
@@ -334,7 +334,7 @@ export default function CampusRail({
   return (
     <>
       {railSlot ? createPortal(rail, railSlot) : rail}
-      {/* Phones (<768px): school-coloured header on top, tab bar at the bottom. */}
+      {/* Phones (<=700px): school-coloured header on top, tab bar at the bottom. */}
       <header className="campus-phone-header">
         {brandMark}
         <span className="campus-phone-school">{school}</span>

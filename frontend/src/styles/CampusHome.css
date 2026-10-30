@@ -20,7 +20,7 @@
 /* Recent chats sit at the top of the page on phones, where the rail is hidden (26A). */
 .campus-phone-recent { display: none; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .campus-home { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   .campus-phone-recent {
     display: flex;
@@ -62,7 +62,7 @@
   color: var(--muted);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .campus-main { padding: 32px 16px 48px; }
 }
 
@@ -345,7 +345,7 @@
 .ah-saved-kind { display: inline-flex; color: var(--muted); }
 .ah-saved-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .campus-home .ah-main { padding-top: 12px; }
   .ah-column { gap: 20px; }
   .ah-hero h1 { margin-bottom: 16px; font-size: 23px; }

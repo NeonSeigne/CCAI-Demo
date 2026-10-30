@@ -195,7 +195,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .file-upload-area {
     padding: 16px;
   }

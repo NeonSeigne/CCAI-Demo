@@ -410,7 +410,7 @@
 }
 
 /* Responsive Design for Chat Page */
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   
   .main-content {
     padding: 24px 12px 120px 12px; /* Adjusted for mobile */
@@ -493,7 +493,7 @@
 
 .chat-frame .answer .advisor-message-text { font-size: 16px; line-height: 1.6; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .chat-frame .messages-scroll .user-message { max-width: 88%; }
 }
 

@@ -78,7 +78,7 @@ export function buildMuiTheme(roles, mode) {
       button: { textTransform: 'none', fontWeight: 700 },
     },
     shape: { borderRadius: 12 },
-    breakpoints: { values: { xs: 0, sm: 600, md: 769, lg: 1200, xl: 1536 } },
+    breakpoints: { values: { xs: 0, sm: 701, md: 1100, lg: 1280, xl: 1280 } },
     components: {
       MuiAppBar: {
         defaultProps: { color: 'transparent', elevation: 0 },

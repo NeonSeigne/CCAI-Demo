@@ -687,12 +687,12 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
 .dg-editor-row.is-flagged { background: var(--domain-student-life-tint); }
 .su-credits { margin-left: auto; font-family: var(--font-code); font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 
-@media (max-width: 900px) {
+@media (max-width: 1099px) {
   .su-program { grid-template-columns: 1fr; }
 }
 
 /* Phones: a tall bottom sheet (components.css places it at the bottom edge). */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cc-dialog .su-dialog {
     margin: 0;
     width: 100%;
@@ -721,12 +721,12 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
 .dg-ph-card { height: 72px !important; border-radius: var(--r-md) !important; }
 
 /* ---- Widths (D17) ------------------------------------------------------- */
-@media (max-width: 1100px) {
+@media (max-width: 1099px) {
   .dg-summary { grid-template-columns: minmax(150px, 180px) 1fr; }
   .dg-key { grid-column: 1 / -1; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .dg-summary { --dg-square: 12px; grid-template-columns: 1fr; padding: 16px; }
   .dg-waffle { justify-self: start; }
   .dg-terms { scroll-snap-type: x mandatory; }

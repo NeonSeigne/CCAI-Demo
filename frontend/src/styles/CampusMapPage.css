@@ -547,7 +547,7 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 }
 
 /* ---- Phone: map on top, the list under it, the card as a bottom sheet ------ */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .map-layout {
     display: flex;
     flex-direction: column;

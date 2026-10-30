@@ -55,7 +55,7 @@
 /* The chat page's side panel lists what was checked; inline once it hides. */
 .chat-frame .answer-checked { display: none; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1099px) {
   .chat-frame .answer-checked { display: block; }
 }
 
@@ -727,7 +727,7 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
 .vc-place-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 /* ---- Phone ----------------------------------------------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .vc-head, .vc-body, .vc-foot { padding-left: 16px; padding-right: 16px; }
   .vc-kpis { grid-template-columns: 1fr 1fr; }
   .vc-band h3 { font-size: 17px; }

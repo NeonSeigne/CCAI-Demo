@@ -300,7 +300,7 @@
 .campus-phone-header,
 .campus-tabbar { display: none; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .campus-rail { display: none; }
 
   .campus-phone-header {

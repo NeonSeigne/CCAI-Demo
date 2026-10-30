@@ -180,7 +180,7 @@
 .landing-foot a.footer-neon-link { display: inline-flex; align-items: center; gap: 4px; }
 .landing-foot .footer-neon-logo { display: inline-block; width: auto; height: 12px; margin: 0; }
 
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .landing-bar { padding: 14px 16px; }
   .landing-bar .campus-brand-name { display: none; }
   .landing-error { margin: 0 16px; }

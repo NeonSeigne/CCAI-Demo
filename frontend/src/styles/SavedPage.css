@@ -413,7 +413,7 @@
 /* ---- Phone picker (27A) --------------------------------------------------- */
 .saved-picker { display: none; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .saved-page { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   .saved-main { padding: 20px 16px 40px; }
   .saved-layout { grid-template-columns: minmax(0, 1fr); }

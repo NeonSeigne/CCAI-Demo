@@ -535,15 +535,15 @@
 .cc-section-seats { font-weight: 500; white-space: nowrap; }
 .cc-section-seats.is-full { color: var(--error); font-weight: 600; }
 
-/* ---- 768-1023px: narrower list and preview -------------------------------- */
-@media (max-width: 1023px) {
+/* ---- 701-1099px: narrower list and preview -------------------------------- */
+@media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
   .cc-browse { grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); gap: 16px; }
   .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cc-page-main { padding: 20px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-page { gap: 16px; }
   .cc-browse { grid-template-columns: minmax(0, 1fr); }

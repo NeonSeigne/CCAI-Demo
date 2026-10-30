@@ -122,7 +122,7 @@ describe('chat dock by width (D17)', () => {
     await screen.findByText('Your chats will show up here.');
   });
 
-  test('768–1279px: collapsed by default, opens as a drawer, Escape closes it', async () => {
+  test('701–1279px: collapsed by default, opens as a drawer, Escape closes it', async () => {
     setWidth(1024);
     renderShell();
     expect(screen.queryByRole('heading', { name: 'Ask' })).not.toBeInTheDocument();
@@ -134,7 +134,29 @@ describe('chat dock by width (D17)', () => {
     await screen.findByText('Your chats will show up here.');
   });
 
-  test('< 768px: no dock until the Ask tab raises the sheet', async () => {
+  test('700px is a phone: no dock', async () => {
+    setWidth(700);
+    renderShell();
+    expect(dock()).toHaveLength(0);
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test.each([701, 1279])('%ipx opens the dock as a drawer', async (width) => {
+    setWidth(width);
+    renderShell();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Ask' }));
+    expect(screen.getByRole('heading', { name: 'Ask' }).closest('aside')).toHaveClass('is-drawer');
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test('1280px docks the dock', async () => {
+    setWidth(1280);
+    renderShell();
+    expect(screen.getByRole('heading', { name: 'Ask' }).closest('aside')).not.toHaveClass('is-drawer');
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test('<= 700px: no dock until the Ask tab raises the sheet', async () => {
     setWidth(375);
     renderShell();
     expect(dock()).toHaveLength(0);
@@ -149,7 +171,7 @@ describe('chat dock by width (D17)', () => {
     await screen.findByText('Your chats will show up here.');
   });
 
-  test('< 768px: closing the sheet returns focus to the Ask tab', async () => {
+  test('<= 700px: closing the sheet returns focus to the Ask tab', async () => {
     setWidth(375);
     renderShell();
     const ask = within(screen.getByRole('navigation', { name: 'Main tabs' })).getByRole('button', { name: 'Ask' });

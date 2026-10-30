@@ -22,13 +22,14 @@ import {
 } from '../utils/eventWindows';
 import '../styles/CampusHome.css';
 import '../styles/EventsPage.css';
+import useViewport from '../hooks/useViewport';
+import { useDelayedFlag } from '../utils/loading';
 
 const VIEWS = [
   { id: 'next', label: 'Up next' },
   { id: 'list', label: 'List' },
   { id: 'calendar', label: 'Calendar' },
 ];
-const PLACEHOLDER_DELAY = 300;
 const SEARCH_DELAY = 300;
 const SOON_MINUTES = 15;
 const HOUR_PX = 48;
@@ -38,21 +39,6 @@ const ALL_DAY_CHIPS = 2;
 // ---------------------------------------------------------------------------
 // Small hooks
 
-/** True under 768px (27A); false where matchMedia is missing (tests, old browsers). */
-function usePhone() {
-  const query = '(max-width: 767px)';
-  const get = () => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false);
-  const [phone, setPhone] = useState(get);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const list = window.matchMedia(query);
-    const update = () => setPhone(list.matches);
-    list.addEventListener?.('change', update);
-    return () => list.removeEventListener?.('change', update);
-  }, []);
-  return phone;
-}
-
 /** The current time, refreshed each minute for the now-line. Nothing reads it aloud (28A). */
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -61,20 +47,6 @@ function useNow() {
     return () => clearInterval(timer);
   }, []);
   return now;
-}
-
-/** True once `active` has stayed true for `delay` ms (9A placeholders). */
-function useDelayedFlag(active, delay) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setShown(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setShown(true), delay);
-    return () => clearTimeout(timer);
-  }, [active, delay]);
-  return shown;
 }
 
 // ---------------------------------------------------------------------------
@@ -722,7 +694,7 @@ const EventsPage = () => {
   const { authToken } = useAuth();
   const { config } = useAppConfig();
   const [params, setParams] = useSearchParams();
-  const phone = usePhone();
+  const phone = useViewport() === 'phone';
   const now = useNow();
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
@@ -797,7 +769,7 @@ const EventsPage = () => {
   }, [authToken, windowId, q, originId, originReady, attempt]);
 
   const loading = result.status === 'loading';
-  const showPlaceholders = useDelayedFlag(loading, PLACEHOLDER_DELAY);
+  const showPlaceholders = useDelayedFlag(loading);
   const timezone = result.data?.timezone || configZone;
   const todayKey = dayKey(now, timezone);
   const days = useMemo(() => windowDays(windowId, todayKey), [windowId, todayKey]);
