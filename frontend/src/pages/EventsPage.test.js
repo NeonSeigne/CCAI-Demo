@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import EventsPage from './EventsPage';
+import PopupHost from '../components/popup/PopupHost';
 import {
   getCampusOrigin, getEvent, listEvents, listPlaces, setCampusOrigin,
 } from '../api/campus';
@@ -64,7 +65,7 @@ function renderPage(entry = '/events') {
     <MemoryRouter initialEntries={[entry]}>
       <LocationProbe />
       <Routes>
-        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events" element={<><EventsPage /><PopupHost /></>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -321,6 +322,17 @@ describe('EventsPage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(params().get('event')).toBeNull());
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('the pop-up shows the row it was opened from while the detail loads', async () => {
+    const jazz = event({ title: 'Jazz Night' });
+    listEvents.mockResolvedValue(body([jazz]));
+    getEvent.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Jazz Night' }));
+    // Loading without a seed, the title reads "Event".
+    expect(await screen.findByRole('dialog', { name: 'Jazz Night' })).toBeInTheDocument();
+    expect(screen.queryByText('Loading event')).not.toBeInTheDocument();
   });
 
   it('a calendar block opens the event pop-up too', async () => {

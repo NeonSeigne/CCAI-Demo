@@ -325,10 +325,11 @@ const CampusMapPage = () => {
   const { timezone } = useSchool();
   const start = useStartPlace();
 
-  // URL context from chat cards (14A), read once.
+  // URL context from chat cards (14A), read once. The map draws its own
+  // place card, so the shell's ?place= selects the place here like ?to=.
   const initial = useRef({
     from: searchParams.get('from') || '',
-    to: searchParams.get('to') || '',
+    to: searchParams.get('to') || searchParams.get('place') || '',
     category: searchParams.get('category'),
   }).current;
 

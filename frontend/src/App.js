@@ -29,10 +29,11 @@ const SavedPage = lazy(() => import('./pages/SavedPage'));
 const CampusMapPage = lazy(() => import('./pages/CampusMapPage'));
 const CoursesPage = lazy(() => import('./pages/CoursesPage'));
 const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
-// One course pop-up host for every signed-in page (eng R8). Lazy so the shell
-// doesn't wait for it; CoursePopup itself also reaches the main bundle through
-// the chat course cards, so this doesn't split it out.
-const CoursePopupHost = lazy(() => import('./components/course/CoursePopupHost'));
+// One pop-up host for every signed-in page: ?course=, ?event= and ?place=
+// (eng R8). Lazy so the shell doesn't wait for it; CoursePopup itself also
+// reaches the main bundle through the chat course cards, so this doesn't
+// split it out.
+const PopupHost = lazy(() => import('./components/popup/PopupHost'));
 
 const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
 
@@ -54,8 +55,9 @@ function CatchAllRedirect() {
 }
 
 /**
- * The app shell with the course pop-up host, which reads `?course=` on any
- * page, and the student's start place, loaded once for every page.
+ * The app shell with the pop-up host, which reads `?course=`, `?event=` and
+ * `?place=` on any page, and the student's start place, loaded once for
+ * every page.
  */
 export function ShellWithPopups() {
   // Signing out unmounts the shell; the next student starts with no cached courses.
@@ -64,7 +66,7 @@ export function ShellWithPopups() {
     <StartPlaceProvider>
       <AppShell>
         <Outlet />
-        <Suspense fallback={null}><CoursePopupHost /></Suspense>
+        <Suspense fallback={null}><PopupHost /></Suspense>
       </AppShell>
     </StartPlaceProvider>
   );

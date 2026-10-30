@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-/** The query parameters the pop-up hosts read (eng R8): `?course=`, `?event=`. */
+/** The query parameters the shell's pop-up host reads (eng R8): `?course=`, `?event=`, `?place=`. */
 export const COURSE_PARAM = 'course';
 export const EVENT_PARAM = 'event';
+export const PLACE_PARAM = 'place';
 
 /**
  * History-state key marking an entry a pop-up added, so closing goes back
@@ -11,6 +12,18 @@ export const EVENT_PARAM = 'event';
  * pendingPrompt / sessionId / startNew) leave it alone.
  */
 export const POPUP_STATE = 'ccPopup';
+
+/**
+ * History-state key for the row a pop-up was opened from (an event or a
+ * place in a list), so the pop-up shows it while the detail loads.
+ */
+export const POPUP_SEED = 'ccSeed';
+
+/** The seed kept with the current entry, when it belongs to `id`. */
+export function popupSeed(location, id) {
+  const seed = location?.state?.[POPUP_SEED];
+  return seed && id && seed.id === id ? seed : null;
+}
 
 /** `location` with `?param=value` set (or removed when `value` is empty), as a path string. */
 export function paramLocation(location, param, value) {
@@ -25,19 +38,20 @@ export function paramLocation(location, param, value) {
 export const courseLocation = (location, id) => paramLocation(location, COURSE_PARAM, id);
 
 /**
- * `open(value)` sets `?param=value` on the current location: a new history
- * entry (Back closes it), or a replacement when one is already open.
+ * `open(value, seed)` sets `?param=value` on the current location: a new
+ * history entry (Back closes it), or a replacement when one is already open.
+ * `seed` (optional) is the row being opened, kept in the entry's state.
  */
 export function useOpenParam(param) {
   const navigate = useNavigate();
   const location = useLocation();
-  return useCallback((value) => {
+  return useCallback((value, seed) => {
     const next = (value || '').trim();
     if (!next) return;
     const alreadyOpen = new URLSearchParams(location.search).has(param);
-    navigate(paramLocation(location, param, next), alreadyOpen
-      ? { replace: true, state: location.state }
-      : { replace: false, state: { [POPUP_STATE]: param } });
+    let state = alreadyOpen ? location.state : { [POPUP_STATE]: param };
+    if (seed || state?.[POPUP_SEED]) state = { ...state, [POPUP_SEED]: seed || null };
+    navigate(paramLocation(location, param, next), { replace: alreadyOpen, state });
   }, [navigate, location, param]);
 }
 
@@ -59,6 +73,18 @@ export const useOpenCourse = () => useOpenParam(COURSE_PARAM);
 
 /** `closeCourse()` removes `?course=`. */
 export const useCloseCourse = () => useCloseParam(COURSE_PARAM);
+
+/** `openEvent(event)` opens the event pop-up over the current page (`?event=ID`). */
+export function useOpenEvent() {
+  const open = useOpenParam(EVENT_PARAM);
+  return useCallback((event) => open(event?.id, event?.id ? event : null), [open]);
+}
+
+/** `openPlace(place)` opens the place card over the current page (`?place=ID`). */
+export function useOpenPlace() {
+  const open = useOpenParam(PLACE_PARAM);
+  return useCallback((place) => open(place?.id, place?.id ? place : null), [open]);
+}
 
 /**
  * `close` that runs once per open value: Escape, the scrim and the Close

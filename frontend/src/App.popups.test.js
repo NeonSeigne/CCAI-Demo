@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  act, fireEvent, render, screen, waitFor,
+  act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { AppRoutes } from './App';
@@ -102,6 +102,49 @@ it('a cold load with ?course= keeps the rail and the dock visible to assistive t
   expect(await screen.findByRole('dialog', { name: 'Programming III' })).toBeInTheDocument();
   expect(ariaHidden(container.querySelector('.cc-shell-rail'))).toBe(false);
   expect(ariaHidden(screen.getByTestId('dock'))).toBe(false);
+});
+
+it('?event= opens the event pop-up on Home, not only on Events; Escape closes it there', async () => {
+  const router = routerAt([`/home?event=${encodeURIComponent(uvaEvent.id)}`]);
+  const { container } = render(<RouterProvider router={router} />);
+  const dialog = await screen.findByRole('dialog', { name: uvaEvent.title });
+  expect(screen.getByText('Home page')).toBeInTheDocument();
+  expect(dialog).toHaveAttribute('aria-modal', 'false');
+  expect(ariaHidden(container.querySelector('.cc-shell-rail'))).toBe(false);
+
+  fireEvent.keyDown(dialog, { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(router.state.location.pathname).toBe('/home');
+  expect(router.state.location.search).toBe('');
+});
+
+it('?place= opens the place card on Home, with the rail and the dock live', async () => {
+  const router = routerAt(['/home?place=old-cabell']);
+  const { container } = render(<RouterProvider router={router} />);
+  const dialog = await screen.findByRole('dialog', { name: 'Old Cabell Hall' });
+  expect(within(dialog).getByRole('link', { name: /Directions/ })).toHaveAttribute('href', '/map?to=old-cabell');
+  expect(ariaHidden(container.querySelector('.cc-shell-rail'))).toBe(false);
+  expect(ariaHidden(screen.getByTestId('dock'))).toBe(false);
+});
+
+it('?place= on the map is left to the map’s own card', async () => {
+  const router = routerAt(['/map?place=old-cabell']);
+  render(<RouterProvider router={router} />);
+  expect(await screen.findByText(/Map page/)).toBeInTheDocument();
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+it('an event opened over a place card goes back to the card when it closes', async () => {
+  const router = routerAt(['/home?place=old-cabell']);
+  render(<RouterProvider router={router} />);
+  await screen.findByRole('dialog', { name: 'Old Cabell Hall' });
+  await act(async () => {
+    await router.navigate(`/home?place=old-cabell&event=${encodeURIComponent(uvaEvent.id)}`, { state: { ccPopup: 'event' } });
+  });
+  const dialog = await screen.findByRole('dialog', { name: uvaEvent.title });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+  expect(await screen.findByRole('dialog', { name: 'Old Cabell Hall' })).toBeInTheDocument();
+  expect(router.state.location.search).toBe('?place=old-cabell');
 });
 
 it('a cold load with ?event= keeps the rail and the dock visible to assistive tech', async () => {

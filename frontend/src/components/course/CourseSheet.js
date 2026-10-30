@@ -1,15 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import AppDialog from '../AppDialog';
 import CoursePopup from './CoursePopup';
 import { usePlanner } from '../../contexts/PlannerContext';
-import { usePopupContainer } from '../shell/PageColumnContext';
 import { useToast } from '../Toast';
 import { normalizeCourseId } from '../planner/completedCourses';
-import usePopupAsk from '../../hooks/usePopupAsk';
-import {
-  COURSE_PARAM, useCloseCourse, useCloseOnce, useOpenCourse,
-} from '../../utils/openCourse';
+import { useOpenCourse } from '../../utils/openCourse';
 
 /** "Comp Sci B.S. · Core" for each rule of the student's programs that lists `id`. */
 export function requirementLabels(id, programs, programIds) {
@@ -25,18 +19,16 @@ export function requirementLabels(id, programs, programIds) {
 }
 
 /**
- * Reads `?course=ID` on any signed-in route and shows the course pop-up over
- * the page column, so the rail and the chat dock stay live (eng R8, R15, D3).
+ * The course pop-up as the shell's pop-up host shows it for `?course=ID`:
+ * the plan's term, requirement chips, Fits and Add (PopupHost owns the
+ * dialog, close and ask).
  */
-export default function CoursePopupHost() {
-  const [params] = useSearchParams();
-  const courseId = (params.get(COURSE_PARAM) || '').trim();
-  const close = useCloseOnce(courseId, useCloseCourse());
+export default function CourseSheet({
+  courseId, onClose, onAsk, titleId,
+}) {
   const openCourse = useOpenCourse();
-  const ask = usePopupAsk(courseId, close);
   const planner = usePlanner();
   const toast = useToast();
-  const { container, ready } = usePopupContainer();
 
   // The plan for Fits and Add, once per course: the planner object changes
   // with every load, and a failing load would otherwise retry in a loop.
@@ -53,8 +45,6 @@ export default function CoursePopupHost() {
     [courseId, planner?.programs, plan?.profile?.program_ids],
   );
 
-  if (!courseId || !ready) return null;
-
   // A course already in the plan can't be added again, so it gets no Add and no Fits.
   const planned = (plan?.courses || []).some((c) => normalizeCourseId(c.id) === normalizeCourseId(courseId));
 
@@ -69,25 +59,16 @@ export default function CoursePopupHost() {
   } : undefined;
 
   return (
-    <AppDialog
-      open
-      container={container}
-      onClose={close}
-      maxWidth={false}
-      aria-labelledby="course-popup-title"
-      slotProps={{ paper: { className: 'pop-dialog-paper' } }}
-    >
-      <CoursePopup
-        courseId={courseId}
-        term={term}
-        plan={plan && !planned ? { revision: plan.revision } : null}
-        requirements={requirements}
-        onAdd={onAdd}
-        onAsk={ask}
-        onClose={close}
-        onOpenCourse={openCourse}
-        titleId="course-popup-title"
-      />
-    </AppDialog>
+    <CoursePopup
+      courseId={courseId}
+      term={term}
+      plan={plan && !planned ? { revision: plan.revision } : null}
+      requirements={requirements}
+      onAdd={onAdd}
+      onAsk={onAsk}
+      onClose={onClose}
+      onOpenCourse={openCourse}
+      titleId={titleId}
+    />
   );
 }
