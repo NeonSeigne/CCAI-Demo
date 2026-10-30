@@ -63,8 +63,25 @@ describe('shared roles', () => {
     expect(contrast(r.mark_ink, r.mark_bg)).toBeGreaterThanOrEqual(4.5);
   });
 
-  test.each(['easier', 'typical', 'harder', 'a', 'df'])('band %s text passes AA on the darkest band', (name) => {
+  test.each(['a', 'df'])('band %s text passes AA on the darkest band', (name) => {
     expect(contrast(light[`band-${name}-text`], '#14171F')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // 2:15, 4:band: the mockup's difficulty colours on the band, in both modes.
+  test.each(['light', 'dark'])('%s band difficulty colours are the mockup\'s and pass AA', (mode) => {
+    const roles = resolveRoles(undefined, mode);
+    expect([roles.band_easier_text, roles.band_typical_text, roles.band_harder_text])
+      .toEqual(['#7FDCA4', '#F5B36E', '#FF8F87']);
+    ['easier', 'typical', 'harder'].forEach((name) => {
+      expect(contrast(roles[`band_${name}_text`], '#14171F')).toBeGreaterThanOrEqual(4.5);
+    });
+  });
+
+  test('a school\'s dark difficulty override reaches the band in both modes', () => {
+    const theme = { light: { harder: '#14171F' }, dark: { harder: '#EEF0F4' } };
+    expect(resolveRoles(theme, 'light').band_harder_text).toBe('#EEF0F4');
+    expect(resolveRoles(theme, 'dark').band_harder_text).toBe('#EEF0F4');
+    expect(resolveRoles(theme, 'light').band_easier_text).toBe('#7FDCA4');
   });
 });
 

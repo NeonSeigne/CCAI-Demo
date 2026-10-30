@@ -14,6 +14,8 @@ export const SHARED = {
     good: '#156B3A', good_tint: '#E3F4EA', error: '#B42318', error_tint: '#FDECEA',
     academics: '#2F5BEA', life: '#E8730C', campus: '#1E9E5A',
     easier: '#156B3A', typical: '#8A4206', harder: '#B42318',
+    // Difficulty on the always-dark band: the dark data colours, in both modes.
+    band_easier_text: '#7FDCA4', band_typical_text: '#F5B36E', band_harder_text: '#FF8F87',
   },
   dark: {
     surface: '#1A1D24', raised: '#23272F', ink: '#EEF0F4', muted: '#A4AAB6', faint: '#8C93A0',
@@ -21,6 +23,7 @@ export const SHARED = {
     good: '#7FDCA4', good_tint: '#143323', error: '#FF8F87', error_tint: '#3A1A18',
     academics: '#7EA1FF', life: '#F5A35C', campus: '#5CC98A',
     easier: '#7FDCA4', typical: '#F5B36E', harder: '#FF8F87',
+    band_easier_text: '#7FDCA4', band_typical_text: '#F5B36E', band_harder_text: '#FF8F87',
   },
 };
 
@@ -44,10 +47,20 @@ export const NEUTRAL_SCHOOL = {
 
 export const MODES = ['light', 'dark'];
 
-/** Every role for one mode: shared roles, then the school's (which may override shared data colours). */
+const BAND_DIFFICULTY = ['easier', 'typical', 'harder'];
+
+/**
+ * Every role for one mode: shared roles, then the school's (which may
+ * override shared data colours). The band is dark in both modes, so its
+ * difficulty colours follow the school's dark overrides (UW's harder is ink).
+ */
 export function resolveRoles(theme, mode) {
   const school = theme?.[mode] || NEUTRAL_SCHOOL[mode];
-  return { ...SHARED[mode], ...NEUTRAL_SCHOOL[mode], ...school };
+  const dark = theme?.dark || {};
+  const band = Object.fromEntries(BAND_DIFFICULTY
+    .filter((name) => dark[name])
+    .map((name) => [`band_${name}_text`, dark[name]]));
+  return { ...SHARED[mode], ...NEUTRAL_SCHOOL[mode], ...band, ...school };
 }
 
 /** `{deep_raised: '#…'}` → `{'--deep-raised': '#…'}`. */

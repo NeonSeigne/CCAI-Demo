@@ -402,7 +402,7 @@
   
   .signup-container {
     max-width: 100%;
-    border-radius: 9999px;
+    border-radius: var(--r-lg);
   }
   
   .signup-header {

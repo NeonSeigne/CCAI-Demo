@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-full);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
