@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   act, fireEvent, render, renderHook, screen, waitFor,
 } from '@testing-library/react';
@@ -8,7 +8,7 @@ import {
 import CoursePopupHost, { requirementLabels } from './CoursePopupHost';
 import { useCloseOnce } from '../../utils/openCourse';
 import { ChatContext } from '../../contexts/ChatContext';
-import { ChatDockContext } from '../../contexts/ChatDockContext';
+import { ChatDockContext, ChatDockProvider, useChatDock } from '../../contexts/ChatDockContext';
 import { PlannerContext } from '../../contexts/PlannerContext';
 import CourseChip from '../visuals/CourseChip';
 import CourseRedirect from './CourseRedirect';
@@ -82,25 +82,42 @@ it("labels requirement chips from the student's programs", () => {
 });
 
 describe('Ask from the course pop-up', () => {
+  // The chat page's composer takes focus requests through the dock state.
+  function VisibleComposer() {
+    const dock = useChatDock();
+    const ref = useRef(null);
+    useEffect(() => {
+      if (dock?.claimComposerFocus?.()) ref.current?.focus();
+    }, [dock]);
+    return <textarea ref={ref} aria-label="Composer" />;
+  }
+
+  // `dock: null` renders the shell's dock state where the page is the ask.
+  function DockState({ dock, children }) {
+    return dock
+      ? <ChatDockContext.Provider value={dock}>{children}</ChatDockContext.Provider>
+      : <ChatDockProvider available={false}>{children}</ChatDockProvider>;
+  }
+
   function renderAt(entry, { dock = null, chat = { attach: jest.fn() } } = {}) {
     const utils = render(
       <MemoryRouter initialEntries={[entry]}>
         <ChatContext.Provider value={chat}>
-          <ChatDockContext.Provider value={dock}>
+          <DockState dock={dock}>
             <Routes>
               <Route
                 path="*"
                 element={(
                   <>
                     <CourseChip identifier="COMP SCI 400" />
-                    <div className="chat-frame"><textarea aria-label="Composer" /></div>
+                    <VisibleComposer />
                     <CoursePopupHost />
                     <LocationProbe />
                   </>
                 )}
               />
             </Routes>
-          </ChatDockContext.Provider>
+          </DockState>
         </ChatContext.Provider>
       </MemoryRouter>,
     );
@@ -123,7 +140,7 @@ describe('Ask from the course pop-up', () => {
   });
 
   it('on /chat, closes the pop-up, then attaches and focuses the visible composer', async () => {
-    const { chat } = renderAt('/chat', { dock: { available: false } });
+    const { chat } = renderAt('/chat');
     await openAndAsk();
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/);
@@ -132,7 +149,7 @@ describe('Ask from the course pop-up', () => {
   });
 
   it('on /home, closes the pop-up, then goes to /chat with the item attached', async () => {
-    const { chat } = renderAt('/home', { dock: { available: false } });
+    const { chat } = renderAt('/home');
     await openAndAsk();
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

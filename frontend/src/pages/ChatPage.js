@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import EnhancedChatInput from '../components/EnhancedChatInput';
+import Composer from '../components/chat/Composer';
 import Thread from '../components/chat/Thread';
 import ExportButton from '../components/ExportButton';
 import ChatMoreMenu from '../components/ChatMoreMenu';
@@ -11,15 +11,16 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
 import '../styles/ChatPage.css';
-import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
-import { chatPlaceholder } from '../utils/messageGroups';
 import useViewport from '../hooks/useViewport';
 
 /** location.state keys that carry a one-shot intent from another page. */
 const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
 
 const isConversation = (message) => message.type !== 'system' && message.type !== 'document_upload';
+
+/** How long the landing composer takes to move into the conversation. */
+const PHASE_MS = 280;
 
 const ChatPageView = () => {
   const navigate = useNavigate();
@@ -34,11 +35,15 @@ const ChatPageView = () => {
     sessionId: currentSessionId,
     sessionTitle: currentSessionTitle,
     sessionEpoch,
-    uploadedDocuments,
   } = chat;
-  const [composerMessage, setComposerMessage] = useState('');
+  const hasMessages = messages.length > 0;
+  const hasConversationMessages = messages.some(isConversation);
+  // Text an intent puts in the composer without sending it.
+  const [prefill, setPrefill] = useState(null);
   // Coming back to a conversation in progress opens it active.
-  const [chatPhase, setChatPhase] = useState(() => (messages.some(isConversation) ? 'active' : 'landing'));
+  const [chatPhase, setChatPhase] = useState(() => (hasConversationMessages ? 'active' : 'landing'));
+  const phaseRef = useRef(chatPhase);
+  phaseRef.current = chatPhase;
   const intentConsumedRef = useRef(false);
   const phaseTimerRef = useRef(null);
   const seenEpochRef = useRef(sessionEpoch);
@@ -47,25 +52,27 @@ const ChatPageView = () => {
     if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
   }, []);
 
-  // newChat / openSession replaced the conversation: reset the composer and
-  // land or stay active to match what was loaded. Before paint, so the
-  // welcome state never flashes over loaded messages.
+  // newChat / openSession replaced the conversation: land or stay active to
+  // match what was loaded. Otherwise the first question moves the landing
+  // composer into the conversation. Before paint, so the welcome state never
+  // flashes over loaded messages.
   useLayoutEffect(() => {
-    if (seenEpochRef.current === sessionEpoch) return;
-    seenEpochRef.current = sessionEpoch;
-    setComposerMessage('');
-    setChatPhase(messages.some(isConversation) ? 'active' : 'landing');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionEpoch]);
-
-  const loadChatSession = (sessionId) => chat.openSession(sessionId);
-
-  const handleNewChat = async (sessionId = null) => {
-    if (sessionId) {
-      await loadChatSession(sessionId);
+    if (seenEpochRef.current !== sessionEpoch) {
+      seenEpochRef.current = sessionEpoch;
+      if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
+      setChatPhase(hasConversationMessages ? 'active' : 'landing');
       return;
     }
-    return chat.newChat();
+    if (hasConversationMessages && phaseRef.current === 'landing') {
+      setChatPhase('transitioning');
+      if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
+      phaseTimerRef.current = window.setTimeout(() => setChatPhase('active'), PHASE_MS);
+    }
+  }, [sessionEpoch, hasConversationMessages]);
+
+  const ask = (text) => {
+    if (!text.trim()) return undefined;
+    return chat.send(text);
   };
 
   // Consume one-shot navigation intent from Home (session resume / new chat / prompt).
@@ -85,16 +92,16 @@ const ChatPageView = () => {
           // conversation. Sending creates a session titled after the
           // question, so a separate new-chat step would only leave an empty
           // session behind.
-          await handleSendMessage(intent.pendingPrompt, { fresh: true });
+          await chat.send(intent.pendingPrompt, null, { fresh: true });
           return;
         }
         if (intent.sessionId) {
-          await loadChatSession(intent.sessionId);
+          await chat.openSession(intent.sessionId);
         } else if (intent.startNew) {
-          await handleNewChat();
+          await chat.newChat();
         }
         if (intent.pendingPrompt) {
-          setComposerMessage(intent.pendingPrompt);
+          setPrefill({ text: intent.pendingPrompt });
         }
       } finally {
         // Keep the query (?course= keeps its pop-up open).
@@ -106,30 +113,6 @@ const ChatPageView = () => {
     // One-shot location.state handoff; handlers are stable enough for mount-time use.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, location.state, navigate]);
-
-  
-
-  const handleFileUploaded = async (file, uploadResult) => {
-    chat.addDocument(file, uploadResult);
-    console.log('File uploaded to session:', {
-      filename: uploadResult.filename,
-      session_id: uploadResult.session_id,
-      chat_session_id: uploadResult.chat_session_id,
-      current_session_id: currentSessionId
-    });
-  };
-
-  const handleSendMessage = async (inputMessage, options) => {
-    if (!inputMessage.trim()) return;
-
-    if (!hasConversationMessages) {
-      setChatPhase('transitioning');
-      if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
-      phaseTimerRef.current = window.setTimeout(() => setChatPhase('active'), 280);
-    }
-
-    await chat.send(inputMessage, null, options);
-  };
 
   // Dialogs center over the conversation, right of the 260px rail.
   const dialogInset = isMobile ? 0 : 260;
@@ -144,9 +127,6 @@ const ChatPageView = () => {
       );
     };
   }, [dialogInset]);
-
-  const hasMessages = messages.length > 0;
-  const hasConversationMessages = messages.some(isConversation);
 
   const firstQuestion = messages.find((m) => m.type === 'user')?.content;
   const chatTitle = firstQuestion || (hasMessages && currentSessionTitle) || 'New chat';
@@ -200,7 +180,7 @@ const ChatPageView = () => {
                     key={suggestion.text}
                     className="chat-suggestion"
                     disabled={isLoading}
-                    onClick={() => handleSendMessage(suggestion.text)}
+                    onClick={() => ask(suggestion.text)}
                   >
                     <span
                       className="chat-suggestion-dot"
@@ -213,21 +193,7 @@ const ChatPageView = () => {
               </div>
             )}
 
-            <EnhancedChatInput
-              compact
-              onSendMessage={(text) => handleSendMessage(text)}
-              onFileUploaded={handleFileUploaded}
-              uploadedDocuments={uploadedDocuments}
-              isLoading={isLoading}
-              currentChatSessionId={currentSessionId}
-              authToken={authToken}
-              messageValue={composerMessage}
-              onMessageChange={setComposerMessage}
-              attachments={chat.attachments}
-              onRemoveAttachment={chat.removeAttachment}
-              isLanding={chatPhase !== 'active'}
-              placeholder={chatPlaceholder(config)}
-            />
+            <Composer surface="chat" prefill={prefill} />
           </div>
         </div>
       </main>
@@ -236,7 +202,7 @@ const ChatPageView = () => {
         visuals={answerVisuals}
         authToken={authToken}
         timezone={config?.school?.timezone}
-        onAsk={(text) => handleSendMessage(text)}
+        onAsk={ask}
       />
     </div>
   );

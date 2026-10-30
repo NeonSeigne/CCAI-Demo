@@ -23,18 +23,6 @@ jest.mock('../contexts/AppConfigContext', () => ({
     },
   }),
 }));
-jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
-jest.mock('../components/ExportButton', () => () => null);
-jest.mock('../components/EnhancedChatInput', () => (props) => (
-  <div>
-    <ul aria-label="Composer chips">
-      {props.attachments.map((item) => <li key={item.id}>{item.title}</li>)}
-    </ul>
-    <button type="button" onClick={() => props.onSendMessage('Plan my semester')}>
-      Send test message
-    </button>
-  </div>
-));
 
 const { TextDecoder: UtilTextDecoder, TextEncoder } = require('util');
 
@@ -89,9 +77,14 @@ beforeEach(() => {
   });
 });
 
+const send = (text) => {
+  fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), { target: { value: text } });
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+};
+
 test('the conversation is still there after leaving the chat page and coming back', async () => {
   const { container } = renderApp();
-  fireEvent.click(screen.getByRole('button', { name: 'Send test message' }));
+  send('Plan my semester');
   expect(await screen.findByText('Take ECON 1010 first.')).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('link', { name: 'Map' }));

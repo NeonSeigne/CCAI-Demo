@@ -52,6 +52,10 @@ export function ChatDockProvider({ available = true, children }) {
   // opened: where focus goes back when the drawer or sheet closes.
   const askTabRef = useRef(null);
   const openerRef = useRef(null);
+  // The last focus request a composer has taken.
+  const claimedFocusRef = useRef(0);
+  // The dock composer's unsent text ({ text, epoch }), kept while the dock is closed.
+  const draftRef = useRef(null);
 
   const open = available && (mode === 'docked' ? !collapsed : overlayOpen);
 
@@ -75,6 +79,17 @@ export function ChatDockProvider({ available = true, children }) {
   /** Focus the dock's composer once it's on screen. */
   const requestComposerFocus = useCallback(() => setFocusRequest((count) => count + 1), []);
 
+  /**
+   * True once per focus request: the composer on screen (the dock's, or the
+   * chat page's where there is no dock) calls it when it mounts or a request
+   * arrives, and focuses itself when it gets true.
+   */
+  const claimComposerFocus = useCallback(() => {
+    if (claimedFocusRef.current === focusRequest) return false;
+    claimedFocusRef.current = focusRequest;
+    return true;
+  }, [focusRequest]);
+
   const value = useMemo(() => ({
     available,
     mode,
@@ -86,9 +101,11 @@ export function ChatDockProvider({ available = true, children }) {
     setSnap,
     focusRequest,
     requestComposerFocus,
+    claimComposerFocus,
     askTabRef,
     openerRef,
-  }), [available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus]);
+    draftRef,
+  }), [available, mode, open, setOpen, openDock, closeDock, snap, focusRequest, requestComposerFocus, claimComposerFocus]);
 
   return <ChatDockContext.Provider value={value}>{children}</ChatDockContext.Provider>;
 }

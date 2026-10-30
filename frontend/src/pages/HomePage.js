@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowUp, Icon } from '../components/icons';
+import { Icon } from '../components/icons';
+import Composer, { useAskOnChatPage } from '../components/chat/Composer';
 import { RecentChats, useShellRecentChats } from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';
 import { useAppConfig } from '../contexts/AppConfigContext';
@@ -187,38 +188,16 @@ const HomePage = () => {
   const { config } = useAppConfig();
   const saved = useSaved();
   const openCourse = useOpenCourse();
-  const [question, setQuestion] = useState('');
-  const inputRef = useRef(null);
   const recent = useShellRecentChats(authToken);
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
-  const starters = config?.homepage?.starters || [];
+  const ask = useAskOnChatPage();
   const today = useTodayEvents(authToken);
   const upcoming = nextUp(today.events);
   const classes = useClassesToday(authToken, timezone);
   const savedItems = (saved?.items || []).slice(0, SAVED_LIMIT);
 
-  const ask = (text) => {
-    const prompt = (text || '').trim();
-    if (!prompt) {
-      inputRef.current?.focus();
-      return;
-    }
-    navigate('/chat', { state: { startNew: true, pendingPrompt: prompt, autoSend: true } });
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    ask(question);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      ask(question);
-    }
-  };
 
   const showSide = (classes && classes.length > 0) || savedItems.length > 0;
 
@@ -237,27 +216,7 @@ const HomePage = () => {
           <header className="ah-hero">
             <p className="campus-kicker ah-date">{school} · {todayLabel(timezone)}</p>
             <h1>What do you need on campus today?</h1>
-            <form className="ah-ask" onSubmit={handleSubmit}>
-              <label htmlFor="campus-ask-input" className="sr-only">Ask a question</label>
-              <textarea
-                id="campus-ask-input"
-                ref={inputRef}
-                rows={2}
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={starters[0]?.prompts?.[0] ? `Try “${starters[0].prompts[0]}”` : 'Ask about courses, events or places'}
-              />
-              <div className="ah-ask-row">
-                <span className="ah-scope">
-                  <Icon name="school" size={18} />
-                  Courses, events and places at {school}
-                </span>
-                <button type="submit" className="ah-send" aria-label="Ask">
-                  <ArrowUp size={22} />
-                </button>
-              </div>
-            </form>
+            <Composer surface="home" />
           </header>
 
           <div className={`ah-bento ${showSide ? '' : 'is-single'}`.trim()}>

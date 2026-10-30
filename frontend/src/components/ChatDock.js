@@ -1,14 +1,10 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AddCommentRounded, ChatBubbleOutlineRounded, CloseRounded, KeyboardTabRounded } from './icons';
-import EnhancedChatInput from './EnhancedChatInput';
+import Composer from './chat/Composer';
 import Thread from './chat/Thread';
 import { useDropTarget } from './dnd';
-import { useAppConfig } from '../contexts/AppConfigContext';
-import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../contexts/ChatContext';
 import { useChatDock } from '../contexts/ChatDockContext';
-import { chatPlaceholder } from '../utils/messageGroups';
-import '../styles/EnhancedChatInput.css';
 import '../styles/ChatDock.css';
 
 const BIGGER = { peek: 'half', half: 'full', full: 'full' };
@@ -94,12 +90,8 @@ function SheetHandle({ snap, onSnap, onClose }) {
 export default function ChatDock() {
   const dock = useChatDock();
   const chat = useChat();
-  const { config } = useAppConfig();
-  const { authToken } = useAuth();
-  const [draft, setDraft] = useState('');
   const panelRef = useRef(null);
   const stripButtonRef = useRef(null);
-  const epochRef = useRef(chat.sessionEpoch);
   const unread = useUnread(!dock?.available || Boolean(dock?.open));
 
   const target = useDropTarget({
@@ -111,21 +103,6 @@ export default function ChatDock() {
       dock.openDock();
     },
   });
-
-  // New chat or another session replaced the conversation: clear the draft.
-  useLayoutEffect(() => {
-    if (epochRef.current === chat.sessionEpoch) return;
-    epochRef.current = chat.sessionEpoch;
-    setDraft('');
-  }, [chat.sessionEpoch]);
-
-  // useAsk() asked for the composer: focus it once the dock is open.
-  const focusedRef = useRef(dock?.focusRequest || 0);
-  useEffect(() => {
-    if (!dock?.open || dock.focusRequest === focusedRef.current) return;
-    focusedRef.current = dock.focusRequest;
-    panelRef.current?.querySelector('textarea')?.focus();
-  }, [dock?.focusRequest, dock?.open]);
 
   if (!dock?.available) return null;
   const { mode, open } = dock;
@@ -190,21 +167,7 @@ export default function ChatDock() {
       </header>
       <Thread variant="dock" />
       <div className="cc-dock-composer">
-        <EnhancedChatInput
-          compact
-          onSendMessage={(text) => chat.send(text)}
-          onFileUploaded={(file, result) => chat.addDocument(file, result)}
-          uploadedDocuments={chat.uploadedDocuments}
-          isLoading={chat.isLoading}
-          currentChatSessionId={chat.sessionId}
-          authToken={authToken}
-          messageValue={draft}
-          onMessageChange={setDraft}
-          attachments={chat.attachments}
-          onRemoveAttachment={chat.removeAttachment}
-          placeholder={chatPlaceholder(config)}
-          showScope={false}
-        />
+        <Composer surface="dock" />
       </div>
     </aside>
   );

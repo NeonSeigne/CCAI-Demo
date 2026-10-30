@@ -20,12 +20,9 @@ export default function useAsk() {
 
   return useCallback((item) => {
     chat.attach(item);
-    if (dock?.available) {
-      dock.openDock();
-      dock.requestComposerFocus();
-      return;
-    }
-    if (pathname !== '/chat') navigate('/chat');
-    window.requestAnimationFrame?.(() => document.querySelector('.chat-frame textarea')?.focus());
+    if (dock?.available) dock.openDock();
+    else if (pathname !== '/chat') navigate('/chat');
+    // The composer on screen takes the request (components/chat/Composer.js).
+    dock?.requestComposerFocus();
   }, [chat, dock, navigate, pathname]);
 }

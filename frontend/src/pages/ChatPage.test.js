@@ -36,13 +36,11 @@ jest.mock('../contexts/AppConfigContext', () => ({
     },
   }),
 }));
-jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
-jest.mock('../components/ExportButton', () => () => null);
-jest.mock('../components/EnhancedChatInput', () => (props) => (
-  <button type="button" onClick={() => props.onSendMessage('Plan my semester')}>
-    Send test message
-  </button>
-));
+
+const send = (text = 'Plan my semester') => {
+  fireEvent.change(screen.getByRole('textbox', { name: 'Message' }), { target: { value: text } });
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+};
 
 // The shell's rail calls these on the chat page.
 function RailControls() {
@@ -77,7 +75,7 @@ test('moves the landing composer into the active chat on first submit', () => {
   const { container } = render(<ChatPage />);
   expect(container.querySelector('.phase-landing')).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('button', { name: 'Send test message' }));
+  send();
   expect(container.querySelector('.phase-transitioning')).toBeInTheDocument();
   expect(container.querySelector('.welcome-state.is-leaving')).toBeInTheDocument();
   expect(container.querySelector('.messages-container')).toBeInTheDocument();
@@ -144,7 +142,7 @@ describe('chat flow (characterization)', () => {
     if (!global.TextDecoder) global.TextDecoder = UtilTextDecoder;
   });
 
-  const sendTestMessage = () => fireEvent.click(screen.getByRole('button', { name: 'Send test message' }));
+  const sendTestMessage = () => send();
 
   test('sending a message renders the streamed reply', async () => {
     routeFetch();
