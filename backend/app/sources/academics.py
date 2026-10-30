@@ -538,6 +538,20 @@ def easier_from_gpa() -> Optional[float]:
     return float(value) if isinstance(value, (int, float)) else None
 
 
+def gpa_difficulty(avg_gpa: Any) -> Optional[str]:
+    """The school's rule (R5) from an average GPA alone, for search rows.
+
+    Only a fixed ``planner.harder_below_gpa`` can mark "harder" without the
+    whole grade table, so a school that ranks by hardest third (or a row
+    with no GPA) reads None.
+    """
+    cutoff = getattr(get_settings().planner, "harder_below_gpa", None)
+    if not isinstance(avg_gpa, (int, float)) or isinstance(avg_gpa, bool) or not isinstance(cutoff, (int, float)):
+        return None
+    facts = CourseFacts(identifier="", known="yes", avg_gpa=float(avg_gpa), harder=avg_gpa < cutoff)
+    return difficulty_of(facts, easier_from_gpa())
+
+
 def course_difficulty(facts: Optional[CourseFacts]) -> Optional[str]:
     """``easier`` / ``typical`` / ``harder`` / None by the school's rule (R5)."""
     return difficulty_of(facts, easier_from_gpa())

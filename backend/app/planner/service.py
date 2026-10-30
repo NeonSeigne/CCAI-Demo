@@ -45,6 +45,13 @@ def covered_terms() -> List[str]:
     return academics.planner_terms()
 
 
+def easier_from_gpa() -> Optional[float]:
+    """The school's "easier" cutoff (``planner.easier_from_gpa``), else None."""
+    from app.sources import academics
+
+    return academics.easier_from_gpa()
+
+
 def credit_limits() -> Optional[Dict[str, float]]:
     """Term credit limits from ``school.yaml`` ``planner:``, when the pack has them."""
     from app.config import get_settings
@@ -160,7 +167,7 @@ async def _facts(ids: Sequence[str], term: str, school: str) -> Dict[str, Course
 
 def _report(plan: Dict[str, Any], facts: Dict[str, CourseFacts], school: str) -> Dict[str, Any]:
     programs = programs_for(school, (plan.get("profile") or {}).get("program_ids") or [])
-    return checker.check(plan, facts, programs, credit_limits=credit_limits())
+    return checker.check(plan, facts, programs, credit_limits=credit_limits(), easier_from_gpa=easier_from_gpa())
 
 
 def _in_term(plan: Dict[str, Any], term: Optional[str]) -> Dict[str, Any]:
@@ -215,7 +222,8 @@ async def degree(user_id: str, school: str) -> Dict[str, Any]:
     programs = programs_for(school, (plan.get("profile") or {}).get("program_ids") or [])
     covered = {_same_term(t) for t in covered_terms()}
     return degree_board.board(plan, by_term, programs, credit_limits=credit_limits(),
-                              covered=lambda t: not covered or _same_term(t) in covered)
+                              covered=lambda t: not covered or _same_term(t) in covered,
+                              easier_from_gpa=easier_from_gpa())
 
 
 def school_today():
