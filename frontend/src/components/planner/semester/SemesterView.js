@@ -19,7 +19,7 @@ import CourseCard from './CourseCard';
 import WeekTile, { useWeekTarget } from './WeekTile';
 import SearchResults from './SearchResults';
 import SwapSectionDialog from './SwapSectionDialog';
-import useCourseDetails, { loadCourseSummary } from './useCourseDetails';
+import { loadCourse as loadCourseSummary, useCourses as useCourseDetails } from '../../../modules/course';
 import {
   courseColours, difficultyOf, fittingPick, ruleGains,
 } from './semesterData';
@@ -529,7 +529,7 @@ export default function SemesterView({ term }) {
       || (preview?.credits?.after ? { min: preview.credits.after[0], max: preview.credits.after[1] } : null);
     const counts = { harder: 0, typical: 0, easier: 0 };
     rows.forEach((row) => {
-      const level = difficultyOf(row.harder, details[row.id]?.summary?.grades?.gpa);
+      const level = difficultyOf(row, details[row.id]?.summary);
       if (level) counts[level] += 1;
     });
     const creditsOf = (id) => rows.find((r) => r.id === id)?.credits?.[0];

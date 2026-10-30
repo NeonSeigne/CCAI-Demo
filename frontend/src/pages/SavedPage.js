@@ -14,7 +14,6 @@ import {
   createSaved,
   deleteCollection,
   deleteSaved,
-  getCatalogCourse,
   getEvent,
   getPlace,
   listCollections,
@@ -22,6 +21,7 @@ import {
   updateCollection,
   updateSaved,
 } from '../api/campus';
+import { loadCourse } from '../modules/course';
 import { downloadEventIcs } from '../utils/ics';
 import '../styles/SavedPage.css';
 
@@ -31,7 +31,8 @@ export const LOOKUP_TIMEOUT_MS = 5000;
 const COMPARE_MIN = 2;
 const COMPARE_MAX = 4;
 
-const LOOKUPS = { course: getCatalogCourse, event: getEvent, place: getPlace };
+// Courses come from the shared course cache; events and places carry walk minutes from the start place.
+const LOOKUPS = { course: (token, id) => loadCourse(token, id), event: getEvent, place: getPlace };
 const KIND_WORDS = { course: ['course', 'courses'], event: ['event', 'events'], place: ['place', 'places'] };
 
 const plural = (count, [one, many]) => `${count} ${count === 1 ? one : many}`;

@@ -425,6 +425,7 @@
 .dg-gpa.is-easier { background: var(--difficulty-easier-tint); color: var(--difficulty-easier-ink); }
 .dg-gpa.is-typical { background: var(--difficulty-typical-tint); color: var(--difficulty-typical-ink); }
 .dg-gpa.is-harder { background: var(--difficulty-harder-tint); color: var(--difficulty-harder-ink); }
+.dg-gpa.is-none { background: var(--gauge-track); color: var(--ink); }
 .dg-grade { background: var(--gauge-track); color: var(--ink); }
 
 .dg-card-more { width: 32px; height: 32px; border-color: transparent; color: var(--muted); }

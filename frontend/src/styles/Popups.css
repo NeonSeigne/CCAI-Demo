@@ -447,8 +447,6 @@
 
 .cp-gpa-svg { display: block; width: 100%; height: auto; }
 
-.cp-zone.is-easier { fill: var(--difficulty-easier-tint); opacity: 0.7; }
-.cp-zone.is-harder { fill: var(--difficulty-harder-tint); opacity: 0.7; }
 .cp-grid { stroke: var(--line); }
 .cp-axis { fill: var(--muted); font-size: 11px; font-family: var(--font-app); }
 .cp-axis--soft { opacity: 0.75; }
@@ -457,12 +455,14 @@
 .cp-seg.is-easier, .cp-dot.is-easier { stroke: var(--difficulty-easier); fill: var(--difficulty-easier); }
 .cp-seg.is-typical, .cp-dot.is-typical { stroke: var(--difficulty-typical); fill: var(--difficulty-typical); }
 .cp-seg.is-harder, .cp-dot.is-harder { stroke: var(--difficulty-harder); fill: var(--difficulty-harder); }
+.cp-seg.is-none, .cp-dot.is-none { stroke: var(--muted); fill: var(--muted); }
 .cp-dot { stroke: var(--surface) !important; stroke-width: 2; }
 
 .cp-value { font-family: var(--font-display); font-size: 12px; font-weight: 700; }
 .cp-value.is-easier { fill: var(--difficulty-easier-ink); }
 .cp-value.is-typical { fill: var(--difficulty-typical-ink); }
 .cp-value.is-harder { fill: var(--difficulty-harder-ink); }
+.cp-value.is-none { fill: var(--ink); }
 
 .cp-bars {
   list-style: none;
@@ -531,9 +531,6 @@
   text-align: right;
 }
 
-.cp-instructor-gpa.is-easier { color: var(--difficulty-easier-ink); }
-.cp-instructor-gpa.is-typical { color: var(--difficulty-typical-ink); }
-.cp-instructor-gpa.is-harder { color: var(--difficulty-harder-ink); }
 
 .cp-section { padding: 11px 0; border-top: 1px solid var(--rule); }
 .cp-section:first-child { border-top: 0; }

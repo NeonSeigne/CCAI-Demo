@@ -13,7 +13,8 @@ import {
   levelOptions, primarySections, readTicked, safeId, sectionName, seatsHeading, seatsText, shortDate,
   sourceName, titleFromSaved, writeTicked,
 } from '../components/catalog/catalogFormat';
-import { getCatalogCourse, getCatalogStarters, searchCatalog } from '../api/campus';
+import { getCatalogStarters, searchCatalog } from '../api/campus';
+import { loadCourse } from '../modules/course';
 import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
@@ -380,7 +381,7 @@ function BrowseView({ tabs }) {
     if (!selectedId || !authToken) return undefined;
     const controller = new AbortController();
     setPreview((current) => ({ ...current, status: 'loading', id: selectedId, error: null }));
-    getCatalogCourse(authToken, selectedId, { signal: controller.signal })
+    loadCourse(authToken, selectedId)
       .then((data) => {
         if (controller.signal.aborted) return;
         learn(data);

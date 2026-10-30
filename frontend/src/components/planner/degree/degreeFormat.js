@@ -36,14 +36,6 @@ export function nextTerm(term) {
 /** "Spring 2026" -> "Spr 2026" for the slim Past column. */
 export const pastTermLabel = (term) => String(term || '').replace(/^Spring\b/, 'Spr');
 
-/** Difficulty by average GPA (tokens: easier >= 3.4, harder < 3.0). */
-export function difficultyKey(gpa) {
-  if (gpa == null || Number.isNaN(Number(gpa))) return null;
-  if (gpa >= 3.4) return 'easier';
-  if (gpa < 3.0) return 'harder';
-  return 'typical';
-}
-
 export const formatGpa = (gpa) => (gpa == null ? null : Number(gpa).toFixed(2));
 
 /** Low end of a credit span; null when unknown. */

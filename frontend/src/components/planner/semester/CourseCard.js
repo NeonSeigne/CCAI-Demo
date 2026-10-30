@@ -42,9 +42,9 @@ function SeatRow({ row, label, historicalTerm }) {
   );
 }
 
-function GpaChip({ gpa, harder }) {
+function GpaChip({ gpa, row, summary }) {
   if (gpa == null || Number.isNaN(Number(gpa))) return null;
-  const level = difficultyOf(harder, gpa) || 'typical';
+  const level = difficultyOf(row, summary) || 'none';
   return (
     <span className={`sv-gpa is-${level}`} title="Average GPA">
       <span className="sr-only">Average GPA </span>
@@ -155,7 +155,7 @@ export default function CourseCard({
       <div className="sv-card-main">
         <div className="sv-card-r1">
           <span className="sv-code">{id}</span>
-          <GpaChip gpa={gpa} harder={course.harder} />
+          <GpaChip gpa={gpa} row={course} summary={summary} />
           {credits && <span className="sv-cr"><b>{credits}</b> cr</span>}
           {clash && <span className="sv-flag">Clash</span>}
         </div>

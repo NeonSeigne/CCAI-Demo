@@ -10,7 +10,7 @@ import { ToastProvider } from '../../Toast';
 import { DndProvider } from '../../dnd';
 import * as api from '../../../api/planner';
 import * as campus from '../../../api/campus';
-import { clearCourseDetailsCache } from './useCourseDetails';
+import { clearCourseCache as clearCourseDetailsCache } from '../../../modules/course';
 import {
   apiError, diff, plan, proposal, report, view,
 } from '../plannerFixtures';
@@ -37,7 +37,7 @@ jest.mock('../../../api/campus', () => {
     getCatalogCourse: jest.fn(),
     searchCatalog: jest.fn(),
     getCatalogStarters: jest.fn(),
-    request: jest.fn(),
+    getCourseRatings: jest.fn(),
   };
 });
 jest.mock('../../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
@@ -48,24 +48,25 @@ const lecture = (section, extra = {}) => ({
   section, type: 'LEC', instructors: 'Lee Marsh', enrolled: 78, capacity: 90, seats_open: 12, is_open: true, ...extra,
 });
 
+// `difficulty` is the backend's label (R5); the view reads it, never the GPA.
 const summaries = () => ({
   'CHEM 2410': {
     identifier: 'CHEM 2410',
     title: 'Organic Chem I',
-    grades: { gpa: 2.81 },
+    grades: { gpa: 2.81 }, difficulty: 'harder',
     sections: { term: 'Fall 2026', historical: true, rows: [lecture('001', { meetings: ['Mo 9:00am - 9:50am'] })] },
   },
   'ECON 3720': {
     identifier: 'ECON 3720',
     title: 'Econometrics',
-    grades: { gpa: 3.3 },
+    grades: { gpa: 3.3 }, difficulty: 'typical',
     sections: { rows: [lecture('001', { instructors: 'Dana Okafor', meetings: ['We 11:00am - 12:15pm'] })] },
   },
-  'ECON 3010': { identifier: 'ECON 3010', title: 'Intermediate Micro', grades: { gpa: 3.61 }, sections: { rows: [] } },
+  'ECON 3010': { identifier: 'ECON 3010', title: 'Intermediate Micro', grades: { gpa: 3.61 }, difficulty: 'easier', sections: { rows: [] } },
   'ECON 3300': {
     identifier: 'ECON 3300',
     title: 'Labor Economics',
-    grades: { gpa: 3.2 },
+    grades: { gpa: 3.2 }, difficulty: 'typical',
     sections: {
       rows: [
         lecture('001', { meetings: ['MoWe 11:00am - 12:15pm'] }),
@@ -120,9 +121,7 @@ beforeEach(() => {
   campus.getCatalogCourse.mockImplementation((token, id) => (
     SUMMARIES[id] ? Promise.resolve(SUMMARIES[id]) : Promise.reject(new Error('404'))
   ));
-  campus.request.mockImplementation((token, url) => (url.includes('/ratings/')
-    ? Promise.resolve({ ratings: [{ name: 'Lee Marsh', rating: 3.6 }] })
-    : Promise.reject(new Error('unexpected'))));
+  campus.getCourseRatings.mockResolvedValue({ ratings: [{ name: 'Lee Marsh', rating: 3.6 }] });
   campus.searchCatalog.mockResolvedValue({ courses: [{ identifier: 'ECON 3300', title: 'Labor Economics', gpa: 3.2 }] });
   campus.getCatalogStarters.mockResolvedValue({ courses: [] });
 });

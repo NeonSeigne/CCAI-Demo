@@ -73,8 +73,8 @@ function once(key, load) {
   const hit = cache.get(key);
   if (hit) return hit.promise;
   const entry = { settled: false, data: undefined, error: undefined };
-  entry.promise = Promise.resolve()
-    .then(load)
+  // Called now (a throw becomes a rejection), so a cached answer lands as soon as the source answers.
+  entry.promise = new Promise((resolve) => { resolve(load()); })
     .then((data) => {
       entry.settled = true;
       entry.data = data;

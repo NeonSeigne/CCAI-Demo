@@ -3,12 +3,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CourseAnswerCard, { groupCourseVisuals, titleCase } from './CourseAnswerCard';
 import { sourceLines } from './AnswerSources';
-import useCourseDetail from '../../hooks/useCourseDetail';
-import { useCourseRatings } from '../../hooks/useCampusDetail';
 import { SavedContext } from '../../contexts/SavedContext';
+import { memoryAdapter, setCourseAdapter } from '../../modules/course';
 
-jest.mock('../../hooks/useCourseDetail');
-jest.mock('../../hooks/useCampusDetail', () => ({ useCourseRatings: jest.fn() }));
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
 
 // GET /api/catalog/{id} at UW.
@@ -37,9 +34,13 @@ const RATINGS = {
   source: { name: 'Rate My Professors' },
 };
 
-beforeEach(() => {
-  useCourseRatings.mockImplementation((id, enabled) => ({ data: enabled ? RATINGS : null }));
-});
+let adapter;
+const serve = (course = PAYLOAD) => {
+  adapter = memoryAdapter({ courses: { 'COMPSCI 300': course }, ratings: { 'COMPSCI 300': RATINGS } });
+  setCourseAdapter(adapter);
+};
+
+afterEach(() => setCourseAdapter(null));
 
 const renderCard = (visual, props = {}) => render(
   <MemoryRouter><CourseAnswerCard visual={visual} {...props} /></MemoryRouter>,
@@ -63,14 +64,15 @@ test('titles lose the catalog capitals but keep roman numerals', () => {
   expect(titleCase('PROGRAMMING II')).toBe('Programming II');
 });
 
-test('course card shows grades, the top-rated instructor and seats', () => {
-  useCourseDetail.mockReturnValue({ data: PAYLOAD, error: null, loading: false, retry: jest.fn() });
+test('course card shows grades, the top-rated instructor and seats', async () => {
+  serve();
   const onSelectCourse = jest.fn();
   renderCard(
     { type: 'course_answer', course: 'COMPSCI 300', types: ['course_grade_distribution', 'course_instructors', 'course_schedule'] },
     { onSelectCourse },
   );
-  expect(screen.getByText('Programming II')).toBeInTheDocument();
+  expect(await screen.findByText('Programming II')).toBeInTheDocument();
+  expect(await screen.findByText('Jim Williams')).toBeInTheDocument();
   expect(screen.getByText('Grades, Spring 2026')).toBeInTheDocument();
   expect(screen.getByRole('img', { name: /A 50%, AB 20%, B 20%, C 5%, D 3%, F 2%/ })).toBeInTheDocument();
   expect(screen.getByText('Jim Williams')).toBeInTheDocument();
@@ -83,20 +85,24 @@ test('course card shows grades, the top-rated instructor and seats', () => {
   expect(onSelectCourse).toHaveBeenCalledWith('COMPSCI 300');
 });
 
-test('grades-only answers leave out instructor and seats', () => {
-  useCourseDetail.mockReturnValue({ data: PAYLOAD, error: null, loading: false, retry: jest.fn() });
+test('grades-only answers leave out instructor and seats, and ask for no ratings', async () => {
+  serve();
   renderCard({ type: 'course_answer', course: 'COMPSCI 300', types: ['course_gpa'] });
-  expect(screen.getByText(/GPA 3\.43/)).toBeInTheDocument();
+  expect(await screen.findByText(/GPA 3\.43/)).toBeInTheDocument();
+  expect(adapter.calls).toEqual([{ kind: 'course', id: 'COMPSCI 300' }]);
   expect(screen.queryByText('Jim Williams')).not.toBeInTheDocument();
   expect(screen.queryByText('Seats')).not.toBeInTheDocument();
 });
 
-test('failed course card offers a retry', () => {
-  const retry = jest.fn();
-  useCourseDetail.mockReturnValue({ data: null, error: new Error('Course details are unavailable right now.'), loading: false, retry });
+test('failed course card offers a retry', async () => {
+  let down = true;
+  serve(() => (down ? new Error('Course details are unavailable right now.') : PAYLOAD));
   renderCard({ type: 'course_answer', course: 'COMPSCI 300', types: ['course_gpa'] });
-  fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
-  expect(retry).toHaveBeenCalled();
+  const retry = await screen.findByRole('button', { name: /Retry/ });
+  expect(screen.getByText('Course details are unavailable right now.')).toBeInTheDocument();
+  down = false;
+  fireEvent.click(retry);
+  expect(await screen.findByText(/GPA 3\.43/)).toBeInTheDocument();
 });
 
 test('sources name each feed the cards came from', () => {
@@ -113,8 +119,8 @@ test('sources name each feed the cards came from', () => {
   ]);
 });
 
-test('course card saves the course and opens it in Courses', () => {
-  useCourseDetail.mockReturnValue({ data: PAYLOAD, error: null, loading: false, retry: jest.fn() });
+test('course card saves the course and opens it in Courses', async () => {
+  serve();
   const save = jest.fn(() => Promise.resolve({}));
   render(
     <MemoryRouter>
@@ -123,7 +129,7 @@ test('course card saves the course and opens it in Courses', () => {
       </SavedContext.Provider>
     </MemoryRouter>,
   );
-  expect(screen.getByRole('link', { name: /Open in Courses/ })).toHaveAttribute('href', '/courses?selected=COMPSCI%20300');
+  expect(await screen.findByRole('link', { name: /Open in Courses/ })).toHaveAttribute('href', '/courses?selected=COMPSCI%20300');
   const button = screen.getByRole('button', { name: 'Save COMPSCI 300' });
   expect(button).toHaveAttribute('aria-pressed', 'false');
   fireEvent.click(button);

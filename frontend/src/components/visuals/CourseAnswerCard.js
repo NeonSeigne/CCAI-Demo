@@ -1,15 +1,13 @@
 import React, { useCallback } from 'react';
 import { useOpenCourse } from '../../utils/openCourse';
 import { ArrowRight, Icon, RefreshCw } from '../icons';
-import { useAuth } from '../../contexts/AuthContext';
-import useCourseDetail from '../../hooks/useCourseDetail';
 import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';
 import { gradeSegments, primarySections, sectionName } from '../catalog/catalogFormat';
+import { termShort } from '../course/popupFormat';
 import {
-  creditsText, difficultyOf, DIFFICULTY_LABEL, gpaText, pctText, termShort,
-} from '../course/popupFormat';
-import { useCourseRatings } from '../../hooks/useCampusDetail';
+  creditsText, difficultyOf, DIFFICULTY_LABEL, gpaText, pctText, useCourse, useCourseRatings,
+} from '../../modules/course';
 import '../../styles/CourseVisuals.css';
 
 const GRADE_TYPES = new Set([
@@ -240,12 +238,11 @@ function Actions({ label, onOpen }) {
  */
 export default function CourseAnswerCard({ visual, onSelectCourse }) {
   const openPopup = useOpenCourse();
-  const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
   const types = visual?.types || [];
-  const { data, error, loading, retry } = useCourseDetail(courseId, authToken);
+  const { data, error, loading, retry } = useCourse(courseId);
   const wantsInstructors = types.includes('course_instructors');
-  const ratings = useCourseRatings(data?.identifier || courseId, Boolean(data) && wantsInstructors);
+  const ratings = useCourseRatings(data?.identifier || courseId, { enabled: Boolean(data) && wantsInstructors });
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);
@@ -274,7 +271,7 @@ export default function CourseAnswerCard({ visual, onSelectCourse }) {
   const names = wantsInstructors ? data.instructors || [] : [];
   const rated = wantsInstructors ? ratings.data?.ratings || [] : [];
   const sections = types.includes('course_schedule') ? data.sections : null;
-  const tone = difficultyOf(grades.gpa);
+  const tone = difficultyOf(data);
 
   if (showGrades && !wantsInstructors && !sections) {
     const students = grades.students ? Number(grades.students).toLocaleString('en-US') : null;

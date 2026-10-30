@@ -7,7 +7,8 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanner } from '../contexts/PlannerContext';
 import { useSaved } from '../contexts/SavedContext';
-import { getCatalogCourse, listEvents } from '../api/campus';
+import { listEvents } from '../api/campus';
+import { loadCourse } from '../modules/course';
 import {
   clockTime, dateLabel, eventTime, hasPhysicalLocation, meetingClock, useSchool, useStartPlace, walkText,
 } from '../modules/campus';
@@ -84,7 +85,7 @@ function useClassesToday(authToken, timezone) {
       return undefined;
     }
     let cancelled = false;
-    Promise.all(ids.split('|').map((id) => getCatalogCourse(authToken, id).then((data) => [id, data]).catch(() => [id, null])))
+    Promise.all(ids.split('|').map((id) => loadCourse(authToken, id).then((data) => [id, data]).catch(() => [id, null])))
       .then((pairs) => { if (!cancelled) setSummaries(new Map(pairs.filter(([, data]) => data))); });
     return () => { cancelled = true; };
   }, [authToken, ids]);

@@ -9,7 +9,8 @@ import {
   MAX_TICKED, askComparePrompt, askState, formatGpa, formatPct, gradesLabel,
   primarySections, readTicked, shortDate, sourceName, writeTicked,
 } from '../components/catalog/catalogFormat';
-import { getCatalogCourse, searchCatalog } from '../api/campus';
+import { searchCatalog } from '../api/campus';
+import { loadCourse } from '../modules/course';
 import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
@@ -210,7 +211,7 @@ export default function CourseComparePage() {
     const controller = new AbortController();
     controllers.current.set(id, controller);
     setColumns((current) => ({ ...current, [id]: { status: 'loading', data: current[id]?.data } }));
-    getCatalogCourse(authToken, id, { signal: controller.signal })
+    loadCourse(authToken, id)
       .then((data) => {
         if (controller.signal.aborted) return;
         setColumns((current) => ({ ...current, [id]: { status: 'ready', data } }));
