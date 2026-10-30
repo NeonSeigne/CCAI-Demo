@@ -563,9 +563,11 @@
 /* ---- Setup dialog (docs/designs/setup-dialog.md) ------------------------ */
 .su-dialog.MuiDialog-paper { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
 
-.su-band { background: var(--band); color: var(--on-deep); padding: 18px 20px 18px 24px; }
-.su-steps { display: flex; align-items: center; gap: 12px; }
-.su-steps ol { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; padding: 0; list-style: none; flex: 1; }
+/* The band is the band sheet's (modules/sheet); the steps sit in its eyebrow. */
+.su-band.pop-band { padding: 18px 20px 18px 24px; }
+.su-band .pop-band-text { padding-right: 52px; }
+.su-band .pop-eyebrow { min-height: 40px; margin: 0; }
+.su-steps { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; padding: 0; list-style: none; flex: 1; }
 .su-steps li { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--on-deep-soft); }
 .su-steps li.is-on { color: var(--on-deep); }
 .su-num {
@@ -581,26 +583,19 @@
 }
 .su-steps li.is-on .su-num { background: var(--signal); color: var(--on-signal); }
 .su-steps li.is-done .su-num { background: var(--good-tint); color: var(--good); }
-.su-close {
-  display: inline-grid;
-  place-items: center;
+.su-band .pop-actions--close { top: 18px; right: 20px; }
+.su-band .pop-icon-btn {
   width: 40px;
   height: 40px;
-  flex: none;
-  border: 0;
-  border-radius: 50%;
   background: none;
   color: var(--on-deep-soft);
-  cursor: pointer;
 }
-.su-close:hover { background: color-mix(in srgb, var(--on-deep) 12%, transparent); color: var(--on-deep); }
+.su-band .pop-icon-btn:hover { background: color-mix(in srgb, var(--on-deep) 12%, transparent); color: var(--on-deep); }
 .su-band :focus-visible { outline-color: var(--on-deep); }
-.su-band h2 {
+.su-band .pop-title {
   margin: 14px 0 0;
+  font-family: inherit;
   font-size: 26px;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
 }
 
 .su-body { padding: 20px 24px; max-height: min(64vh, 640px); overflow-y: auto; }
@@ -701,8 +696,9 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
     display: flex;
     flex-direction: column;
   }
-  .su-band { padding: 16px 12px 14px 16px; }
-  .su-band h2 { font-size: 22px; }
+  .su-band.pop-band { padding: 16px 12px 14px 16px; }
+  .su-band .pop-actions--close { top: 16px; right: 12px; }
+  .su-band .pop-title { font-size: 22px; }
   .su-steps li:not(.is-on) { font-size: 0; gap: 0; }
   .su-body { flex: 1; max-height: none; padding: 14px 16px; }
   .su-foot { padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }

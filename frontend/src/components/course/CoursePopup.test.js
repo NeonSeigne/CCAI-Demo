@@ -183,7 +183,7 @@ it('makes the header a drag source with a labelled grip', async () => {
   expect(screen.getByRole('button', { name: 'Drag COMP SCI 400' })).toHaveAttribute('title', 'Drag');
 });
 
-it('shows "Couldn\'t load · Retry" when the course request fails, and retries', async () => {
+it("shows the sheet's error state with Retry when the course request fails, and retries", async () => {
   let calls = 0;
   global.fetch = routeFetch([
     ['/api/catalog/', () => {
@@ -193,7 +193,7 @@ it('shows "Couldn\'t load · Retry" when the course request fails, and retries',
   ]);
   render(<CoursePopup courseId="COMP SCI 400" />);
   const alert = await screen.findByRole('alert');
-  expect(alert).toHaveTextContent("Couldn't load · Retry");
+  expect(alert).toHaveTextContent(/Couldn.t load/);
   fireEvent.click(within(alert).getByRole('button', { name: 'Retry' }));
   expect(await screen.findByRole('heading', { name: 'Programming III' })).toBeInTheDocument();
 });

@@ -75,7 +75,7 @@ it('renders a sparse place as a short sheet with no empty tiles', async () => {
 
   expect(await screen.findByRole('heading', { name: 'Monroe Hall' })).toBeInTheDocument();
   expect(container.querySelector('.ps-photo')).toBeNull();
-  expect(container.querySelectorAll('.ps-tile')).toHaveLength(1);
+  expect(container.querySelectorAll('.pop-number')).toHaveLength(1);
   expect(screen.getByText('Walk')).toBeInTheDocument();
   expect(screen.queryByText('Floors')).not.toBeInTheDocument();
   expect(screen.queryByText('Access')).not.toBeInTheDocument();
@@ -85,10 +85,12 @@ it('renders a sparse place as a short sheet with no empty tiles', async () => {
   expect(screen.getByRole('link', { name: /Directions/ })).toBeInTheDocument();
 });
 
-it("shows \"Couldn't load · Retry\" when the place request fails", async () => {
+it("shows the sheet's error state with Retry when the place request fails", async () => {
   global.fetch = routeFetch([['/api/places/', { status: 503, body: { detail: 'down' } }]]);
   renderSheet({ placeId: 'nowhere' });
-  expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load · Retry");
+  const alert = await screen.findByRole('alert');
+  expect(alert).toHaveTextContent(/Couldn.t load/);
+  expect(within(alert).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
 });
 
 it('reads simple opening_hours and gives up on the rest', () => {

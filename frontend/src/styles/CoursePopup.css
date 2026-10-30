@@ -1,0 +1,235 @@
+/* The course pop-up body (components/course/CoursePopup.js, DESIGN.md
+   "Course card / pop-up") and the chat course cards built from its pieces.
+   The band, tiles and actions are the band sheet's (modules/sheet/BandSheet.css). */
+
+.cp-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.cp-body.is-single { grid-template-columns: minmax(0, 1fr); }
+.cp-main { min-width: 0; }
+.cp-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+@media (max-width: 1279px) {
+  .cp-body { grid-template-columns: minmax(0, 1fr); }
+}
+
+.cp-grades { display: flex; flex-direction: column; gap: 20px; }
+
+.cp-legend {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.cp-legend li::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cp-legend li { color: var(--muted); }
+.cp-legend li.is-easier::before { background: var(--difficulty-easier); }
+.cp-legend li.is-typical::before { background: var(--difficulty-typical); }
+.cp-legend li.is-harder::before { background: var(--difficulty-harder); }
+
+.cp-gpa-svg { display: block; width: 100%; height: auto; }
+
+.cp-grid { stroke: var(--line); }
+.cp-axis { fill: var(--muted); font-size: 11px; font-family: var(--font-app); }
+.cp-axis--soft { opacity: 0.75; }
+
+.cp-seg { stroke-width: 2.5; stroke-linecap: round; }
+.cp-seg.is-easier, .cp-dot.is-easier { stroke: var(--difficulty-easier); fill: var(--difficulty-easier); }
+.cp-seg.is-typical, .cp-dot.is-typical { stroke: var(--difficulty-typical); fill: var(--difficulty-typical); }
+.cp-seg.is-harder, .cp-dot.is-harder { stroke: var(--difficulty-harder); fill: var(--difficulty-harder); }
+.cp-seg.is-none, .cp-dot.is-none { stroke: var(--muted); fill: var(--muted); }
+.cp-dot { stroke: var(--surface) !important; stroke-width: 2; }
+
+.cp-value { font-family: var(--font-display); font-size: 12px; font-weight: 700; }
+.cp-value.is-easier { fill: var(--difficulty-easier-ink); }
+.cp-value.is-typical { fill: var(--difficulty-typical-ink); }
+.cp-value.is-harder { fill: var(--difficulty-harder-ink); }
+.cp-value.is-none { fill: var(--ink); }
+
+.cp-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  height: 150px;
+}
+
+.cp-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cp-bar-pct { font-size: 12px; font-weight: 700; color: var(--muted); }
+
+.cp-bar-fill {
+  width: 100%;
+  max-height: calc(100% - 40px);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: var(--tint-strong);
+}
+
+.cp-bar.is-top .cp-bar-fill { background: var(--signal); }
+.cp-bar.is-top .cp-bar-pct { color: var(--ink); }
+.cp-bar-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+
+.cp-instructors,
+.cp-sections { list-style: none; margin: 0; padding: 0; }
+
+.cp-instructor {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.3fr) minmax(60px, 1fr) auto auto 52px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cp-instructor:last-child { border-bottom: 0; }
+.cp-instructor-name { font-weight: 700; }
+
+.cp-instructor-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--raised);
+  overflow: hidden;
+}
+
+.cp-instructor-bar span { display: block; height: 100%; border-radius: var(--r-full); background: var(--signal); }
+.cp-instructor-meta { font-size: 0.8rem; color: var(--muted); }
+.cp-instructor-rating { font-family: var(--font-display); font-size: 0.85rem; }
+.cp-instructor-rating a { color: var(--ink); }
+.cp-instructor-rating small { color: var(--muted); }
+
+.cp-instructor-gpa {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-align: right;
+}
+
+
+.cp-section { padding: 11px 0; border-top: 1px solid var(--rule); }
+.cp-section:first-child { border-top: 0; }
+
+.cp-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 14.5px;
+}
+
+.cp-section-head strong { font-weight: 600; }
+
+.cp-section-seats {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: var(--r-full);
+  background: var(--good-tint);
+  color: var(--good);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cp-section-sub { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+
+.cp-seatbar {
+  display: block;
+  height: 6px;
+  margin-top: 8px;
+  border-radius: var(--r-full);
+  background: var(--raised);
+  overflow: hidden;
+}
+
+.cp-seatbar span { display: block; height: 100%; border-radius: var(--r-full); background: var(--track); }
+
+.cp-fits-credits {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 4px 0 8px;
+  font-family: var(--font-display);
+}
+
+.cp-fits-before { font-size: 1.7rem; font-weight: 700; color: var(--muted); }
+.cp-fits-after { font-size: 1.7rem; font-weight: 700; color: var(--domain-academics-ink); }
+.cp-fits-credits small { font-family: var(--font-app); font-weight: 600; color: var(--domain-academics-ink); }
+.cp-fits-band { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
+
+.cp-band {
+  position: relative;
+  height: 6px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: var(--raised);
+  overflow: hidden;
+}
+
+.cp-band-ok { position: absolute; top: 0; bottom: 0; background: var(--domain-academics-tint); }
+.cp-band-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-full); background: var(--academics); }
+
+.cp-fit-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.cp-fit-row .is-easier { color: var(--difficulty-easier-ink); }
+.cp-fit-row .is-harder { color: var(--difficulty-harder-ink); }
+
+/* The prerequisite graph (PrereqGraph, styled in CourseVisuals.css) in a raised well. */
+.cp-graph {
+  padding: 12px;
+  border-radius: var(--r-lg);
+  background: var(--canvas);
+}
+
+.cp-graph .pg-node .pg-box { fill: var(--surface); }
+.cp-graph .pg-node.is-asked .pg-box { fill: var(--band); }
+.cp-graph .pg-node.is-done .pg-box { fill: var(--good-tint); }
+.cp-graph .pg-node.is-now .pg-box { fill: var(--tint); }
+
+.cp-graph--full { padding: 16px; }
+.cp-fullgraph .pop-tile-head { justify-content: flex-start; }
+
+/* Chat course cards built from pop-up pieces. */
+.cc-metric { display: flex; flex-direction: column; gap: 4px; }
+.cc-metric-label { font-size: 0.8rem; color: var(--muted); }
+.cc-metric-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; }
+.cc-metric-value.is-easier { color: var(--difficulty-easier-ink); }
+.cc-metric-value.is-typical { color: var(--difficulty-typical-ink); }
+.cc-metric-value.is-harder { color: var(--difficulty-harder-ink); }
+.course-visual-status { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+
+@media (max-width: 700px) {
+  .cp-instructor { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .cp-instructor-bar, .cp-instructor-meta { display: none; }
+}

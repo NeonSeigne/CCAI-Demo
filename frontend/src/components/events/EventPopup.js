@@ -1,23 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bookmark, ChevronRight, ExternalLink, Icon, X } from '../icons';
+import { Bookmark, ChevronRight, ExternalLink, Icon } from '../icons';
 import SaveButton from '../SaveButton';
-import {
-  CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
-} from '../popup/PopupParts';
+import { isNotFound, usePopupDrag } from '../popup/PopupParts';
+import { BandSheet, SheetActions, SheetBand } from '../../modules/sheet';
 import MiniMap from '../map/MiniMap';
 import {
   countdown, dateLabel, eventRange, hasPhysicalLocation, rangeParts, walkParts,
 } from '../../modules/campus';
 import { useEventDetail, useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
 import { downloadEventIcs } from '../../utils/ics';
-import '../../styles/Popups.css';
+import '../../styles/EventPopup.css';
 
 /**
  * The event pop-up's body (DESIGN.md "Event detail"): the band with the date
  * block, kind, title and tiles (starts in, time, walk, cost); then About and
  * Details beside Where and the related lists; then the actions. No Tonight
  * tile (eng R3). A field the feed lacks drops its tile, row or number (D7).
+ * The frame is the band sheet's (modules/sheet).
  *
  * Props
  *   eventId, event        the id to load; `event` (a list row) shows while it loads
@@ -53,15 +53,6 @@ function DateBlock({ event, timezone, small = false }) {
       <span className="ep-date-day">{day}</span>
       <span className="ep-date-week">{small ? month : weekday}</span>
     </span>
-  );
-}
-
-function Stat({ label, children, className = '' }) {
-  return (
-    <div className={`pop-number ${className}`.trim()}>
-      <span className="pop-number-label">{label}</span>
-      <span className="pop-number-value">{children}</span>
-    </div>
   );
 }
 
@@ -218,48 +209,36 @@ export default function EventPopup({
 
   const drag = usePopupDrag({ type: 'event', id: event?.id, title: event?.title });
 
-  const closeButton = onClose && (
-    <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
-      <X size={18} aria-hidden="true" />
-    </button>
-  );
-
   if (!event && detail.error) {
     return (
-      <article className="pop ep" aria-labelledby={titleId}>
-        <header className="pop-band">
-          <div className="pop-band-top">
-            <h2 id={titleId} className="sr-only">Event</h2>
-            <div className="pop-actions">{closeButton}</div>
-          </div>
-        </header>
-        <div className="pop-body">
-          {isNotFound(detail.error)
-            ? <NotFound>Event not found</NotFound>
-            : <CouldntLoad onRetry={detail.retry} />}
-        </div>
-      </article>
+      <BandSheet
+        kind="event"
+        titleId={titleId}
+        status="error"
+        error={isNotFound(detail.error) ? { message: 'Event not found' } : { onRetry: detail.retry }}
+        band={<SheetBand titleId={titleId} titleLabel="Event" hideTitle onClose={onClose} closeSize={18} />}
+      />
     );
   }
 
   if (!event) {
     return (
-      <article className="pop ep" aria-labelledby={titleId} aria-busy="true">
-        <header className="pop-band">
-          <div className="pop-band-top">
-            <span className="pop-skel ep-date-skel" aria-hidden="true" />
-            <div className="pop-band-text">
-              <h2 id={titleId} className="pop-title"><span className="sr-only">Event</span><span className="pop-skel pop-skel--title" /></h2>
-            </div>
-            <div className="pop-actions">{closeButton}</div>
-          </div>
-          <div className="pop-numbers" aria-hidden="true">
-            {[0, 1, 2, 3].map((n) => (
-              <div key={n} className="pop-number"><span className="pop-skel pop-skel--label" /><span className="pop-skel pop-skel--number" /></div>
-            ))}
-          </div>
-        </header>
-      </article>
+      <BandSheet
+        kind="event"
+        titleId={titleId}
+        status="loading"
+        loadingLabel="Loading event"
+        band={(
+          <SheetBand
+            titleId={titleId}
+            titleLabel="Event"
+            lead={<span className="pop-skel ep-date-skel" aria-hidden="true" />}
+            onClose={onClose}
+            closeSize={18}
+            tiles={4}
+          />
+        )}
+      />
     );
   }
 
@@ -267,45 +246,82 @@ export default function EventPopup({
   const details = event.details || null;
   const timer = countdown(event, now);
   const item = { type: 'event', id: event.id, title: event.title };
-  const numbers = [];
-  if (timer) numbers.push(<Stat key="timer" label={timer.label} className="is-live">{timer.value}</Stat>);
+  const tiles = [];
+  if (timer) tiles.push({ key: 'timer', label: timer.label, value: timer.value, className: 'is-live' });
   if (event.start) {
     // "5:00 to 6:00 PM": the start drops a meridiem the end repeats.
     const { start, end: to } = rangeParts(event, timezone);
-    numbers.push(<Stat key="time" label="Time">{start}{to && <small>{` to ${to}`}</small>}</Stat>);
+    tiles.push({ key: 'time', label: 'Time', value: start, unit: to ? `to ${to}` : null });
   }
   const walk = physical ? walkParts(event.walk_minutes) : null;
-  if (walk) {
-    numbers.push(<Stat key="walk" label="Walk">{walk.value}{walk.unit && <small>{` ${walk.unit}`}</small>}</Stat>);
-  }
-  if (details?.cost) numbers.push(<Stat key="cost" label="Cost">{details.cost}</Stat>);
-  if (!details?.room && physical) numbers.push(<Stat key="room" label="Room">{event.location}</Stat>);
+  if (walk) tiles.push({ key: 'walk', label: 'Walk', value: walk.value, unit: walk.unit || null });
+  if (details?.cost) tiles.push({ key: 'cost', label: 'Cost', value: details.cost });
+  if (!details?.room && physical) tiles.push({ key: 'room', label: 'Room', value: event.location });
 
   const showImage = Boolean(event.image_url) && imageOk;
   const venueName = place.data?.place?.name || event.location;
 
+  const band = (
+    <SheetBand
+      eyebrow={(
+        <>
+          {timer?.live && <span className="ep-live">Happening now</span>}
+          {event.calendar && <span className="ep-kind"><span className="ep-dot" aria-hidden="true" />{event.calendar}</span>}
+        </>
+      )}
+      title={event.title}
+      titleId={titleId}
+      lead={<DateBlock event={event} timezone={timezone} />}
+      drag={drag}
+      dragLabel={event.id ? `Drag ${event.title}` : null}
+      onClose={onClose}
+      closeSize={18}
+      tiles={tiles}
+    >
+      {event.categories?.length > 0 && (
+        <ul className="pop-chips">
+          {event.categories.map((name) => <li key={name} className="pop-chip pop-chip--event">{name}</li>)}
+        </ul>
+      )}
+    </SheetBand>
+  );
+
+  const actions = (
+    <SheetActions>
+      {event.start && (
+        <button type="button" className="pop-btn pop-btn--primary" onClick={() => downloadEventIcs(event)}>
+          <Icon name="calendar_add_on" size={20} /> Add to calendar
+        </button>
+      )}
+      {event.place_id && (
+        <Link className="pop-btn" to={`/map?to=${encodeURIComponent(event.place_id)}`}>
+          <Icon name="directions_walk" size={20} /> Directions
+        </Link>
+      )}
+      {onAsk && (
+        <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
+          <Icon name="forum" size={20} /> Ask
+        </button>
+      )}
+      {onSave ? (
+        <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
+          <Bookmark size={20} aria-hidden="true" /> {saved ? 'Saved' : 'Save'}
+        </button>
+      ) : (
+        event.id && (
+          <SaveButton
+            className="pop-save"
+            item={{
+              kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
+            }}
+          />
+        )
+      )}
+    </SheetActions>
+  );
+
   return (
-    <article className="pop ep" aria-labelledby={titleId}>
-      <header ref={drag.ref} className={`pop-band ${drag.className}`}>
-        <div className="pop-band-top">
-          {event.id && <DragGrip drag={drag} label={`Drag ${event.title}`} />}
-          <DateBlock event={event} timezone={timezone} />
-          <div className="pop-band-text">
-            <p className="pop-eyebrow">
-              {timer?.live && <span className="ep-live">Happening now</span>}
-              {event.calendar && <span className="ep-kind"><span className="ep-dot" aria-hidden="true" />{event.calendar}</span>}
-            </p>
-            <h2 id={titleId} className="pop-title">{event.title}</h2>
-            {event.categories?.length > 0 && (
-              <ul className="pop-chips">
-                {event.categories.map((name) => <li key={name} className="pop-chip pop-chip--event">{name}</li>)}
-              </ul>
-            )}
-          </div>
-          {closeButton && <div className="pop-actions pop-actions--close">{closeButton}</div>}
-        </div>
-        {numbers.length > 0 && <div className="pop-numbers">{numbers}</div>}
-      </header>
+    <BandSheet kind="event" titleId={titleId} band={band} actions={actions}>
       <div className="pop-body ep-body">
         <div className="ep-col">
           {showImage && (
@@ -332,37 +348,6 @@ export default function EventPopup({
           />
         </div>
       </div>
-      <footer className="pop-foot">
-        {event.start && (
-          <button type="button" className="pop-btn pop-btn--primary" onClick={() => downloadEventIcs(event)}>
-            <Icon name="calendar_add_on" size={20} /> Add to calendar
-          </button>
-        )}
-        {event.place_id && (
-          <Link className="pop-btn" to={`/map?to=${encodeURIComponent(event.place_id)}`}>
-            <Icon name="directions_walk" size={20} /> Directions
-          </Link>
-        )}
-        {onAsk && (
-          <button type="button" className="pop-btn" onClick={() => onAsk(item)}>
-            <Icon name="forum" size={20} /> Ask
-          </button>
-        )}
-        {onSave ? (
-          <button type="button" className="pop-btn" aria-pressed={Boolean(saved)} onClick={() => onSave(item)}>
-            <Bookmark size={20} aria-hidden="true" /> {saved ? 'Saved' : 'Save'}
-          </button>
-        ) : (
-          event.id && (
-            <SaveButton
-              className="pop-save"
-              item={{
-                kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
-              }}
-            />
-          )
-        )}
-      </footer>
-    </article>
+    </BandSheet>
   );
 }
