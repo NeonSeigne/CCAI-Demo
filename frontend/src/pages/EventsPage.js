@@ -1,10 +1,9 @@
 import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/icons';
 import AppDialog from '../components/AppDialog';
-import CampusRail from '../components/CampusRail';
 import EventPopup from '../components/events/EventPopup';
 import { usePopupContainer } from '../components/shell/PageColumnContext';
 import usePopupAsk from '../hooks/usePopupAsk';
@@ -12,7 +11,6 @@ import {
   EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
 } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
-import SettingsModal from '../components/SettingsModal';
 import { formatEventRange, formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -721,11 +719,9 @@ function ListedThrough({ date }) {
 // Page
 
 const EventsPage = () => {
-  const navigate = useNavigate();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
+  const { authToken } = useAuth();
   const { config } = useAppConfig();
   const [params, setParams] = useSearchParams();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const phone = usePhone();
   const now = useNow();
 
@@ -836,11 +832,6 @@ const EventsPage = () => {
     tabRefs.current[next.id]?.focus();
   };
 
-  const handleSignOutClick = () => {
-    handleSignOut();
-    navigate('/', { replace: true });
-  };
-
   // The event pop-up (?event=ID) over the page column (D3).
   const eventId = params.get(EVENT_PARAM) || '';
   const openParam = useOpenParam(EVENT_PARAM);
@@ -914,14 +905,6 @@ const EventsPage = () => {
   return (
     <EventOpenContext.Provider value={openEvent}>
       <div className="campus-home ev-page">
-        <CampusRail
-          onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-          onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-          onShowAllChats={() => navigate('/search')}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onSignOut={handleSignOutClick}
-        />
-
         <main className="campus-main ev-main" id="main-content">
           <div className="ev-column">
             <header className="ev-header">
@@ -1050,16 +1033,6 @@ const EventsPage = () => {
             )}
           </div>
         </main>
-
-        {isSettingsOpen && (
-          <SettingsModal
-            user={user}
-            authToken={authToken}
-            onUserUpdate={handleUserUpdate}
-            onSignOut={handleSignOutClick}
-            onClose={() => setIsSettingsOpen(false)}
-          />
-        )}
 
         {eventId && popup.ready && (
           <AppDialog

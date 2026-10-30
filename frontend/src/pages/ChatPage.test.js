@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ChatPage from './ChatPage';
+import { ChatProvider, useChat } from '../contexts/ChatContext';
 import { PlannerProvider } from '../contexts/PlannerContext';
 import * as plannerApi from '../api/planner';
 import { view } from '../components/planner/plannerFixtures';
@@ -35,21 +36,32 @@ jest.mock('../contexts/AppConfigContext', () => ({
     },
   }),
 }));
-jest.mock('../components/CampusRail', () => (props) => (
-  <nav>
-    <button type="button" onClick={props.onNewChat}>New chat</button>
-    <button type="button" onClick={() => props.onSelectSession('saved-1')}>Open saved chat</button>
-  </nav>
-));
 jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
 jest.mock('../components/ExportButton', () => () => null);
-jest.mock('../components/SettingsModal', () => () => null);
 jest.mock('../components/MessageBubble', () => (props) => <p>{props.message.content}</p>);
 jest.mock('../components/EnhancedChatInput', () => (props) => (
   <button type="button" onClick={() => props.onSendMessage('Plan my semester')}>
     Send test message
   </button>
 ));
+
+// The shell's rail calls these on the chat page.
+function RailControls() {
+  const chat = useChat();
+  return (
+    <nav>
+      <button type="button" onClick={() => chat.newChat()}>New chat</button>
+      <button type="button" onClick={() => chat.openSession('saved-1')}>Open saved chat</button>
+    </nav>
+  );
+}
+
+const renderWithRail = () => render(
+  <ChatProvider>
+    <RailControls />
+    <ChatPage />
+  </ChatProvider>,
+);
 
 beforeEach(() => {
   mockLocation = { pathname: '/chat', search: '', state: null };
@@ -160,7 +172,7 @@ describe('chat flow (characterization)', () => {
 
   test('New chat clears the messages and calls /new-chat', async () => {
     routeFetch({ '/new-chat': () => json({ status: 'success' }) });
-    render(<ChatPage />);
+    renderWithRail();
     sendTestMessage();
     expect(await screen.findByText('Take ECON 1010 first.')).toBeInTheDocument();
 
@@ -179,7 +191,7 @@ describe('chat flow (characterization)', () => {
       }),
       '/api/chat-sessions/saved-1': () => json({ id: 'saved-1', title: 'Library' }),
     });
-    render(<ChatPage />);
+    renderWithRail();
     fireEvent.click(screen.getByRole('button', { name: 'Open saved chat' }));
     expect(await screen.findByText('Where is the library?', { selector: '.user-message p' })).toBeInTheDocument();
     await waitFor(() => expect(callsTo('/api/chat-sessions/saved-1')).toHaveLength(1));

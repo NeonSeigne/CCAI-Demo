@@ -23,13 +23,6 @@ jest.mock('../contexts/AuthContext', () => ({
 }));
 let mockConfig;
 jest.mock('../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: mockConfig }) }));
-jest.mock('../components/CampusRail', () => ({
-  __esModule: true,
-  default: () => <nav aria-label="Rail" />,
-  RecentChats: () => null,
-  useRecentChats: () => [],
-}));
-jest.mock('../components/SettingsModal', () => () => null);
 
 // Thursday 29 October 2026, 11:00 in Charlottesville.
 const NOW = new Date('2026-10-29T15:00:00Z');

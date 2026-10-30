@@ -43,10 +43,8 @@ jest.mock('../contexts/AppConfigContext', () => ({
     config: { app: { institution: 'UW–Madison' }, school: { timezone: 'America/Chicago' } },
   }),
 }));
-jest.mock('../components/CampusRail', () => () => <nav aria-label="Main" />);
 const mockAsk = jest.fn();
 jest.mock('../hooks/useAsk', () => () => mockAsk);
-jest.mock('../components/SettingsModal', () => () => null);
 jest.mock('../components/SaveButton', () => ({ item }) => (
   <button type="button" aria-label={`Save ${item.display_name}`}>Save</button>
 ));

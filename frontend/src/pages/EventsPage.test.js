@@ -22,8 +22,6 @@ jest.mock('../contexts/AuthContext', () => ({
 jest.mock('../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' }, school: { timezone: 'UTC' } } }),
 }));
-jest.mock('../components/CampusRail', () => function CampusRailStub() { return <nav aria-label="Main" />; });
-jest.mock('../components/SettingsModal', () => function SettingsStub() { return null; });
 jest.mock('../components/SaveButton', () => function SaveStub({ item }) {
   return item ? <button type="button" aria-label={`Save ${item.display_name}`} /> : null;
 });

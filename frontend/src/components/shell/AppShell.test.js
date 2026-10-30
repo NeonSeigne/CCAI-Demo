@@ -6,7 +6,6 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AppShell from './AppShell';
 import { usePageColumn } from './PageColumnContext';
 import AppDialog from '../AppDialog';
-import CampusRail from '../CampusRail';
 import { SavedContext } from '../../contexts/SavedContext';
 import { DOCK_COLLAPSED_KEY } from '../../contexts/ChatDockContext';
 
@@ -25,7 +24,10 @@ const mockChat = {
   addDocument: jest.fn(),
 };
 
-jest.mock('../../contexts/ChatContext', () => ({ useChat: () => mockChat }));
+jest.mock('../../contexts/ChatContext', () => ({
+  useChat: () => mockChat,
+  ChatContext: jest.requireActual('react').createContext(null),
+}));
 jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token', user: { firstName: 'Ada' } }),
 }));
@@ -50,7 +52,6 @@ function setWidth(width) {
 function Page({ children }) {
   return (
     <div className="campus-home" data-testid="page">
-      <CampusRail />
       <main>{children}</main>
     </div>
   );

@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  createContext, useCallback, useContext, useEffect, useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Icon, LogOut, MessageSquare, Plus, RefreshCw, Settings2 } from './icons';
@@ -105,6 +107,16 @@ export function useRecentChats(authToken, refreshTrigger = 0) {
 
   const retry = useCallback(() => setAttempt((count) => count + 1), []);
   return { ...state, retry };
+}
+
+/** The app shell's recent chats, so a page that lists them doesn't load them again. */
+export const RecentChatsContext = createContext(null);
+
+/** The shell's recent chats, or the page's own outside the shell. */
+export function useShellRecentChats(authToken) {
+  const shared = useContext(RecentChatsContext);
+  const own = useRecentChats(shared ? null : authToken);
+  return shared || own;
 }
 
 /** Recent chats, "Couldn't load chats · Retry" on failure, and All chats. */

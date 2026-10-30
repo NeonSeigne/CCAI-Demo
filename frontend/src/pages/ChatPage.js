@@ -2,14 +2,12 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContex
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
 
-import { Menu, MessageCircle, Sparkles, FileText } from '../components/icons';
+import { MessageCircle, Sparkles, FileText } from '../components/icons';
 
 import EnhancedChatInput from '../components/EnhancedChatInput';
 import MessageBubble from '../components/MessageBubble';
 import ChatThinking from '../components/chat/ChatThinking';
-import SettingsModal from '../components/SettingsModal';
 import ExportButton from '../components/ExportButton';
-import CampusRail from '../components/CampusRail';
 import ChatMoreMenu from '../components/ChatMoreMenu';
 import AnswerPanel, { buildSuggestions, latestVisuals } from '../components/AnswerPanel';
 import { DOMAIN_COLORS } from '../components/domainColors';
@@ -32,7 +30,7 @@ const ChatPageView = () => {
   const navigate = useNavigate();
   const openCourse = useOpenCourse();
   const location = useLocation();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
+  const { authToken } = useAuth();
   const { config } = useAppConfig();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const chat = useChat();
@@ -43,13 +41,11 @@ const ChatPageView = () => {
     sessionId: currentSessionId,
     sessionTitle: currentSessionTitle,
     isLoadingSession,
-    sessionsVersion,
     sessionEpoch,
     uploadedDocuments,
     groupViews,
     synthesizingGroups,
   } = chat;
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [composerMessage, setComposerMessage] = useState('');
   // Coming back to a conversation in progress opens it active.
   const [chatPhase, setChatPhase] = useState(() => (messages.some(isConversation) ? 'active' : 'landing'));
@@ -57,8 +53,6 @@ const ChatPageView = () => {
   const intentConsumedRef = useRef(false);
   const phaseTimerRef = useRef(null);
   const seenEpochRef = useRef(sessionEpoch);
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const skipAutoScrollRef = useRef(false);
 
 
@@ -66,10 +60,6 @@ const ChatPageView = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleMobileMenuToggle = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   useEffect(() => {
@@ -97,13 +87,6 @@ const ChatPageView = () => {
 
   const loadChatSession = (sessionId) => chat.openSession(sessionId);
 
-  // Handle selecting a session from sidebar
-  const handleSelectSession = async (sessionId) => {
-    if (sessionId === currentSessionId) return;
-    await loadChatSession(sessionId);
-  };
-
-  // Handle creating new chat from sidebar
   const handleNewChat = async (sessionId = null) => {
     if (sessionId) {
       await loadChatSession(sessionId);
@@ -210,40 +193,10 @@ const ChatPageView = () => {
   });
 
   return (
-    <div className={`chat-frame ${isMobileMenuOpen ? 'rail-open' : ''}`}>
-      <CampusRail
-        className="chat-rail"
-        currentSessionId={currentSessionId}
-        refreshTrigger={sessionsVersion}
-        onNewChat={() => { setIsMobileMenuOpen(false); handleNewChat(); }}
-        onSelectSession={(sessionId) => { setIsMobileMenuOpen(false); handleSelectSession(sessionId); }}
-        onShowAllChats={() => navigate('/search')}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onSignOut={() => {
-          handleSignOut();
-          navigate('/', { replace: true });
-        }}
-      />
-      {isMobileMenuOpen && (
-        <button
-          type="button"
-          className="chat-rail-backdrop"
-          aria-label="Close menu"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
+    <div className="chat-frame">
       <main className="main-chat-area" id="main-content">
         <div className="modern-chat-page">
           <header className="chat-head">
-            <button
-              type="button"
-              className="chat-head-btn chat-menu-btn"
-              aria-label="Open menu"
-              onClick={handleMobileMenuToggle}
-            >
-              <Menu size={18} />
-            </button>
             <h1 className="chat-title">{chatTitle}</h1>
             <div className="chat-head-actions">
               <ExportButton
@@ -435,20 +388,6 @@ const ChatPageView = () => {
         timezone={config?.school?.timezone}
         onAsk={(text) => handleSendMessage(text)}
       />
-
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={handleUserUpdate}
-          onSignOut={() => {
-            handleSignOut();
-            navigate('/', { replace: true });
-          }}
-          onClose={() => setIsSettingsOpen(false)}
-          leftInset={dialogInset}
-        />
-      )}
     </div>
   );
 };
