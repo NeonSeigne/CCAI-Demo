@@ -1,7 +1,9 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ChatProvider, attachmentLine, useChat } from './ChatContext';
+import {
+  ChatProvider, TITLE_MAX, attachmentLine, titleFor, useChat,
+} from './ChatContext';
 import { PlannerContext } from './PlannerContext';
 
 let mockAuthToken = 'token';
@@ -181,7 +183,37 @@ test('send puts each chip on its own line before the text, then clears the chips
   );
   expect(screen.getByRole('status', { name: 'Attachments' })).toHaveTextContent('');
   // Chips clear once the stream opens; the session is titled after the question.
-  expect(JSON.parse(callsTo('/api/chat-sessions')[0][1].body).title).toBe('What should I know?...');
+  expect(JSON.parse(callsTo('/api/chat-sessions')[0][1].body).title).toBe('What should I know?');
+});
+
+test('a chat is titled with the whole question, up to the server limit', () => {
+  const long = 'Which of the economics electives offered next spring fit around my lab schedule?';
+  expect(titleFor(`  ${long}  `)).toBe(long);
+  expect(titleFor('Where   is\nClark Hall?')).toBe('Where is Clark Hall?');
+  expect(titleFor('x'.repeat(250))).toHaveLength(TITLE_MAX);
+});
+
+test('a streamed answer keeps the stored message id for feedback', async () => {
+  routeFetch({
+    '/chat-stream': () => Promise.resolve(streamOf({
+      type: 'advisor',
+      data: {
+        persona_id: 'guide', content: 'Answer.', is_aggregated: true, message_id: 'msg-7',
+      },
+    })),
+  });
+  function Ids() {
+    const { messages, send } = useChat();
+    return (
+      <>
+        <button type="button" onClick={() => send('Hi')}>Send</button>
+        <output aria-label="Ids">{messages.filter((m) => m.type === 'advisor').map((m) => m.message_id).join(',')}</output>
+      </>
+    );
+  }
+  renderProvider(<Ids />);
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+  await waitFor(() => expect(screen.getByRole('status', { name: 'Ids' })).toHaveTextContent('msg-7'));
 });
 
 test('removing a chip drops its line', async () => {

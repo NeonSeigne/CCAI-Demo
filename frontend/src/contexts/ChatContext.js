@@ -44,6 +44,14 @@ export function attachmentLine(item) {
 
 const proposalOf = (visual) => visual.proposal || visual;
 
+/** The server's longest chat title. */
+export const TITLE_MAX = 200;
+
+/** A chat titled after its question: the whole question, as the server stores it. */
+export function titleFor(text) {
+  return (text || '').trim().replace(/\s+/g, ' ').slice(0, TITLE_MAX);
+}
+
 export function ChatProvider({ children }) {
   const { authToken } = useAuth();
   const planner = usePlanner();
@@ -110,7 +118,7 @@ export function ChatProvider({ children }) {
   const createSession = async (firstMessage = null, isLive = () => true) => {
     try {
       const title = firstMessage
-        ? `${firstMessage.substring(0, 30)}...`
+        ? titleFor(firstMessage)
         : `Chat ${new Date().toLocaleDateString()}`;
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions`, {
@@ -337,7 +345,7 @@ export function ChatProvider({ children }) {
 
       // Retitle a generic "Chat <date>" session after its first message.
       if (!fresh && messages.length === 0 && sessionTitle.includes('Chat ')) {
-        await updateSessionTitle(id, text.length > 30 ? `${text.substring(0, 30)}...` : text, isLive);
+        await updateSessionTitle(id, titleFor(text), isLive);
       }
 
       const response = await streamChat(inputMessage, id, activeAdvisorIds, controller.signal);
@@ -373,6 +381,8 @@ export function ChatProvider({ children }) {
             case 'advisor': {
               const msg = {
                 id: generateMessageId(),
+                // The stored message's id, for answer feedback (null without a session).
+                message_id: d.message_id ?? null,
                 type: 'advisor',
                 persona_id: d.persona_id,
                 content: d.content,
