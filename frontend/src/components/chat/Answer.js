@@ -4,33 +4,19 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Copy, Check, Volume2, VolumeX, Search, X, Loader2 } from './icons';
-import VisualBlock from './visuals/VisualBlock';
-import CourseChip from './visuals/CourseChip';
-import AnswerSources from './visuals/AnswerSources';
-import { groupCourseVisuals } from './visuals/CourseAnswerCard';
-import ErrorBoundary from './ErrorBoundary';
-const stripMarkdown = (md) => {
-  if (!md) return '';
-  return md
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/#{1,6}\s?/g, '')
-    .replace(/[*_~]{1,3}([^*_~]+)[*_~]{1,3}/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-    .replace(/[-*+]\s/g, '')
-    .replace(/\n{2,}/g, '. ')
-    .replace(/\n/g, ' ')
-    .trim();
-};
+import { Copy, Check, Volume2, VolumeX, Search, X, Loader2 } from '../icons';
+import VisualBlock from '../visuals/VisualBlock';
+import CourseChip from '../visuals/CourseChip';
+import AnswerSources from '../visuals/AnswerSources';
+import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
+import ErrorBoundary from '../ErrorBoundary';
 
-const MessageBubble = ({ 
-  message,
-  onCopy,
-  onCourseSelect,
-  onAsk
-}) => {
+/**
+ * One answer in the thread: the text, its cards, the Checked chips and the
+ * action row. Courses open through `onCourseSelect`; a card's follow-up
+ * question goes to `onAsk`.
+ */
+const Answer = ({ message, onCourseSelect, onAsk }) => {
   // The "Checked" line leads the answer; every other visual follows the text.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
@@ -43,7 +29,6 @@ const MessageBubble = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
-  const overlayRef = useRef(null);
   const tooltipTimer = useRef(null);
   const audioRef = useRef(null);
 
@@ -89,7 +74,6 @@ const MessageBubble = ({
     try {
       await navigator.clipboard.writeText(content || '');
       setCopiedStates(prev => ({ ...prev, [messageId]: true }));
-      if (onCopy) onCopy(messageId, content || '');
       setTimeout(() => {
         setCopiedStates(prev => ({ ...prev, [messageId]: false }));
       }, 2000);
@@ -378,19 +362,8 @@ const MessageBubble = ({
     }
   };
 
-  // USER MESSAGE
-  if (message.type === 'user') {
-    return (
-      <div className="user-message-container">
-        <div className="user-message vc-ubub">
-          <p>{message.content}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ANSWER: one voice, plain text and cards.
-  if (message.type === 'advisor') {
+  // One voice, plain text and cards.
+  if (message?.type === 'advisor') {
     const isCopied = copiedStates[message.id];
 
     return (
@@ -540,18 +513,7 @@ const MessageBubble = ({
     );
   }
 
-  // ERROR MESSAGE
-  if (message.type === 'error') {
-    return (
-      <div className="error-message-container">
-        <div className="error-message">
-          <p>{message.content}</p>
-        </div>
-      </div>
-    );
-  }
-
   return null;
 };
 
-export default MessageBubble;
+export default Answer;

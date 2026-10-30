@@ -34,7 +34,6 @@ jest.mock('../../contexts/AuthContext', () => ({
 jest.mock('../../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({ config: { app: { institution: 'UVA' } } }),
 }));
-jest.mock('../chat/DockConversation', () => () => <div>Conversation</div>);
 jest.mock('../EnhancedChatInput', () => ({ placeholder }) => <textarea aria-label="Message" placeholder={placeholder} />);
 
 /** Pretend the window is `width` px wide for every media query. */

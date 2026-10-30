@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AddCommentRounded, ChatBubbleOutlineRounded, CloseRounded, KeyboardTabRounded } from './icons';
 import EnhancedChatInput from './EnhancedChatInput';
-import DockConversation from './chat/DockConversation';
+import Thread from './chat/Thread';
 import { useDropTarget } from './dnd';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -188,7 +188,7 @@ export default function ChatDock() {
           {mode === 'docked' ? <KeyboardTabRounded fontSize="small" /> : <CloseRounded fontSize="small" />}
         </button>
       </header>
-      <DockConversation />
+      <Thread variant="dock" />
       <div className="cc-dock-composer">
         <EnhancedChatInput
           compact

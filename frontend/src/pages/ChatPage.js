@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { MessageCircle, Sparkles, FileText } from '../components/icons';
-
 import EnhancedChatInput from '../components/EnhancedChatInput';
-import MessageBubble from '../components/MessageBubble';
-import ChatThinking from '../components/chat/ChatThinking';
+import Thread from '../components/chat/Thread';
 import ExportButton from '../components/ExportButton';
 import ChatMoreMenu from '../components/ChatMoreMenu';
 import AnswerPanel, { buildSuggestions, latestVisuals } from '../components/AnswerPanel';
@@ -13,11 +10,10 @@ import { DOMAIN_COLORS } from '../components/domainColors';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatContext, ChatProvider, useChat } from '../contexts/ChatContext';
-import { useOpenCourse } from '../utils/openCourse';
 import '../styles/ChatPage.css';
 import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
-import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
+import { chatPlaceholder } from '../utils/messageGroups';
 import useViewport from '../hooks/useViewport';
 
 /** location.state keys that carry a one-shot intent from another page. */
@@ -27,7 +23,6 @@ const isConversation = (message) => message.type !== 'system' && message.type !=
 
 const ChatPageView = () => {
   const navigate = useNavigate();
-  const openCourse = useOpenCourse();
   const location = useLocation();
   const { authToken } = useAuth();
   const { config } = useAppConfig();
@@ -36,38 +31,17 @@ const ChatPageView = () => {
   const {
     messages,
     isLoading,
-    thinkingAdvisors,
     sessionId: currentSessionId,
     sessionTitle: currentSessionTitle,
-    isLoadingSession,
     sessionEpoch,
     uploadedDocuments,
-    groupViews,
-    synthesizingGroups,
   } = chat;
   const [composerMessage, setComposerMessage] = useState('');
   // Coming back to a conversation in progress opens it active.
   const [chatPhase, setChatPhase] = useState(() => (messages.some(isConversation) ? 'active' : 'landing'));
-  const messagesEndRef = useRef(null);
   const intentConsumedRef = useRef(false);
   const phaseTimerRef = useRef(null);
   const seenEpochRef = useRef(sessionEpoch);
-  const skipAutoScrollRef = useRef(false);
-
-
-
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (skipAutoScrollRef.current) {
-      skipAutoScrollRef.current = false;
-      return;
-    }
-    scrollToBottom();
-  }, [messages, thinkingAdvisors]);
 
   useEffect(() => () => {
     if (phaseTimerRef.current) window.clearTimeout(phaseTimerRef.current);
@@ -145,12 +119,6 @@ const ChatPageView = () => {
     });
   };
 
-  const handleCourseSelect = (identifier) => {
-    const course = (identifier || '').trim();
-    if (!course) return;
-    openCourse(course);
-  };
-
   const handleSendMessage = async (inputMessage, options) => {
     if (!inputMessage.trim()) return;
 
@@ -162,8 +130,6 @@ const ChatPageView = () => {
 
     await chat.send(inputMessage, null, options);
   };
-
-  const messageGroups = useMemo(() => groupMessages(messages), [messages]);
 
   // Dialogs center over the conversation, right of the 260px rail.
   const dialogInset = isMobile ? 0 : 260;
@@ -222,121 +188,7 @@ const ChatPageView = () => {
                 </div>
               </div>
             )}
-            {hasMessages && (
-              <div className="messages-container">
-                {/* Add loading session indicator */}
-                {isLoadingSession && (
-                  <div className="loading-session">
-                    <div className="loading-spinner"></div>
-                    <span>Loading chat session...</span>
-                  </div>
-                )}
-                
-                <div className="messages-list">
-                  <div className="messages-scroll">
-                    {messageGroups.map((group) => (
-                      group.type === 'advisor_group' ? (() => {
-                        const hasAggregated = group.aggregatedMessages.length > 0;
-                        const view = groupViews[group.responseGroupId] || (hasAggregated ? 'aggregated' : 'panel');
-                        const isSynth = !!synthesizingGroups[group.responseGroupId];
-                        const showAggregated = view === 'aggregated' && hasAggregated;
-                        const shown = showAggregated ? group.aggregatedMessages : group.panelMessages;
-                        return (
-                          <div key={group.responseGroupId} className="response-group">
-                            {isSynth && (
-                              <div style={{
-                                display: 'flex', alignItems: 'center', gap: 8,
-                                color: 'var(--muted)', fontSize: 13, padding: '8px 4px',
-                              }}>
-                                <Sparkles size={16} />
-                                <span>Combining advisor responses into one answer…</span>
-                              </div>
-                            )}
-                            {shown.map((message) => (
-                              <div key={message.id} className="single-response-wide">
-                                <MessageBubble
-                                  message={message}
-                                  onCourseSelect={handleCourseSelect}
-                                  onAsk={(text) => handleSendMessage(text)}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })() : (
-                      <div key={group.message.id}>
-                        {group.message.type === 'user' && (
-                          <div className="user-message-container">
-                            <div className="user-message">
-                              <p>{group.message.content}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {group.message.type === 'error' && (
-                          <div className="error-message-container">
-                            <div className="error-message">
-                              <p>{group.message.content}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {group.message.type === 'system' && (
-                          <div className="system-message-container">
-                            <div className="system-message">
-                              <p>{group.message.content}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {group.message.type === 'document_upload' && (
-                          <div className="system-message-container">
-                            <div className="system-message document-upload">
-                              <FileText size={16} />
-                              <p>{group.message.content}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {group.message.type === 'clarification' && (
-                          <div className="clarification-message-container">
-                            <div className="clarification-message">
-                              <div className="clarification-header">
-                                <MessageCircle size={16} />
-                                <span>I need a bit more information</span>
-                              </div>
-                              <p>{group.message.content}</p>
-                              
-                              {group.message.suggestions && group.message.suggestions.length > 0 && (
-                                <div className="clarification-suggestions">
-                                  <p className="suggestions-label">Here are some ways you could be more specific:</p>
-                                  <div className="suggestions-list">
-                                    {group.message.suggestions.map((suggestion, index) => (
-                                      <button
-                                        key={index}
-                                        className="suggestion-button"
-                                        onClick={() => handleSendMessage(suggestion)}
-                                      >
-                                        {suggestion}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      )
-                    ))}
-
-                    <ChatThinking thinkingAdvisors={thinkingAdvisors} />
-
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-              </div>
-            )}
+            <Thread variant="page" />
           </div>
 
           <div className={`floating-input-area phase-${chatPhase}`}>

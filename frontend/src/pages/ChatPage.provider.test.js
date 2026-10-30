@@ -25,7 +25,6 @@ jest.mock('../contexts/AppConfigContext', () => ({
 }));
 jest.mock('../components/AnswerPanel', () => ({ __esModule: true, default: () => <aside />, buildSuggestions: () => [], latestVisuals: () => [] }));
 jest.mock('../components/ExportButton', () => () => null);
-jest.mock('../components/MessageBubble', () => (props) => <p>{props.message.content}</p>);
 jest.mock('../components/EnhancedChatInput', () => (props) => (
   <div>
     <ul aria-label="Composer chips">
