@@ -48,20 +48,28 @@ export function GradeBars({ groups, size = 'popup', label = 'Grades' }) {
 export function SectionRows({ sections, label = 'Sections', variant }) {
   if (!sections?.rows?.length) return null;
   if (variant === 'popup') {
+    // The pop-up lists the lectures only, as course-popup.html does, so its
+    // actions stay in view; Browse lists every section.
+    const lectures = sections.rows.filter((row) => /^LEC(TURE)?$/i.test(String(row.type || '')));
+    const shown = lectures.length ? lectures : sections.rows;
+    const more = sections.rows.length - shown.length;
     return (
-      <ul className="crs-sections crs-sections--popup" aria-label={label}>
-        {sections.rows.map((row) => (
-          <li key={row.key} className="crs-section">
-            <span className="crs-section-code">
-              {row.type && <span className="sr-only">{`${row.type} `}</span>}
-              {row.row?.section || row.name}
-            </span>
-            <span className="crs-section-when">{row.when || ''}</span>
-            <span className="crs-section-who">{row.instructors || ''}</span>
-            {row.tag ? <span className={`crs-tag crs-tag--${row.tag.kind}`}>{row.tag.text}</span> : <span />}
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul className="crs-sections crs-sections--popup" aria-label={label}>
+          {shown.map((row) => (
+            <li key={row.key} className="crs-section">
+              <span className="crs-section-code">
+                {row.type && <span className="sr-only">{`${row.type} `}</span>}
+                {row.row?.section || row.name}
+              </span>
+              <span className="crs-section-when">{row.when || ''}</span>
+              <span className="crs-section-who">{row.instructors || ''}</span>
+              {row.tag ? <span className={`crs-tag crs-tag--${row.tag.kind}`}>{row.tag.text}</span> : <span />}
+            </li>
+          ))}
+        </ul>
+        {more > 0 && <p className="crs-sections-more">{`+${more} more sections`}</p>}
+      </>
     );
   }
   return (

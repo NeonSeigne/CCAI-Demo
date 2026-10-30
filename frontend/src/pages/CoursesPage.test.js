@@ -253,14 +253,14 @@ test('UVA shows historical seats as of the snapshot and "Not available" for prer
   expect(screen.getByText('theCourseForum · as of Sep 3')).toHaveClass('cc-src');
 });
 
-test('CU shows "Not available" tiles and lines and says seats are not published', async () => {
+test('CU leaves out the grade tiles, shows "Not available" lines and says seats are not published', async () => {
   mockSchool = 'CU Boulder';
   getCatalogStarters.mockResolvedValue({ courses: [row('CSCI 1300', 'Computer Science 1')], capabilities: CU_CAPS, source: CU_SOURCE });
   getCatalogCourse.mockResolvedValue(cuCourse());
   renderPage();
   const preview = within(await screen.findByRole('article'));
-  expect(preview.getAllByText('Not available')).toHaveLength(3);
-  expect(preview.getByText('avg GPA')).toBeInTheDocument();
+  expect(preview.queryByText('Not available')).not.toBeInTheDocument();
+  expect(preview.queryByText('avg GPA')).not.toBeInTheDocument();
   // Grades, prerequisites, often taken next.
   expect(preview.getAllByText('Not available for CU Boulder (CU Boulder Class Search)')).toHaveLength(3);
   expect(preview.getByRole('heading', { name: 'Spring 2026 sections, seats not published' })).toBeInTheDocument();

@@ -465,7 +465,8 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 
 .cc-preview-by { margin: 0; color: var(--muted); font-size: 14px; }
 
-.cc-preview-actions { display: flex; align-items: center; gap: 8px; }
+.cc-preview-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cc-preview-actions .cc-btn { white-space: nowrap; }
 
 /* The bookmark as a round outlined icon button. */
 .cc-preview-save.cc-save { position: relative; width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
@@ -591,6 +592,9 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 .cc-section-row + .cc-section-row { border-top: 1px solid var(--rule); }
 
 .cc-section-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-code);
   font-size: 11px;
   font-weight: 700;
@@ -656,6 +660,11 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   .cc-preview-side + .cc-preview-side { border-left: 0; border-top: 1px solid var(--rule); }
 }
 
+/* Narrow preview: the grade tiles stack. */
+@container (width <= 360px) {
+  .cc-tiles { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* The code sits above the title. */
 @container (width <= 440px) {
   .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
@@ -694,6 +703,9 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   .cc-preview { position: static; }
 
   .cc-row { grid-template-columns: 40px minmax(0, 1fr); padding: 0 8px 0 4px; }
+  /* The code sits above the title (no container query on phones). */
+  .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cc-row-title { white-space: normal; }
   .cc-row-main { padding: 11px 6px 11px 4px; gap: 12px; }
   .cc-row-grip { display: none; }
 
