@@ -1,4 +1,5 @@
 import React, {
+  useContext,
   createContext, useCallback, useEffect, useState,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -108,6 +109,13 @@ export function useRecentChats(authToken, refreshTrigger = 0) {
 
 /** The app shell's recent chats, so a page that lists them doesn't load them again. */
 export const RecentChatsContext = createContext(null);
+
+/** Recent chats from the shell when it shares them, else this caller's own fetch. */
+export function useShellRecentChats(authToken) {
+  const shared = useContext(RecentChatsContext);
+  const own = useRecentChats(shared ? null : authToken);
+  return shared || own;
+}
 
 /** Recent chats as plain rows (D5), "Couldn't load chats · Retry" on failure. */
 export function RecentChats({
