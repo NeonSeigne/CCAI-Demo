@@ -128,7 +128,70 @@ describe('EventsPage', () => {
     renderPage('/events?window=tomorrow');
     const feature = await screen.findByRole('article');
     expect(within(feature).getByText('Career Fair')).toBeInTheDocument();
-    expect(within(feature).getByText(/^Tomorrow 9:00\sAM/)).toBeInTheDocument();
+    expect(within(feature).getByText('Tomorrow 9:00 to 10:00 AM')).toBeInTheDocument();
+  });
+
+  it('Next up reads "12:00 to 1:00 PM", walks to the place name and offers only Add to calendar', async () => {
+    listEvents.mockResolvedValue(body([
+      event({
+        title: 'Job Seminar', start: inMinutes(5), end: inMinutes(65), place_id: 'umc', place_name: 'University Memorial Center', location: 'University Memorial Center, Room 235', walk_minutes: 5,
+      }),
+    ]));
+    renderPage();
+    const feature = await screen.findByRole('article');
+    expect(feature.querySelector('.ev-feature-when').textContent).toMatch(/^\d{1,2}:\d{2}( [AP]M)? to \d{1,2}:\d{2} [AP]M$/);
+    expect(feature.querySelector('.ev-walk')).toHaveTextContent('5 min walk to University Memorial Center');
+    expect(within(feature).getAllByRole('button').map((b) => b.getAttribute('aria-label') || b.textContent))
+      .toEqual(['Job Seminar', 'Add Job Seminar to calendar']);
+    expect(within(feature).queryByRole('link', { name: /Directions/ })).not.toBeInTheDocument();
+  });
+
+  it('rows: mockup time format, kind dot, matched place name and no "0 min"', async () => {
+    const key = today();
+    listEvents.mockResolvedValue(body([
+      event({
+        title: 'Thesis Defense', start: at(key, '14:00'), end: at(key, '16:00'), kind: 'academic', place_name: 'JILA Building', location: 'JILA Building, Room X317', place_id: 'jila', walk_minutes: 10,
+      }),
+      event({
+        title: 'Coat Drive', start: at(key, '15:00'), end: at(key, '17:00'), kind: 'campus_life', place_name: 'University Memorial Center', location: 'UMC, Near elevators', place_id: 'umc', walk_minutes: 0,
+      }),
+      event({
+        title: 'Home Game', start: at(key, '11:00'), end: at(key, '13:00'), kind: 'athletics',
+      }),
+      event({
+        title: 'Mystery', start: at(key, '18:00'), end: at(key, '19:00'), kind: null,
+      }),
+    ]));
+    const { container } = renderPage('/events?view=list');
+    await screen.findByText('Thesis Defense');
+    const row = (title) => screen.getByText(title).closest('li');
+
+    expect(within(row('Thesis Defense')).getByText('2:00')).toBeInTheDocument();
+    expect(within(row('Thesis Defense')).getByText('to 4:00 PM')).toBeInTheDocument();
+    expect(within(row('Home Game')).getByText('11:00 AM')).toBeInTheDocument();
+    expect(within(row('Home Game')).getByText('to 1:00 PM')).toBeInTheDocument();
+
+    expect(within(row('Thesis Defense')).getByText('JILA Building')).toBeInTheDocument();
+    expect(row('Thesis Defense').querySelector('.ev-kd')).toHaveClass('is-academics');
+    expect(row('Coat Drive').querySelector('.ev-kd')).toHaveClass('is-life');
+    expect(row('Home Game').querySelector('.ev-kd')).toHaveClass('is-campus');
+    expect(row('Mystery').querySelector('.ev-kd')).toBeNull();
+
+    expect(within(row('Coat Drive')).getByText('Here')).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/\b0 min/);
+
+    // Every row keeps three action slots, so the icons line up without a walk.
+    container.querySelectorAll('.ev-row-actions').forEach((actions) => expect(actions.children).toHaveLength(3));
+  });
+
+  it('heads the day "Today · Oct 29" and keeps the window name off screen outside Calendar', async () => {
+    renderPage('/events?view=list');
+    await screen.findByText('Jazz Night');
+    const date = new Date(`${today()}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    expect(screen.getByRole('heading', { level: 3, name: `Today · ${date}` })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Today' }).closest('.ev-results-head')).toHaveClass('sr-only');
+    expect(screen.queryByText(/^Times in/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\.ics/)).not.toBeInTheDocument();
   });
 
   it('shows the orange tag only within 15 minutes or while happening', async () => {
@@ -278,7 +341,8 @@ describe('EventsPage', () => {
 
   it('moves the window with the calendar arrows', async () => {
     renderPage('/events?view=calendar&window=tomorrow');
-    await screen.findByRole('heading', { level: 2, name: 'Tomorrow' });
+    const heading = await screen.findByRole('heading', { level: 2, name: 'Tomorrow' });
+    expect(heading.closest('.ev-results-head')).not.toHaveClass('sr-only');
     fireEvent.click(screen.getByRole('button', { name: 'Next: This weekend' }));
     expect(params().get('window')).toBe('this_weekend');
     expect(screen.getByRole('heading', { level: 2, name: 'This weekend' })).toBeInTheDocument();
@@ -343,5 +407,43 @@ describe('EventsPage', () => {
     const [block] = await screen.findAllByTestId('events-calendar-block');
     fireEvent.click(block);
     expect(params().get('event')).toBe('Jazz Night-id');
+  });
+});
+
+describe('EventsPage on a phone', () => {
+  const realMatchMedia = window.matchMedia;
+  beforeEach(() => {
+    window.matchMedia = jest.fn((query) => ({
+      matches: query === '(max-width: 700px)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+  });
+  afterEach(() => { window.matchMedia = realMatchMedia; });
+
+  it('keeps the Up next / List / Calendar switch (design Q2)', async () => {
+    renderPage();
+    await screen.findByText('Jazz Night');
+    const tabs = screen.getByRole('tablist', { name: 'Events view' });
+    expect(within(tabs).getAllByRole('tab').map((t) => t.textContent)).toEqual(['Up next', 'List', 'Calendar']);
+    fireEvent.click(within(tabs).getByRole('tab', { name: 'List' }));
+    expect(params().get('view')).toBe('list');
+  });
+
+  it('a long press on a row opens its actions sheet', async () => {
+    listEvents.mockResolvedValue(body([
+      event({
+        title: 'Jazz Night', place_id: 'union', place_name: 'Memorial Union', walk_minutes: 7,
+      }),
+    ]));
+    renderPage('/events?view=list');
+    const row = (await screen.findByText('Jazz Night')).closest('li');
+    fireEvent.contextMenu(row);
+    const sheet = await screen.findByRole('dialog', { name: 'Jazz Night' });
+    expect(within(sheet).getByRole('link', { name: /Directions/ })).toHaveAttribute('href', '/map?to=union');
+    expect(within(sheet).getByText('7 min')).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: 'Add to calendar' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: 'Ask about this' })).toBeInTheDocument();
   });
 });
