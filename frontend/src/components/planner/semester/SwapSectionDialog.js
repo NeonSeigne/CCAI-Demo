@@ -4,7 +4,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import AppDialog from '../../AppDialog';
 import { usePageColumn } from '../../shell/PageColumnContext';
-import { WEEKDAYS, clockText } from '../planFormat';
+import { WEEKDAYS } from '../planFormat';
+import { meetingClock as clockText } from '../../../modules/campus';
 import { sectionMatches, sectionOptions, seatsOf } from './semesterData';
 
 /**

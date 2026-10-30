@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DOMAIN_COLORS } from './domainColors';
-import { formatEventTime, hasPhysicalLocation } from './visuals/EventListCard';
+import { eventTime as formatEventTime, hasPhysicalLocation } from '../modules/campus';
 import { Icon } from './icons';
 
 const DOMAIN_ICONS = { academics: 'school', student_life: 'event', campus: 'map' };

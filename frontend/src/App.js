@@ -20,6 +20,7 @@ import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
+import { StartPlaceProvider } from './modules/campus';
 import './styles/components.css';
 
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -51,13 +52,18 @@ function CatchAllRedirect() {
   return <Navigate to={isAuthenticated ? '/home' : '/'} replace />;
 }
 
-/** The app shell with the course pop-up host, which reads `?course=` on any page. */
+/**
+ * The app shell with the course pop-up host, which reads `?course=` on any
+ * page, and the student's start place, loaded once for every page.
+ */
 export function ShellWithPopups() {
   return (
-    <AppShell>
-      <Outlet />
-      <Suspense fallback={null}><CoursePopupHost /></Suspense>
-    </AppShell>
+    <StartPlaceProvider>
+      <AppShell>
+        <Outlet />
+        <Suspense fallback={null}><CoursePopupHost /></Suspense>
+      </AppShell>
+    </StartPlaceProvider>
   );
 }
 

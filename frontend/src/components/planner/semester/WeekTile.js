@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDropTarget } from '../../dnd';
-import { WEEKDAYS, clockText, minutes } from '../planFormat';
+import { WEEKDAYS, minutes } from '../planFormat';
+import { meetingClock as clockText } from '../../../modules/campus';
 import { colourVars } from './semesterData';
 
 /**

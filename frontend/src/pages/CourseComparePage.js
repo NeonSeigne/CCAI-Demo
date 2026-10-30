@@ -10,7 +10,7 @@ import {
   primarySections, readTicked, shortDate, sourceName, writeTicked,
 } from '../components/catalog/catalogFormat';
 import { getCatalogCourse, searchCatalog } from '../api/campus';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
 import '../styles/CourseComparePage.css';
@@ -192,8 +192,7 @@ export default function CourseComparePage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
-  const school = config?.app?.institution || config?.app?.title || 'your school';
+  const { name: school } = useSchool();
   const ids = useMemo(() => parseIds(params.get('ids')), [params]);
   const idsKey = ids.join(',');
 

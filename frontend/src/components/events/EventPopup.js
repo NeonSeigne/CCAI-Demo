@@ -6,7 +6,9 @@ import {
   CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
 } from '../popup/PopupParts';
 import MiniMap from '../map/MiniMap';
-import { formatEventRange, hasPhysicalLocation } from '../visuals/EventListCard';
+import {
+  countdown, dateLabel, eventRange, hasPhysicalLocation, rangeParts, walkParts,
+} from '../../modules/campus';
 import { useEventDetail, useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
 import { downloadEventIcs } from '../../utils/ics';
 import '../../styles/Popups.css';
@@ -40,40 +42,11 @@ function useNow(fixed) {
   return now;
 }
 
-function inZone(iso, timezone, options) {
-  const date = new Date(iso);
-  try {
-    return date.toLocaleString('en-US', { ...options, ...(timezone ? { timeZone: timezone } : {}) });
-  } catch {
-    return date.toLocaleString('en-US', options);
-  }
-}
-
-/** "38 min", "2h 05m", "3 days". */
-export function spanText(ms) {
-  const minutes = Math.max(1, Math.ceil(ms / 60000));
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 48) return `${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
-  return `${Math.floor(hours / 24)} days`;
-}
-
-/** {label, value, live} for the first number, or null (all-day, multi-day, over). */
-export function countdown(event, now) {
-  if (!event?.start || event.all_day || event.ongoing) return null;
-  const start = new Date(event.start);
-  const end = event.end ? new Date(event.end) : null;
-  if (Number.isNaN(start.getTime())) return null;
-  if (start > now) return { label: 'Starts in', value: spanText(start - now), live: false };
-  if (end && end > now) return { label: 'Ends in', value: spanText(end - now), live: true };
-  return null;
-}
-
 function DateBlock({ event, timezone, small = false }) {
   if (!event?.start) return null;
-  const month = inZone(event.start, timezone, { month: 'short' });
-  const day = inZone(event.start, timezone, { day: 'numeric' });
-  const weekday = inZone(event.start, timezone, { weekday: 'short' });
+  const month = dateLabel(event.start, timezone, { month: 'short' });
+  const day = dateLabel(event.start, timezone, { day: 'numeric' });
+  const weekday = dateLabel(event.start, timezone, { weekday: 'short' });
   return (
     <span className={`ep-date ${small ? 'ep-date--small' : ''}`.trim()} aria-hidden="true">
       {!small && <span className="ep-date-month">{month}</span>}
@@ -170,7 +143,7 @@ function EventList({ title, events, timezone, onOpenEvent }) {
       <h3 className="pop-tile-title">{title}</h3>
       <ul>
         {events.map((item) => {
-          const when = `${inZone(item.start, timezone, { weekday: 'short' })} · ${formatEventRange(item, timezone).split(' – ')[0]}`;
+          const when = `${dateLabel(item.start, timezone, { weekday: 'short' })} · ${eventRange(item, timezone).split(' – ')[0]}`;
           const body = (
             <>
               <DateBlock event={item} timezone={timezone} small />
@@ -297,14 +270,13 @@ export default function EventPopup({
   const numbers = [];
   if (timer) numbers.push(<Stat key="timer" label={timer.label} className="is-live">{timer.value}</Stat>);
   if (event.start) {
-    const [from, to] = formatEventRange(event, timezone).split(' – ');
     // "5:00 to 6:00 PM": the start drops a meridiem the end repeats.
-    const meridiem = /\s?[AP]M$/;
-    const start = to && from.match(meridiem)?.[0].trim() === to.match(meridiem)?.[0].trim() ? from.replace(meridiem, '') : from;
+    const { start, end: to } = rangeParts(event, timezone);
     numbers.push(<Stat key="time" label="Time">{start}{to && <small>{` to ${to}`}</small>}</Stat>);
   }
-  if (event.walk_minutes != null && physical) {
-    numbers.push(<Stat key="walk" label="Walk">{event.walk_minutes}<small> min</small></Stat>);
+  const walk = physical ? walkParts(event.walk_minutes) : null;
+  if (walk) {
+    numbers.push(<Stat key="walk" label="Walk">{walk.value}{walk.unit && <small>{` ${walk.unit}`}</small>}</Stat>);
   }
   if (details?.cost) numbers.push(<Stat key="cost" label="Cost">{details.cost}</Stat>);
   if (!details?.room && physical) numbers.push(<Stat key="room" label="Room">{event.location}</Stat>);

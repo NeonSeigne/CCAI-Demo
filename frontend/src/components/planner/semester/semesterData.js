@@ -3,6 +3,7 @@
  * section times and seats, fits and clashes, requirement gains, terms.
  */
 import { WEEKDAYS, minutes } from '../planFormat';
+import { campusDay } from '../../../modules/campus/time';
 
 const COURSE_COLOURS = 6;
 
@@ -100,13 +101,7 @@ const SEASON_MONTHS = {
 };
 
 /** Today in the school's time zone, as YYYY-MM-DD. */
-export function dateIn(timezone, now = new Date()) {
-  try {
-    return now.toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : {});
-  } catch {
-    return now.toLocaleDateString('en-CA');
-  }
-}
+export const dateIn = (timezone, now = new Date()) => campusDay(now, timezone);
 
 const parseTerm = (label) => {
   const match = /^([a-z]+)\s+(\d{4})$/i.exec(String(label || '').trim());

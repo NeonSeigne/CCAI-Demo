@@ -3,7 +3,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { MoreHorizRounded, SwapHorizRounded, CloseRounded, DragIndicatorRounded, PersonOutlineRounded, StarRounded, CheckCircleOutlineRounded, LockOutlined, DriveFileMoveRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
-import { clockText, creditSpan } from '../planFormat';
+import { creditSpan } from '../planFormat';
+import { meetingClock as clockText } from '../../../modules/campus';
 import {
   colourVars, dayStrip, difficultyOf, partLabel, ratingFor, seatsOf, shortName, shownSections, timeRange,
 } from './semesterData';

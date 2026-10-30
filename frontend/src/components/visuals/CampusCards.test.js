@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import EventListCard, { formatEventRange, formatEventTime, hasPhysicalLocation } from './EventListCard';
+import EventListCard from './EventListCard';
 import PlaceCard from './PlaceCard';
 import SourcesChecked from './SourcesChecked';
 import { SavedContext } from '../../contexts/SavedContext';
@@ -28,13 +28,6 @@ test('online events get no Directions button', () => {
   render(<EventListCard visual={{ type: 'event_list', events: [{ ...EVENT, location: '(Online)' }] }} onAsk={jest.fn()} />);
   expect(screen.getByText(/\(Online\)/)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Directions' })).not.toBeInTheDocument();
-  expect(hasPhysicalLocation('Zoom webinar')).toBe(false);
-  expect(hasPhysicalLocation('Check T.I.T.U., Memorial Union')).toBe(true);
-});
-
-test('all-day and ongoing events read "All day"', () => {
-  expect(formatEventTime({ ...EVENT, all_day: true })).toBe('All day');
-  expect(formatEventTime({ ...EVENT, ongoing: true })).toBe('All day');
 });
 
 test('place card shows the walking estimate as an estimate', () => {
@@ -59,15 +52,6 @@ test('event card offers calendar export and the event page', () => {
   expect(screen.getByRole('link', { name: /Event details/ })).toHaveAttribute('href', 'https://example.edu/jazz');
   expect(screen.getByText('OCT')).toBeInTheDocument();
   expect(screen.getByText('27')).toBeInTheDocument();
-});
-
-test('events that started earlier show their hours; multi-day runs show the end date', () => {
-  const tz = 'America/Chicago';
-  const today = { start: '2026-10-27T08:30:00-05:00', end: '2026-10-27T16:15:00-05:00', ongoing: true };
-  expect(formatEventRange(today, tz)).toMatch(/8:30\s?AM – 4:15\s?PM/);
-  const exhibit = { start: '2026-10-01T10:00:00-05:00', end: '2026-11-30T17:00:00-06:00', ongoing: true };
-  expect(formatEventRange(exhibit, tz)).toBe('Until Nov 30');
-  expect(formatEventRange({ ...today, all_day: true }, tz)).toBe('All day');
 });
 
 test('place without an origin shows its kind and no walk', () => {

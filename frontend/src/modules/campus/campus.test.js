@@ -86,6 +86,13 @@ describe('event times', () => {
     expect(when).toMatchObject({ allDay: true, countdown: null, start: null, end: null, live: false });
   });
 
+  test('an event already under way that the feed marks ongoing keeps its hours in the range', () => {
+    const today = { start: '2026-10-27T08:30:00-05:00', end: '2026-10-27T16:15:00-05:00', ongoing: true };
+    expect(eventRange(today, CHICAGO)).toBe('8:30 AM – 4:15 PM');
+    expect(eventTime(today, CHICAGO)).toBe('All day');
+    expect(countdown(today, new Date('2026-10-27T15:00:00Z'))).toBeNull();
+  });
+
   test('a run over several days reads "Until"', () => {
     const run = { start: '2026-10-29T14:00:00Z', end: '2026-11-30T22:00:00Z' };
     expect(eventRange(run, NY)).toBe('Until Nov 30');

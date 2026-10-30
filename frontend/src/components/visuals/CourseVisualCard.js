@@ -1,9 +1,9 @@
 import React, {
-  useCallback, useContext, useEffect, useMemo, useRef,
+  useCallback, useEffect, useMemo, useRef,
 } from 'react';
 import { Icon, RefreshCw } from '../icons';
 import { useAuth } from '../../contexts/AuthContext';
-import AppConfigContext from '../../contexts/AppConfigContext';
+import { useSchool } from '../../modules/campus';
 import { usePlanner } from '../../contexts/PlannerContext';
 import useCourseDetail from '../../hooks/useCourseDetail';
 import { useCourseRatings } from '../../hooks/useCampusDetail';
@@ -58,7 +58,7 @@ const NONE = [];
  */
 function PrereqCard({ payload, tree, unlocks, onCourse }) {
   const planner = usePlanner();
-  const timezone = useContext(AppConfigContext)?.config?.school?.timezone;
+  const { timezone } = useSchool();
   const plan = planner?.view?.plan;
   const plannerRef = useRef(planner);
   plannerRef.current = planner;

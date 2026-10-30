@@ -14,7 +14,7 @@ import {
   sourceName, titleFromSaved, writeTicked,
 } from '../components/catalog/catalogFormat';
 import { getCatalogCourse, getCatalogStarters, searchCatalog } from '../api/campus';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
 import { usePlanner } from '../contexts/PlannerContext';
@@ -298,9 +298,8 @@ function BrowseView({ tabs }) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
   const saved = useSaved();
-  const school = config?.app?.institution || config?.app?.title || 'your school';
+  const { name: school } = useSchool();
   const requested = params.get('selected');
 
   const [query, setQuery] = useState('');

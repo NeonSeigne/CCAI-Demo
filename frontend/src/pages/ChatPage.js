@@ -19,6 +19,7 @@ import '../styles/EnhancedChatInput.css';
 import '../styles/ChatFrame.css';
 import groupMessages, { chatPlaceholder } from '../utils/messageGroups';
 import useViewport from '../hooks/useViewport';
+import { schoolFacts } from '../modules/campus';
 
 /** location.state keys that carry a one-shot intent from another page. */
 const INTENT_KEYS = ['pendingPrompt', 'sessionId', 'startNew'];
@@ -383,7 +384,7 @@ const ChatPageView = () => {
       <AnswerPanel
         visuals={answerVisuals}
         authToken={authToken}
-        timezone={config?.school?.timezone}
+        timezone={schoolFacts(config).timezone}
         onAsk={(text) => handleSendMessage(text)}
       />
     </div>

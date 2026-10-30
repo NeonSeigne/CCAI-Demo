@@ -6,6 +6,8 @@
  * screenshot check share one fixed date.
  */
 
+import { dayKey } from '../../utils/eventWindows';
+
 const LOCALE = 'en-US';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -34,14 +36,7 @@ export function clockTime(value, timezone) {
 }
 
 /** 'YYYY-MM-DD' of an instant on the campus calendar. */
-export function campusDay(value, timezone) {
-  const date = toDate(value);
-  try {
-    return date.toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : {});
-  } catch {
-    return date.toLocaleDateString('en-CA');
-  }
-}
+export const campusDay = (value, timezone) => dayKey(value, timezone);
 
 /** "Wednesday, Oct 29" (or any `options`) for a date in the campus zone. */
 export function dateLabel(value, timezone, options = { weekday: 'long', month: 'short', day: 'numeric' }) {

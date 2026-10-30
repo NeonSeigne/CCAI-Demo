@@ -11,10 +11,12 @@ import {
   EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
 } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
-import { formatEventRange, formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import {
+  eventRange as formatEventRange, eventTime as formatEventTime, hasPhysicalLocation, isHere, useSchool, useStartPlace,
+  walkText,
+} from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
-import { getCampusOrigin, listEvents, listPlaces, setCampusOrigin } from '../api/campus';
+import { listEvents, listPlaces } from '../api/campus';
 import { downloadEventIcs } from '../utils/ics';
 import {
   WINDOWS, WINDOW_IDS, addDays, dayKey, formatDay, isAllDayLike, listingDay, minutesOfDay, relativeDay,
@@ -114,11 +116,12 @@ function groupByDay(events, days, timezone) {
 // Pieces shared by the views
 
 function WalkTime({ event, className = '', to = false }) {
-  if (event.walk_minutes == null || !isPhysical(event)) return null;
+  const walk = isPhysical(event) ? walkText(event.walk_minutes) : null;
+  if (!walk) return null;
   return (
     <span className={`ev-walk ${className}`.trim()}>
       <Icon name="directions_walk" size={18} />
-      {event.walk_minutes} min<span className="sr-only"> walk</span>
+      {walk}{!isHere(event.walk_minutes) && <span className="sr-only"> walk</span>}
       {to && <span className="ev-walk-to">{` to ${event.location}`}</span>}
     </span>
   );
@@ -185,7 +188,7 @@ function NextUp({ event, timezone, todayKey, now }) {
         <h3 id="ev-feature-title" className="ev-feature-title"><EventTitle event={event} /></h3>
         {event.location && (
           <p className="ev-feature-meta">
-            {event.walk_minutes != null && isPhysical(event) ? <WalkTime event={event} to /> : (
+            {walkText(event.walk_minutes) && isPhysical(event) ? <WalkTime event={event} to /> : (
               <span className="ev-feature-place">
                 <Icon name="location_on" size={18} /> {event.location}
               </span>
@@ -536,7 +539,7 @@ function DayAgenda({ days, events, timezone, todayKey }) {
 // ---------------------------------------------------------------------------
 // Start place (16A)
 
-function StartPlace({ origin, authToken, onPick }) {
+function StartPlace({ origin, authToken, onSave }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [results, setResults] = useState({ status: 'idle', places: [] });
@@ -587,11 +590,8 @@ function StartPlace({ origin, authToken, onPick }) {
   const pick = (place) => {
     setSaving(true);
     setError(null);
-    setCampusOrigin(authToken, place.id)
-      .then((data) => {
-        onPick(data?.place || place);
-        close();
-      })
+    onSave(place)
+      .then(() => close())
       .catch(() => setError("Couldn't save your starting place. Try again."))
       .finally(() => setSaving(false));
   };
@@ -692,12 +692,10 @@ function ListedThrough({ date }) {
 
 const EventsPage = () => {
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
+  const { timezone: configZone } = useSchool();
   const [params, setParams] = useSearchParams();
   const phone = useViewport() === 'phone';
   const now = useNow();
-
-  const configZone = config?.school?.timezone;
 
   const view = VIEWS.some((v) => v.id === params.get('view')) ? params.get('view') : 'next';
   const windowId = WINDOW_IDS.includes(params.get('window')) ? params.get('window') : 'today';
@@ -734,15 +732,7 @@ const EventsPage = () => {
   }, [draft, update]);
 
   // Start place (16A), shared with the Campus map.
-  const [origin, setOrigin] = useState({ status: 'loading', place: null });
-  useEffect(() => {
-    if (!authToken) return undefined;
-    let cancelled = false;
-    getCampusOrigin(authToken)
-      .then((data) => { if (!cancelled) setOrigin({ status: 'ready', place: data?.place || null }); })
-      .catch(() => { if (!cancelled) setOrigin({ status: 'error', place: null }); });
-    return () => { cancelled = true; };
-  }, [authToken]);
+  const origin = useStartPlace();
 
   // Events for the window (one window drives every view, 8A).
   const [attempt, setAttempt] = useState(0);
@@ -905,7 +895,7 @@ const EventsPage = () => {
               <StartPlace
                 origin={origin}
                 authToken={authToken}
-                onPick={(place) => setOrigin({ status: 'ready', place })}
+                onSave={origin.save}
               />
             </header>
 
