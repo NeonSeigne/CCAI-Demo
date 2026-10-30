@@ -5,7 +5,7 @@ import { Icon, RefreshCw } from '../icons';
 import { useSchool } from '../../modules/campus';
 import { usePlanner } from '../../contexts/PlannerContext';
 import {
-  difficultyOf, gpaText, pctText, prereqCourses, useCourse, useCourseRatings,
+  courseFacts, difficultyOf, pctText, prereqCourses, useCourse, useCourseRatings,
 } from '../../modules/course';
 import { useOpenCourse } from '../../utils/openCourse';
 import {
@@ -121,8 +121,11 @@ function HydratedCard({
     [payload.instructor_grades, ratings],
   );
   switch (type) {
-    case 'course_gpa':
-      return <MetricTile label={`Avg GPA${term}`} value={gpaText(grades?.gpa)} tone={difficultyOf(payload)} />;
+    case 'course_gpa': {
+      // The pop-up's tile: the GPA the difficulty label is read from (every term).
+      const gpa = courseFacts(payload).tiles.find((tile) => tile.key === 'gpa');
+      return <MetricTile label={gpa?.label || 'Average GPA'} value={gpa?.value} tone={gpa?.tone} />;
+    }
     case 'course_a_rate':
       return <MetricTile label="Got an A" value={pctText(grades?.pct_a)} />;
     case 'course_completion_rate':
