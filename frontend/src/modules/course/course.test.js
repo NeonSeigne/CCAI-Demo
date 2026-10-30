@@ -58,8 +58,21 @@ describe('difficulty comes from the backend', () => {
     const facts = courseFacts({ ...uwCourse(), difficulty: null });
     expect(facts.difficulty).toBeNull();
     expect(facts.difficultyLabel).toBeNull();
-    expect(facts.tiles.find((t) => t.key === 'gpa')).toMatchObject({ value: '3.17', tone: null, sub: null });
+    expect(facts.tiles.find((t) => t.key === 'gpa')).toMatchObject({ label: 'Average GPA', value: '3.29', tone: null });
     expect(courseFacts({ ...uwCourse(), difficulty: 'unknown-word' }).difficulty).toBeNull();
+  });
+
+  test('the GPA tile shows the average the label is read from, not the latest term', () => {
+    // UW: Spring 2026 alone averaged 3.42, every term 3.29; the rule read 3.29 as harder.
+    const uw = { ...uwCourse('COMP SCI 400', 'Programming III', 3.42), difficulty: 'harder' };
+    const facts = courseFacts(uw);
+    expect(facts.gpa).toBe('3.42');
+    expect(facts.averageGpa).toBe('3.29');
+    expect(facts.tiles[0]).toEqual({
+      key: 'gpa', label: 'Average GPA · Harder', value: '3.29', tone: 'harder',
+    });
+    // No cumulative figure: the latest term's GPA stands in.
+    expect(courseFacts({ ...uw, cumulative: null }).tiles[0].value).toBe('3.42');
   });
 
   test('rows with only the planner flag', () => {
@@ -91,10 +104,11 @@ describe('tiles', () => {
 
   test('CourseTiles draws the named tiles and leaves out missing ones', () => {
     render(<CourseTiles tiles={courseFacts({ ...uwCourse(), difficulty: 'harder' }).tiles} />);
-    expect(screen.getByText('Avg GPA')).toBeInTheDocument();
+    const label = screen.getByText('Average GPA · Harder');
+    // The number sits above its label.
+    expect(label.previousSibling).toHaveTextContent('3.29');
     expect(screen.getByText('Seats open')).toBeInTheDocument();
     expect(screen.queryByText('Instructor rating')).not.toBeInTheDocument();
-    expect(screen.getByText(/Harder/)).toBeInTheDocument();
   });
 });
 
@@ -161,6 +175,16 @@ describe('GradeBars', () => {
     expect(bars[1]).toHaveClass('is-top');
     // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
     expect(container.querySelector('.is-top .crs-bar-fill')).toHaveStyle({ height: '100%' });
+  });
+
+  test('the pop-up size shows no percentages; screen readers still hear them', () => {
+    const { container } = render(<GradeBars groups={courseFacts(uwCourse()).grades.groups} size="popup" />);
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    expect(container.querySelector('.crs-bar-pct')).toBeNull();
+    expect(screen.getAllByRole('listitem').map((li) => li.textContent))
+      .toEqual(['25%A', '23%AB', '35%B', '7%BC', '4%C', '6%D/F']);
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    expect(container.querySelector('ol')).toHaveStyle({ '--crs-bars-h': '72px' });
   });
 
   test('no groups, no bars', () => {

@@ -232,7 +232,7 @@ export function instructorRating(ratings) {
  *
  *   id, title, credits ("3"), description, genEd
  *   difficulty ('easier'|'typical'|'harder'|null), difficultyLabel ("Harder"|null)
- *   gpa ("3.41"|null), gradesTerm
+ *   gpa ("3.41"|null, latest term), averageGpa (the GPA the difficulty is read from), gradesTerm
  *   tiles      [{key, label, value, tone?, sub?}] in order gpa, rating, seats, a, df, students;
  *              a tile with no data is left out (design Q5); seats only for live data (R8)
  *   grades     {term, students, groups} | null (latest term), gradesAll (every term) | null
@@ -246,10 +246,20 @@ export function courseFacts(payload, { ratings, states } = {}) {
   const difficulty = difficultyOf(payload);
   const difficultyLabel = difficulty ? DIFFICULTY_LABEL[difficulty] : null;
   const gpa = gpaText(grades?.gpa);
+  // The GPA the difficulty label is read from: the backend's rule uses the
+  // course's average over every term (`cumulative`), not the latest term's.
+  const averageGpa = gpaText(payload.cumulative?.gpa) || gpa;
   const rating = instructorRating(ratings);
   const sections = payload.sections || null;
   const tiles = [];
-  if (gpa) tiles.push({ key: 'gpa', label: 'Avg GPA', value: gpa, tone: difficulty, sub: difficultyLabel });
+  if (averageGpa) {
+    tiles.push({
+      key: 'gpa',
+      label: difficultyLabel ? `Average GPA · ${difficultyLabel}` : 'Average GPA',
+      value: averageGpa,
+      tone: difficulty,
+    });
+  }
   if (rating) tiles.push({ key: 'rating', label: 'Instructor rating', value: rating.rating });
   if (sections?.seats_published && !sections.historical && sections.seats_open != null) {
     tiles.push({ key: 'seats', label: 'Seats open', value: countText(sections.seats_open) });
@@ -274,6 +284,7 @@ export function courseFacts(payload, { ratings, states } = {}) {
     difficulty,
     difficultyLabel,
     gpa,
+    averageGpa,
     gradesTerm: grades?.term || null,
     tiles,
     grades: groupsOf(grades),
