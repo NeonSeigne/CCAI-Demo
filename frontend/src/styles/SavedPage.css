@@ -316,7 +316,7 @@
 /* ---- A narrow column (the dock open beside it): the tablet row ------------- */
 .saved-rows { container-type: inline-size; }
 
-@container (max-width: 620px) {
+@container (width <= 620px) {
   .saved-row { grid-template-columns: 96px minmax(0, 1fr) auto; }
   .saved-row-tag { grid-column: 2; grid-row: 2; justify-self: start; }
   .saved-acts { grid-column: 3; grid-row: 1 / span 2; }
