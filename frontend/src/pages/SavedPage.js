@@ -66,8 +66,8 @@ const kindSummary = (items) => {
 const dayLabel = (iso, timezone) => dateLabel(iso, timezone, { weekday: 'short', month: 'short', day: 'numeric' });
 
 function Walk({ minutes }) {
-  const walk = walkText(minutes, { here: 'Your starting place', suffix: ' walk' });
-  if (!walk) return <span className="saved-walk is-unavailable">Walk time unavailable</span>;
+  const walk = walkText(minutes, { suffix: ' walk' });
+  if (!walk) return null; // no walk time: leave it out (D7)
   return (
     <span className="saved-walk">
       <Icon name="directions_walk" size={16} />
@@ -112,7 +112,7 @@ const hoursText = (place, timezone) => {
   if (place.open_now === true) return 'Open now';
   const listed = typeof place.hours === 'string' && place.hours ? place.hours : null;
   if (place.open_now === false) return listed ? `Closed · ${listed}` : 'Closed now';
-  return listed || 'Hours not listed';
+  return listed; // null: no hours line (D7)
 };
 
 // ---- Rows -------------------------------------------------------------------
@@ -187,7 +187,7 @@ function placeParts(place, timezone) {
       <div className="saved-row-w">
         <strong>{place.name}</strong>
         <span className="saved-meta">
-          <span>{hoursText(place, timezone)}</span>
+          {hoursText(place, timezone) && <span>{hoursText(place, timezone)}</span>}
           <Walk minutes={place.walk_minutes} />
         </span>
       </div>

@@ -262,9 +262,9 @@
   color: var(--good);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.saved-walk.is-unavailable { padding: 0; background: transparent; color: var(--muted); font-weight: 500; font-size: 14px; }
 .saved-status { color: var(--ink); font-weight: 600; }
 
 
@@ -313,6 +313,15 @@
 .saved-ph-bar { height: 12px; border-radius: var(--r-sm); }
 .saved-ph-bar.is-short { width: 35%; }
 
+/* ---- A narrow column (the dock open beside it): the tablet row ------------- */
+.saved-rows { container-type: inline-size; }
+
+@container (max-width: 620px) {
+  .saved-row { grid-template-columns: 96px minmax(0, 1fr) auto; }
+  .saved-row-tag { grid-column: 2; grid-row: 2; justify-self: start; }
+  .saved-acts { grid-column: 3; grid-row: 1 / span 2; }
+}
+
 /* ---- Tablet --------------------------------------------------------------- */
 @media (max-width: 1099px) {
   .saved-main { padding: 24px 20px 40px; }
@@ -330,6 +339,7 @@
   .saved-layout { grid-template-columns: minmax(0, 1fr); }
 
   .saved-panel-head { padding: 16px 12px 10px 16px; }
+  .saved-panel-actions .cc-btn:not(.cc-btn-icon) { height: 38px; min-height: 38px; padding: 0 14px; }
   .saved-title { flex-basis: 100%; min-width: 0; }
 
   .saved-row {
