@@ -5,9 +5,11 @@ import AuthPage from './AuthPage';
 import OnboardingPage from './OnboardingPage';
 
 jest.mock('../contexts/AuthContext', () => ({ useAuth: () => ({ handleAuthSuccess: jest.fn() }) }));
+let mockStages;
 jest.mock('../contexts/AppConfigContext', () => ({
   useAppConfig: () => ({
     config: {
+      login: { academic_stages: mockStages },
       app: { institution: 'University of Virginia' },
       school: { slug: 'uva' },
       homepage: {
@@ -49,6 +51,14 @@ describe('sign in', () => {
     expect(chips.map((chip) => chip.textContent)).toEqual(['Beginner', 'Intermediate', 'Advanced']);
     fireEvent.click(chips[1]);
     expect(chips[1]).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('more than four stages stay a select', () => {
+    mockStages = ['', 'a', 'b', 'c', 'd', 'e'].map((value) => ({ value, label: value || 'Select your year' }));
+    renderAt('/auth?mode=create');
+    expect(screen.getByRole('combobox', { name: 'Academic stage' })).toHaveValue('');
+    expect(screen.queryByRole('radiogroup', { name: 'Academic stage' })).not.toBeInTheDocument();
+    mockStages = undefined;
   });
 
   test('field errors keep their words', () => {

@@ -86,6 +86,27 @@
   text-overflow: ellipsis;
 }
 
+.au-select { position: relative; padding-right: 0; }
+.au-select select {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 42px 0 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-app);
+  font-size: 15px;
+  font-weight: 500;
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: light dark;
+  cursor: pointer;
+}
+.au-select select:focus { outline: none; }
+.au-select > .ms:last-child { position: absolute; right: 14px; pointer-events: none; }
+
 .au-input input::placeholder { color: var(--faint); }
 .au-input input:focus { outline: none; }
 .au-input input:focus-visible { outline: none; }

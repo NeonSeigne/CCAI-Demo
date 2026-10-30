@@ -19,7 +19,7 @@
   min-height: 100vh;
   min-height: 100svh;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto 1fr;
   overflow: hidden;
   background: var(--deep);
   color: var(--on-deep);
@@ -44,7 +44,9 @@
 .cl-dev.cc-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--on-deep) 10%, transparent); }
 
 .cl-error {
-  position: relative;
+  position: absolute;
+  top: 72px;
+  right: 0;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -141,7 +143,7 @@
 @media (max-width: 700px) {
   .cl-bar { padding: 14px 16px; }
   .cl-toggle.cc-theme-toggle { width: 102px; height: 32px; }
-  .cl-error { margin: 0 16px; }
+  .cl-error { top: 58px; margin: 0 16px; }
   .cl-copy { align-self: end; padding: 0 20px 34vh; }
   .cl-lock { margin-bottom: 28px; }
   .cl-mark.campus-brand-mark { width: 52px; height: 52px; font-size: 13px; }

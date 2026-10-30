@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { Icon } from './icons';
-import {
-  Field, RevealButton, SocialButtons, SubmitError,
-} from './Login';
+import { Field, SocialButtons, SubmitError } from './Login';
+
+const MAX_CHIPS = 4;
 
 /** The Create account form, inside the auth card (AuthPage). */
 const Signup = ({ onAuthSuccess }) => {
   const { config } = useAppConfig();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -137,7 +135,8 @@ const Signup = ({ onAuthSuccess }) => {
     // Future Phone Auth integration will go here
   };
 
-  // The stages as chips (sign-in.html); the select's empty prompt isn't one.
+  // Up to four stages are chips (sign-in.html); more stay a select. The
+  // select's empty prompt isn't a chip.
   const stageChips = academicStages.filter((stage) => stage.value);
   const pickStage = (value) => handleInputChange({ target: { name: 'academicStage', value } });
 
@@ -188,52 +187,75 @@ const Signup = ({ onAuthSuccess }) => {
             id="password"
             label="Password"
             icon="lock"
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             autoComplete="new-password"
             value={formData.password}
             onChange={handleInputChange}
             placeholder="Create password"
             disabled={isLoading}
             error={errors.password}
-            end={<RevealButton shown={showPassword} onToggle={() => setShowPassword(!showPassword)} disabled={isLoading} />}
           />
           <Field
             id="confirmPassword"
             label="Confirm password"
             icon="lock"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type="password"
             autoComplete="new-password"
             value={formData.confirmPassword}
             onChange={handleInputChange}
             placeholder="Confirm password"
             disabled={isLoading}
             error={errors.confirmPassword}
-            end={<RevealButton shown={showConfirmPassword} onToggle={() => setShowConfirmPassword(!showConfirmPassword)} disabled={isLoading} />}
           />
         </div>
 
         <div className="au-field">
-          <span className="au-label" id="academicStage-label">Academic stage</span>
-          <div
-            className="au-chips"
-            role="radiogroup"
-            aria-labelledby="academicStage-label"
-            aria-describedby={errors.academicStage ? 'academicStage-error' : undefined}
-          >
-            {stageChips.map((stage) => (
-              <button
-                key={stage.value}
-                type="button"
-                role="radio"
-                aria-checked={formData.academicStage === stage.value}
-                className="cc-chip"
-                onClick={() => pickStage(stage.value)}
-                disabled={isLoading}
+          {stageChips.length <= MAX_CHIPS ? (
+            <>
+              <span className="au-label" id="academicStage-label">Academic stage</span>
+              <div
+                className="au-chips"
+                role="radiogroup"
+                aria-labelledby="academicStage-label"
+                aria-describedby={errors.academicStage ? 'academicStage-error' : undefined}
               >
-                {stage.label}
-              </button>
-            ))}
-          </div>
+                {stageChips.map((stage) => (
+                  <button
+                    key={stage.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={formData.academicStage === stage.value}
+                    className="cc-chip"
+                    onClick={() => pickStage(stage.value)}
+                    disabled={isLoading}
+                  >
+                    {stage.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <label htmlFor="academicStage">Academic stage</label>
+              <div className={`au-input au-select ${errors.academicStage ? 'is-error' : ''}`.trim()}>
+                <Icon name="school" size={19} />
+                <select
+                  id="academicStage"
+                  name="academicStage"
+                  value={formData.academicStage}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  aria-invalid={errors.academicStage ? true : undefined}
+                  aria-describedby={errors.academicStage ? 'academicStage-error' : undefined}
+                >
+                  {academicStages.map((stage) => (
+                    <option key={stage.value} value={stage.value}>{stage.label}</option>
+                  ))}
+                </select>
+                <Icon name="expand_more" size={20} />
+              </div>
+            </>
+          )}
           {errors.academicStage && (
             <span className="au-error" id="academicStage-error"><Icon name="error" size={16} />{errors.academicStage}</span>
           )}
