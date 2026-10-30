@@ -18,7 +18,7 @@ import logging
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.core.database import get_database
-from app.planner import checker, degree as degree_board, edits, store, transcript as transcript_rows
+from app.planner import checker, degree as degree_board, edits, store, today as today_board, transcript as transcript_rows
 from app.planner.facts import CourseFacts, Provider, load_facts_by_term
 from app.planner.suggest import suggest
 
@@ -216,6 +216,30 @@ async def degree(user_id: str, school: str) -> Dict[str, Any]:
     covered = {_same_term(t) for t in covered_terms()}
     return degree_board.board(plan, by_term, programs, credit_limits=credit_limits(),
                               covered=lambda t: not covered or _same_term(t) in covered)
+
+
+def school_today():
+    """Today's date in the school's timezone (replaced in tests)."""
+    from app.sources import academics
+
+    return academics._school_today()
+
+
+async def classes_today(user_id: str, school: str) -> Dict[str, Any]:
+    """'Your classes today' (R12): ``{date, weekday, show, reason, term,
+    meetings, unscheduled}``; shape in ``CONTRACTS.md``."""
+    from app.config import get_settings
+
+    day = school_today()
+    term, reason = today_board.term_for_day(get_settings().planner.term_dates, day)
+    body: Dict[str, Any] = {"date": day.isoformat(), "weekday": today_board.DAY_CODES[day.weekday()],
+                            "show": term is not None, "reason": reason, "term": term,
+                            "meetings": [], "unscheduled": []}
+    if term is None:
+        return body
+    plan = await _plan(get_database(), user_id, school)
+    body.update(today_board.meetings_today(await report_for(plan, school, term), day))
+    return body
 
 
 async def _validated_diff(

@@ -212,6 +212,7 @@ ECON 2030"); `n_of` and `credits_from` read "One of ECON 4010 or ECON 4020"
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label, redo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
+| GET | `/api/planner/today` | | `today` (below): "Your classes today" (R12) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | GET | `/api/planner/degree` | | `degree` (above) |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label, redo_label, notes}`; 409 `revision_conflict` |
@@ -223,6 +224,24 @@ ECON 2030"); `n_of` and `credits_from` read "One of ECON 4010 or ECON 4020"
 | POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
 | POST | `/api/planner/transcript` | multipart `file` (PDF, DOCX or TXT; 10 MB; PDF 40 pages) | `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}], counts: {rows, ticked, not_checked, not_in_catalog}}`; nothing stored, logs carry counts only; 413 `too_large`, 415 `unsupported_type`, 422 `no_file` / `too_many_pages` / `unreadable` (`planner/transcript.py`) |
+
+```
+today = {                                          # GET /api/planner/today (planner/today.py)
+  "date": "2027-02-01", "weekday": "Mo",           # today in the school's timezone
+  "show": bool,                                    # false: hide the card
+  "reason": null|"no_term_dates"|"weekend"|"outside_term",
+  "term": "Spring 2027"|null,                      # the term whose first..last day of classes holds today
+  "meetings": [{"course", "title"|null, "section", "kind", "start": "09:00", "end": "09:50"}],  # start order
+  "unscheduled": [ids],                            # that term's courses with no meeting times (sections
+}                                                  # not chosen, or times not published)
+```
+
+The dates are `planner.term_dates` from the school pack (also in `/api/config`
+as `school.term_dates`); a term needs both `first_day` and `last_day`, and
+there is no holiday handling. The plan is read (one report for `term`) only
+when `show` is true. The same meetings can be derived client-side from
+`GET /api/planner/plan?term=<term>` → `report.schedule.blocks` filtered by
+`day`, with the term picked from `school.term_dates`.
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
 `{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the
