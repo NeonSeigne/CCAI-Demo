@@ -3,11 +3,10 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { Icon, LogOut, MessageSquare, Plus, RefreshCw, Settings2 } from './icons';
+import { Icon, RefreshCw } from './icons';
 import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { useSaved } from '../contexts/SavedContext';
 import { useChatDock } from '../contexts/ChatDockContext';
 import { useSavedDropTarget } from './dnd';
 import { useRailSlot } from './shell/PageColumnContext';
@@ -16,13 +15,16 @@ import '../styles/CampusRail.css';
 const API_URL = process.env.REACT_APP_API_URL;
 const RECENT_LIMIT = 6;
 
-/** The five places the rail and the phone tab bar lead to (design 26A). */
+/**
+ * The five places the rail and the phone tab bar lead to (design 26A). Ask
+ * is also "New chat": it always opens a fresh Ask home (D5).
+ */
 export const NAV_ITEMS = [
   { to: '/home', label: 'Ask', short: 'Ask', icon: 'forum', match: ['/home', '/chat', '/search'] },
   { to: '/courses', label: 'Courses', short: 'Courses', icon: 'school', match: ['/courses'] },
   { to: '/events', label: 'Events', short: 'Events', icon: 'event', match: ['/events'] },
   { to: '/map', label: 'Campus map', short: 'Map', icon: 'map', match: ['/map'] },
-  { to: '/saved', label: 'Saved', short: 'Saved', icon: 'bookmark', match: ['/saved'], counted: true },
+  { to: '/saved', label: 'Saved', short: 'Saved', icon: 'bookmark', match: ['/saved'], dropTarget: true },
 ];
 
 /** The phone tab bar puts Ask in the centre: Courses, Events, Ask, Map, Saved. */
@@ -44,7 +46,10 @@ const useOptionalTheme = () => {
   }
 };
 
-/** Auto / Light / Dark with a sliding thumb (DESIGN.md, theme toggle). */
+/**
+ * Auto / Light / Dark with a sliding thumb (DESIGN.md, theme toggle). Each
+ * stop is a labelled button with aria-pressed (design Q19).
+ */
 export function ThemeToggle({ className = '' }) {
   const theme = useOptionalTheme();
   if (!theme) return null;
@@ -58,7 +63,6 @@ export function ThemeToggle({ className = '' }) {
           type="button"
           aria-label={stop.label}
           aria-pressed={mode === stop.mode}
-          title={stop.label}
           onClick={() => setMode(stop.mode)}
         >
           {stop.icon ? <Icon name={stop.icon} size={17} /> : stop.label}
@@ -112,8 +116,10 @@ export function useShellRecentChats(authToken) {
   return shared || own;
 }
 
-/** Recent chats, "Couldn't load chats · Retry" on failure, and All chats. */
-export function RecentChats({ recent, currentSessionId, onSelectSession, onShowAllChats, className = '' }) {
+/** Recent chats as plain rows (D5), "Couldn't load chats · Retry" on failure. */
+export function RecentChats({
+  recent, currentSessionId, onSelectSession, className = '',
+}) {
   const { sessions, failed, loading, retry } = recent;
   let body;
   if (failed && sessions.length === 0) {
@@ -136,8 +142,7 @@ export function RecentChats({ recent, currentSessionId, onSelectSession, onShowA
         aria-current={session.id === currentSessionId ? 'page' : undefined}
         onClick={() => onSelectSession?.(session.id)}
       >
-        <MessageSquare size={15} aria-hidden="true" />
-        <span>{session.title || 'Untitled chat'}</span>
+        {session.title || 'Untitled chat'}
       </button>
     ));
   }
@@ -146,26 +151,11 @@ export function RecentChats({ recent, currentSessionId, onSelectSession, onShowA
     <div className={`campus-recent ${className}`}>
       <span className="campus-rail-label">Recent</span>
       {body}
-      {sessions.length > RECENT_LIMIT && onShowAllChats && (
-        <button type="button" className="campus-recent-all" onClick={onShowAllChats}>
-          All chats
-        </button>
-      )}
     </div>
   );
 }
 
-function SavedCount({ count, pulse = false }) {
-  if (!count) return null;
-  return (
-    <span className={`campus-nav-count ${pulse ? 'dnd-pulse' : ''}`.trim()}>
-      {count}
-      <span className="sr-only"> saved</span>
-    </span>
-  );
-}
-
-function NavLink({ item, current, savedCount }) {
+function NavLink({ item, current }) {
   return (
     <Link
       to={item.to}
@@ -174,63 +164,73 @@ function NavLink({ item, current, savedCount }) {
     >
       <Icon name={item.icon} size={22} filled={current} />
       <span className="campus-nav-label">{item.label}</span>
-      {item.counted && <SavedCount count={savedCount} />}
     </Link>
   );
 }
 
 /** Saved in the rail doubles as a drop target while a drag runs (D20). */
-function SavedNavItem({ item, current, savedCount }) {
+function SavedNavItem({ item, current }) {
   const target = useSavedDropTarget();
   return (
     <li ref={target.ref} className={target.className}>
       <Link
         to={item.to}
-        className={`campus-nav-link ${current ? 'is-current' : ''}`}
+        className={`campus-nav-link ${current ? 'is-current' : ''} ${target.pulse ? 'dnd-pulse' : ''}`.trim()}
         aria-current={current ? 'page' : undefined}
       >
         <Icon name={item.icon} size={22} filled={current || target.over} />
         <span className="campus-nav-label">{item.label}</span>
-        <SavedCount count={savedCount} pulse={target.pulse} />
       </Link>
     </li>
   );
 }
 
+/** The signed-in student's initials for the round avatar. */
+export function initialsOf(user) {
+  return `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
+}
+
 /**
  * The Campus Companion left rail, in the school's deep colour: the round
- * school mark with the product and school names, the five page links, New
- * chat, recent chats, the theme toggle and the signed-in user. At 700px and under it
- * gives way to a school-coloured header and a bottom tab bar (26A).
+ * school mark with the product and the school's short name, the five page
+ * links, recent chats, the theme toggle and the signed-in user, whose row
+ * opens the account menu. At 700px and under it gives way to a
+ * school-coloured header (mark, "Campus Companion", the toggle and the
+ * avatar) and a bottom tab bar (26A, design Q1).
  *
  * Pass `recent` (from useRecentChats) when the page also shows the chats, so
- * they load once.
+ * they load once. `onOpenAccount(event)` opens the account menu at the
+ * avatar that was pressed.
  */
 export default function CampusRail({
   currentSessionId = null,
   refreshTrigger = 0,
   recent: recentProp,
-  onNewChat,
   onSelectSession,
-  onShowAllChats,
-  onOpenSettings,
-  onSignOut,
+  onOpenAccount,
+  accountOpen = false,
   className = '',
 }) {
   const { user, authToken } = useAuth();
   const { shortName: school, mark } = useSchool();
   const { pathname } = useLocation();
-  const savedCount = useSaved()?.count || 0;
   const ownRecent = useRecentChats(recentProp ? null : authToken, refreshTrigger);
   const recent = recentProp || ownRecent;
   const dock = useChatDock();
   const railSlot = useRailSlot();
 
-  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
+  const initials = initialsOf(user);
 
   const brandMark = (
     <span className="campus-brand-mark" aria-hidden="true">{mark}</span>
   );
+
+  const accountProps = {
+    type: 'button',
+    'aria-haspopup': 'menu',
+    'aria-expanded': accountOpen,
+    onClick: (event) => onOpenAccount?.(event),
+  };
 
   const rail = (
     <nav className={`campus-rail ${className}`} aria-label="Main">
@@ -245,39 +245,29 @@ export default function CampusRail({
       <ul className="campus-nav">
         {NAV_ITEMS.map((item) => {
           const current = isCurrent(item, pathname);
-          return item.counted ? (
-            <SavedNavItem key={item.to} item={item} current={current} savedCount={savedCount} />
+          return item.dropTarget ? (
+            <SavedNavItem key={item.to} item={item} current={current} />
           ) : (
             <li key={item.to}>
-              <NavLink item={item} current={current} savedCount={savedCount} />
+              <NavLink item={item} current={current} />
             </li>
           );
         })}
       </ul>
 
-      <button type="button" className="campus-new-chat" onClick={onNewChat}>
-        <Plus size={20} /> New chat
-      </button>
-
       <RecentChats
         recent={recent}
         currentSessionId={currentSessionId}
         onSelectSession={onSelectSession}
-        onShowAllChats={onShowAllChats}
       />
 
       <ThemeToggle className="campus-rail-toggle" />
 
-      <div className="campus-user">
+      <button className="campus-user" aria-label="Account" {...accountProps}>
         <span className="campus-avatar" aria-hidden="true">{initials}</span>
         <span className="campus-user-name">{user?.firstName || 'You'}</span>
-        <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={onOpenSettings}>
-          <Settings2 size={18} />
-        </button>
-        <button type="button" className="campus-icon-btn" aria-label="Sign out" onClick={onSignOut}>
-          <LogOut size={18} />
-        </button>
-      </div>
+        <Icon name="settings" size={20} className="campus-user-gear" />
+      </button>
     </nav>
   );
 
@@ -312,7 +302,6 @@ export default function CampusRail({
           >
             <span className="campus-tab-icon">
               <Icon name={item.icon} size={24} filled={current} />
-              {item.counted && <SavedCount count={savedCount} />}
             </span>
             <span className="campus-tab-label">{item.short}</span>
           </Link>
@@ -329,10 +318,10 @@ export default function CampusRail({
       {/* Phones (<=700px): school-coloured header on top, tab bar at the bottom. */}
       <header className="campus-phone-header">
         {brandMark}
-        <span className="campus-phone-school">{school}</span>
+        <span className="campus-phone-name">Campus Companion</span>
         <ThemeToggle className="campus-phone-toggle" />
-        <button type="button" className="campus-icon-btn" aria-label="Settings" onClick={onOpenSettings}>
-          <Settings2 size={18} />
+        <button className="campus-phone-avatar" aria-label="Account" {...accountProps}>
+          <span className="campus-avatar" aria-hidden="true">{initials}</span>
         </button>
       </header>
       {railSlot ? createPortal(tabbar, railSlot) : tabbar}

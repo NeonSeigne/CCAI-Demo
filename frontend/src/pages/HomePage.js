@@ -1,18 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/icons';
-import Composer, { useAskOnChatPage } from '../components/chat/Composer';
-import { RecentChats, useShellRecentChats } from '../components/CampusRail';
+import Composer from '../components/chat/Composer';
+import PanelState from '../components/panel/PanelState';
 import SaveButton from '../components/SaveButton';
 import { useAuth } from '../contexts/AuthContext';
-import { usePlanner } from '../contexts/PlannerContext';
 import { useSaved } from '../contexts/SavedContext';
 import { listEvents } from '../api/campus';
-import { loadCourse } from '../modules/course';
+import { getToday } from '../api/planner';
+import { useCourse } from '../modules/course';
 import {
-  clockTime, dateLabel, eventTime, hasPhysicalLocation, meetingClock, useSchool, useStartPlace, walkText,
+  dateLabel, endLine, eventTime, meetingClock, rangeParts, useSchool, useStartPlace, walkText,
 } from '../modules/campus';
-import { classesOn, coursesOnDate, dateIn } from '../components/planner/semester/semesterData';
 import { downloadEventIcs } from '../utils/ics';
 import { useOpenCourse } from '../utils/openCourse';
 import '../styles/CampusHome.css';
@@ -39,67 +38,67 @@ export function nextUp(events, now = Date.now()) {
     .slice(0, NEXT_UP_LIMIT);
 }
 
+/**
+ * An event's two time lines (ask-home.html): "12:00" over "to 1:00 PM"; the
+ * start keeps its meridiem only when the end's differs or there is no end.
+ */
+export function eventClock(event, timezone) {
+  const end = endLine(event, timezone);
+  if (!end || !end.startsWith('to ')) return { start: eventTime(event, timezone), end };
+  return { start: rangeParts(event, timezone).start, end };
+}
+
 /** Today's events with walking minutes from the student's start place. */
 function useTodayEvents(authToken) {
-  const [today, setToday] = useState({ loading: true, events: [], error: null, source: [] });
+  const [today, setToday] = useState({ loading: true, events: [], failed: false });
+  const [attempt, setAttempt] = useState(0);
   const start = useStartPlace();
   const startReady = start.status !== 'loading';
   const from = start.id || undefined;
   useEffect(() => {
     if (!authToken || !startReady) return undefined;
     let cancelled = false;
+    setToday((current) => ({ ...current, loading: true, failed: false }));
     listEvents(authToken, { window: 'today', from })
       .then((data) => {
-        if (cancelled) return;
-        const events = Array.isArray(data?.events) ? data.events : [];
-        setToday({ loading: false, events, error: events.length ? null : data?.error, source: data?.source || [] });
+        if (!cancelled) setToday({ loading: false, events: Array.isArray(data?.events) ? data.events : [], failed: false });
       })
       .catch(() => {
-        if (!cancelled) setToday({ loading: false, events: [], error: 'Events are unavailable right now.', source: [] });
+        if (!cancelled) setToday({ loading: false, events: [], failed: true });
       });
     return () => { cancelled = true; };
-  }, [authToken, startReady, from]);
-  return today;
+  }, [authToken, startReady, from, attempt]);
+  const retry = useCallback(() => setAttempt((count) => count + 1), []);
+  return { ...today, retry };
 }
 
 /**
- * "Your classes today" (R12): the plan's chosen sections in the term that
- * takes in today, meeting today in the school's time zone. Null (no board)
- * without a plan, or when a time or date range is unknown.
+ * "Your classes today" (R12) from GET /api/planner/today: the meetings, or
+ * an empty list when the card hides (no term dates, a weekend, outside the
+ * term, no meetings) or the request fails.
  */
-function useClassesToday(authToken, timezone) {
-  const planner = usePlanner();
-  const plan = planner?.view?.plan;
-  const date = dateIn(timezone);
-  const courses = useMemo(() => coursesOnDate(plan, date), [plan, date]);
-  const [summaries, setSummaries] = useState(null);
-
-  const plannerRef = useRef(planner);
-  plannerRef.current = planner;
-  useEffect(() => { plannerRef.current?.ensureLoaded?.(); }, []);
-
-  const ids = courses.map((c) => c.id).join('|');
+function useClassesToday(authToken) {
+  const [meetings, setMeetings] = useState([]);
   useEffect(() => {
-    if (!authToken || !ids) {
-      setSummaries(null);
-      return undefined;
-    }
+    if (!authToken) return undefined;
     let cancelled = false;
-    Promise.all(ids.split('|').map((id) => loadCourse(authToken, id).then((data) => [id, data]).catch(() => [id, null])))
-      .then((pairs) => { if (!cancelled) setSummaries(new Map(pairs.filter(([, data]) => data))); });
+    getToday(authToken)
+      .then((data) => {
+        if (!cancelled) setMeetings(data?.show && Array.isArray(data.meetings) ? data.meetings : []);
+      })
+      .catch(() => { if (!cancelled) setMeetings([]); });
     return () => { cancelled = true; };
-  }, [authToken, ids]);
-
-  return useMemo(() => (summaries ? classesOn(plan, summaries, date) : null), [plan, summaries, date]);
+  }, [authToken]);
+  return meetings;
 }
 
-function EventRow({ event, timezone, onAsk }) {
-  const physical = hasPhysicalLocation(event.location);
+function EventRow({ event, timezone }) {
+  const clock = eventClock(event, timezone);
   return (
     <li className="ah-evt">
       <span className="ah-time">
-        {eventTime(event, timezone)}
-        {event.end && event.end !== event.start && <small>to {clockTime(event.end, timezone)}</small>}
+        {clock.start}
+        {clock.end && <small>{clock.end}</small>}
       </span>
       <span className="ah-what">
         <b>{event.title}</b>
@@ -114,11 +113,6 @@ function EventRow({ event, timezone, onAsk }) {
         ? <span className="ah-walk"><Icon name="directions_walk" size={18} />{walkText(event.walk_minutes)}</span>
         : <span />}
       <span className="ah-acts">
-        {physical && (
-          <button type="button" className="ah-chip" onClick={() => onAsk(`How do I get to ${event.location}?`)}>
-            Directions
-          </button>
-        )}
         <button
           type="button"
           className="ah-icon-btn"
@@ -138,65 +132,97 @@ function EventRow({ event, timezone, onAsk }) {
   );
 }
 
+/** A saved course: its code in the 104px column, then its title. */
+function SavedCourseRow({ item, onOpenCourse }) {
+  const { data } = useCourse(item.key);
+  const code = item.display_name || item.key;
+  const title = data?.title && data.title !== code ? data.title : null;
+  return (
+    <li>
+      <button type="button" className="ah-saved-row" onClick={() => onOpenCourse(item.key)}>
+        <span className="ah-saved-code">{code}</span>
+        <span className="ah-saved-name">{title || code}</span>
+      </button>
+    </li>
+  );
+}
+
 function SavedRow({ item, onOpenCourse }) {
-  const marker = {
-    course: null,
-    event: <Icon name="event" size={18} />,
-    place: <Icon name="location_on" size={18} />,
-  }[item.kind];
+  if (item.kind === 'course') return <SavedCourseRow item={item} onOpenCourse={onOpenCourse} />;
   const name = item.display_name || item.key;
-  if (item.kind === 'course') {
-    return (
-      <li>
-        <button type="button" className="ah-saved-row" onClick={() => onOpenCourse(item.key)}>
-          <span className="ah-code">{name}</span>
-        </button>
-      </li>
-    );
-  }
   const to = item.kind === 'place' ? `/map?to=${encodeURIComponent(item.key)}` : '/saved';
   return (
     <li>
       <Link className="ah-saved-row" to={to}>
-        <span className="ah-saved-kind">{marker}</span>
+        <span className="ah-saved-code">
+          <Icon name={item.kind === 'place' ? 'location_on' : 'event'} size={18} />
+        </span>
         <span className="ah-saved-name">{name}</span>
       </Link>
     </li>
   );
 }
 
+function NextUpRows({ today, upcoming, timezone }) {
+  if (today.loading) {
+    return (
+      <PanelState status="loading" label="Loading today’s events">
+        {[0, 1, 2].map((row) => (
+          <div key={row} className="ah-evt ah-evt-skeleton">
+            <span className="pnl-block" />
+            <span className="pnl-block" />
+          </div>
+        ))}
+      </PanelState>
+    );
+  }
+  if (today.failed) return <PanelState status="error" message="Couldn’t load today’s events" onRetry={today.retry} />;
+  if (!upcoming.length) return <PanelState status="empty" icon="event" />;
+  return (
+    <ul className="ah-list">
+      {upcoming.map((event) => (
+        <EventRow key={event.id || `${event.title}-${event.start}`} event={event} timezone={timezone} />
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The Ask home (ask-home.html): the date, the heading and the composer, then
+ * Next up beside "Your classes today" and Saved. Each side panel shows only
+ * with rows; with neither, Next up takes the full width (design Q6).
+ */
 const HomePage = () => {
   const navigate = useNavigate();
   const { authToken } = useAuth();
-  const { name: school, timezone } = useSchool();
+  const { name: school, timezone, zoneLabel } = useSchool();
   const saved = useSaved();
   const openCourse = useOpenCourse();
-  const recent = useShellRecentChats(authToken);
 
-  const ask = useAskOnChatPage();
   const today = useTodayEvents(authToken);
   const upcoming = nextUp(today.events);
-  const classes = useClassesToday(authToken, timezone);
+  const classes = useClassesToday(authToken);
   const savedItems = (saved?.items || []).slice(0, SAVED_LIMIT);
-
-
-  const showSide = (classes && classes.length > 0) || savedItems.length > 0;
+  const showSide = classes.length > 0 || savedItems.length > 0;
 
   return (
     <div className="campus-home">
       <main className="campus-main ah-main" id="main-content">
         <div className="ah-column">
-          {/* Phones only: the rail is hidden, so recent chats lead the page (26A). */}
-          <section className="campus-phone-recent" aria-label="Recent chats">
-            <RecentChats
-              recent={recent}
-              onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-              onShowAllChats={() => navigate('/search')}
-            />
-          </section>
           <header className="ah-hero">
             <p className="campus-kicker ah-date">{school} · {dateLabel(new Date(), timezone)}</p>
-            <h1>What do you need on campus today?</h1>
+            <div className="ah-title-row">
+              <h1>What do you need on campus today?</h1>
+              {/* Phones: the rail's Recent isn't there, so chats open from here (design Q21). */}
+              <button
+                type="button"
+                className="ah-history"
+                aria-label="Search chats"
+                onClick={() => navigate('/search')}
+              >
+                <Icon name="history" size={24} />
+              </button>
+            </div>
             <Composer surface="home" />
           </header>
 
@@ -204,42 +230,27 @@ const HomePage = () => {
             <section aria-labelledby="ah-next" className="ah-panel">
               <div className="ah-panel-h">
                 <h2 id="ah-next">Next up</h2>
+                {zoneLabel && <span className="ah-tz">Times in {zoneLabel}</span>}
               </div>
-              {today.loading && <p className="ah-empty">Loading today’s events…</p>}
-              {!today.loading && upcoming.length === 0 && (
-                <p className="ah-empty">
-                  <Icon name="event" size={20} />
-                  {today.error || 'Nothing else on the calendar today.'}
-                </p>
-              )}
-              {upcoming.length > 0 && (
-                <ul className="ah-list">
-                  {upcoming.map((event) => (
-                    <EventRow key={event.id || `${event.title}-${event.start}`} event={event} timezone={timezone} onAsk={ask} />
-                  ))}
-                </ul>
-              )}
-              <div className="ah-panel-foot">
-                <Link className="ah-more" to="/events">All events today</Link>
-              </div>
+              <NextUpRows today={today} upcoming={upcoming} timezone={timezone} />
+              <Link className="ah-more" to="/events">All events today</Link>
             </section>
 
             {showSide && (
               <div className="ah-side">
-                {classes && classes.length > 0 && (
+                {classes.length > 0 && (
                   <section aria-labelledby="ah-classes" className="ah-panel">
                     <div className="ah-panel-h">
                       <h2 id="ah-classes">Your classes today</h2>
                     </div>
                     <ul className="ah-list">
                       {classes.map((row) => (
-                        <li key={`${row.id}-${row.part}-${row.start}`}>
-                          <button type="button" className="ah-cls" onClick={() => openCourse(row.id)}>
+                        <li key={`${row.course}-${row.section}-${row.start}`}>
+                          <button type="button" className="ah-cls" onClick={() => openCourse(row.course)}>
                             <span className="ah-time">{meetingClock(row.start)}</span>
                             <span>
-                              <span className="ah-code">{row.id}</span>
+                              <span className="ah-code">{row.course}</span>
                               {row.title && <b>{row.title}</b>}
-                              {row.place && <span className="ah-where">{row.place}</span>}
                             </span>
                           </button>
                         </li>
@@ -264,7 +275,6 @@ const HomePage = () => {
           </div>
         </div>
       </main>
-
     </div>
   );
 };

@@ -48,8 +48,9 @@ const SettingsModal = ({
   onSignOut,
   onClose,
   leftInset = 0,
+  initialTab = 'profile',
 }) => {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');

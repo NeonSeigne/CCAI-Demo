@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import Composer from './Composer';
 import { ChatContext } from '../../contexts/ChatContext';
-import { ChatDockProvider, useChatDock } from '../../contexts/ChatDockContext';
+import { ChatDockProvider, useChatDock, useDockPlaceholder } from '../../contexts/ChatDockContext';
 
 let mockConfig = {};
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
@@ -66,11 +66,17 @@ describe('each surface decides the +, mic, scope chip and placeholder', () => {
     expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask about courses, events or places');
   });
 
-  test('dock: +, mic and Send, no scope chip', () => {
+  test('dock: + and Send, no scope chip and no mic', () => {
     renderComposer('dock');
     expect(screen.getByRole('button', { name: 'Add documents or skills' })).toBeInTheDocument();
     expect(screen.queryByText('Courses, events and places')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Voice input' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Voice input' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
+  });
+
+  test('chat: "Ask a follow-up" once the conversation is under way', () => {
+    renderComposer('chat', chatWith({ messages: [{ id: 'm1', type: 'user', content: 'Hi' }] }));
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask a follow-up');
   });
 
   test('chat and dock take the configured placeholder', () => {
@@ -79,17 +85,56 @@ describe('each surface decides the +, mic, scope chip and placeholder', () => {
     expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask anything');
   });
 
-  test('home: the school scope chip and Ask, no + or mic; the first starter as placeholder', () => {
+  test('home: +, the scope chip, mic and Send; the first starter as placeholder', () => {
     mockConfig = {
       app: { institution: 'UVA' },
       homepage: { starters: [{ prompts: ['Where can I study late?'] }] },
     };
     renderComposer('home');
-    expect(screen.getByText('Courses, events and places at UVA')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ask' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Add documents or skills' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Voice input' })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Ask a question')).toHaveAttribute('placeholder', 'Try “Where can I study late?”');
+    expect(screen.getByText('Courses, events and places')).toBeInTheDocument();
+    expect(screen.queryByText(/at UVA/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add documents or skills' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voice input' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Try “Where can I study late?”');
+  });
+});
+
+function PagePlaceholder({ text }) {
+  useDockPlaceholder(text);
+  return null;
+}
+
+describe('the dock takes the page\'s placeholder', () => {
+  const renderDock = (provider, page) => render(
+    <MemoryRouter>
+      <ChatContext.Provider value={chatWith()}>
+        <ChatDockProvider {...provider}>
+          {page}
+          <Composer surface="dock" />
+        </ChatDockProvider>
+      </ChatContext.Provider>
+    </MemoryRouter>,
+  );
+
+  test('from the shell for the route', () => {
+    renderDock({ placeholder: 'Ask about these events' });
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask about these events');
+  });
+
+  test('a page sets its own, and it goes when the page leaves', () => {
+    const { rerender } = renderDock({}, <PagePlaceholder text="Ask about this place" />);
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask about this place');
+    rerender(
+      <MemoryRouter>
+        <ChatContext.Provider value={chatWith()}>
+          <ChatDockProvider>
+            <Composer surface="dock" />
+          </ChatDockProvider>
+        </ChatContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAttribute('placeholder', 'Ask about courses, events or places');
   });
 });
 
@@ -109,14 +154,21 @@ test('the box is disabled while an answer streams', () => {
   expect(chat.send).not.toHaveBeenCalled();
 });
 
-test('home opens the chat page with the question; an empty ask stays', () => {
-  renderComposer('home');
-  fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
-  expect(screen.getByLabelText('Location')).toHaveTextContent('/home');
-  expect(screen.getByLabelText('Ask a question')).toHaveFocus();
+test('home opens the chat page with the question, not the chat; an empty ask stays', () => {
+  const chat = chatWith({ isLoading: true });
+  renderComposer('home', chat);
+  expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+  type('Is ECON 2010 hard?');
+  // An answer streaming in the dock doesn't hold the home composer.
+  fireEvent.keyPress(screen.getByRole('textbox', { name: 'Message' }), { key: 'Enter', code: 'Enter', charCode: 13 });
+  expect(screen.getByLabelText('Location')).toHaveTextContent('/chat');
+  expect(chat.send).not.toHaveBeenCalled();
+});
 
-  fireEvent.change(screen.getByLabelText('Ask a question'), { target: { value: 'Is ECON 2010 hard?' } });
-  fireEvent.keyDown(screen.getByLabelText('Ask a question'), { key: 'Enter' });
+test('home: Upload documents starts a chat with the upload panel open', () => {
+  renderComposer('home');
+  fireEvent.click(screen.getByRole('button', { name: 'Add documents or skills' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Upload documents' }));
   expect(screen.getByLabelText('Location')).toHaveTextContent('/chat');
 });
 

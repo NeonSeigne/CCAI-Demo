@@ -17,27 +17,38 @@ import '../../styles/Composer.css';
 /**
  * The chat box, bound to the one chat: `<Composer surface="home|chat|dock" />`.
  *
- * The surface decides the +, the mic, the scope chip and the placeholder.
- * Home sends by opening the chat page with the question; the chat page and
- * the dock send to the chat. Focus requests (useAsk) arrive through the dock
- * state, so whichever composer is on screen takes them.
+ * The surface decides the +, the mic, the scope chip and the placeholder
+ * (ask-home.html, ask-chat.html, events.html). Home sends by opening the
+ * chat page with the question; the chat page and the dock send to the chat.
+ * Focus requests (useAsk) arrive through the dock state, so whichever
+ * composer is on screen takes them.
  *
- * `prefill` ({ text }) puts text in the box without sending it.
+ * `prefill` ({ text } or { upload: true }) puts text in the box without
+ * sending it, or opens the upload panel. `placeholder` overrides the
+ * surface's wording.
  */
 export const SURFACES = {
-  home: { plus: false, mic: false, scope: 'school' },
-  chat: { plus: true, mic: true, scope: 'chat' },
-  dock: { plus: true, mic: true, scope: null },
+  home: { plus: true, mic: true, scope: true },
+  chat: { plus: true, mic: true, scope: true },
+  dock: { plus: true, mic: false, scope: false },
 };
 
 const DEFAULT_PLACEHOLDER = 'Ask about courses, events or places';
+const NO_CHAT = { messages: [], attachments: [], uploadedDocuments: [], sessionEpoch: 0 };
+export const FOLLOW_UP_PLACEHOLDER = 'Ask a follow-up';
 
-/** The placeholder each surface shows. */
-export function composerPlaceholder(surface, config) {
+/**
+ * The placeholder each surface shows: home the first starter ("Try …"); the
+ * chat page "Ask a follow-up" once a conversation is under way; the dock the
+ * page's wording (`page`) when it has one.
+ */
+export function composerPlaceholder(surface, config, { followUp = false, page = null } = {}) {
   if (surface === 'home') {
     const first = config?.homepage?.starters?.[0]?.prompts?.[0];
     return first ? `Try “${first}”` : DEFAULT_PLACEHOLDER;
   }
+  if (surface === 'chat' && followUp) return FOLLOW_UP_PLACEHOLDER;
+  if (surface === 'dock' && page) return page;
   return chatPlaceholder(config);
 }
 
@@ -59,50 +70,6 @@ function useFocusRequests(textareaRef, enabled) {
   useEffect(() => {
     if (enabled && claim?.()) textareaRef.current?.focus();
   }, [enabled, claim, textareaRef]);
-}
-
-/** Home: the large card with the scope chip and send. */
-function HomeComposer() {
-  const { config } = useAppConfig();
-  const askOnChatPage = useAskOnChatPage();
-  const [question, setQuestion] = useState('');
-  const inputRef = useRef(null);
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
-
-  const ask = () => {
-    if (!askOnChatPage(question)) inputRef.current?.focus();
-  };
-
-  return (
-    <form className="ah-ask" onSubmit={(event) => { event.preventDefault(); ask(); }}>
-      <label htmlFor="campus-ask-input" className="sr-only">Ask a question</label>
-      <textarea
-        id="campus-ask-input"
-        ref={inputRef}
-        rows={2}
-        value={question}
-        onChange={(event) => setQuestion(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            ask();
-          }
-        }}
-        placeholder={composerPlaceholder('home', config)}
-      />
-      <div className="ah-ask-row">
-        {SURFACES.home.scope && (
-          <span className="ah-scope">
-            <Icon name="school" size={18} />
-            Courses, events and places at {school}
-          </span>
-        )}
-        <button type="submit" className="ah-send" aria-label="Ask">
-          <ArrowUp size={22} />
-        </button>
-      </div>
-    </form>
-  );
 }
 
 /** Voice input: records, then appends the transcript to the box. */
@@ -252,16 +219,23 @@ function DocumentsPanel({ documents, onClose }) {
   );
 }
 
-/** The chat page's and the dock's one-row pill: +, text, scope, docs, mic, send. */
-function ChatComposer({ surface, prefill }) {
-  const chat = useChat();
+/** The composer card: text on top; +, scope, docs, mic and send below. */
+function ChatComposer({ surface, prefill, placeholder }) {
+  // Pages rendered on their own (tests) may have no chat: home needs none to ask.
+  const chat = useChat() || NO_CHAT;
   const dock = useChatDock();
+  const navigate = useNavigate();
+  const askOnChatPage = useAskOnChatPage();
   const { config } = useAppConfig();
   const { authToken } = useAuth();
-  const features = SURFACES[surface];
+  const features = SURFACES[surface] || SURFACES.chat;
+  const onHome = surface === 'home';
   const {
-    isLoading, uploadedDocuments = [], attachments = [], sessionEpoch,
+    uploadedDocuments = [], attachments = [], sessionEpoch, messages = [],
   } = chat;
+  // Home starts a new chat, so an answer streaming elsewhere doesn't hold it.
+  const isLoading = onHome ? false : chat.isLoading;
+  const followUp = messages.some((message) => message.type === 'user');
   // The dock closes and opens again; its text stays for the same conversation.
   const draftRef = surface === 'dock' ? dock?.draftRef : null;
 
@@ -292,6 +266,7 @@ function ChatComposer({ surface, prefill }) {
 
   useEffect(() => {
     if (typeof prefill?.text === 'string') setInputMessage(prefill.text);
+    if (prefill?.upload) setShowUpload(true);
   }, [prefill]);
 
   useEffect(() => {
@@ -300,7 +275,8 @@ function ChatComposer({ surface, prefill }) {
 
   const handleSend = () => {
     if (!inputMessage.trim() || isLoading || isUploading) return;
-    chat.send(inputMessage);
+    if (onHome) askOnChatPage(inputMessage);
+    else chat.send(inputMessage);
     setInputMessage('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -321,6 +297,12 @@ function ChatComposer({ surface, prefill }) {
   };
 
   const openUploadPanel = () => {
+    if (onHome) {
+      // Documents belong to a conversation: start one on the chat page.
+      setPlusAnchorEl(null);
+      navigate('/chat', { state: { startNew: true, openUpload: true } });
+      return;
+    }
     if (!isUploading) {
       setShowUpload(true);
       setShowDocuments(false);
@@ -360,7 +342,7 @@ function ChatComposer({ surface, prefill }) {
   const canSend = inputMessage.trim() && !isDisabled;
 
   return (
-    <div className={`enhanced-chat-input-container cc-composer compact-composer is-${surface}`}>
+    <div className={`enhanced-chat-input-container cc-composer is-${surface}`}>
       {showUpload && (
         <div className="floating-upload-section" ref={uploadRef}>
           <FileUpload
@@ -405,7 +387,7 @@ function ChatComposer({ surface, prefill }) {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={composerPlaceholder(surface, config)}
+            placeholder={placeholder || composerPlaceholder(surface, config, { followUp, page: dock?.placeholder })}
             aria-label="Message"
             className="main-textarea"
             disabled={isDisabled}
@@ -503,7 +485,6 @@ function ChatComposer({ surface, prefill }) {
   );
 }
 
-export default function Composer({ surface = 'chat', prefill }) {
-  if (surface === 'home') return <HomeComposer />;
-  return <ChatComposer surface={surface} prefill={prefill} />;
+export default function Composer({ surface = 'chat', prefill, placeholder }) {
+  return <ChatComposer surface={surface} prefill={prefill} placeholder={placeholder} />;
 }

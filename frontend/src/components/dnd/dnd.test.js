@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  act, fireEvent, render, screen, waitFor,
+  act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -229,13 +229,13 @@ test('Enter on a button inside a draggable card clicks it and starts no drag', a
   expect(screen.getByTestId('card')).not.toHaveClass('is-dragging');
 });
 
-test('an already-saved item only pulses the count', async () => {
+test('an already-saved item only pulses the Saved link', async () => {
   const saved = { count: 1, isSaved: jest.fn(() => true), save: jest.fn() };
   renderAt('/home', saved);
   await keyboardDrag();
   expect(saved.save).not.toHaveBeenCalled();
   await waitFor(() => expect(
-    screen.getByRole('link', { name: /^Saved/ }).querySelector('.campus-nav-count'),
+    within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Saved' }),
   ).toHaveClass('dnd-pulse'));
 });
 

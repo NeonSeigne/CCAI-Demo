@@ -60,15 +60,13 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .campus-nav-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 44px;
-  padding: 0 14px;
+  padding: 10px 14px;
   border-radius: var(--r-full);
   color: var(--on-deep-soft);
   font-size: 15px;
@@ -84,42 +82,6 @@
   color: var(--on-deep);
   font-weight: 700;
 }
-
-.campus-nav-count {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-  box-sizing: border-box;
-  border-radius: var(--r-full);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tint);
-  color: var(--tint-ink);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.campus-new-chat {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  margin-top: 10px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: var(--r-full);
-  background: var(--deep-raised);
-  color: var(--on-deep);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 120ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.campus-new-chat:hover { background: color-mix(in srgb, var(--on-deep) 18%, var(--deep-raised)); }
-.campus-new-chat:active { transform: scale(0.97); }
 
 /* ---- Recent ---------------------------------------------------------------- */
 .campus-recent {
@@ -143,13 +105,10 @@
   color: var(--on-deep-soft);
 }
 
-.campus-recent-item,
-.campus-recent-all {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 36px;
-  padding: 0 14px;
+.campus-recent-item {
+  display: block;
+  width: 100%;
+  padding: 7px 14px;
   border: 0;
   border-radius: var(--r-full);
   background: transparent;
@@ -158,26 +117,18 @@
   font-size: 14px;
   font-weight: 500;
   text-align: left;
-  cursor: pointer;
-}
-
-.campus-recent-item .ms { flex-shrink: 0; }
-
-.campus-recent-item span:not(.ms) {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
 
-.campus-recent-item:hover,
-.campus-recent-all:hover { background: color-mix(in srgb, var(--on-deep) 8%, transparent); color: var(--on-deep); }
+.campus-recent-item:hover { background: color-mix(in srgb, var(--on-deep) 8%, transparent); color: var(--on-deep); }
 .campus-recent-item.is-current {
   background: color-mix(in srgb, var(--on-deep) 14%, transparent);
   color: var(--on-deep);
   font-weight: 700;
 }
-
-.campus-recent-all { font-size: 13.5px; font-weight: 700; }
 
 .campus-rail-error { color: var(--on-deep); }
 
@@ -241,15 +192,27 @@
 .cc-theme-toggle button[aria-pressed="true"] { color: var(--tint-ink); }
 .cc-theme-toggle button:hover:not([aria-pressed="true"]) { color: var(--on-deep); }
 
-.campus-rail-toggle { width: auto; height: 38px; margin: 12px 2px 4px; }
+.campus-rail-toggle { width: auto; height: 38px; margin: 8px 2px 4px; }
 
+/* The user row is one button: it opens the account menu. */
 .campus-user {
-  margin-top: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 2px 0 6px;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 6px 2px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--on-deep);
+  font: 700 14px var(--font-app);
+  text-align: left;
+  cursor: pointer;
 }
+
+.campus-user-gear { margin-left: auto; color: var(--on-deep-soft); }
+.campus-user:hover .campus-user-gear { color: var(--on-deep); }
 
 /* The toggle and the profile row sit at the bottom of the rail. */
 .campus-recent + .campus-rail-toggle { margin-top: auto; }
@@ -268,26 +231,11 @@
 }
 
 .campus-user-name {
-  flex-grow: 1;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-
-.campus-icon-btn {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border: 0;
-  border-radius: var(--r-full);
-  background: transparent;
-  color: var(--on-deep-soft);
-  display: inline-grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.campus-icon-btn:hover { background: color-mix(in srgb, var(--on-deep) 10%, transparent); color: var(--on-deep); }
 
 /* The ring reads on the deep colour. */
 .campus-rail :focus-visible,
@@ -315,7 +263,7 @@
     align-items: center;
     gap: 10px;
     min-height: 52px;
-    padding: 10px 6px 10px 16px;
+    padding: 10px 12px 10px 16px;
     background: var(--deep);
     color: var(--on-deep);
     font-family: var(--font-app);
@@ -323,7 +271,7 @@
 
   .campus-phone-header .campus-brand-mark { width: 32px; height: 32px; font-size: 9px; }
 
-  .campus-phone-school {
+  .campus-phone-name {
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
@@ -337,15 +285,28 @@
 
   .campus-phone-toggle { width: 102px; height: 32px; }
 
+  /* A 32px avatar in a 44px hit area (design Q1, Q19). */
+  .campus-phone-avatar {
+    width: 44px;
+    height: 44px;
+    margin: -6px -6px -6px -4px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-full);
+    background: transparent;
+    cursor: pointer;
+  }
+
   .campus-tabbar {
     position: fixed;
     inset: auto 0 0 0;
     z-index: 50;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    height: 52px;
-    padding: 4px 4px env(safe-area-inset-bottom, 0px);
-    box-sizing: content-box;
+    padding: 6px 4px calc(18px + env(safe-area-inset-bottom, 0px));
     background: var(--surface);
     border-top: 1px solid var(--line);
     font-family: var(--font-app);
@@ -357,7 +318,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 3px;
     color: var(--muted);
     font-size: 11.5px;
     font-weight: 700;
@@ -387,24 +348,11 @@
 
   .campus-tab.is-current .campus-tab-icon { background: var(--tint); color: var(--tint-ink); }
 
-  .campus-tab-icon .campus-nav-count {
-    position: absolute;
-    top: -4px;
-    right: 6px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
-    background: var(--signal);
-    color: var(--on-signal);
-    font-size: 10px;
-  }
-
   .campus-tabbar :focus-visible { outline-offset: -2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cc-theme-thumb,
   .campus-nav-link,
-  .campus-new-chat,
   .campus-tab-icon { transition: none; }
 }

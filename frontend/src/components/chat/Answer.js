@@ -1,15 +1,74 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Copy, Check, Volume2, VolumeX, Search, X, Loader2 } from '../icons';
+import { Icon } from '../icons';
+import { useToast } from '../Toast';
+import { useChat } from '../../contexts/ChatContext';
 import VisualBlock from '../visuals/VisualBlock';
 import CourseChip from '../visuals/CourseChip';
 import AnswerSources from '../visuals/AnswerSources';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
+
+const THUMBS = [
+  { value: 'up', icon: 'thumb_up', label: 'Good answer' },
+  { value: 'down', icon: 'thumb_down', label: 'Bad answer' },
+];
+
+/**
+ * The answer's meta row (ask-chat.html .meta): the "Checked" source chips,
+ * then copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
+ * (design Q19). Thumbs are aria-pressed toggles saved to the chat; a failed
+ * save puts the old state back. Answers that aren't saved show no thumbs.
+ */
+function ActionRow({ message, checkedVisual }) {
+  const chat = useChat();
+  const toast = useToast();
+  const [copied, setCopied] = useState(false);
+  const feedback = message.feedback ?? null;
+  const storedId = 'message_id' in message ? message.message_id : message.id;
+  const canRate = Boolean(chat?.rateAnswer && chat?.sessionId && storedId);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(message?.compact_markdown || message?.content || '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.show({ message: 'Couldn’t copy', tone: 'error' });
+    }
+  };
+
+  const rate = (value) => {
+    chat.rateAnswer(message, feedback === value ? null : value).catch(() => {
+      toast.show({ message: 'Couldn’t save feedback', tone: 'error' });
+    });
+  };
+
+  return (
+    <div className="answer-meta">
+      {checkedVisual && <VisualBlock visual={checkedVisual} />}
+      <button type="button" className="answer-act" aria-label={copied ? 'Copied' : 'Copy'} onClick={copy}>
+        <Icon name={copied ? 'check' : 'content_copy'} size={20} />
+      </button>
+      {canRate && THUMBS.map((thumb) => (
+        <button
+          key={thumb.value}
+          type="button"
+          className="answer-act"
+          aria-label={thumb.label}
+          aria-pressed={feedback === thumb.value}
+          onClick={() => rate(thumb.value)}
+        >
+          <Icon name={thumb.icon} size={20} filled={feedback === thumb.value} />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /**
  * One answer in the thread: the text, its cards, the Checked chips and the
@@ -21,101 +80,6 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
   const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
-  const [showTooltip, setShowTooltip] = useState(null);
-  const [copiedStates, setCopiedStates] = useState({});
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isLoadingTTS, setIsLoadingTTS] = useState(false);
-  const [searchPopover, setSearchPopover] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [promptCopied, setPromptCopied] = useState(false);
-  const tooltipTimer = useRef(null);
-  const audioRef = useRef(null);
-
-  const handleSpeak = useCallback(async (content) => {
-    if (isSpeaking || isLoadingTTS) {
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-      setIsSpeaking(false);
-      setIsLoadingTTS(false);
-      return;
-    }
-    const text = (content || '').trim();
-    if (!text) return;
-    setIsLoadingTTS(true);
-    try {
-      const token = localStorage.getItem('authToken');
-      const resp = await fetch(`${process.env.REACT_APP_API_URL}/voice/tts`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      if (!resp.ok) throw new Error('TTS failed');
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      setIsLoadingTTS(false);
-      setIsSpeaking(true);
-      audio.onended = () => { setIsSpeaking(false); URL.revokeObjectURL(url); audioRef.current = null; };
-      audio.onerror = () => { setIsSpeaking(false); URL.revokeObjectURL(url); audioRef.current = null; };
-      audio.play();
-    } catch (e) {
-      console.error('TTS error:', e);
-      setIsLoadingTTS(false);
-      setIsSpeaking(false);
-    }
-  }, [isSpeaking, isLoadingTTS]);
-
-  useEffect(() => {
-    return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
-  }, []);
-
-  const handleCopy = async (messageId, content) => {
-    try {
-      await navigator.clipboard.writeText(content || '');
-      setCopiedStates(prev => ({ ...prev, [messageId]: true }));
-      setTimeout(() => {
-        setCopiedStates(prev => ({ ...prev, [messageId]: false }));
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
-
-  const handleSearch = async () => {
-    setSearchPopover(true);
-    setSearchLoading(true);
-    const content = message?.compact_markdown || message?.content || '';
-    try {
-      const token = localStorage.getItem('authToken');
-      const resp = await fetch(`${process.env.REACT_APP_API_URL}/api/search-references`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ statement: content.substring(0, 500) }),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        setSearchQuery(data.search_query || content.substring(0, 100));
-      } else {
-        setSearchQuery(content.substring(0, 100));
-      }
-    } catch {
-      setSearchQuery(content.substring(0, 100));
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const showTooltipWithDelay = (tooltipType) => {
-    clearTimeout(tooltipTimer.current);
-    tooltipTimer.current = setTimeout(() => setShowTooltip(tooltipType), 500);
-  };
-
-  const hideTooltip = () => {
-    clearTimeout(tooltipTimer.current);
-    setShowTooltip(null);
-  };
-
   // Minimal, safe preprocessing (keep Markdown structure intact)
   const preprocessMarkdown = (content) => {
     const input = (content || '').toString();
@@ -187,9 +151,10 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
     
     // Paragraph styling with proper spacing
     p: ({ children }) => (
-      <p style={{ 
+      <p style={{
         marginBottom: '0.75rem',
-        lineHeight: '1.7',
+        lineHeight: '1.6',
+        fontWeight: 500,
         color: 'var(--ink)'
       }}>
         {children}
@@ -326,7 +291,7 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
     // the block case is handled by `pre` and `code` only styles inline spans.
     pre: ({ children }) => (
       <pre style={{
-        backgroundColor: 'rgba(17,17,20,0.04)',
+        backgroundColor: 'var(--raised)',
         border: '1px solid var(--line)',
         padding: '0.85rem',
         borderRadius: '8px',
@@ -350,7 +315,7 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
       }
       return (
         <code style={{
-          backgroundColor: 'rgba(17,17,20,0.06)',
+          backgroundColor: 'var(--raised)',
           padding: '0.2rem 0.35rem',
           borderRadius: '4px',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
@@ -364,7 +329,6 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
 
   // One voice, plain text and cards.
   if (message?.type === 'advisor') {
-    const isCopied = copiedStates[message.id];
 
     return (
       <div className="advisor-message-container is-plain">
@@ -395,119 +359,9 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
             </div>
           )}
 
-          {checkedVisual && (
-            <div className="answer-checked">
-              <VisualBlock visual={checkedVisual} />
-            </div>
-          )}
-
           <AnswerSources visuals={cardVisuals} />
 
-          <div className="message-actions">
-            <div className="message-action-buttons">
-              <div className="tooltip-container">
-                <button 
-                  className="message-action-button"
-                  onClick={() => handleCopy(message.id, message?.compact_markdown || message?.content || '')}
-                  onMouseEnter={() => showTooltipWithDelay('copy')}
-                  onMouseLeave={hideTooltip}
-                  style={{ 
-                    color: isCopied ? 'var(--good)' : 'var(--muted)',
-                    borderColor: isCopied ? 'var(--good)' : 'var(--line)'
-                  }}
-                >
-                  {isCopied ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-                {showTooltip === 'copy' && (
-                  <div className="tooltip">
-                    {isCopied ? 'Copied!' : 'Copy to clipboard'}
-                  </div>
-                )}
-              </div>
-
-              <div className="tooltip-container">
-                <button 
-                  className="message-action-button"
-                  onClick={() => handleSpeak(message?.compact_markdown || message?.content || '')}
-                  onMouseEnter={() => showTooltipWithDelay('speak')}
-                  onMouseLeave={hideTooltip}
-                  style={{ 
-                    color: isSpeaking ? 'var(--error)' : 'var(--muted)',
-                    borderColor: isSpeaking ? 'color-mix(in srgb, var(--error) 25%, transparent)' : 'var(--line)',
-                    opacity: isLoadingTTS ? 0.7 : 1,
-                  }}
-                >
-                  {isLoadingTTS ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                </button>
-                {showTooltip === 'speak' && (
-                  <div className="tooltip">{isLoadingTTS ? 'Loading audio...' : isSpeaking ? 'Stop speaking' : 'Speak it'}</div>
-                )}
-              </div>
-
-              <div className="tooltip-container">
-                <button 
-                  className="message-action-button"
-                  onClick={handleSearch}
-                  onMouseEnter={() => showTooltipWithDelay('search')}
-                  onMouseLeave={hideTooltip}
-                  style={{ 
-                    color: 'var(--ink)',
-                    borderColor: 'var(--line)'
-                  }}
-                >
-                  <Search size={14} />
-                </button>
-                {showTooltip === 'search' && (
-                  <div className="tooltip">Search for references</div>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {searchPopover && (
-            <div style={{
-              marginTop: 8, background: 'var(--canvas)',
-              border: '1px solid var(--line)', borderRadius: 12,
-              padding: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--ink)' }}>Search for References</span>
-                <button onClick={() => setSearchPopover(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}>
-                  <X size={14} />
-                </button>
-              </div>
-              {searchLoading ? (
-                <div style={{ color: 'var(--muted)', fontSize: 12 }}>Generating search query...</div>
-              ) : (
-                <>
-                  <div style={{
-                    background: 'var(--surface)', borderRadius: 8, padding: '8px 10px',
-                    fontSize: 12, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.4,
-                  }}>{searchQuery}</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => window.open(`https://www.perplexity.ai/?q=${encodeURIComponent(searchQuery)}`, '_blank')} style={{
-                      padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer',
-                    }}>Open in Perplexity</button>
-                    <button onClick={() => {
-                      navigator.clipboard.writeText(searchQuery).then(() => {
-                        setPromptCopied(true);
-                        setTimeout(() => setPromptCopied(false), 2000);
-                      }).catch(() => {});
-                    }} style={{
-                      padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                      background: promptCopied ? 'color-mix(in srgb, var(--good) 12%, transparent)' : 'var(--surface)',
-                      color: promptCopied ? 'var(--good)' : 'var(--ink)',
-                      border: `1px solid ${promptCopied ? 'color-mix(in srgb, var(--good) 25%, transparent)' : 'var(--line)'}`,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}>{promptCopied ? '✓ Copied!' : 'Copy Prompt'}</button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <ActionRow message={message} checkedVisual={checkedVisual} />
         </div>
       </div>
     );
