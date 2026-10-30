@@ -20,15 +20,19 @@ export function GradeBars({ groups, size = 'popup', label = 'Grades' }) {
   return (
     <figure className={`crs-bars crs-bars--${size}`} aria-label={label}>
       <ol className="crs-bars-list" style={{ '--crs-bars-h': `${height}px` }}>
-        {groups.map((g) => (
-          <li key={g.key} className={`crs-bar ${g.top ? 'is-top' : ''}`.trim()}>
-            <span className="crs-bar-pct">{`${Math.round(g.pct)}%`}</span>
-            <span className="crs-bar-box" aria-hidden="true">
-              <span className="crs-bar-fill" style={{ height: `${Math.max(2, (g.pct / most) * 100)}%` }} />
-            </span>
-            <span className="crs-bar-label">{g.label}</span>
-          </li>
-        ))}
+        {groups.map((g) => {
+          const fill = Math.max(2, (g.pct / most) * 100);
+          return (
+            // --crs-bar-fill (0..1) lets a caller's stylesheet place the % on top of its bar.
+            <li key={g.key} className={`crs-bar ${g.top ? 'is-top' : ''}`.trim()} style={{ '--crs-bar-fill': fill / 100 }}>
+              <span className="crs-bar-pct">{`${Math.round(g.pct)}%`}</span>
+              <span className="crs-bar-box" aria-hidden="true">
+                <span className="crs-bar-fill" style={{ height: `${fill}%` }} />
+              </span>
+              <span className="crs-bar-label">{g.label}</span>
+            </li>
+          );
+        })}
       </ol>
     </figure>
   );

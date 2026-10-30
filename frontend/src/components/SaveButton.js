@@ -10,8 +10,9 @@ import '../styles/SaveButton.css';
  * saved before ids reached them).
  *
  * item: {kind: 'course'|'event'|'place', key, display_name, event_start?, event_end?}
+ * label: optional visible word after the bookmark (the chat course card's "Save")
  */
-export default function SaveButton({ item, className = '' }) {
+export default function SaveButton({ item, className = '', label }) {
   const saved = useSaved();
   const toast = useToast();
   if (!saved || !item?.kind || !item?.key) return null;
@@ -61,7 +62,8 @@ export default function SaveButton({ item, className = '' }) {
       title={on ? 'Saved' : 'Save'}
       onClick={() => (on ? doUnsave() : doSave())}
     >
-      <Bookmark size={18} aria-hidden="true" />
+      <Bookmark size={label ? 20 : 18} aria-hidden="true" />
+      {label && <span>{label}</span>}
     </button>
   );
 }
