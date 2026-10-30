@@ -6,6 +6,8 @@
  * sheet leaves the hours out rather than guessing.
  */
 
+import { openingClock as clockText } from '../modules/campus/time';
+
 export const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_RE = /^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/;
@@ -24,14 +26,6 @@ function days(selector) {
     for (let i = 0; i <= (last - first + 7) % 7; i += 1) out.push((first + i) % 7);
   }
   return out;
-}
-
-/** "07:30" -> "7:30 am", "24:00" -> "12 am", "12:00" -> "12 pm". */
-export function clockText(hours, minutes) {
-  const h = Number(hours) % 24;
-  const suffix = h < 12 ? 'am' : 'pm';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return Number(minutes) ? `${h12}:${String(minutes).padStart(2, '0')} ${suffix}` : `${h12} ${suffix}`;
 }
 
 function times(text) {
