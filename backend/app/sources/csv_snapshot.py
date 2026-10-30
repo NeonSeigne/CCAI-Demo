@@ -669,6 +669,7 @@ def _term_sections(rows: List[Dict[str, str]]) -> List[Section]:
             kind=kind,
             meetings=tuple(meetings) if meetings else None,
             seats_open=max(open_seats, 0),
+            instructor=_instructors(row) or None,
             # Lecture plus discussion/lab rows: a full enrolment takes one of each.
             requires=tuple(k for k in bundle if k != kind) if len(bundle) > 1 and kind in bundle else (),
         ))

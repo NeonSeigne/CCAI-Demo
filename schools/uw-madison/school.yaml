@@ -62,6 +62,8 @@ planner:
   # About the hardest third of undergraduate courses by Course Map average
   # GPA (sample of ~850 courses numbered below 500, October 2026).
   harder_below_gpa: 3.4
+  # Above the harder line so UW keeps a "typical" band (3.4 to 3.7).
+  easier_from_gpa: 3.7
   # Terms Course Map lists offerings for.
   terms: ["Fall 2026", "Spring 2027"]
   # First and last day of classes ("Fall/Spring semester instruction begins",

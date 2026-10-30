@@ -91,12 +91,12 @@ def _tool_guidance_prompt(
     """Build the tool-step system prompt from the tools this school enables.
 
     Guidance for a tool is only included when that tool is enabled, so a
-    deployment is never told about tools it does not have. Course links and
-    cards are only described when the provider has course detail pages.
+    deployment is never told about tools it does not have. Course cards
+    render for every provider; course links only when it has detail pages.
     """
     course_tools = [name for name in _COURSE_CARD_TOOLS if name in tools_enabled]
     card_tools = [
-        *(course_tools if link_courses else []),
+        *course_tools,
         *(name for name in _SELF_CONTAINED_CARD_TOOLS if name in tools_enabled),
     ]
     style = _card_answer_prompt(card_tools) if card_tools else _BULLETS_PROMPT

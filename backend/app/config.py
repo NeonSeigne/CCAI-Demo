@@ -410,6 +410,8 @@ class PlannerConfig(BaseModel):
     # A course whose average GPA is below this reads "harder". Unset: the
     # provider uses the hardest third of its own grade data, or unknown.
     harder_below_gpa: Optional[float] = None
+    # A course whose average GPA is at or above this reads "easier". Unset: 3.4.
+    easier_from_gpa: Optional[float] = None
     # Full-time minimum and the most a student may take without approval.
     credit_limits: Optional[CreditLimits] = None
     credit_limits_source: str = ""

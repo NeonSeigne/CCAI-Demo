@@ -103,12 +103,13 @@ class TestAnswerLeavesDataToCards(unittest.TestCase):
         self.assertIn("no coordinates", prompt)
         self.assertNotIn("course_grades", prompt)
 
-    def test_course_cards_counted_only_with_course_pages(self):
+    def test_course_cards_counted_with_or_without_course_pages(self):
         linked = _tool_guidance_prompt(["course_grades"], "UW–Madison", link_courses=True)
         self.assertIn("course_grades: the grade distribution", linked)
         self.assertIn("name that term", linked)
+        # Snapshot schools draw course cards too (R7); they just get no course links.
         unlinked = _tool_guidance_prompt(["course_grades", "events_search"], "UVA", link_courses=False)
-        self.assertNotIn("course_grades: the grade distribution", unlinked)
+        self.assertIn("course_grades: the grade distribution", unlinked)
         self.assertIn("events_search:", unlinked)
 
     def test_tools_without_cards_keep_bullets(self):

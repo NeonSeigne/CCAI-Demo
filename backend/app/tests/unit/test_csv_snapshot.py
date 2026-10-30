@@ -239,8 +239,8 @@ class TestSnapshotCardsNoLinks(SnapshotTestCase):
         prompt = _tool_guidance_prompt(["course_grades"], "University of Virginia", link_courses=False)
         self.assertNotIn("course:", prompt)
         self.assertIn("how old the data is", prompt)
-        # Snapshot results draw no course cards, so the answer keeps its bullets.
-        self.assertNotIn("cards right under your answer", prompt)
+        # Snapshot results draw course cards too (R7), so the answer leaves the data to them.
+        self.assertIn("cards right under your answer", prompt)
 
 
 if __name__ == "__main__":
