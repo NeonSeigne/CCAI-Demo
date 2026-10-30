@@ -20,7 +20,12 @@ Beyond the basics an event may carry ``image_url`` (``IMAGE``, or Trumba's
 (``{lat, lon}``) and, from UVA's ``X-TRUMBA-CUSTOMFIELD`` properties,
 ``details`` (event type, audience, cost, sponsor, host, room, registration and
 online links). Each is parsed on its own: a malformed value drops only that
-field, and a field the feed lacks is left out. ``description`` is the full
+field, and a field the feed lacks is left out.
+
+Every event also carries ``kind`` (the pack's ``student_life.event_kinds``
+map applied to its event type and categories), ``host`` and ``cost`` (the
+feed's own fields), each ``None`` when the feed doesn't say: nothing is
+guessed from the description. ``description`` is the full
 text, HTML stripped, with its line breaks kept.
 """
 
@@ -296,6 +301,44 @@ def _details(component: Any) -> Optional[Dict[str, str]]:
     return details or None
 
 
+# When an event's values map to several kinds, the more specific one wins:
+# "Academic, Student Activity" is academic; "Performance, Student Activity" is arts.
+KIND_ORDER = ("athletics", "arts", "career", "academic", "campus_life")
+
+
+def event_kind(item: Dict[str, Any]) -> Optional[str]:
+    """The kind the school pack's ``student_life.event_kinds`` gives one of
+    the event's feed values (Trumba "Event Type" parts, then CATEGORIES), or
+    ``None`` when the pack maps none of them."""
+    kinds = {k.strip().lower(): v for k, v in get_settings().student_life.event_kinds.items()}
+    if not kinds:
+        return None
+    labels = [p for p in ((item.get("details") or {}).get("event_type") or "").split(",")]
+    labels += item.get("categories") or []
+    found = {kinds[label.strip().lower()] for label in labels if label.strip().lower() in kinds}
+    return next((kind for kind in KIND_ORDER if kind in found), None)
+
+
+def _comma_list(value: Optional[str]) -> Optional[str]:
+    """"A,B" (Trumba multi-values) as "A, B"."""
+    if not value:
+        return None
+    return ", ".join(p.strip() for p in value.split(",") if p.strip()) or None
+
+
+def event_host(item: Dict[str, Any]) -> Optional[str]:
+    """Who runs the event, from the feed's own field (UVA "Hosted by", else
+    "Sponsor"); ``None`` when the feed has neither."""
+    details = item.get("details") or {}
+    return _comma_list(details.get("hosted_by") or details.get("sponsor"))
+
+
+def event_cost(item: Dict[str, Any]) -> Optional[str]:
+    """The feed's own cost text (UVA "Cost": "Free", "$15 General / $5
+    Students"); ``None`` when the feed has none."""
+    return (item.get("details") or {}).get("cost") or None
+
+
 def _localize(value: Any, tz: ZoneInfo) -> Tuple[datetime, bool]:
     """Return (aware datetime, all_day) for a DTSTART/DTEND value."""
     if isinstance(value, datetime):
@@ -367,6 +410,9 @@ def _event(
             value = None
         if value:
             item[key] = value
+    item["kind"] = event_kind(item)
+    item["host"] = event_host(item)
+    item["cost"] = event_cost(item)
     return item
 
 

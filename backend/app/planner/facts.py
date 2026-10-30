@@ -43,6 +43,14 @@ class Section:
     # Required companion kinds for a full enrolment ("lab", "discussion").
     # Empty when the data says none; see CourseFacts.bundles_known.
     requires: Tuple[SectionKind, ...] = ()
+    instructor: Optional[str] = None  # None: not published for the section
+
+
+@dataclass(frozen=True)
+class Unlock:
+    """A course that lists this one among its prerequisites."""
+    course: str  # identifier as the source writes it
+    title: str = ""
 
 
 @dataclass(frozen=True)
@@ -70,6 +78,9 @@ class CourseFacts:
     harder: Optional[bool] = None  # in the school's hardest third; None unknown
     prereq_tree: Optional[PrereqNode] = None  # None: no prerequisite data
     prereq_known: bool = False  # True when the school publishes prerequisites
+    # Every course that lists this one as a prerequisite, when the source
+    # publishes that list (UW Course Map); None: no such data.
+    unlocks: Optional[Tuple[Unlock, ...]] = None
     unavailable_reason: Optional[str] = None  # e.g. "Course Map didn't answer"
     as_of: Optional[str] = None  # snapshot date or term label of the data
     notes: List[str] = field(default_factory=list)

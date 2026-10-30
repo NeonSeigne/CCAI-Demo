@@ -129,6 +129,8 @@ class PersistMessage(BaseModel):
     source_personas: Optional[List[str]] = None
     # Structured visual specs (e.g. GPA chart, prereq tree) rendered alongside content
     visuals: Optional[List[Dict[str, Any]]] = None
+    # Thumbs up/down on an answer (PUT .../messages/{id}/feedback)
+    feedback: Optional[Literal["up", "down"]] = None
 
     @model_validator(mode='after')
     def check_type_constraints(self):
@@ -184,6 +186,7 @@ class ChatSessionResponse(BaseModel):
     updated_at: datetime
     message_count: int
     document_count: int = 0
+    pinned: bool = False
 
 class Token(BaseModel):
     access_token: str

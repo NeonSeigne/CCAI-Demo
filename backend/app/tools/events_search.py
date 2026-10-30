@@ -4,10 +4,10 @@ events_search tool — campus events from the school's public calendars.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from app.config import get_settings
-from app.sources import ical_events
+from app.sources import ical_events, places
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,14 @@ CHAT_DESCRIPTION_CHARS = 400
 _PAGE_ONLY_FIELDS = ("image_url", "categories", "geo", "details")
 
 
-def _for_chat(event: Dict[str, Any]) -> Dict[str, Any]:
+def _for_chat(event: Dict[str, Any], venues: Dict[str, Optional[Dict[str, Any]]]) -> Dict[str, Any]:
     item = {k: v for k, v in event.items() if k not in _PAGE_ONLY_FIELDS}
     item["description"] = " ".join((event.get("description") or "").split())[:CHAT_DESCRIPTION_CHARS]
+    # The campus place the venue text names (same match as the Events page).
+    location = event.get("location") or ""
+    if location not in venues:
+        venues[location] = places.match_venue(location)
+    item["place_name"] = venues[location]["name"] if venues[location] else None
     return item
 
 TOOL_DEFINITION: Dict[str, Any] = {
@@ -82,8 +87,9 @@ async def execute(*, name: str = "", when: str = "today", keyword: str = "") -> 
         ]
 
     truncated = len(events) > limit
+    venues: Dict[str, Optional[Dict[str, Any]]] = {}
     return {
-        "events": [_for_chat(e) for e in events[:limit]],
+        "events": [_for_chat(e, venues) for e in events[:limit]],
         "total_results": len(events),
         "truncated": truncated,
         "window": {"label": window, "start": start.isoformat(), "end": end.isoformat()},

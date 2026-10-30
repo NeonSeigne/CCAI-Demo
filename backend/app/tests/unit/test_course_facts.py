@@ -118,6 +118,13 @@ class TestUWFacts(SchoolTestCase):
         self.assertEqual(facts["ECON 310"].offered, "unknown")
         self.assertIsNone(facts["ECON 310"].sections)
 
+    async def test_unlocks_come_from_course_map_following(self):
+        self.assertEqual((await self.facts("ECON 310"))["ECON 310"].unlocks, ())  # listed, none
+        page = {"data": dict(ECON_310["data"], following=[
+            {"code": "ECON  410", "title": "INTERMEDIATE ECONOMETRICS"}, {"title": "no code"}])}
+        facts = (await self.facts("ECON 310", fetch=coursemap({"/courses/ECON_310.json": page})))["ECON 310"]
+        self.assertEqual([(u.course, u.title) for u in facts.unlocks], [("ECON 410", "Intermediate Econometrics")])
+
     async def test_outage_reads_unavailable(self):
         async def down(path, *, params=None, optional=False):
             raise RuntimeError("Course Map unavailable: timeout")
@@ -403,6 +410,12 @@ class TestCUFacts(SchoolTestCase):
         self.assertIsNone(facts.gen_ed)
         self.assertIsNone(facts.avg_gpa)
         self.assertFalse(facts.prereq_known)
+
+    async def test_section_instructor_from_fose(self):
+        rows = [dict(SPRING_ROWS[0], instr="A. Prof"), dict(SPRING_ROWS[1], instr="Staff")]
+        facts = (await self.facts(["CSCI 2270"], rows={"Spring 2027": rows, "Fall 2026": FALL_ROWS}))["CSCI 2270"]
+        self.assertEqual([s.instructor for s in facts.sections], ["A. Prof", None])
+        self.assertIsNone(facts.unlocks)  # FOSE publishes no prerequisites
 
     async def test_missing_from_term_reads_not_offered(self):
         facts = await self.facts(["CSCI 3104", "CSCI 9999"])

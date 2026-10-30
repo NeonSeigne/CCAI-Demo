@@ -10,6 +10,10 @@ added in file order when names collide. Opening hours are parsed once here
 (``sources/hours.py``). The OSM ``type/id`` and the import's detail fields
 (``DETAIL_FIELDS``: website, phone, photo with its credit, ...) are kept when
 present and well formed; a missing or malformed one is left out.
+
+``card_fields`` gives the place card's ``type`` (label of the OSM tag the
+importer keeps as ``osm_tag``), ``floors`` and ``access``; each is ``None``
+when OSM doesn't say. Files imported before ``osm_tag`` existed have no type.
 """
 
 from __future__ import annotations
@@ -83,7 +87,77 @@ def _details(props: Dict[str, Any]) -> Dict[str, Any]:
     photo = _photo(props.get("photo"))
     if photo:
         out["photo"] = photo
+    if isinstance(props.get("osm_tag"), str) and _OSM_TAG_RE.match(props["osm_tag"].strip()):
+        out["osm_tag"] = props["osm_tag"].strip()
     return out
+
+
+# The OSM tag that decided a place's category (``osm_tag`` in the places file,
+# written by scripts/import_places.py) -> the place card's type label. A tag
+# not listed, or a file imported before ``osm_tag`` existed, gives no type.
+TYPE_LABELS = {
+    "amenity=library": "Library",
+    "amenity=cafe": "Café",
+    "amenity=restaurant": "Restaurant",
+    "amenity=fast_food": "Fast food",
+    "amenity=food_court": "Food court",
+    "amenity=clinic": "Clinic",
+    "amenity=doctors": "Doctor's office",
+    "amenity=hospital": "Hospital",
+    "amenity=pharmacy": "Pharmacy",
+    "amenity=student_accommodation": "Student housing",
+    "amenity=theatre": "Theater",
+    "amenity=arts_centre": "Arts center",
+    "amenity=cinema": "Cinema",
+    "leisure=sports_centre": "Sports center",
+    "leisure=stadium": "Stadium",
+    "leisure=fitness_centre": "Fitness center",
+    "leisure=pitch": "Sports field",
+    "leisure=track": "Track",
+    "leisure=park": "Park",
+    "leisure=garden": "Garden",
+    "tourism=museum": "Museum",
+    "tourism=attraction": "Attraction",
+    "tourism=artwork": "Artwork",
+    "tourism=viewpoint": "Viewpoint",
+    "historic=monument": "Monument",
+    "historic=memorial": "Memorial",
+    "place=square": "Square",
+    "highway=bus_stop": "Bus stop",
+    "public_transport=platform": "Transit stop",
+    "public_transport=stop_position": "Transit stop",
+    "building=university": "Academic building",
+    "building=college": "Academic building",
+    "building=school": "School",
+    "building=library": "Library",
+    "building=dormitory": "Residence hall",
+    "building=residential": "Residential building",
+    "building=apartments": "Apartments",
+    "building=stadium": "Stadium",
+    "building=sports_hall": "Sports hall",
+    "building=chapel": "Chapel",
+    "building=church": "Church",
+    "building=hospital": "Hospital",
+    "building=parking": "Parking garage",
+    "building=office": "Office building",
+    "building=government": "Government building",
+    "building=museum": "Museum",
+    "building=theatre": "Theater",
+}
+_OSM_TAG_RE = re.compile(r"^[a-z_:]+=[^=\s]+$")
+# OSM ``wheelchair`` -> the card's access value; "designated" reads as "yes".
+_ACCESS = {"yes": "yes", "designated": "yes", "limited": "limited", "no": "no"}
+
+
+def card_fields(place: Dict[str, Any]) -> Dict[str, Any]:
+    """The place card's ``type`` label, ``floors`` (OSM ``building:levels``)
+    and ``access`` (wheelchair: "yes" | "limited" | "no"), each ``None`` when
+    OpenStreetMap doesn't say."""
+    return {
+        "type": TYPE_LABELS.get(place.get("osm_tag") or ""),
+        "floors": place.get("building_levels"),
+        "access": _ACCESS.get((place.get("wheelchair") or "").lower()),
+    }
 
 
 def _normalize(text: str) -> str:
@@ -298,6 +372,7 @@ def match_venue(location: str) -> Optional[Dict[str, Any]]:
 
 def public(place: Dict[str, Any]) -> Dict[str, Any]:
     out = {k: v for k, v in place.items() if not k.startswith("_")}
+    out.update(card_fields(place))
     out["map_url"] = f"https://www.openstreetmap.org/?mlat={place['lat']:.6f}&mlon={place['lon']:.6f}#map=18/{place['lat']:.6f}/{place['lon']:.6f}"
     return out
 

@@ -16,7 +16,7 @@ from urllib.parse import quote
 
 import httpx
 
-from app.planner.facts import CourseFacts, PrereqNode, Section
+from app.planner.facts import CourseFacts, PrereqNode, Section, Unlock
 
 logger = logging.getLogger(__name__)
 
@@ -831,6 +831,12 @@ async def _course_facts_one(
         harder=(avg_gpa < harder_below) if avg_gpa is not None and harder_below is not None else None,
         prereq_tree=tree,
         prereq_known=prereq_known,
+        # Course Map's "following": every course listing this one as a prerequisite.
+        unlocks=tuple(
+            Unlock(course=normalize_identifier(item["code"]), title=_title_case(item.get("title") or ""))
+            for item in data.get("following") or []
+            if isinstance(item, dict) and item.get("code")
+        ),
         as_of=str(observed)[:10] if observed else None,
         notes=notes,
     )

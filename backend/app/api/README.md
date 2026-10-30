@@ -173,3 +173,48 @@ Frontend → /chat-stream → orchestrator → personas → RAG + LLM → respon
 ```
 
 ---
+## Campus Companion payload fields
+
+Fields the Home Colors screens read (`docs/designs/home-colors-alignment.md`,
+Phase 3). Planner payloads are in `app/planner/CONTRACTS.md`.
+
+### `GET /api/config`
+
+| Field | Shape | Notes |
+|---|---|---|
+| `app.short_name` | str | "UVA", "CU Boulder", "UW–Madison" (rail and phone header); `""` when a pack sets none |
+| `school.term_dates` | `{term: {first_day, last_day}}` | ISO dates of the first and last day of classes, from the school's official academic calendar (cited in `school.yaml`). Either may be `null` when it couldn't be verified; a term with no dates is absent. "Your classes today" shows only on weekdays inside both dates and hides when either is missing (R12) |
+
+### `GET /api/events`, `GET /api/events/{id}`
+
+Every event row also carries, always present and `null` when the feed doesn't say (nothing is read from the description):
+
+| Field | Shape | Notes |
+|---|---|---|
+| `kind` | `"academic"` \| `"campus_life"` \| `"arts"` \| `"athletics"` \| `"career"` \| null | From the pack's `student_life.event_kinds` map of feed values (UVA: Trumba "Event Type", then calendar categories; CU: `CATEGORIES`). When values map to several kinds the more specific wins: athletics, arts, career, academic, campus_life. UW's feed has no categories, so UW is always null |
+| `host` | str \| null | UVA "Hosted by", else "Sponsor" (multi-values comma-spaced). CU and UW: null |
+| `cost` | str \| null | UVA "Cost" text as the feed writes it ("Free", "$15 General / $5 Students"). CU and UW: null |
+| `place_name` | str \| null | Name of the campus place the venue matched (the same match as `place_id`); null when no place matched |
+
+The chat `events_search` result rows and the `event_list` card rows carry `kind` and `place_name` too (card rows: `title, start, end, all_day, location, url, calendar, ongoing, kind, place_name, id`). The card groups rows by date client-side from `start` in the card's `timezone` (design Q10).
+
+### `GET /api/places/{id}`
+
+| Field | Shape | Notes |
+|---|---|---|
+| `type` | str \| null | Place card label from the OSM tag behind the category ("Library", "Academic building", "Residence hall", "Bus stop"; `places.TYPE_LABELS`). Needs `osm_tag`, which `scripts/import_places.py` now writes; the shipped `places.geojson` files predate it, so `type` is null at every school until they are re-imported. Never guessed from `category` |
+| `floors` | int \| null | OSM `building:levels` (same value as `building_levels`) |
+| `access` | `"yes"` \| `"limited"` \| `"no"` \| null | OSM `wheelchair` ("designated" reads as "yes") |
+
+The same three keys are in `places.public()` (the `find_place` chat tool rows).
+
+### Chat sessions (`/api/chat-sessions`)
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| PUT | `/chat-sessions/{id}/messages/{message_id}/feedback` | `{"feedback": "up" \| "down" \| null}` | `{message_id, feedback}`; stored on the message as `feedback` (null removes it). Only answers (`type: "advisor"`) take feedback: 422 otherwise; 404 for an unknown chat or message. Doesn't move the chat in Recent |
+| PUT | `/chat-sessions/{id}` | `{title?, pinned?, messages?}` | Rename and pin/unpin. Only `messages` updates `updated_at`, so renaming or pinning doesn't reorder Recent. `title` is trimmed (inner runs of spaces collapsed), must be non-empty and at most 200 characters (422 otherwise); also on `POST /chat-sessions` |
+
+- `GET /chat-sessions` rows carry `pinned` (bool) and are sorted pinned first, then by `updated_at`. `POST` returns `pinned: false`; `GET /chat-sessions/{id}` carries `pinned`, and its messages carry `feedback` when set.
+- Titles are stored and returned whole; the server never adds "...". (The frontend's `ChatContext.js` still cuts new titles at 30 characters plus "..." when it creates or retitles a chat; that cut has to go for full titles in Recent.)
+- `/chat-stream` `advisor` lines carry `message_id`: the stored message's id to send feedback for (null when the stream has no `chat_session_id`).

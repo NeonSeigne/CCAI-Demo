@@ -24,8 +24,9 @@ from __future__ import annotations
 
 import copy
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
+from app.planner import checker
 from app.planner.checker import norm
 from app.planner.facts import CourseFacts
 
@@ -417,6 +418,84 @@ def schedule_change(before: Dict[str, Any], after: Dict[str, Any]) -> Dict[str, 
     return {"blocks_in": blocks_in, "blocks_out": blocks_out, "blocks": blocks_in}
 
 
+def _by_term(plan: Dict[str, Any]) -> Dict[str, set]:
+    found: Dict[str, set] = {}
+    for course in checker.planned_courses(plan):
+        term = course.get("term") or plan.get("term")
+        found.setdefault(term, set()).add((course["id"], tuple(course.get("sections") or ())))
+    return found
+
+
+def affected_terms(before: Dict[str, Any], after: Dict[str, Any]) -> List[str]:
+    """Terms whose courses (or chosen sections) differ between two plans, in term order."""
+    old, new = _by_term(before), _by_term(after)
+    return sorted((t for t in set(old) | set(new) if old.get(t, set()) != new.get(t, set())), key=checker.term_key)
+
+
+def prereq_terms(before: Dict[str, Any], after: Dict[str, Any]) -> List[str]:
+    """Terms the prerequisite check reads: the affected ones and every planned
+    term after the first of them (a move can break a later course)."""
+    affected = affected_terms(before, after)
+    if not affected:
+        return []
+    first = checker.term_key(affected[0])
+    planned = set(_by_term(before)) | set(_by_term(after))
+    return sorted({t for t in planned if checker.term_key(t) >= first} | set(affected), key=checker.term_key)
+
+
+def term_ids(before: Dict[str, Any], after: Dict[str, Any], term: str) -> List[str]:
+    """Course ids in ``term`` in either plan (the facts a term report needs)."""
+    ids = [cid for plan in (before, after) for cid, _ in sorted(_by_term(plan).get(term, set()))]
+    return list(dict.fromkeys(ids))
+
+
+def _credit_state(report: Dict[str, Any]) -> Dict[str, Any]:
+    credits = report.get("credits") or {}
+    return {"min": credits.get("min"), "max": credits.get("max"), "status": credits.get("status")}
+
+
+def term_credit_rows(reports: Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]], terms: List[str]) -> List[Dict[str, Any]]:
+    """One row per affected term: credits before and after, with the limits."""
+    rows = []
+    for term in terms:
+        if term not in reports:
+            continue
+        before, after = reports[term]
+        rows.append({"term": term, "before": _credit_state(before), "after": _credit_state(after),
+                     "limits": (after.get("credits") or {}).get("limits")})
+    return rows
+
+
+_PREREQ_STATUS = {"met": "met", "short": "not_met", "unknown": "unknown"}
+
+
+def prereq_check(
+    reports: Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]], changed: set
+) -> Dict[str, Any]:
+    """``{status: met|not_met|unknown, courses: [{id, term, status, reason}]}``.
+
+    Checked: every changed course (added, moved, swapped in, re-sectioned)
+    and every course whose prerequisite status the edit changes. One course
+    not met makes the whole check not met; otherwise one unknown makes it
+    unknown. Nothing to check reads met.
+    """
+    old_status: Dict[str, str] = {}
+    for before, _ in reports.values():
+        for row in before.get("courses") or []:
+            old_status[row["id"]] = (row.get("prereqs") or {}).get("status")
+    rows = []
+    for term in sorted(reports, key=checker.term_key):
+        for row in reports[term][1].get("courses") or []:
+            prereqs = row.get("prereqs") or {}
+            status = prereqs.get("status")
+            if row["id"] in changed or old_status.get(row["id"]) != status:
+                rows.append({"id": row["id"], "term": term, "status": _PREREQ_STATUS.get(status, "unknown"),
+                             "reason": prereqs.get("reason")})
+    statuses = {r["status"] for r in rows}
+    overall = "not_met" if "not_met" in statuses else "unknown" if "unknown" in statuses else "met"
+    return {"status": overall, "courses": rows}
+
+
 def _literal_differs(asked: Optional[str], ops: List[Dict[str, Any]]) -> Optional[str]:
     if not asked:
         return None
@@ -433,19 +512,37 @@ def diff(
     *,
     asked: Optional[str] = None,
     notes: Optional[List[str]] = None,
+    term_reports: Optional[Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]] = None,
+    terms: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """What an edit changes, in the shape of ``CONTRACTS.md``.
 
     ``asked`` is the student's own verb ("drop"); when it isn't what the ops
     do, ``literal_differs`` says so (design 11A). ``notes`` from
     ``validate_ops`` join the unknowns.
+
+    ``term_reports`` (``{term: (before, after)}``) are the reports of every
+    term the prerequisite check reads, and ``terms`` the affected ones that
+    get a credit row; without them only the shown term (``before``/``after``)
+    is used.
     """
     old_terms, new_terms = _course_terms(before), _course_terms(after)
+    reports = term_reports or {after.get("term"): (before, after)}
+    if terms is None:
+        terms = [after.get("term")] if _credit_state(before) != _credit_state(after) else []
+
+    def moved_row(course_id: str) -> Dict[str, Any]:
+        # Title and credits for a lead "Move" row, from the destination term's report.
+        to = new_terms[course_id]
+        rows = (reports.get(to) or (None, after))[1].get("courses") or []
+        found = next((r for r in rows if r.get("id") == course_id), None) or {}
+        return {"id": course_id, "from": old_terms[course_id], "to": to,
+                "title": found.get("title") or None, "credits": found.get("credits")}
+
     courses = {
         "added": [c for c in new_terms if c not in old_terms],
         "removed": [c for c in old_terms if c not in new_terms],
-        "moved": [{"id": c, "from": old_terms[c], "to": new_terms[c]}
-                  for c in new_terms if c in old_terms and old_terms[c] != new_terms[c]],
+        "moved": [moved_row(c) for c in new_terms if c in old_terms and old_terms[c] != new_terms[c]],
     }
 
     old_rules = {(r.get("program_id"), r.get("rule_id")): r for r in before.get("rules") or []}
@@ -468,6 +565,9 @@ def diff(
         "courses": courses,
         "rules": rules,
         "credits": {"before": span(before), "after": span(after)},
+        # Every term whose courses change gets a credit row (R10 card).
+        "terms": term_credit_rows(reports, terms),
+        "prereqs": prereq_check(reports, set(courses["added"]) | {m["id"] for m in courses["moved"]}),
         "difficulty": {"before": (before.get("difficulty") or {}).get("label"),
                        "after": (after.get("difficulty") or {}).get("label")},
         "clashes": {"before": (before.get("clashes") or {}).get("status"),

@@ -18,7 +18,7 @@ import logging
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.core.database import get_database
-from app.planner import checker, degree as degree_board, edits, store, transcript as transcript_rows
+from app.planner import checker, degree as degree_board, edits, store, today as today_board, transcript as transcript_rows
 from app.planner.facts import CourseFacts, Provider, load_facts_by_term
 from app.planner.suggest import suggest
 
@@ -218,6 +218,30 @@ async def degree(user_id: str, school: str) -> Dict[str, Any]:
                               covered=lambda t: not covered or _same_term(t) in covered)
 
 
+def school_today():
+    """Today's date in the school's timezone (replaced in tests)."""
+    from app.sources import academics
+
+    return academics._school_today()
+
+
+async def classes_today(user_id: str, school: str) -> Dict[str, Any]:
+    """'Your classes today' (R12): ``{date, weekday, show, reason, term,
+    meetings, unscheduled}``; shape in ``CONTRACTS.md``."""
+    from app.config import get_settings
+
+    day = school_today()
+    term, reason = today_board.term_for_day(get_settings().planner.term_dates, day)
+    body: Dict[str, Any] = {"date": day.isoformat(), "weekday": today_board.DAY_CODES[day.weekday()],
+                            "show": term is not None, "reason": reason, "term": term,
+                            "meetings": [], "unscheduled": []}
+    if term is None:
+        return body
+    plan = await _plan(get_database(), user_id, school)
+    body.update(today_board.meetings_today(await report_for(plan, school, term), day))
+    return body
+
+
 async def _validated_diff(
     plan: Dict[str, Any],
     ops: List[Dict[str, Any]],
@@ -239,12 +263,25 @@ async def _validated_diff(
     wanted = {shown: checker.facts_needed(plan) + checker.facts_needed(after)}
     for dest, ids in edits.verify_by_term(plan, ops).items():
         wanted[dest] = wanted.get(dest, []) + ids
+    # Every term the edit touches gets a credit row, and the prerequisite
+    # check reads those plus each later planned term; their courses' facts
+    # join the same batch.
+    checked = edits.prereq_terms(plan, after)
+    for each in checked:
+        if each != shown:
+            wanted[each] = wanted.get(each, []) + edits.term_ids(plan, after, each)
     by_term = await _facts_by_term(wanted, school)
     notes = edits.validate_ops(plan, ops, by_term=by_term)
     facts = by_term[shown]
     before_report = _report(_in_term(plan, shown), facts, school)
     after_report = _report(_in_term(after, shown), facts, school)
-    return edits.diff(before_report, after_report, ops, asked=asked, notes=notes)
+    term_reports = {shown: (before_report, after_report)}
+    for each in checked:
+        if each not in term_reports:
+            term_reports[each] = (_report(_in_term(plan, each), by_term[each], school),
+                                  _report(_in_term(after, each), by_term[each], school))
+    return edits.diff(before_report, after_report, ops, asked=asked, notes=notes,
+                      term_reports=term_reports, terms=edits.affected_terms(plan, after))
 
 
 async def apply_edit(

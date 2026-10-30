@@ -104,6 +104,13 @@ async def get_degree(current_user: User = Depends(get_current_active_user)) -> D
     return await _logged("degree", current_user, None, service.degree(str(current_user.id), _school()))
 
 
+@router.get("/today")
+async def get_today(current_user: User = Depends(get_current_active_user)) -> Dict[str, Any]:
+    """'Your classes today': the plan's meetings today, only on a weekday
+    inside a term's first and last day of classes (R12)."""
+    return await _run(service.classes_today(str(current_user.id), _school()))
+
+
 @router.get("/programs")
 async def list_programs(current_user: User = Depends(get_current_active_user)):
     """Program files this school has, for the profile picker."""

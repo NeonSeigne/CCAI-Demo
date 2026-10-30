@@ -11,6 +11,7 @@ import os
 import re
 import logging
 import colorsys
+from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -94,6 +95,8 @@ class AppConfig(BaseModel):
     theme: Optional[ThemeConfig] = None
     logo_icon: str = "GraduationCap"
     institution: str = ""
+    # Short school name for the rail and phone header ("UVA", "CU Boulder").
+    short_name: str = ""
     footer_text: str = ""
 
 
@@ -389,6 +392,19 @@ class CreditLimits(BaseModel):
     max: float
 
 
+class TermDates(BaseModel):
+    """First and last day of classes of one term, from the school's official
+    academic calendar. A date that couldn't be verified is left out."""
+    first_day: Optional[date] = None
+    last_day: Optional[date] = None
+
+    @model_validator(mode="after")
+    def _ordered(self):
+        if self.first_day and self.last_day and self.last_day < self.first_day:
+            raise ValueError(f"term_dates: last_day {self.last_day} is before first_day {self.first_day}")
+        return self
+
+
 class PlannerConfig(BaseModel):
     """Semester planner settings a school pack may set; all optional."""
     # A course whose average GPA is below this reads "harder". Unset: the
@@ -403,6 +419,10 @@ class PlannerConfig(BaseModel):
     # The term students plan for now; unset: the first covered term that
     # hasn't started yet.
     next_term: str = ""
+    # First and last day of classes by term label ("Fall 2026"), from the
+    # official academic calendar (the pack cites it). "Your classes today"
+    # shows only on weekdays inside them and hides when either is missing.
+    term_dates: Dict[str, TermDates] = {}
 
 
 class EventFeedConfig(BaseModel):
@@ -413,10 +433,16 @@ class EventFeedConfig(BaseModel):
     pages: int = Field(default=1, ge=1, le=10)
 
 
+EventKind = Literal["academic", "campus_life", "arts", "athletics", "career"]
+
+
 class StudentLifeConfig(BaseModel):
     """Campus event calendars (iCal) for the events tools."""
     event_feeds: List[EventFeedConfig] = []
     refresh_minutes: int = 15
+    # Feed category values (CATEGORIES, Trumba "Event Type") -> event kind,
+    # matched without case. An event none of whose values is listed has no kind.
+    event_kinds: Dict[str, EventKind] = {}
 
 
 class CampusConfig(BaseModel):
@@ -579,7 +605,17 @@ class AppSettings(BaseModel):
 
         return {
             "app": self.app.dict(),
-            "school": {"slug": self.school.slug, "timezone": self.school.timezone},
+            "school": {
+                "slug": self.school.slug,
+                "timezone": self.school.timezone,
+                "term_dates": {
+                    term: {
+                        "first_day": d.first_day.isoformat() if d.first_day else None,
+                        "last_day": d.last_day.isoformat() if d.last_day else None,
+                    }
+                    for term, d in self.planner.term_dates.items()
+                },
+            },
             "homepage": self.homepage.dict(),
             "login": self.login.dict(),
             "chat_page": self.chat_page.dict(),

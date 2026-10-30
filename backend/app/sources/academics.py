@@ -850,6 +850,15 @@ def _fose_kind(item: Dict[str, Any]) -> str:
     return _FOSE_KINDS.get(str(item.get("schd") or "").upper(), "other")
 
 
+_NO_INSTRUCTOR = {"", "staff", "tba", "tbd"}
+
+
+def _fose_instructor(item: Dict[str, Any]) -> Optional[str]:
+    """FOSE ``instr`` ("A. Prof"); None for "Staff" or nothing."""
+    name = " ".join(str(item.get("instr") or item.get("instructor") or "").split())
+    return None if name.lower() in _NO_INSTRUCTOR else name
+
+
 def _fose_course_facts(code: str, items: List[Dict[str, Any]], term: str) -> CourseFacts:
     kinds = {_fose_kind(i) for i in items}
     bundle = [k for k in _BUNDLE_KINDS if k in kinds]
@@ -861,6 +870,7 @@ def _fose_course_facts(code: str, items: List[Dict[str, Any]], term: str) -> Cou
             kind=kind,
             meetings=_fose_meetings(item),
             requires=tuple(k for k in bundle if k != kind) if len(bundle) > 1 and kind in bundle else (),
+            instructor=_fose_instructor(item),
         ))
     lectures = [i for i in items if _fose_kind(i) == "lecture"] or items
     ranges = [u for u in (_fose_units(i) for i in lectures) if u]

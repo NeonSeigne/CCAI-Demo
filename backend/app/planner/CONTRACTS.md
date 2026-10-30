@@ -96,10 +96,21 @@ report = {
 
 diff = {
   "heading": "Move ECON 3010 to fall, add ECON 3300",
-  "courses": {"added": [ids], "removed": [ids], "moved": [{"id", "from", "to"}]},
+  "courses": {"added": [ids], "removed": [ids],
+              "moved": [{"id", "from", "to",    # a lead "Move" row:
+                         "title": str|null,     # from the destination term's report
+                         "credits": [min, max]|null}]},
   "rules": [{"rule_id", "title", "before": {status, completed, planned, needed},
              "after": {...}}],          # every rule whose counts or status change
-  "credits": {"before": [min, max], "after": [min, max]},
+  "credits": {"before": [min, max], "after": [min, max]},   # the shown term only
+  "terms": [{"term": "Spring 2027",     # one row per term whose courses or sections change, term order
+             "before": {"min", "max", "status"}, "after": {"min", "max", "status"},
+             "limits": {"min", "max"}|null}],
+  "prereqs": {"status": "met"|"not_met"|"unknown",   # R10 Prerequisites row
+              "courses": [{"id", "term", "status": "met"|"not_met"|"unknown", "reason": str|null}]},
+              # checked: added / moved / swapped-in courses, plus any course (in an affected
+              # term or a later planned term) whose prerequisite status the edit changes;
+              # one not_met -> not_met, else one unknown -> unknown; nothing to check -> met
   "difficulty": {"before": label, "after": label},
   "clashes": {"before": status, "after": status},
   "unknowns": [str],                    # "Prerequisites not published for UVA"
@@ -132,8 +143,16 @@ degree = {
     "difficulty": {label, harder, graded, total},
     "courses": [{"id", "title", "credits": [min, max]|null, "avg_gpa": n|null,
                  "harder": bool|null, "offered": "yes"|"no"|"unknown",
-                 "requirements": [rule titles], "gen_ed": [str]|null}]}],
-  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term"}],
+                 "requirements": [rule titles], "gen_ed": [str]|null,
+                 "sections": [{"id", "kind"|null,              # the sections the plan picked ([] when none)
+                               "meetings": [{"day", "start", "end"}]|null,  # null: times not published
+                               "instructor": str|null}],       # CU (FOSE); null at UVA and UW
+                 "opens": [{"id", "title"|null, "in_plan": bool}],  # courses this one unlocks
+                 "opens_complete": bool}]}],                   # see "Opens" below
+  "completed": [{"id", "title", "credits": [min, max]|null, "grade", "term",
+                 "opens": [...], "opens_complete": bool}],
+  "graduation": {"term": "Spring 2029"|null,       # the spring of profile.class_year, else waffle.finish
+                 "source": "class_year"|"finish"|null},
   "rules": [report rule rows, across all terms],
   "waffle": {
     "total_credits": n|null,                       # largest total_credits of the student's programs
@@ -152,8 +171,14 @@ degree = {
   "route": {                                       # the route map (R2, R9)
     "lines": [{"program_id", "name", "rule_ids": [ids]}],  # a rule's `line`, else its title; file order
     "deadline": {"program_id", "rule_ids", "by_semester"}|null,
-    "slots": [{"program_id", "rule_id", "line", "open": n}], # courses a rule needs that the plan hasn't chosen
+    "slots": [{"program_id", "rule_id", "line", "open": n,   # courses a rule needs that the plan hasn't chosen
+               "wording": str|null,                # "Any ECON course, 2000 or above"; see "Slot wording"
+               "options": [ids]}],                 # a list rule's unchosen courses; [] for level rules
     "edges": [{"from": id, "to": id}],             # prerequisite links between courses in the plan
+    "terms": ["Fall 2025", ..., "Spring 2029"],    # every fall and spring from start_term (else the
+                                                   # earliest planned/completed term) to graduation.term
+                                                   # or the last planned term, whichever is later, plus
+                                                   # planned summer/winter terms; at most 16 + those
   },
 }
 ```
@@ -165,11 +190,29 @@ course with unknown credits counts 3). Each course's credits count once across
 the waffle: a course a `double_count` rule reuses is listed in that group but
 adds no credits there, so the earned sum is the distinct earned credits.
 
+Opens: with the source's own list of courses that name this one as a
+prerequisite (`CourseFacts.unlocks`, UW Course Map "following") `opens` is
+every such course, in or out of the plan, and `opens_complete` is true. Where
+the source has no such list (UVA, CU) `opens` holds only plan courses whose
+prerequisite trees name this one, and `opens_complete` is false: the card
+should not claim the list is whole. Ids are matched spacing-blind ("COMP SCI
+300" is "COMPSCI 300"). Titles are null when unknown.
+
+Slot wording comes only from the rule data: `level` reads "Any ECON course,
+3000 or above" ("Any ECON or MATH course, 3000 to 4999", "Any ECON course",
+"..., up to 4999"); `all_of` names the unchosen courses ("ECON 2020 and
+ECON 2030"); `n_of` and `credits_from` read "One of ECON 4010 or ECON 4020"
+(at most 3 named) or "One of 6 listed courses", excluded courses left out.
+`one_of_groups` and a level rule without subjects have `wording: null`.
+`CourseFacts` gained `unlocks: tuple[Unlock(course, title)] | None` and
+`Section.instructor: str | None`.
+
 ## HTTP API (lane C), all scoped to the signed-in user + deployment school
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/api/planner/plan` | `?term=` (optional) | `{plan, report, proposal: {…, diff}|null, undo_label, redo_label}`; with `term` the report is checked for that term (`dict(plan, term=term)`) |
+| GET | `/api/planner/today` | | `today` (below): "Your classes today" (R12) |
 | GET | `/api/planner/programs` | | `[{id, name, type, rules: [{id, title, courses}]}]` |
 | GET | `/api/planner/degree` | | `degree` (above) |
 | POST | `/api/planner/edits` | `{ops, expected_revision, idempotency_key}` | `{plan, report, undo_label, redo_label, notes}`; 409 `revision_conflict` |
@@ -181,6 +224,24 @@ adds no credits there, so the earned sum is the distinct earned credits.
 | POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
 | GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits, gpa, difficulty, fit, fit_reason, section, clashes_with}]}` (fit: see "Suggestion schedule fit") |
 | POST | `/api/planner/transcript` | multipart `file` (PDF, DOCX or TXT; 10 MB; PDF 40 pages) | `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}], counts: {rows, ticked, not_checked, not_in_catalog}}`; nothing stored, logs carry counts only; 413 `too_large`, 415 `unsupported_type`, 422 `no_file` / `too_many_pages` / `unreadable` (`planner/transcript.py`) |
+
+```
+today = {                                          # GET /api/planner/today (planner/today.py)
+  "date": "2027-02-01", "weekday": "Mo",           # today in the school's timezone
+  "show": bool,                                    # false: hide the card
+  "reason": null|"no_term_dates"|"weekend"|"outside_term",
+  "term": "Spring 2027"|null,                      # the term whose first..last day of classes holds today
+  "meetings": [{"course", "title"|null, "section", "kind", "start": "09:00", "end": "09:50"}],  # start order
+  "unscheduled": [ids],                            # that term's courses with no meeting times (sections
+}                                                  # not chosen, or times not published)
+```
+
+The dates are `planner.term_dates` from the school pack (also in `/api/config`
+as `school.term_dates`); a term needs both `first_day` and `last_day`, and
+there is no holiday handling. The plan is read (one report for `term`) only
+when `show` is true. The same meetings can be derived client-side from
+`GET /api/planner/plan?term=<term>` → `report.schedule.blocks` filtered by
+`day`, with the term picked from `school.term_dates`.
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
 `{"op":"move","course":id,"to_term":term,"sections":[ids]?}` (a move clears the

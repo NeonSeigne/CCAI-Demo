@@ -255,8 +255,10 @@ async def chat_stream(
                 if note and isinstance(getattr(session, "messages", None), list):
                     # Lets the next planning pass resolve "the second one" (R15).
                     session.messages[-1]["planning"] = note
+                # The stored message's id, for answer feedback (null when unsaved).
+                message_id = None
                 if message.chat_session_id:
-                    await persist_message(
+                    message_id = await persist_message(
                         message.chat_session_id,
                         PersistMessage(
                             type="advisor",
@@ -275,6 +277,7 @@ async def chat_stream(
                         "used_documents": False,
                         "document_chunks_used": 0,
                         "visuals": visuals,
+                        "message_id": message_id,
                     },
                 ).to_ndjson()
                 yield ChatStreamLine(
@@ -373,8 +376,9 @@ async def chat_stream(
                 # ---- Panel mode: yield each advisor response as it arrives ----
                 for _ in range(len(tasks)):
                     result = await done_queue.get()
+                    message_id = None
                     if message.chat_session_id:
-                        await persist_message(
+                        message_id = await persist_message(
                             message.chat_session_id,
                             PersistMessage(
                                 type="advisor",
@@ -395,6 +399,7 @@ async def chat_stream(
                             "used_documents": result.get("used_documents", False),
                             "document_chunks_used": result.get("document_chunks_used", 0),
                             "response_group_id": response_group_id,
+                            "message_id": message_id,
                         },
                     ).to_ndjson()
 
@@ -453,8 +458,9 @@ async def chat_stream(
                 )
 
                 if synth_result:
+                    message_id = None
                     if message.chat_session_id:
-                        await persist_message(
+                        message_id = await persist_message(
                             message.chat_session_id,
                             PersistMessage(
                                 type="advisor",
@@ -475,6 +481,7 @@ async def chat_stream(
                             "is_aggregated": True,
                             "source_personas": synth_result["source_personas"],
                             "response_group_id": response_group_id,
+                            "message_id": message_id,
                         },
                     ).to_ndjson()
                 else:

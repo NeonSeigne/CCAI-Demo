@@ -1,27 +1,66 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from typing import List, Optional
+from typing import List, Literal, Optional
 from datetime import datetime
 from bson import ObjectId
 from app.models.user import User, ChatSession, ChatSessionResponse, PersistMessage
 from app.core.auth import get_current_active_user
 from app.core.database import get_database
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Titles are stored and returned whole (no "..."): the UI ellipsizes. The cap
+# only stops a pasted essay from becoming a title.
+MAX_TITLE_CHARS = 200
+
+
+def _clean_title(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    title = " ".join(value.split())
+    if not title:
+        raise ValueError("title can't be empty")
+    if len(title) > MAX_TITLE_CHARS:
+        raise ValueError(f"title is longer than {MAX_TITLE_CHARS} characters")
+    return title
+
+
 class CreateChatSessionRequest(BaseModel):
     title: str
 
+    @field_validator("title")
+    @classmethod
+    def _title(cls, value):
+        return _clean_title(value)
+
+
 class UpdateChatSessionRequest(BaseModel):
+    """Rename (``title``), pin (``pinned``) and/or replace ``messages``."""
     title: Optional[str] = None
     messages: Optional[List[dict]] = None
+    pinned: Optional[bool] = None
+
+    @field_validator("title")
+    @classmethod
+    def _title(cls, value):
+        return _clean_title(value)
 
 
-async def persist_message(session_id: str, message: PersistMessage):
-    """Write a single message to a MongoDB chat session."""
+class MessageFeedbackRequest(BaseModel):
+    """Thumbs up or down on an assistant answer; ``null`` clears it."""
+    feedback: Optional[Literal["up", "down"]] = None
+
+
+# Message types that are assistant answers (the ones with an action row).
+ANSWER_TYPES = ("advisor",)
+
+
+async def persist_message(session_id: str, message: PersistMessage) -> str:
+    """Write a single message to a MongoDB chat session; returns its ``id``
+    (what the feedback endpoint takes)."""
     db = get_database()
     msg = message.model_dump(exclude_none=True)
     if "timestamp" not in msg:
@@ -33,6 +72,7 @@ async def persist_message(session_id: str, message: PersistMessage):
             "$set": {"updated_at": datetime.utcnow()}
         }
     )
+    return msg["id"]
 
 
 @router.post("/chat-sessions", response_model=dict)
@@ -67,6 +107,7 @@ async def create_chat_session(
             "updated_at": session.updated_at,
             "message_count": 0,
             "document_count": 0,
+            "pinned": False,
         }
         
     except Exception as e:
@@ -93,9 +134,10 @@ async def get_user_chat_sessions(
     try:
         db = get_database()
         
+        # Pinned chats first, then most recently updated.
         cursor = db.chat_sessions.find(
             {"user_id": current_user.id, "is_active": True}
-        ).sort("updated_at", -1).skip(skip).limit(limit)
+        ).sort([("pinned", -1), ("updated_at", -1)]).skip(skip).limit(limit)
         
         sessions = []
         async for session_data in cursor:
@@ -111,6 +153,7 @@ async def get_user_chat_sessions(
                 updated_at=session_data["updated_at"],
                 message_count=len(messages),
                 document_count=document_count,
+                pinned=bool(session_data.get("pinned", False)),
             ))
         
         return sessions
@@ -185,7 +228,8 @@ async def get_chat_session(
             "title": session_data["title"],
             "messages": session_data.get("messages", []),
             "created_at": session_data["created_at"],
-            "updated_at": session_data["updated_at"]
+            "updated_at": session_data["updated_at"],
+            "pinned": bool(session_data.get("pinned", False)),
         }
         
     except HTTPException:
@@ -226,14 +270,22 @@ async def update_chat_session(
                 detail="Chat session not found"
             )
         
-        update_data = {"updated_at": datetime.utcnow()}
-        
+        # Renaming or pinning doesn't move a chat in Recent; new messages do.
+        update_data = {}
+
         if request.title is not None:
             update_data["title"] = request.title
-        
+
+        if request.pinned is not None:
+            update_data["pinned"] = request.pinned
+
         if request.messages is not None:
             update_data["messages"] = request.messages
-        
+            update_data["updated_at"] = datetime.utcnow()
+
+        if not update_data:
+            return {"message": "Chat session updated successfully"}
+
         await db.chat_sessions.update_one(
             {"_id": ObjectId(session_id)},
             {"$set": update_data}
@@ -250,6 +302,62 @@ async def update_chat_session(
             detail="Could not update chat session"
         )
 
+
+
+@router.put("/chat-sessions/{session_id}/messages/{message_id}/feedback")
+async def set_message_feedback(
+    session_id: str,
+    message_id: str,
+    request: MessageFeedbackRequest,
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Thumbs up or down on one assistant answer, stored on the message as
+    ``feedback`` ("up" | "down"); ``{"feedback": null}`` clears it.
+    @return: Dict with message_id and the stored feedback
+    """
+    try:
+        session_oid = ObjectId(session_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat session not found")
+    try:
+        db = get_database()
+        session_data = await db.chat_sessions.find_one({
+            "_id": session_oid,
+            "user_id": current_user.id,
+            "is_active": True
+        })
+        if not session_data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat session not found")
+        message = next(
+            (m for m in session_data.get("messages", []) if isinstance(m, dict) and m.get("id") == message_id),
+            None,
+        )
+        if message is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        if message.get("type") not in ANSWER_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Only answers can get feedback",
+            )
+        change = (
+            {"$set": {"messages.$.feedback": request.feedback}}
+            if request.feedback
+            else {"$unset": {"messages.$.feedback": ""}}
+        )
+        await db.chat_sessions.update_one(
+            {"_id": session_oid, "user_id": current_user.id, "messages.id": message_id},
+            change,
+        )
+        return {"message_id": message_id, "feedback": request.feedback}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving message feedback: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not save feedback"
+        )
 
 
 @router.delete("/chat-sessions")
