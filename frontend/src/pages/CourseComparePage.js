@@ -9,8 +9,9 @@ import {
   MAX_TICKED, askComparePrompt, askState, formatGpa, formatPct, gradesLabel,
   primarySections, readTicked, shortDate, sourceName, writeTicked,
 } from '../components/catalog/catalogFormat';
-import { getCatalogCourse, searchCatalog } from '../api/campus';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import { searchCatalog } from '../api/campus';
+import { loadCourse } from '../modules/course';
+import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
 import '../styles/CourseComparePage.css';
@@ -192,8 +193,7 @@ export default function CourseComparePage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
-  const school = config?.app?.institution || config?.app?.title || 'your school';
+  const { name: school } = useSchool();
   const ids = useMemo(() => parseIds(params.get('ids')), [params]);
   const idsKey = ids.join(',');
 
@@ -211,7 +211,7 @@ export default function CourseComparePage() {
     const controller = new AbortController();
     controllers.current.set(id, controller);
     setColumns((current) => ({ ...current, [id]: { status: 'loading', data: current[id]?.data } }));
-    getCatalogCourse(authToken, id, { signal: controller.signal })
+    loadCourse(authToken, id)
       .then((data) => {
         if (controller.signal.aborted) return;
         setColumns((current) => ({ ...current, [id]: { status: 'ready', data } }));

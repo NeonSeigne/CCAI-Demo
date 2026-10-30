@@ -3,7 +3,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { MoreHorizRounded, SwapHorizRounded, CloseRounded, DragIndicatorRounded, PersonOutlineRounded, StarRounded, CheckCircleOutlineRounded, LockOutlined, DriveFileMoveRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
-import { clockText, creditSpan } from '../planFormat';
+import { creditSpan } from '../planFormat';
+import { meetingClock as clockText } from '../../../modules/campus';
 import {
   colourVars, dayStrip, difficultyOf, partLabel, ratingFor, seatsOf, shortName, shownSections, timeRange,
 } from './semesterData';
@@ -41,9 +42,9 @@ function SeatRow({ row, label, historicalTerm }) {
   );
 }
 
-function GpaChip({ gpa, harder }) {
+function GpaChip({ gpa, row, summary }) {
   if (gpa == null || Number.isNaN(Number(gpa))) return null;
-  const level = difficultyOf(harder, gpa) || 'typical';
+  const level = difficultyOf(row, summary) || 'none';
   return (
     <span className={`sv-gpa is-${level}`} title="Average GPA">
       <span className="sr-only">Average GPA </span>
@@ -154,7 +155,7 @@ export default function CourseCard({
       <div className="sv-card-main">
         <div className="sv-card-r1">
           <span className="sv-code">{id}</span>
-          <GpaChip gpa={gpa} harder={course.harder} />
+          <GpaChip gpa={gpa} row={course} summary={summary} />
           {credits && <span className="sv-cr"><b>{credits}</b> cr</span>}
           {clash && <span className="sv-flag">Clash</span>}
         </div>

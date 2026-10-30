@@ -10,7 +10,7 @@ import { difficultyOf } from './semesterData';
 function ResultRow({ course, planned, onAdd }) {
   const id = course.identifier;
   const drag = useDraggableItem({ type: 'course', id, title: course.title || id });
-  const level = difficultyOf(null, course.gpa);
+  const level = difficultyOf(course);
   return (
     <li ref={drag.ref} className={`sv-result ${drag.isDragging ? 'is-dragging' : ''}`.trim()}>
       <button
@@ -26,7 +26,7 @@ function ResultRow({ course, planned, onAdd }) {
       <span className="sv-result-code">{id}</span>
       <span className="sv-result-title">{course.title}</span>
       {course.gpa != null && (
-        <span className={`sv-gpa is-${level || 'typical'}`} title="Average GPA">
+        <span className={`sv-gpa is-${level || 'none'}`} title="Average GPA">
           <span className="sr-only">Average GPA </span>
           {Number(course.gpa).toFixed(2)}
         </span>

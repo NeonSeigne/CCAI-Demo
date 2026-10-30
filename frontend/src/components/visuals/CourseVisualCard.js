@@ -1,18 +1,17 @@
 import React, {
-  useCallback, useContext, useEffect, useMemo, useRef,
+  useCallback, useEffect, useMemo, useRef,
 } from 'react';
 import { Icon, RefreshCw } from '../icons';
-import { useAuth } from '../../contexts/AuthContext';
-import AppConfigContext from '../../contexts/AppConfigContext';
+import { useSchool } from '../../modules/campus';
 import { usePlanner } from '../../contexts/PlannerContext';
-import useCourseDetail from '../../hooks/useCourseDetail';
-import { useCourseRatings } from '../../hooks/useCampusDetail';
+import {
+  difficultyOf, gpaText, pctText, prereqCourses, useCourse, useCourseRatings,
+} from '../../modules/course';
 import { useOpenCourse } from '../../utils/openCourse';
 import {
   GpaByTerm, GradeDistribution, instructorRows, InstructorsTab, SectionsTab,
-} from '../course/CoursePopup';
+} from '../../modules/course/popupTabs';
 import PrereqGraph from '../course/PrereqGraph';
-import { difficultyOf, gpaText, pctText, prereqCourses } from '../course/popupFormat';
 import { dateIn, prereqStates } from '../planner/semester/semesterData';
 import { titleCase } from './CourseAnswerCard';
 import '../../styles/Popups.css';
@@ -58,7 +57,7 @@ const NONE = [];
  */
 function PrereqCard({ payload, tree, unlocks, onCourse }) {
   const planner = usePlanner();
-  const timezone = useContext(AppConfigContext)?.config?.school?.timezone;
+  const { timezone } = useSchool();
   const plan = planner?.view?.plan;
   const plannerRef = useRef(planner);
   plannerRef.current = planner;
@@ -99,7 +98,7 @@ function HydratedCard({
   );
   switch (type) {
     case 'course_gpa':
-      return <MetricTile label={`Avg GPA${term}`} value={gpaText(grades?.gpa)} tone={difficultyOf(grades?.gpa)} />;
+      return <MetricTile label={`Avg GPA${term}`} value={gpaText(grades?.gpa)} tone={difficultyOf(payload)} />;
     case 'course_a_rate':
       return <MetricTile label="Got an A" value={pctText(grades?.pct_a)} />;
     case 'course_completion_rate':
@@ -114,7 +113,7 @@ function HydratedCard({
     case 'course_grade_distribution':
       return <GradeDistribution grades={grades} cumulative={payload.cumulative} />;
     case 'course_trends':
-      return <GpaByTerm history={payload.grade_history} />;
+      return <GpaByTerm history={payload.grade_history} difficulty={difficultyOf(payload)} />;
     case 'course_schedule':
       return payload.sections?.rows?.length ? <SectionsTab sections={payload.sections} /> : null;
     case 'course_instructors':
@@ -137,10 +136,11 @@ function HydratedCard({
  */
 export default function CourseVisualCard({ visual, onSelectCourse }) {
   const openPopup = useOpenCourse();
-  const { authToken } = useAuth();
   const courseId = (visual?.course || '').trim();
-  const { data, error, loading, retry } = useCourseDetail(courseId, authToken);
-  const ratings = useCourseRatings(data?.identifier || courseId, Boolean(data) && visual?.type === 'course_instructors');
+  const { data, error, loading, retry } = useCourse(courseId);
+  const ratings = useCourseRatings(data?.identifier || courseId, {
+    enabled: Boolean(data) && visual?.type === 'course_instructors',
+  });
 
   const openCourse = useCallback((identifier) => {
     if (onSelectCourse) onSelectCourse(identifier);

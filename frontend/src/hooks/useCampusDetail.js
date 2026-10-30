@@ -1,20 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  getCatalogCourse, getCourseRatings, getEvent, getPlace, listEvents,
-} from '../api/campus';
+import { getEvent, getPlace, listEvents } from '../api/campus';
 import { previewEdits } from '../api/planner';
 import { isAbort } from '../utils/loading';
 
 /**
- * Data hooks for the course, event and place pop-ups. Each returns
+ * Data hooks for the event and place pop-ups and the course pop-up's plan
+ * preview. Course summaries and ratings come from the course module's cached
+ * loader (`modules/course`). Each returns
  * `{data, error, loading, retry}`: `data` stays null until the request
  * answers, `error` is the thrown `ApiError` (D7: a failed request is shown,
  * a missing field is not). A changed key aborts the previous request.
- *
- * `useCourseDetail` here is the pop-up's. The chat cards use
- * `hooks/useCourseDetail.js` (default export): the same `/api/catalog/{id}`
- * payload, cached so an answer's cards share one request.
  */
 
 
@@ -48,22 +44,6 @@ function useRequest(key, load, enabled = true) {
   }, [authToken, key, enabled, version]);
 
   return { ...state, retry };
-}
-
-/** The catalog summary for a course (`GET /api/catalog/{id}`). */
-export function useCourseDetail(id) {
-  const course = (id || '').trim();
-  return useRequest(course, (token, signal) => getCatalogCourse(token, course, { signal }));
-}
-
-/** Instructor ratings; `enabled` holds the call until the band has loaded. */
-export function useCourseRatings(id, enabled = true) {
-  const course = (id || '').trim();
-  return useRequest(
-    course,
-    (token, signal) => getCourseRatings(token, course, { signal }),
-    enabled,
-  );
 }
 
 /**

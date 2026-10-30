@@ -3,6 +3,8 @@
  * section times and seats, fits and clashes, requirement gains, terms.
  */
 import { WEEKDAYS, minutes } from '../planFormat';
+import { campusDay } from '../../../modules/campus/time';
+import { difficultyFromRow, difficultyOf as courseDifficulty } from '../../../modules/course/facts';
 
 const COURSE_COLOURS = 6;
 
@@ -37,20 +39,12 @@ export const colourVars = (index) => (index ? {
 } : {});
 
 /**
- * 'harder' | 'typical' | 'easier' | null for one course. The report's
- * `harder` flag (the school's hardest third) wins, so the chips agree with
- * the Load label; otherwise the average GPA: ≥ 3.4 easier, < 3.0 harder.
+ * 'harder' | 'typical' | 'easier' | null for one course, as the backend
+ * decides it (R5): the catalog summary's `difficulty` when it is loaded,
+ * else the report row's `harder` flag. Nothing is computed from a GPA.
  */
-export function difficultyOf(harder, gpa) {
-  if (harder === true) return 'harder';
-  const value = gpa == null ? null : Number(gpa);
-  if (value != null && Number.isFinite(value)) {
-    if (value >= 3.4) return 'easier';
-    if (value < 3.0 && harder !== false) return 'harder';
-    return 'typical';
-  }
-  if (harder === false) return 'typical';
-  return null;
+export function difficultyOf(row, summary) {
+  return courseDifficulty(summary) || difficultyFromRow(row);
 }
 
 export const LOAD_LEVELS = ['Light', 'Balanced', 'Heavy'];
@@ -100,13 +94,7 @@ const SEASON_MONTHS = {
 };
 
 /** Today in the school's time zone, as YYYY-MM-DD. */
-export function dateIn(timezone, now = new Date()) {
-  try {
-    return now.toLocaleDateString('en-CA', timezone ? { timeZone: timezone } : {});
-  } catch {
-    return now.toLocaleDateString('en-CA');
-  }
-}
+export const dateIn = (timezone, now = new Date()) => campusDay(now, timezone);
 
 const parseTerm = (label) => {
   const match = /^([a-z]+)\s+(\d{4})$/i.exec(String(label || '').trim());

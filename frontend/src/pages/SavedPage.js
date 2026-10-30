@@ -4,8 +4,9 @@ import { ArrowLeftRight, ChevronDown, ChevronRight, Plus, RefreshCw } from '../c
 import ConfirmDialog from '../components/ConfirmDialog';
 import SavedRowMenu from '../components/saved/SavedRowMenu';
 import { useToast } from '../components/Toast';
-import { formatEventRange } from '../components/visuals/EventListCard';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import {
+  clockTime as campusClock, dateLabel, eventRange as formatEventRange, useSchool, useStartPlace, walkText,
+} from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
 import {
@@ -13,8 +14,6 @@ import {
   createSaved,
   deleteCollection,
   deleteSaved,
-  getCampusOrigin,
-  getCatalogCourse,
   getEvent,
   getPlace,
   listCollections,
@@ -22,6 +21,7 @@ import {
   updateCollection,
   updateSaved,
 } from '../api/campus';
+import { loadCourse } from '../modules/course';
 import { downloadEventIcs } from '../utils/ics';
 import '../styles/SavedPage.css';
 
@@ -31,7 +31,8 @@ export const LOOKUP_TIMEOUT_MS = 5000;
 const COMPARE_MIN = 2;
 const COMPARE_MAX = 4;
 
-const LOOKUPS = { course: getCatalogCourse, event: getEvent, place: getPlace };
+// Courses come from the shared course cache; events and places carry walk minutes from the start place.
+const LOOKUPS = { course: (token, id) => loadCourse(token, id), event: getEvent, place: getPlace };
 const KIND_WORDS = { course: ['course', 'courses'], event: ['event', 'events'], place: ['place', 'places'] };
 
 const plural = (count, [one, many]) => `${count} ${count === 1 ? one : many}`;
@@ -58,19 +59,12 @@ const kindSummary = (items) => {
     .join(' · ');
 };
 
-const dayLabel = (iso, timezone) => {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      weekday: 'short', month: 'short', day: 'numeric', ...(timezone ? { timeZone: timezone } : {}),
-    });
-  } catch {
-    return new Date(iso).toLocaleDateString();
-  }
-};
+const dayLabel = (iso, timezone) => dateLabel(iso, timezone, { weekday: 'short', month: 'short', day: 'numeric' });
 
 function Walk({ minutes }) {
-  if (minutes == null) return <span className="saved-walk is-unavailable">Walk time unavailable</span>;
-  return <span className="saved-walk">{minutes === 0 ? 'Your starting place' : `${minutes} min walk`}</span>;
+  const walk = walkText(minutes, { here: 'Your starting place', suffix: ' walk' });
+  if (!walk) return <span className="saved-walk is-unavailable">Walk time unavailable</span>;
+  return <span className="saved-walk">{walk}</span>;
 }
 
 const gradeLine = (grades) => {
@@ -84,17 +78,7 @@ const gradeLine = (grades) => {
 };
 
 /** open_until is a full ISO datetime; show it as a clock time. */
-const clockTime = (value, timezone) => {
-  const parsed = time(value);
-  if (parsed === null) return value;
-  try {
-    return new Date(parsed).toLocaleTimeString([], {
-      hour: 'numeric', minute: '2-digit', ...(timezone ? { timeZone: timezone } : {}),
-    });
-  } catch {
-    return new Date(parsed).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  }
-};
+const clockTime = (value, timezone) => campusClock(value, timezone) || value;
 
 const hoursText = (place, timezone) => {
   if (place.open_now && place.open_until) return `Open until ${clockTime(place.open_until, timezone)}`;
@@ -293,7 +277,9 @@ function NameForm({ id, label, initial = '', submitLabel, onSubmit, onCancel }) 
 const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
+  const { timezone } = useSchool();
+  const start = useStartPlace();
+  const startReady = start.status !== 'loading';
   const savedContext = useSaved();
   const toast = useToast();
 
@@ -312,7 +298,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const originId = useRef(null);
   const loadRun = useRef(0);
 
-  const timezone = config?.school?.timezone;
   const syncRail = () => savedContext?.reload?.();
 
   // ---- Load ----
@@ -323,12 +308,9 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
     Promise.all([
       listSaved(authToken),
       listCollections(authToken),
-      // Walk times are measured from the student's starting place; without it rows just say unavailable.
-      getCampusOrigin(authToken).catch(() => null),
     ])
-      .then(([list, cols, origin]) => {
+      .then(([list, cols]) => {
         if (loadRun.current !== run) return;
-        originId.current = origin?.place?.id || null;
         setItems(Array.isArray(list) ? list : []);
         setCollections(Array.isArray(cols) ? cols : cols?.collections || []);
         setStatus('ready');
@@ -338,9 +320,11 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
       });
   }, [authToken]);
 
+  // Walk times are measured from the student's starting place; without it rows just say unavailable.
+  originId.current = start.id;
   useEffect(() => {
-    if (authToken) load();
-  }, [authToken, load]);
+    if (authToken && startReady) load();
+  }, [authToken, startReady, load]);
 
   // ---- Live lookups (R5, R8) ----
   const resolve = useCallback((item) => {

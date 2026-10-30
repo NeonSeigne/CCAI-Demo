@@ -528,6 +528,7 @@
 .sv-gpa.is-easier { background: var(--difficulty-easier-tint); color: var(--difficulty-easier-ink); }
 .sv-gpa.is-typical { background: var(--difficulty-typical-tint); color: var(--difficulty-typical-ink); }
 .sv-gpa.is-harder { background: var(--difficulty-harder-tint); color: var(--difficulty-harder-ink); }
+.sv-gpa.is-none { background: var(--gauge-track); color: var(--ink); }
 
 .sv-cr { font-size: 12px; color: var(--muted); }
 .sv-cr b { font-family: var(--font-code); color: var(--ink); }

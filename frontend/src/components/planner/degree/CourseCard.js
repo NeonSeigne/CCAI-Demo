@@ -4,11 +4,12 @@ import MenuItem from '@mui/material/MenuItem';
 import { MoreHorizRounded } from '../../icons';
 import { useDraggableItem } from '../../dnd';
 import { creditSpan } from '../planFormat';
-import { difficultyKey, formatGpa } from './degreeFormat';
+import { formatGpa } from './degreeFormat';
+import { difficultyFromRow } from '../../../modules/course/facts';
 
 /**
  * One planned course on a term column (D4, D14, D18, D19): code, title,
- * credits, a GPA chip in the difficulty ink, requirement tags. The card is
+ * credits, a GPA chip in the planner's difficulty ink, requirement tags. The card is
  * the drag handle (Space lifts, arrows move, Space drops); its ⋯ menu is
  * always visible and offers Move to… and Remove.
  */
@@ -24,7 +25,8 @@ export default function CourseCard({
   const menuButton = useRef(null);
   const [menu, setMenu] = useState(null); // null | 'main' | 'move'
 
-  const gpaKey = difficultyKey(course.avg_gpa);
+  // The planner's own label (R5): its `harder` flag, or `difficulty` once the board sends it.
+  const gpaKey = course.avg_gpa == null ? null : difficultyFromRow(course) || 'none';
   const credits = creditSpan(course.credits);
   const others = terms.filter((t) => t !== term);
   const close = () => setMenu(null);

@@ -58,7 +58,7 @@ test('Compare is a real table with course column headers and labelled rows', asy
   renderPage('COMP SCI 300,COMP SCI 400');
   const table = await screen.findByRole('table', { name: 'Comparing COMP SCI 300, COMP SCI 400' });
   const t = within(table);
-  expect(t.getByRole('columnheader', { name: /COMP SCI 300.*Programming II/ })).toBeInTheDocument();
+  expect(await t.findByRole('columnheader', { name: /COMP SCI 300.*Programming II/ })).toBeInTheDocument();
   expect(t.getByRole('columnheader', { name: /COMP SCI 400.*Programming III/ })).toBeInTheDocument();
   ['Avg GPA', 'Grades', 'Got A/AB', 'Got D/F', 'Students', 'Seats'].forEach((name) => {
     expect(t.getByRole('rowheader', { name })).toBeInTheDocument();

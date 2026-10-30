@@ -1,50 +1,45 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent, render, screen, waitFor,
+} from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CourseVisualCard from './CourseVisualCard';
-import useCourseDetail from '../../hooks/useCourseDetail';
-import { useCourseRatings } from '../../hooks/useCampusDetail';
+import { memoryAdapter, setCourseAdapter } from '../../modules/course';
 import { PlannerContext } from '../../contexts/PlannerContext';
 import { cuPopupCourse, uvaPopupCourse, uwPopupCourse } from '../../pages/__fixtures__/popups';
 
-jest.mock('../../hooks/useCourseDetail');
-jest.mock('../../hooks/useCampusDetail', () => ({ useCourseRatings: jest.fn() }));
 jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token' }),
 }));
 
-const serve = (data) => useCourseDetail.mockReturnValue({
-  data, error: null, loading: false, retry: jest.fn(),
-});
+const serve = (data, ratings = { ratings: [] }) => setCourseAdapter(memoryAdapter({
+  courses: { [data.identifier]: data }, ratings: { [data.identifier]: ratings },
+}));
 
 const renderCard = (visual, props) => render(
   <MemoryRouter><CourseVisualCard visual={visual} {...props} /></MemoryRouter>,
 );
 
-beforeEach(() => {
-  useCourseRatings.mockReturnValue({ data: null, error: null, loading: false });
-});
+afterEach(() => setCourseAdapter(null));
 
 describe('CourseVisualCard', () => {
   it('shows loading state while hydrating', () => {
-    useCourseDetail.mockReturnValue({
-      data: null, error: null, loading: true, retry: jest.fn(),
-    });
+    setCourseAdapter(memoryAdapter({ courses: { 'COMP SCI 400': () => new Promise(() => {}) } }));
     renderCard({ type: 'course_gpa', course: 'COMP SCI 400' });
     expect(screen.getByText(/loading course card/i)).toBeInTheDocument();
   });
 
-  it('renders the GPA from the catalog summary with the pop-up label', () => {
+  it('renders the GPA from the catalog summary with the pop-up label', async () => {
     serve(uwPopupCourse());
     renderCard({ type: 'course_gpa', course: 'COMP SCI 400' });
-    expect(screen.getByText('Avg GPA · Spring 2026')).toBeInTheDocument();
+    expect(await screen.findByText('Avg GPA · Spring 2026')).toBeInTheDocument();
     expect(screen.getByText('3.41')).toBeInTheDocument();
   });
 
-  it('renders GPA by term, the prerequisite web and sections', () => {
+  it('renders GPA by term, the prerequisite web and sections', async () => {
     serve(uwPopupCourse());
     const { unmount } = renderCard({ type: 'course_trends', course: 'COMP SCI 400' });
-    expect(screen.getByRole('heading', { name: 'Average GPA by term' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Average GPA by term' })).toBeInTheDocument();
     unmount();
 
     const onSelectCourse = jest.fn();
@@ -57,7 +52,7 @@ describe('CourseVisualCard', () => {
     expect(screen.getByText('LEC 001')).toBeInTheDocument();
   });
 
-  it('marks prerequisites the plan has done', () => {
+  it('marks prerequisites the plan has done', async () => {
     serve(uwPopupCourse());
     const planner = { view: { plan: { profile: { completed: [{ id: 'MATH 240' }] }, courses: [] } }, ensureLoaded: jest.fn() };
     render(
@@ -67,36 +62,36 @@ describe('CourseVisualCard', () => {
         </PlannerContext.Provider>
       </MemoryRouter>,
     );
-    expect(screen.getByRole('heading', { name: 'Prerequisites for COMP SCI 400' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Prerequisites for COMP SCI 400' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'MATH 240' })).toHaveAccessibleDescription('done');
     expect(screen.getByRole('group', { name: 'One of' })).toBeInTheDocument();
     expect(planner.ensureLoaded).toHaveBeenCalled();
   });
 
-  it('renders UVA grades by instructor, with ratings when they arrive', () => {
-    serve(uvaPopupCourse());
-    useCourseRatings.mockReturnValue({ data: { ratings: [{ name: 'Ada Byron', rating: 4.2, num_ratings: 9 }] } });
+  it('renders UVA grades by instructor, with ratings when they arrive', async () => {
+    serve(uvaPopupCourse(), { ratings: [{ name: 'Ada Byron', rating: 4.2, num_ratings: 9 }] });
     renderCard({ type: 'course_instructors', course: 'CS 2100' });
-    expect(screen.getByText('Ada Byron')).toBeInTheDocument();
-    expect(screen.getByText('★ 4.2')).toBeInTheDocument();
+    expect(await screen.findByText('Ada Byron')).toBeInTheDocument();
+    expect(await screen.findByText('★ 4.2')).toBeInTheDocument();
   });
 
-  it('renders nothing for data the school lacks', () => {
+  it('renders nothing for data the school lacks', async () => {
     serve(cuPopupCourse());
     const { container } = renderCard({ type: 'course_gpa', course: 'CSCI 1300' });
-    expect(container.querySelector('.advisor-course-visual')).toBeEmptyDOMElement();
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+    await waitFor(() => expect(container.querySelector('.advisor-course-visual')).toBeEmptyDOMElement());
   });
 
-  it('exposes retry on error', () => {
-    const retry = jest.fn();
-    useCourseDetail.mockReturnValue({
-      data: null,
-      error: { message: 'Course details unavailable.' },
-      loading: false,
-      retry,
-    });
+  it('exposes retry on error', async () => {
+    let down = true;
+    setCourseAdapter(memoryAdapter({
+      courses: { 'MUSIC 113': () => (down ? Object.assign(new Error('Course details unavailable.'), { status: 503 }) : cuPopupCourse()) },
+    }));
     renderCard({ type: 'course_schedule', course: 'MUSIC 113' });
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
-    expect(retry).toHaveBeenCalled();
+    const retry = await screen.findByRole('button', { name: /retry/i });
+    expect(screen.getByText('Course details unavailable.')).toBeInTheDocument();
+    down = false;
+    fireEvent.click(retry);
+    expect(await screen.findByText('LEC 100')).toBeInTheDocument();
   });
 });

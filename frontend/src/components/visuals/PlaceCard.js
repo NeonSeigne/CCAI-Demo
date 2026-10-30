@@ -4,6 +4,7 @@ import ContextLink from '../ContextLink';
 import SaveButton from '../SaveButton';
 import MiniMap from '../map/MiniMap';
 import '../../styles/CourseVisuals.css';
+import { isHere, walkText } from '../../modules/campus';
 
 const CATEGORY_LABELS = {
   academic: 'Building',
@@ -46,7 +47,7 @@ export default function PlaceCard({ visual }) {
   return (
     <section className="vc-places" aria-label="Places">
       {places.map((place, index) => {
-        const walking = origin && place.walk_minutes_estimate != null;
+        const walking = origin && walkText(place.walk_minutes_estimate) != null;
         const hasMap = place.lat != null && place.lon != null;
         return (
           <div key={place.id || `${place.name}-${index}`} className={`vc-card vc-place ${hasMap ? '' : 'is-plain'}`.trim()}>
@@ -68,7 +69,7 @@ export default function PlaceCard({ visual }) {
                 <div className="vc-place-tiles">
                   <div className="vc-tile">
                     <span>{`from ${origin.name}`}</span>
-                    <b>~{place.walk_minutes_estimate} min</b>
+                    <b>{isHere(place.walk_minutes_estimate) ? walkText(0) : `~${walkText(place.walk_minutes_estimate)}`}</b>
                     {place.distance_m != null && <small>{Math.round(place.distance_m)} m straight line</small>}
                   </div>
                 </div>

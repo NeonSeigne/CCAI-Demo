@@ -1,6 +1,5 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import useCourseDetail from '../../hooks/useCourseDetail';
+import { useCourse } from '../../modules/course';
 
 /** Where an answer's cards came from, one line per source, in a closed dropdown. */
 export function sourceLines(visuals = [], courseSource) {
@@ -25,9 +24,8 @@ export function sourceLines(visuals = [], courseSource) {
 }
 
 export default function AnswerSources({ visuals = [] }) {
-  const { authToken } = useAuth();
   const firstCourse = visuals.find((v) => v.type === 'course_answer');
-  const { data } = useCourseDetail(firstCourse?.course, authToken, firstCourse?.term);
+  const { data } = useCourse(firstCourse?.course);
   const lines = sourceLines(visuals, data?.source);
   if (!lines.length) return null;
 

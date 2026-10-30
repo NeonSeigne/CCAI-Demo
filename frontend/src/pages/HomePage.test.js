@@ -171,7 +171,7 @@ test('UW: sections without meeting times hide the board', async () => {
   renderHome({ planner: planWith([{ id: 'COMP SCI 400', term: 'Fall 2026', sections: ['001'] }]) });
   await screen.findByText('Career Center drop-in advising');
   await act(async () => {});
-  expect(getCatalogCourse).toHaveBeenCalledWith('token', 'COMP SCI 400');
+  expect(getCatalogCourse).toHaveBeenCalledWith('token', 'COMP SCI 400', expect.anything());
   expect(screen.queryByRole('heading', { name: 'Your classes today' })).not.toBeInTheDocument();
 });
 

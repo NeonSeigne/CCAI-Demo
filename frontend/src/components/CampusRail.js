@@ -4,7 +4,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Icon, LogOut, MessageSquare, Plus, RefreshCw, Settings2 } from './icons';
-import { useAppConfig } from '../contexts/AppConfigContext';
+import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSaved } from '../contexts/SavedContext';
@@ -67,13 +67,6 @@ export function ThemeToggle({ className = '' }) {
     </div>
   );
 }
-
-/** The round school monogram: the first part of the slug (uva, cu-boulder, uw-madison). */
-const schoolMark = (config, school) => {
-  const slug = config?.school?.slug;
-  if (slug) return slug.split('-')[0].slice(0, 3).toUpperCase();
-  return school.split(/\s+/).filter((word) => /^[A-Z]/.test(word)).map((word) => word[0]).join('').slice(0, 3) || '?';
-};
 
 const isCurrent = (item, pathname) => item.match.some(
   (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -225,7 +218,7 @@ export default function CampusRail({
   className = '',
 }) {
   const { user, authToken } = useAuth();
-  const { config } = useAppConfig();
+  const { shortName: school, mark } = useSchool();
   const { pathname } = useLocation();
   const savedCount = useSaved()?.count || 0;
   const ownRecent = useRecentChats(recentProp ? null : authToken, refreshTrigger);
@@ -233,11 +226,10 @@ export default function CampusRail({
   const dock = useChatDock();
   const railSlot = useRailSlot();
 
-  const school = config?.app?.short_name || config?.app?.institution || config?.app?.title || 'Your campus';
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
 
   const brandMark = (
-    <span className="campus-brand-mark" aria-hidden="true">{schoolMark(config, school)}</span>
+    <span className="campus-brand-mark" aria-hidden="true">{mark}</span>
   );
 
   const rail = (

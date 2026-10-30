@@ -7,11 +7,11 @@ import 'leaflet/dist/leaflet.css';
 import SaveButton from '../components/SaveButton';
 import PlaceSheet, { CATEGORY_ICONS } from '../components/map/PlaceSheet';
 import useAsk from '../hooks/useAsk';
-import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getPlace, getRoute, listPlaces } from '../api/campus';
 import {
-  getCampusOrigin, getPlace, getRoute, listPlaces, setCampusOrigin,
-} from '../api/campus';
+  distanceText, isHere, openUntil, useSchool, useStartPlace, walkText,
+} from '../modules/campus';
 import '../styles/CampusHome.css';
 import '../styles/CampusMapPage.css';
 import { isAbort, useDelayedFlag } from '../utils/loading';
@@ -59,28 +59,9 @@ function pinIcon(category, selected) {
   return pinIcons.get(key);
 }
 
-export function formatDistance(metres) {
-  if (typeof metres !== 'number' || Number.isNaN(metres)) return '';
-  if (metres < 1000) return `${Math.round(metres)} m`;
-  return `${(metres / 1000).toFixed(1)} km`;
-}
+export const formatDistance = (metres) => distanceText(metres) || '';
 
-export function hoursLine(place, timezone) {
-  if (place?.open_now === true) {
-    if (!place.open_until) return 'Open now';
-    const until = new Date(place.open_until);
-    if (Number.isNaN(until.getTime())) return 'Open now';
-    let time;
-    try {
-      time = until.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: timezone || undefined });
-    } catch {
-      time = until.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    }
-    return `Open until ${time}`;
-  }
-  if (place?.open_now === false) return 'Closed now';
-  return 'Hours not listed';
-}
+export const hoursLine = openUntil;
 
 /** The panel's way out (31A): OSM walking directions when a start is known, else the place. */
 export function openStreetMapUrl(place, origin) {
@@ -341,9 +322,8 @@ function RoutePanel({ origin, originStatus, selected, route, onChangeStart, star
 const CampusMapPage = () => {
   const [searchParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { config } = useAppConfig();
-
-  const timezone = config?.school?.timezone;
+  const { timezone } = useSchool();
+  const start = useStartPlace();
 
   // URL context from chat cards (14A), read once.
   const initial = useRef({
@@ -352,8 +332,8 @@ const CampusMapPage = () => {
     category: searchParams.get('category'),
   }).current;
 
-  const [origin, setOrigin] = useState(null);
-  const [originStatus, setOriginStatus] = useState('loading');
+  // ?from= sets the start for this view only; otherwise the shared start place.
+  const [override, setOverride] = useState({ status: 'loading', place: null });
   const [category, setCategory] = useState(initial.category ?? null);
   const [list, setList] = useState({ status: 'loading', places: [], categories: {}, suggested: null });
   const [reloadKey, setReloadKey] = useState(0);
@@ -371,21 +351,20 @@ const CampusMapPage = () => {
 
   // ---- Start place: ?from= for this view, else the shared saved start (16A).
   useEffect(() => {
-    if (!authToken) return undefined;
+    if (!authToken || !initial.from) return undefined;
     const controller = new AbortController();
-    const load = initial.from
-      ? getPlace(authToken, initial.from, { signal: controller.signal }).then((data) => data?.place || null)
-      : getCampusOrigin(authToken, { signal: controller.signal }).then((data) => data?.place || null);
-    load
-      .then((place) => { setOrigin(place); setOriginStatus('ok'); })
+    getPlace(authToken, initial.from, { signal: controller.signal })
+      .then((data) => setOverride({ status: 'ok', place: data?.place || null }))
       .catch((error) => {
         if (isAbort(error)) return;
-        setOrigin(null);
-        setOriginStatus('error');
+        setOverride({ status: 'error', place: null });
       });
     return () => controller.abort();
   }, [authToken, initial.from]);
 
+  const sharedStatus = start.status === 'ready' ? 'ok' : start.status;
+  const origin = initial.from ? override.place : start.place;
+  const originStatus = initial.from ? override.status : sharedStatus;
   const originId = origin?.id || '';
   const originResolved = originStatus !== 'loading';
 
@@ -496,9 +475,8 @@ const CampusMapPage = () => {
   }, []);
 
   const pickStart = async (place) => {
-    const data = await setCampusOrigin(authToken, place.id);
-    setOrigin(data?.place || place);
-    setOriginStatus('ok');
+    const stored = await start.save(place);
+    if (initial.from) setOverride({ status: 'ok', place: stored });
     closePicker();
   };
 
@@ -650,13 +628,13 @@ const CampusMapPage = () => {
                               <span className="map-row-name">{place.name}</span>
                               <span className="map-row-hours">{hoursLine(place, timezone)}</span>
                             </span>
-                            {place.walk_minutes === 0 && place.distance_m === 0 ? (
+                            {isHere(place.walk_minutes) && place.distance_m === 0 ? (
                               <span className="map-row-walk">
                                 <span className="map-row-distance">Your starting place</span>
                               </span>
-                            ) : typeof place.walk_minutes === 'number' && (
+                            ) : walkText(place.walk_minutes) && (
                               <span className="map-row-walk">
-                                <span className="map-row-minutes">{place.walk_minutes} min</span>
+                                <span className="map-row-minutes">{walkText(place.walk_minutes)}</span>
                                 {typeof place.distance_m === 'number' && (
                                   <span className="map-row-distance">{formatDistance(place.distance_m)} walk</span>
                                 )}

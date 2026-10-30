@@ -8,7 +8,9 @@ import {
 import SaveButton from '../SaveButton';
 import { CouldntLoad, DragGrip, usePopupDrag } from '../popup/PopupParts';
 import { useEventList, usePlaceDetail } from '../../hooks/useCampusDetail';
-import { groupedHours, weekdayIndex, weeklyHours } from '../../utils/osmHours';
+import {
+  clockTime, distanceText, openState, walkParts, weekHours,
+} from '../../modules/campus';
 import '../../styles/Popups.css';
 
 /**
@@ -58,22 +60,8 @@ const CATEGORY_LABELS = {
   other: 'Place',
 };
 
-export function distanceText(metres) {
-  if (typeof metres !== 'number' || Number.isNaN(metres)) return null;
-  if (metres < 1000) return `${Math.round(metres)} m`;
-  return `${(metres / 1000).toFixed(1)} km`;
-}
-
-function timeIn(iso, timezone) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  const options = { hour: 'numeric', minute: '2-digit' };
-  try {
-    return date.toLocaleTimeString('en-US', { ...options, ...(timezone ? { timeZone: timezone } : {}) }).toLowerCase();
-  } catch {
-    return date.toLocaleTimeString('en-US', options).toLowerCase();
-  }
-}
+/** "11:00 pm": the place card's lower-case clock. */
+const timeIn = (iso, timezone) => clockTime(iso, timezone)?.toLowerCase() || null;
 
 function Photo({ photo }) {
   const [ok, setOk] = useState(true);
@@ -96,17 +84,19 @@ function Photo({ photo }) {
 
 function Tiles({ place, timezone }) {
   const tiles = [];
-  if (place.walk_minutes != null) {
+  const walk = walkParts(place.walk_minutes);
+  if (walk) {
     tiles.push(
       <div key="walk" className="ps-tile">
         <span className="ps-tile-label">Walk</span>
-        <span className="ps-tile-value ps-walk">{place.walk_minutes}<small> min</small></span>
+        <span className="ps-tile-value ps-walk">{walk.value}{walk.unit && <small>{` ${walk.unit}`}</small>}</span>
         {distanceText(place.distance_m) && <span className="ps-tile-sub">{distanceText(place.distance_m)}</span>}
       </div>,
     );
   }
-  if (place.open_now === true || place.open_now === false) {
-    const until = place.open_now && place.open_until ? timeIn(place.open_until, timezone) : null;
+  const open = openState(place, timezone);
+  if (open.open !== null) {
+    const until = open.until ? open.until.toLowerCase() : null;
     tiles.push(
       <div key="open" className="ps-tile">
         <span className="ps-tile-label">Open</span>
@@ -148,10 +138,8 @@ function Tiles({ place, timezone }) {
 }
 
 function Hours({ place, timezone, now }) {
-  const week = weeklyHours(place.hours);
-  if (!week) return null;
-  const today = weekdayIndex(now, timezone);
-  const rows = groupedHours(week, today);
+  const rows = weekHours(place.hours, timezone, now);
+  if (!rows) return null;
   return (
     <section className="ps-section" aria-labelledby="ps-hours-title">
       <h3 id="ps-hours-title" className="ps-section-title">Hours</h3>

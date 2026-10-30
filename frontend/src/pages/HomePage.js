@@ -7,10 +7,12 @@ import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanner } from '../contexts/PlannerContext';
 import { useSaved } from '../contexts/SavedContext';
-import { getCampusOrigin, getCatalogCourse, listEvents } from '../api/campus';
-import { formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
+import { listEvents } from '../api/campus';
+import { loadCourse } from '../modules/course';
+import {
+  clockTime, dateLabel, eventTime, hasPhysicalLocation, meetingClock, useSchool, useStartPlace, walkText,
+} from '../modules/campus';
 import { classesOn, coursesOnDate, dateIn } from '../components/planner/semester/semesterData';
-import { clockText } from '../components/planner/planFormat';
 import { downloadEventIcs } from '../utils/ics';
 import { useOpenCourse } from '../utils/openCourse';
 import '../styles/CampusHome.css';
@@ -19,24 +21,6 @@ const NEXT_UP_LIMIT = 4;
 const SAVED_LIMIT = 4;
 // "Next up" looks this far ahead.
 const NEXT_HOURS = 12;
-
-const todayLabel = (timezone) => {
-  try {
-    return new Date().toLocaleDateString(undefined, {
-      weekday: 'long', month: 'short', day: 'numeric', timeZone: timezone || undefined,
-    });
-  } catch {
-    return new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
-  }
-};
-
-const timeOf = (iso, timezone) => {
-  try {
-    return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', ...(timezone ? { timeZone: timezone } : {}) });
-  } catch {
-    return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  }
-};
 
 /**
  * Today's events still ahead (or under way) within the next hours, earliest
@@ -58,13 +42,13 @@ export function nextUp(events, now = Date.now()) {
 /** Today's events with walking minutes from the student's start place. */
 function useTodayEvents(authToken) {
   const [today, setToday] = useState({ loading: true, events: [], error: null, source: [] });
+  const start = useStartPlace();
+  const startReady = start.status !== 'loading';
+  const from = start.id || undefined;
   useEffect(() => {
-    if (!authToken) return undefined;
+    if (!authToken || !startReady) return undefined;
     let cancelled = false;
-    getCampusOrigin(authToken)
-      .then((data) => data?.place?.id || undefined)
-      .catch(() => undefined)
-      .then((from) => listEvents(authToken, { window: 'today', from }))
+    listEvents(authToken, { window: 'today', from })
       .then((data) => {
         if (cancelled) return;
         const events = Array.isArray(data?.events) ? data.events : [];
@@ -74,7 +58,7 @@ function useTodayEvents(authToken) {
         if (!cancelled) setToday({ loading: false, events: [], error: 'Events are unavailable right now.', source: [] });
       });
     return () => { cancelled = true; };
-  }, [authToken]);
+  }, [authToken, startReady, from]);
   return today;
 }
 
@@ -101,7 +85,7 @@ function useClassesToday(authToken, timezone) {
       return undefined;
     }
     let cancelled = false;
-    Promise.all(ids.split('|').map((id) => getCatalogCourse(authToken, id).then((data) => [id, data]).catch(() => [id, null])))
+    Promise.all(ids.split('|').map((id) => loadCourse(authToken, id).then((data) => [id, data]).catch(() => [id, null])))
       .then((pairs) => { if (!cancelled) setSummaries(new Map(pairs.filter(([, data]) => data))); });
     return () => { cancelled = true; };
   }, [authToken, ids]);
@@ -114,8 +98,8 @@ function EventRow({ event, timezone, onAsk }) {
   return (
     <li className="ah-evt">
       <span className="ah-time">
-        {formatEventTime(event, timezone)}
-        {event.end && event.end !== event.start && <small>to {timeOf(event.end, timezone)}</small>}
+        {eventTime(event, timezone)}
+        {event.end && event.end !== event.start && <small>to {clockTime(event.end, timezone)}</small>}
       </span>
       <span className="ah-what">
         <b>{event.title}</b>
@@ -126,8 +110,8 @@ function EventRow({ event, timezone, onAsk }) {
           </span>
         )}
       </span>
-      {event.walk_minutes != null
-        ? <span className="ah-walk"><Icon name="directions_walk" size={18} />{event.walk_minutes} min</span>
+      {walkText(event.walk_minutes)
+        ? <span className="ah-walk"><Icon name="directions_walk" size={18} />{walkText(event.walk_minutes)}</span>
         : <span />}
       <span className="ah-acts">
         {physical && (
@@ -185,14 +169,13 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { authToken } = useAuth();
   const { config } = useAppConfig();
+  const { name: school, timezone } = useSchool();
   const saved = useSaved();
   const openCourse = useOpenCourse();
   const [question, setQuestion] = useState('');
   const inputRef = useRef(null);
   const recent = useShellRecentChats(authToken);
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
-  const timezone = config?.school?.timezone;
   const starters = config?.homepage?.starters || [];
   const today = useTodayEvents(authToken);
   const upcoming = nextUp(today.events);
@@ -235,7 +218,7 @@ const HomePage = () => {
             />
           </section>
           <header className="ah-hero">
-            <p className="campus-kicker ah-date">{school} · {todayLabel(timezone)}</p>
+            <p className="campus-kicker ah-date">{school} · {dateLabel(new Date(), timezone)}</p>
             <h1>What do you need on campus today?</h1>
             <form className="ah-ask" onSubmit={handleSubmit}>
               <label htmlFor="campus-ask-input" className="sr-only">Ask a question</label>
@@ -295,7 +278,7 @@ const HomePage = () => {
                       {classes.map((row) => (
                         <li key={`${row.id}-${row.part}-${row.start}`}>
                           <button type="button" className="ah-cls" onClick={() => openCourse(row.id)}>
-                            <span className="ah-time">{clockText(row.start)}</span>
+                            <span className="ah-time">{meetingClock(row.start)}</span>
                             <span>
                               <span className="ah-code">{row.id}</span>
                               {row.title && <b>{row.title}</b>}

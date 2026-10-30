@@ -154,7 +154,6 @@ test('?to= overrides the suggestion and ?from= sets the start for this view', as
   renderPage('/map?from=college-library&to=steenbock&category=library');
   await waitFor(() => expect(rowButton('Steenbock Library')).toHaveAttribute('aria-pressed', 'true'));
   expect(screen.queryByText('Nearest open library')).not.toBeInTheDocument();
-  expect(campus.getCampusOrigin).not.toHaveBeenCalled();
   expect(campus.getPlace).toHaveBeenCalledWith('test-token', 'college-library', expect.anything());
   await waitFor(() => expect(campus.getRoute).toHaveBeenCalledWith(
     'test-token', { from: 'college-library', to: 'steenbock' }, expect.anything(),

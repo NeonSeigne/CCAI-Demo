@@ -3,14 +3,6 @@
  * value reads the same in both places (design 1A, 9A, 12A).
  */
 
-const SCHOOL_SHORT = { 'uw-madison': 'UW', uva: 'UVA', 'cu-boulder': 'CU' };
-
-/** "UW" for the school slug, else the institution name, else "Your school". */
-export function schoolShort(config) {
-  const slug = config?.school?.slug;
-  return SCHOOL_SHORT[slug] || config?.app?.institution || 'Your school';
-}
-
 /** "Spring 2027" -> "Spring 27". */
 export function shortTerm(term) {
   if (!term) return '';
@@ -78,14 +70,6 @@ export function asOfText(value) {
 export function minutes(time) {
   const [h, m] = String(time || '').split(':').map(Number);
   return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
-}
-
-/** "13:05" -> "1:05". */
-export function clockText(time) {
-  const total = minutes(time);
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}`;
 }
 
 export const WEEKDAYS = [
