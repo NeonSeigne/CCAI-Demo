@@ -494,7 +494,7 @@ test('switching term does not flash the new term\'s cards', async () => {
   expect(document.querySelector('.sv-flash')).not.toBeInTheDocument();
 });
 
-test('a stale proposal card offers Discard only', async () => {
+test('a stale proposal card offers Not now only', async () => {
   api.getPlan.mockResolvedValue(view({ proposal: proposal({ base_revision: 3 }) }));
   render(
     <MemoryRouter>
@@ -503,8 +503,8 @@ test('a stale proposal card offers Discard only', async () => {
       </PlannerProvider>
     </MemoryRouter>,
   );
-  expect(await screen.findByRole('button', { name: 'Discard' })).toBeInTheDocument();
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'Accept' })).not.toBeInTheDocument());
+  expect(await screen.findByRole('button', { name: 'Not now' })).toBeInTheDocument();
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument());
 });
 
 test('chat answers for the open term while the view is up', async () => {

@@ -89,12 +89,116 @@ export function consequenceRows(diff) {
     .map(({ row }) => row);
 }
 
-/** Keys of rows whose before/after differ between two diffs (Needs review). */
+const PREREQ_WORD = { met: 'Met', not_met: 'Not met', unknown: 'Unknown' };
+
+/**
+ * The proposed-change card's rows in the order design Q8 sets (chat-prereq):
+ *
+ *   1. the courses: a move ("ECON 4010 Game Theory", Fall 2027 → Spring 2027), an add, a remove
+ *   2. "Not what you asked" with the difference (R10)
+ *   3. problems: Prerequisites Not met, Clashes found
+ *   4. credits per affected term (`diff.terms`; else the shown term's, when it moves)
+ *   5. requirement and difficulty changes, biggest first
+ *   6. Prerequisites Met, or Unknown
+ *   7. one "?" row per thing the check couldn't settle
+ *
+ * Each row: {key, kind, icon, label, code?, title?, before?, after?, value?, note?}.
+ * `kind` is 'course' | 'literal' | 'problem' | 'credits' | 'change' | 'ok' | 'unknown'.
+ * A row with `before`/`after` reads as a change; otherwise `value` stands alone.
+ */
+export function proposalRows(diff) {
+  if (!diff) return [];
+  const rows = [];
+  const courses = diff.courses || {};
+  const added = new Map((diff.added_courses || []).map((c) => [c.id, c]));
+
+  (courses.moved || []).forEach((m) => rows.push({
+    key: `move:${m.id}`, kind: 'course', icon: 'swap_horiz', code: m.id, title: m.title || null, before: m.from, after: m.to,
+  }));
+  (courses.added || []).forEach((id) => rows.push({
+    key: `add:${id}`, kind: 'course', icon: 'add', code: id, title: added.get(id)?.title || null, value: added.get(id)?.term || null,
+  }));
+  (courses.removed || []).forEach((id) => rows.push({
+    key: `remove:${id}`, kind: 'course', icon: 'remove', code: id, value: 'Removed',
+  }));
+
+  if (diff.literal_differs) {
+    rows.push({
+      key: 'literal', kind: 'literal', icon: 'info', label: 'Not what you asked', note: diff.literal_differs,
+    });
+  }
+
+  const prereqs = diff.prereqs?.status;
+  if (prereqs === 'not_met') {
+    rows.push({
+      key: 'prereqs', kind: 'problem', icon: 'close', label: 'Prerequisites', value: PREREQ_WORD.not_met,
+    });
+  }
+  if (diff.clashes?.after === 'found') {
+    rows.push({
+      key: 'clashes', kind: 'problem', icon: 'close', label: 'Clashes', value: 'Found',
+    });
+  }
+
+  const span = (side) => creditSpan(side ? [side.min, side.max] : null) ?? 'unknown';
+  if ((diff.terms || []).length) {
+    diff.terms.forEach((t) => {
+      const before = span(t.before);
+      const after = span(t.after);
+      rows.push(before === after
+        ? { key: `credits:${t.term}`, kind: 'credits', icon: 'functions', label: `${t.term} credits`, value: after }
+        : {
+          key: `credits:${t.term}`, kind: 'credits', icon: 'functions', label: `${t.term} credits`, before, after,
+        });
+    });
+  } else if (diff.credits && !sameSpan(diff.credits.before, diff.credits.after)) {
+    rows.push({
+      key: 'credits',
+      kind: 'credits',
+      icon: 'functions',
+      label: 'Credits this term',
+      before: creditSpan(diff.credits.before) ?? 'unknown',
+      after: creditSpan(diff.credits.after) ?? 'unknown',
+    });
+  }
+
+  consequenceRows({ rules: diff.rules, difficulty: diff.difficulty })
+    .forEach((row) => rows.push({
+      key: row.key,
+      kind: 'change',
+      icon: row.key === 'difficulty' ? 'bar_chart' : 'school',
+      label: row.label,
+      before: row.before,
+      after: row.after,
+    }));
+
+  if (prereqs === 'met' || prereqs === 'unknown') {
+    rows.push({
+      key: 'prereqs',
+      kind: prereqs === 'met' ? 'ok' : 'unknown',
+      icon: prereqs === 'met' ? 'check' : 'help',
+      label: 'Prerequisites',
+      value: PREREQ_WORD[prereqs],
+    });
+  }
+
+  (diff.unknowns || []).forEach((text) => rows.push({
+    key: `unknown:${text}`, kind: 'unknown', icon: 'help', label: text,
+  }));
+  return rows;
+}
+
+/** True when a proposal's rows include a problem (Not met, Clashes): Apply then turns secondary (Q8). */
+export const hasProblem = (rows) => rows.some((row) => row.kind === 'problem');
+
+const rowText = (row) => `${row.before ?? ''}|${row.after ?? ''}|${row.value ?? ''}|${row.note ?? ''}`;
+
+/** Keys of rows whose values differ between two diffs (Needs review). */
 export function changedRowKeys(oldDiff, newDiff) {
-  const old = new Map(consequenceRows(oldDiff).map((row) => [row.key, `${row.before}|${row.after}`]));
+  const old = new Map(proposalRows(oldDiff).map((row) => [row.key, rowText(row)]));
   return new Set(
-    consequenceRows(newDiff)
-      .filter((row) => old.get(row.key) !== `${row.before}|${row.after}`)
+    proposalRows(newDiff)
+      .filter((row) => old.get(row.key) !== rowText(row))
       .map((row) => row.key),
   );
 }

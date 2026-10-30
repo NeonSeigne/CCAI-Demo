@@ -240,9 +240,10 @@
   white-space: nowrap;
 }
 
-.vc-tag.is-open { background: var(--good-tint); color: var(--good); }
-.vc-tag.is-full { background: var(--error-tint); color: var(--error); }
+.vc-tag.is-done { background: var(--good-tint); color: var(--good); }
 .vc-tag.is-now { background: var(--tint); color: var(--tint-ink); }
+/* The time a shortlist row fits (system.css .tag.plan). */
+.vc-tag.is-plan { background: var(--raised); color: var(--muted); }
 
 .vc-card :focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
 
@@ -494,8 +495,7 @@
 
 /* ---- Proposed change ----------------------------------------------------- */
 .vc-proposal .vc-head .vc-tag { flex-shrink: 0; }
-.vc-proposal-title { margin: 0 0 4px; font-size: 15.5px; font-weight: 700; }
-.vc-proposal-note { margin: 0 0 6px; font-size: 14px; color: var(--muted); }
+.vc-proposal .vc-foot { padding-top: 0; }
 
 .vc-diff { margin: 0; padding: 0; list-style: none; }
 
@@ -522,9 +522,22 @@
   color: var(--muted);
 }
 
-.vc-diff-icon.is-move { background: var(--tint); color: var(--tint-ink); }
+.vc-diff-icon .ms { font-size: 18px; }
+/* Course rows (the move leads) in tint; Met in good; a problem in the
+   school's "harder" role (ink at UW, DESIGN.md) with its close icon; unknowns muted. */
+.vc-diff-icon.is-course { background: var(--tint); color: var(--tint-ink); }
+.vc-diff-icon.is-ok { background: var(--good-tint); color: var(--good); }
+.vc-diff-icon.is-problem { color: var(--harder); }
 .vc-diff-label { min-width: 0; }
+.vc-diff-label .vc-code { color: var(--ink); }
 .vc-diff-label small { color: var(--tint-ink); font-size: 12.5px; font-weight: 700; }
+.vc-diff-label small.vc-diff-note { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.pc-row.is-unknown .vc-diff-label { color: var(--muted); }
+
+.vc-diff-value { font-weight: 700; white-space: nowrap; }
+.pc-row.is-ok .vc-diff-value { color: var(--good); }
+.pc-row.is-problem .vc-diff-value { color: var(--harder); }
+.pc-row.is-unknown .vc-diff-value { color: var(--muted); }
 
 .vc-arrow {
   display: inline-flex;
@@ -532,21 +545,24 @@
   gap: 6px;
   font-weight: 700;
   text-align: right;
+  white-space: nowrap;
 }
 
 .vc-arrow s { color: var(--muted); font-weight: 600; text-decoration: none; }
 
-.vc-unknowns { margin: 8px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: 13px; }
-
+/* Failures read in ink with an icon (DESIGN.md "States"), never red alone. */
 .vc-alert {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin: 10px 0 0;
-  color: var(--error);
+  color: var(--ink);
   font-size: 14px;
   font-weight: 600;
 }
+
+.vc-alert > .ms { color: var(--harder); }
 
 .vc-alert.is-review { color: var(--tint-ink); }
 
