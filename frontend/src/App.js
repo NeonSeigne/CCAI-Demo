@@ -16,8 +16,10 @@ import ChatPage from './pages/ChatPage';
 import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
 import EventsPage from './pages/EventsPage';
+import SettingsPage from './pages/SettingsPage';
 import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
+import BootScreen, { PageSkeleton } from './components/BootScreen';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
 import { StartPlaceProvider } from './modules/campus';
@@ -35,7 +37,7 @@ const CourseComparePage = lazy(() => import('./pages/CourseComparePage'));
 // split it out.
 const PopupHost = lazy(() => import('./components/popup/PopupHost'));
 
-const pageFallback = (label) => <div className="auth-boot-screen" role="status">{label}</div>;
+const pageFallback = (label) => <PageSkeleton label={label} shape="page" />;
 
 // Set REACT_APP_ENABLE_DEV_LOGIN=true to show the homepage "Developer mode"
 // button (auto-login as the seeded developer user). Requires ENABLE_DEV_LOGIN=true
@@ -45,11 +47,7 @@ export const ENABLE_DEV_LOGIN = process.env.REACT_APP_ENABLE_DEV_LOGIN === 'true
 function CatchAllRedirect() {
   const { isAuthenticated, authReady } = useAuth();
   if (!authReady) {
-    return (
-      <div className="auth-boot-screen" role="status" aria-live="polite">
-        Checking session…
-      </div>
-    );
+    return <BootScreen />;
   }
   return <Navigate to={isAuthenticated ? '/home' : '/'} replace />;
 }
@@ -86,10 +84,11 @@ export function AppRoutes() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<ChatSearchPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route
             path="/saved"
             element={(
-              <Suspense fallback={<div className="auth-boot-screen" role="status">Loading saved items…</div>}>
+              <Suspense fallback={pageFallback('Loading saved items…')}>
                 <SavedPage />
               </Suspense>
             )}
@@ -97,7 +96,7 @@ export function AppRoutes() {
           <Route
             path="/map"
             element={(
-              <Suspense fallback={<div className="auth-boot-screen" role="status">Loading map…</div>}>
+              <Suspense fallback={pageFallback('Loading map…')}>
                 <CampusMapPage />
               </Suspense>
             )}

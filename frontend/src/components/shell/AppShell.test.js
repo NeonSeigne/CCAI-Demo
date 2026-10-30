@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import {
   act, fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import {
+  MemoryRouter, Route, Routes, useLocation,
+} from 'react-router-dom';
 import AppShell from './AppShell';
 import { usePageColumn } from './PageColumnContext';
 import AppDialog from '../AppDialog';
@@ -74,12 +76,19 @@ function PageWithDialog() {
   );
 }
 
+/** Stands in for the Settings page: shows where the account menu led. */
+function SettingsProbe() {
+  const { pathname, hash } = useLocation();
+  return <Page>{`At ${pathname}${hash}`}</Page>;
+}
+
 const renderShell = (path = '/courses', element = <Page>Courses</Page>) => render(
   <MemoryRouter initialEntries={[path]}>
     <SavedContext.Provider value={{ count: 0 }}>
       <Routes>
         <Route element={<AppShell />}>
           <Route path={path} element={element} />
+          <Route path="/settings" element={<SettingsProbe />} />
         </Route>
       </Routes>
     </SavedContext.Provider>
@@ -353,7 +362,18 @@ describe('the account menu', () => {
     expect([...menu.querySelectorAll('.cc-menu-label')].map((label) => label.textContent))
       .toEqual(['Profile', 'Settings', 'Model', 'Help', 'Sign out']);
     fireEvent.click(within(menu).getByRole('menuitem', { name: 'Profile' }));
-    expect(await screen.findByRole('button', { name: 'Close settings' })).toBeInTheDocument();
+    expect(await screen.findByText('At /settings#profile')).toBeInTheDocument();
+  });
+
+  test('Settings and Model open the Settings page', async () => {
+    renderShell();
+    const rail = screen.getByRole('navigation', { name: 'Main' });
+    fireEvent.click(within(rail).getByRole('button', { name: 'Account' }));
+    fireEvent.click(within(screen.getByRole('menu', { name: 'Account' })).getByRole('menuitem', { name: 'Settings' }));
+    expect(await screen.findByText('At /settings')).toBeInTheDocument();
+    fireEvent.click(within(rail).getByRole('button', { name: 'Account' }));
+    fireEvent.click(within(screen.getByRole('menu', { name: 'Account' })).getByRole('menuitem', { name: /^Model/ }));
+    expect(await screen.findByText('At /settings#model')).toBeInTheDocument();
   });
 
   test('on a phone the header avatar opens it as a bottom sheet', async () => {
