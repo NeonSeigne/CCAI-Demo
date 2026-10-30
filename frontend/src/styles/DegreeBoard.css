@@ -6,7 +6,7 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  container: dg-board / inline-size;
+  container-type: inline-size;
 }
 
 /* Group colours: the six course colours in file order, a neutral "Other credit". */
@@ -31,22 +31,29 @@
 }
 
 /* ---- Title row (transit-a: h1, program, spacer, tabs, undo, redo, Add course) */
+/*
+ * The title row (transit-a): title, program, then the tabs, undo, redo and
+ * Add course as one group at the right. Gaps and paddings tighten with the
+ * board's width; the program name gives way first (down to 72px, truncated),
+ * then the group wraps as a unit to a second line.
+ */
 .dg-titlerow {
+  --dg-title-gap: clamp(8px, 2cqi - 8px, 12px);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 12px var(--dg-title-gap);
   flex-wrap: wrap;
 }
-/* The tabs, undo, redo and Add course wrap as one group at the right. */
 .dg-titletools {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--dg-title-gap);
   margin-left: auto;
 }
 .dg-titlerow h1,
 .dg-titletools { flex: none; }
-.dg-titlerow .dg-program-btn { flex: 0 1 auto; }
+.dg-titlerow .dg-program-btn { flex: 1 1 0; min-width: 72px; max-width: max-content; }
+.dg-titletools .dg-btn { padding: 0 clamp(14px, 4cqi - 20px, 18px); }
 .dg-titlerow h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -81,6 +88,7 @@
   cursor: pointer;
 }
 /* 44px hit areas round the 37px items (design Q19). */
+.dg-titlerow .cc-tab { padding: 7px clamp(12px, 4cqi - 20px, 16px); }
 .dg-titlerow .cc-tab::after,
 .dg-seg button::after { content: ""; position: absolute; inset: -4px 0; }
 .dg-titlerow .cc-tab.is-selected,
@@ -92,19 +100,6 @@
 .dg-titlerow .cc-tab-count { display: none; }
 .dg-seg.is-wide { display: flex; }
 .dg-seg.is-wide button { flex: 1; }
-
-/* One row while the board is 760px or wider (transit-a): tighter gaps, and
-   the program name truncates. Narrower, the tools wrap as one group. */
-@container dg-board (min-width: 760px) {
-  .dg-titlerow { flex-wrap: nowrap; gap: 8px; }
-  .dg-titletools { gap: 8px; }
-  .dg-titletools .dg-icon-btn + .dg-icon-btn { margin-left: -6px; }
-}
-@container dg-board (min-width: 760px) and (max-width: 899px) {
-  .dg-titlerow .cc-tab { padding: 7px 12px; }
-  .dg-titlerow .dg-program-btn { padding: 0 10px 0 14px; }
-  .dg-titletools .dg-btn { padding: 0 16px; }
-}
 
 /* Buttons (system.css .btn): 42px, fully round, 700 14.5px. */
 .dg-btn {
