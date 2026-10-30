@@ -615,7 +615,7 @@ html[data-theme="dark"] .cc-chip[aria-checked="true"] {
   .cc-dialog.is-sheet .MuiDialog-paper {
     width: 100%;
     max-width: 100%;
-    max-height: calc(100dvh - 24px);
+    max-height: 94vh;
     margin: 0;
     border-radius: var(--r-2xl) var(--r-2xl) 0 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);

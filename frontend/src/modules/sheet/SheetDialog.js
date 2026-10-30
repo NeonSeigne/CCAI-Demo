@@ -16,7 +16,7 @@ export const PHONE_SHEET = '(max-width: 700px)';
 
 /**
  * Props: open (default true), onClose(event, reason), labelledBy (the
- * title's id), size ('wide' 1000px, 'medium' 800px, 'narrow' 400px), children.
+ * title's id), size ('wide' 1000px, 'medium' 760px, 'narrow' 400px), children.
  * Renders nothing until the page column exists, so the dialog never lands
  * on the body first (which would hide the rail and the dock).
  */

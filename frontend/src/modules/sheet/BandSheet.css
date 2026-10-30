@@ -26,7 +26,11 @@
   overflow: hidden;
 }
 
-.pop-dialog-paper--medium { width: min(800px, calc(100vw - 32px)); }
+/* The top 40px of the paper is band colour, so the rounded corners don't
+   show a rim of the surface colour round the band. */
+.pop-dialog-paper.MuiPaper-root { background: linear-gradient(var(--band) 0 40px, var(--surface) 40px); }
+
+.pop-dialog-paper--medium { width: min(760px, calc(100vw - 32px)); }
 .pop-dialog-paper--narrow { width: min(400px, calc(100vw - 32px)); }
 
 /* ---- Band -------------------------------------------------------------- */
@@ -180,13 +184,13 @@
   padding: 0;
   border: 0;
   border-radius: var(--r-full);
-  background: var(--band-raised);
+  background: var(--band-line);
   color: var(--on-deep);
   cursor: pointer;
   transition: transform 120ms ease-out;
 }
 
-.pop-icon-btn:hover { background: var(--band-line); }
+.pop-icon-btn:hover { background: color-mix(in srgb, var(--on-deep) 18%, transparent); }
 
 /* 38px drawn, 44px to tap (design Q19). */
 .pop-icon-btn::after { content: ""; position: absolute; inset: -3px; }
