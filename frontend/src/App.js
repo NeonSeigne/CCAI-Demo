@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import {
   BrowserRouter, Navigate, Outlet, Route, Routes,
 } from 'react-router-dom';
@@ -21,6 +21,7 @@ import UserGuide from './components/UserGuide';
 import { ToastProvider } from './components/Toast';
 import RouteFocus, { SkipLink } from './components/RouteFocus';
 import { StartPlaceProvider } from './modules/campus';
+import { clearCourseCache } from './modules/course';
 import './styles/components.css';
 
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -57,6 +58,8 @@ function CatchAllRedirect() {
  * page, and the student's start place, loaded once for every page.
  */
 export function ShellWithPopups() {
+  // Signing out unmounts the shell; the next student starts with no cached courses.
+  useEffect(() => () => clearCourseCache(), []);
   return (
     <StartPlaceProvider>
       <AppShell>

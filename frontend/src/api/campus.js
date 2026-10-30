@@ -78,8 +78,13 @@ export const searchCatalog = (token, { q, level, open_only, limit } = {}, option
   request(token, `/api/catalog/search${query({ q, level, open_only, limit })}`, options);
 export const getCatalogStarters = (token, options) => request(token, '/api/catalog/starters', options);
 export const getCatalogCourse = (token, id, options) => request(token, `/api/catalog/${path(id)}`, options);
-/** `{identifier, ratings: [{name, rating, difficulty, num_ratings, would_take_again_pct?, url?}], source}`. */
-export const getCourseRatings = (token, id, options) => request(token, `/api/catalog/ratings/${path(id)}`, options);
+/**
+ * `{identifier, ratings: [{name, rating, difficulty, num_ratings, would_take_again_pct?, url?}], source,
+ * instructor_rating: {rating, instructors, term}|null}`; `term` ("Spring 2027") picks whose sections count.
+ */
+export const getCourseRatings = (token, id, { term, ...options } = {}) => (
+  request(token, `/api/catalog/ratings/${path(id)}${query({ term })}`, options)
+);
 
 // ---- Events -----------------------------------------------------------------
 export const listEvents = (token, { window, q, from } = {}, options) =>
