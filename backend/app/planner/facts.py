@@ -75,6 +75,29 @@ class CourseFacts:
     notes: List[str] = field(default_factory=list)
 
 
+# A course whose average GPA is at least this reads "easier", unless the
+# school pack sets ``planner.easier_from_gpa``.
+EASIER_FROM_GPA = 3.4
+Difficulty = Literal["easier", "typical", "harder"]
+
+
+def difficulty_of(facts: Optional[CourseFacts], easier_from_gpa: Optional[float] = None) -> Optional[Difficulty]:
+    """A course's difficulty from the school's own rule (eng review R5).
+
+    "harder" is the provider's ``harder`` flag (the school's
+    ``harder_below_gpa``, else the hardest third of its grade data). Of the
+    rest, an average GPA at or above ``easier_from_gpa`` (default 3.4) reads
+    "easier" and anything else "typical". None when the course has no average
+    GPA or the school has no "harder" cutoff.
+    """
+    if facts is None or facts.known != "yes" or facts.avg_gpa is None or facts.harder is None:
+        return None
+    if facts.harder:
+        return "harder"
+    cutoff = EASIER_FROM_GPA if easier_from_gpa is None else easier_from_gpa
+    return "easier" if facts.avg_gpa >= cutoff else "typical"
+
+
 # ---------------------------------------------------------------------------
 # Batch loading
 # ---------------------------------------------------------------------------

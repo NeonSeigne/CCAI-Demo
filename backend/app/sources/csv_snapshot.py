@@ -336,12 +336,134 @@ async def instructor_grades(course_identifier: str) -> List[Dict[str, Any]]:
     return [item for item, _ in out]
 
 
+# "Prerequisite(s):", "Pre-requisite:", "Co-requisite:" labels in descriptions.
+_REQUISITE_LABEL = re.compile(r"\b(pre|co)-?\s?requisites?\s*:\s*", re.I)
+# A sentence break, unless the next sentence starts with a course code
+# ("ECON 3010. ECON 3110 also counts").
+_SENTENCE_END = re.compile(r"\.\s+(?=[A-Z])(?![A-Z]{2,5}\s?\d{4}\b)")
+_CODE = re.compile(r"\b([A-Z]{2,5})\s?(\d{4})\b|\b(\d{4})\b")
+_REQUISITE_TEXT_LIMIT = 400
+
+
+def requisite_segments(description: str) -> List[Tuple[str, str]]:
+    """``[(timing, text)]`` for each requisite label in a description, each
+    text cut at the end of its sentence: ``"prior"`` for prerequisites,
+    ``"concurrent"`` for co-requisites."""
+    text = " ".join((description or "").split())
+    labels = list(_REQUISITE_LABEL.finditer(text))
+    out = []
+    for i, label in enumerate(labels):
+        end = labels[i + 1].start() if i + 1 < len(labels) else len(text)
+        body = text[label.end():end]
+        stop = _SENTENCE_END.search(body)
+        body = (body[:stop.start()] if stop else body).strip().rstrip(".;, ")
+        if body:
+            timing = "concurrent" if label.group(1).lower() == "co" else "prior"
+            out.append((timing, f"{label.group(0).strip()} {body}"))
+    return out
+
+
+def requisite_codes(text: str) -> List[str]:
+    """Course codes in requisite text; a bare number takes the subject before
+    it ("ECON 3010 or 3110" -> ECON 3010, ECON 3110)."""
+    codes: List[str] = []
+    subject = ""
+    for match in _CODE.finditer(text or ""):
+        if match.group(1):
+            subject = match.group(1)
+            code = _identifier(subject, match.group(2))
+        elif subject:
+            code = _identifier(subject, match.group(3))
+        else:
+            continue
+        if code not in codes:
+            codes.append(code)
+    return codes
+
+
+async def _snapshot_courses() -> Tuple[List[Index], Index, Optional[str]]:
+    """Sections indexes of every term file (newest term first), the grade
+    index and the newest sections file's date. A file that can't load is
+    left out."""
+    files = term_files()
+    newest_first = sorted(files, key=lambda t: _term_order(" ".join(reversed(t.split()))), reverse=True)
+    loaded = await asyncio.gather(*(_table(files[t]) for t in newest_first), return_exceptions=True)
+    ok = [(t, result) for t, result in zip(newest_first, loaded) if not isinstance(result, BaseException)]
+    indexes = [_index(files[t], result[0], "Mnemonic", "Number") for t, result in ok]
+    grades, _, _, _ = await _grade_index()
+    return indexes, grades, ok[0][1][1] if ok else None
+
+
+async def term_instructors(identifier: str, term: str) -> Optional[List[str]]:
+    """Instructors of the course's sections in ``term``'s file, in file order;
+    ``[]`` when the term doesn't list the course, None when no file covers
+    the term. Raises ``RuntimeError`` when the file can't be loaded."""
+    url = term_files().get(_same_term(term))
+    subject, number = _split(identifier)
+    if not url or not subject:
+        return None
+    rows, _ = await _table(url)
+    names: List[str] = []
+    for row in _index(url, rows, "Mnemonic", "Number").get(_identifier(subject, number)) or []:
+        names.extend(n.strip() for n in _instructors(row).split(","))
+    return list(dict.fromkeys(n for n in names if n))
+
+
 async def prerequisites(*, tool_name: str = "", course_identifier: str) -> Dict[str, Any]:
+    """Requisites read from the course description, the newest term first.
+
+    The snapshot has no structured prerequisites: ``prereq_text`` is the
+    description's "Prerequisite:" / "Co-requisite:" sentences as written, and
+    ``prerequisites`` the courses they name that the snapshot lists, each
+    with ``timing`` (``prior`` or ``concurrent``). Whether they combine with
+    "and" or "or" is in the text only.
+    """
     del tool_name
+    query_meta = {"course_identifier": course_identifier}
+    subject, number = _split(course_identifier)
+    if not subject:
+        return {"course": None, "error": f"Could not read '{course_identifier}' as a course.", "query": query_meta}
+    key = _identifier(subject, number)
+    try:
+        indexes, grades, as_of = await _snapshot_courses()
+    except Exception as exc:  # noqa: BLE001
+        logger.error("snapshot prerequisites failed: %s", exc)
+        return {"course": None, "error": str(exc), "query": query_meta}
+    rows = [row for index in indexes for row in index.get(key) or []]
+    if not rows and key not in grades:
+        return {"course": None, "error": f"No course found for '{key}'.", "query": query_meta}
+
+    def title_of(code: str) -> str:
+        for index in indexes:
+            if index.get(code):
+                return index[code][0].get("Title", "")
+        return (grades.get(code) or [{}])[0].get("Class Title", "")
+
+    segments: List[Tuple[str, str]] = []
+    for row in rows:
+        segments = requisite_segments(row.get("Description", ""))
+        if segments:
+            break
+    courses: List[Dict[str, Any]] = []
+    for timing, text in segments:
+        for code in requisite_codes(text.partition(":")[2]):
+            known = any(code in index for index in indexes) or code in grades
+            if code == key or not known or any(c["identifier"] == code for c in courses):
+                continue
+            courses.append({"identifier": code, "title": title_of(code), "timing": timing})
+    prereq_text = ". ".join(text for _, text in segments)[:_REQUISITE_TEXT_LIMIT]
     return {
-        "course": None,
-        "error": _NOT_AVAILABLE.format(what="prerequisite information"),
-        "query": {"course_identifier": course_identifier},
+        "course_identifier": key,
+        "title": title_of(key),
+        "prereq_text": prereq_text,
+        "prerequisites": courses,
+        "has_prerequisites": bool(prereq_text or courses),
+        "query": query_meta,
+        **_meta(as_of),
+        "data_note": (
+            "Prerequisites as written in the course description; the snapshot "
+            "does not say how they combine beyond the text."
+        ),
     }
 
 
@@ -385,6 +507,10 @@ async def course_sections(
             "type": row.get("Type", ""),
             "instructors": _instructors(row),
             "meetings": _meetings(row),
+            "meeting_times": [
+                {"day": m.day, "start": m.start, "end": m.end}
+                for i in range(1, 5) for m in parse_meetings(row.get(f"Days{i}", ""))
+            ],
             "status_at_snapshot": row.get("Status", ""),
             "enrolled_at_snapshot": enrolled,
             "capacity": capacity,

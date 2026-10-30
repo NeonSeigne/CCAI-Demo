@@ -179,7 +179,7 @@ adds no credits there, so the earned sum is the distinct earned credits.
 | POST | `/api/planner/proposals/{id}/discard` | | `{proposal}` |
 | POST | `/api/planner/undo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}` |
 | POST | `/api/planner/redo` | `{expected_revision}` | `{plan, report, undo_label, redo_label}`: re-applies `undo.stack[pointer].ops` through the edit checks and advances the pointer; 409 `revision_conflict`, 409 `{status:"refused", reason}` ("Nothing to redo", "Can't redo that: …"). A new edit drops the steps after the pointer. `redo_label` is `"Redo: added ECON 3010"` or null |
-| GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits}]}` |
+| GET | `/api/planner/suggestions` | `?q=&term=` | `{items: [{id, title, why, labels, prereqs, credits, gpa, difficulty, fit, fit_reason, section, clashes_with}]}` (fit: see "Suggestion schedule fit") |
 | POST | `/api/planner/transcript` | multipart `file` (PDF, DOCX or TXT; 10 MB; PDF 40 pages) | `{rows: [{id, title, grade, credits, term, ticked, checked, in_catalog}], counts: {rows, ticked, not_checked, not_in_catalog}}`; nothing stored, logs carry counts only; 413 `too_large`, 415 `unsupported_type`, 422 `no_file` / `too_many_pages` / `unreadable` (`planner/transcript.py`) |
 
 Ops: `{"op":"add","course":id}`, `{"op":"remove","course":id}`,
@@ -218,3 +218,154 @@ With it, `plan_summary` says "planning Fall 2027", `plan_suggest` checks
 suggestions for that term, and `plan_edit` gives an `add` with no `term` that
 term and draws the proposal's diff for it (`proposal.term`). Without it everything uses `plan.term`. `GET /api/planner/suggestions`
 returns `{items, reason, term}`.
+
+## Catalog course summary (`GET /api/catalog/{id}`, `sources/academics.course_summary`)
+
+Fields the planner rules decide; the frontend reads them and never recomputes.
+
+```
+summary = {
+  ...,                                   # identifier, title, grades, sections, ... (see course_summary)
+  "difficulty": "easier"|"typical"|"harder"|null,   # always present (eng review R5)
+}
+```
+
+`difficulty` uses the planner's per-school rule (`facts.difficulty_of`):
+"harder" is the course facts' `harder` flag (the school's
+`planner.harder_below_gpa`, else the hardest third of the snapshot's grade
+data, `csv_snapshot._hardest_third`); of the rest, an average GPA at or above
+`planner.easier_from_gpa` (default 3.4, `facts.EASIER_FROM_GPA`; read with
+`getattr`, so it takes effect once `PlannerConfig` declares the field) is "easier",
+anything else "typical". null when the course has no average GPA or the school
+has no "harder" cutoff. Per school: UVA all three labels; UW "harder" below
+3.4, so with the default easier cutoff a UW course is "harder" or "easier",
+never "typical", until its pack sets `easier_from_gpa`; CU always null (FOSE
+publishes no grades).
+
+## Chat course cards (`api/visuals.py`)
+
+Course card refs (`{type: "course_*", course, term?}`) are emitted for every
+school (eng review R7) and hydrate from `/api/catalog/{id}`; snapshot results
+are no longer skipped, and their summary keeps `as_of` / `sections.as_of` for
+the dated label (R8). Sources: UW `course_grades`, `course_prerequisites`,
+`course_next`, `course_sections`; UVA `course_grades`, `course_sections` (its
+`term` is a label like "2026 Spring", not a number); CU `search_courses`
+(FOSE) gives `course_schedule` and `course_instructors` when its rows are one
+course, nothing for a subject listing (no grades at CU). Course links
+(`course:` markdown) stay UW-only (`academics.links_to_course_pages`).
+
+### Prerequisites and chains (`prerequisites`, `prereq_chain`)
+
+```
+"prerequisites": {"text": str, "courses": [{"identifier", "title", "timing"?}]}|null,  # capabilities.prerequisites
+"prereq_tree": {kind: all|any|course, ...},       # planner-checkable tree; UW only
+"prereq_chain": {                                 # only when the course's requisites name a course
+  "root": "CS 4774",
+  "courses": [{"id", "title", "depth": n,         # breadth-first, root at depth 0
+               "requires": [ids],                 # courses its requisites name (and/or not kept)
+               "known": bool}],                   # false: the source didn't answer for it
+  "complete": bool,                               # false when depth 4, 30 courses or 6 s cut it short
+}
+```
+
+`academics.prereq_chain` walks the provider's `prerequisites` level by level.
+Per school:
+
+- UW (Course Map): structured requirements; `prereq_tree` (and/or, minimum
+  grade, timing) for the course itself, `prereq_chain` for the levels below.
+- UVA (snapshot): no structured prerequisites. `prerequisites.text` is the
+  description's "Prerequisite:" / "Co-requisite:" sentences as written (768 of
+  2,839 Spring 2027 courses have one); `courses` are the codes they name that
+  the snapshot lists (a bare number takes the subject before it), with
+  `timing` "prior" or "concurrent". No `prereq_tree`: how the courses combine
+  is only in the text, so the planner keeps reading UVA prerequisites as
+  unknown. `next_courses` stays unavailable.
+- CU (FOSE): the class search rows carry no prerequisites (fields: code,
+  title, crn, no, schd, meets, meetingTimes, instr, dates, linked_crns,
+  cart_opts); `capabilities.prerequisites` is false and there is no
+  `prerequisites`, `prereq_tree` or `prereq_chain`. Reading FOSE's per-section
+  details would be a new source path and isn't built.
+
+Chat: a `course_prerequisites` result naming at least one course gives
+`{type: "course_prereq_map", course}` (hydrated from the summary above); the
+legacy flat `prereq_tree` spec is no longer emitted but still renders for old
+messages. UVA's pack now enables `course_prerequisites`.
+
+### Section rows (`sections.rows[]`)
+
+```
+{"id", "section", "type", "instructors": str, "enrolled", "capacity", "seats_open", "is_open",
+ "meetings": [str]?,                                  # as the source writes them
+ "meeting_times": [{"day": "Mo", "start": "HH:MM", "end": "HH:MM"}]?,  # parsed, 24-hour, school-local
+ "waitlist": n?,                                      # students waiting at snapshot time
+ "bldg": str?}                                        # CU only
+```
+
+A key is left out where the source lacks it. UVA (snapshot): instructor per
+section, `meeting_times`, `waitlist` (the summary reads `sections_url`, the
+Fall 2026 file; the Spring 2027 file reads 0 waiting everywhere today). CU (FOSE): instructor per section and
+`meeting_times`; no seats, no waitlist. UW (Course Map): seats only; no
+meeting times, no waitlist, and instructors per course, not per section.
+Snapshot data stays dated: `as_of` and `sections.as_of` carry the snapshot
+date and `sections.historical` is true (R8: the frontend shows "{enrolled} of
+{capacity} · {term}" and no "waiting" for it).
+
+## Instructor ratings (`GET /api/catalog/ratings/{id}?term=`, `sources/ratings.py`)
+
+```
+{"identifier", "ratings": [{name, rating, difficulty, num_ratings, would_take_again_pct?, url?}],
+ "source": {name, url}|null,
+ "instructor_rating": {"rating": 3.6,          # plain mean, one decimal
+                       "instructors": 2,       # how many rated instructors it averages
+                       "term": "Spring 2027"|null}|null}   # null: nobody rated (hide the tile)
+```
+
+Design Q15: the mean rating of the instructors teaching `term`'s sections
+(`term` is the plan's term, "Season YYYY"; default `academics.next_term()`).
+It is on the ratings payload, not the summary, because the summary must stay
+free of RateMyProfessors lookups (and ratings already reads the summary).
+Only unambiguous matches count (the `ratings.match` rule). Per school: UVA
+from that term's snapshot file (null for a term with no file); CU from FOSE's
+rows for the term, but FOSE names instructors by initial or last name only
+("K. Nielsen", "Shandilya/Hoenigman"), which never match a full RMP name, so
+CU is in practice null; UW from Course Map's own ratings of the course's
+instructors (Course Map doesn't say who teaches which term, so `term` is null).
+
+## Suggestion schedule fit (eng review R9, `planner/suggest.schedule_fit`)
+
+Each suggestion item (`/api/planner/suggestions`, `plan_suggest`, the
+`course_shortlist` visual) also carries:
+
+```
+"gpa": n|null,                                   # the course's average GPA (facts.avg_gpa)
+"difficulty": "easier"|"typical"|"harder"|null,  # same rule as the catalog summary (R5)
+"fit": "fits"|"clashes"|"unknown",
+"fit_reason": str|null,                          # unknown: the checker's reason, e.g. "class times not published"
+"section": {"ids": [section ids],                # the chosen bundle, ready for pick_section
+            "meetings": [{"section", "kind", "day", "start", "end"}]}|null,
+"clashes_with": [course ids],                    # fit == "clashes": the plan courses its sections hit
+```
+
+The candidate's sections are tried in order (lectures first; for a bundled
+course, one of each required companion kind, the first that clashes with
+nothing), each through `checker.check_schedule` with the plan's courses in
+the term. `fits`: a bundle clashes with nothing and every course could be
+checked. `clashes`: every bundle clashes (`section` null). `unknown`: the
+candidate publishes no times (UW Course Map: always), a companion has no
+times, or another course in the term can't be checked (e.g. "sections not
+chosen"); `section` is then the first bundle with no clash found, or null.
+Items rank offered, then prerequisites met, then fits / unknown / clashes.
+The `course_shortlist` visual passes all of these fields through.
+
+### Grade figures (`grades`, `cumulative`)
+
+```
+{"gpa", "students", "pct_a", "pct_df", "distribution": {bucket: count},
+ "buckets": [{"key": "A+", "label": "A+"}, ...],   # the school's own buckets, best grade first
+ "term"?, "labels"?: {"a", "df"}, "as_of"?}          # latest-term figure only
+```
+
+Each school keeps its own scale (eng review R11; the frontend groups them):
+UW `a, ab, b, bc, c, d, f` (labels A, AB, B, BC, C, D, F); UVA `A+, A, A-,
+B+, B, B-, C+, C, C-, DFW` (DFW counts D, F and withdrawals together). CU
+publishes no grades: no `grades`, `cumulative` or `buckets`.

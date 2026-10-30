@@ -3,8 +3,12 @@
 Course tools return structured data that the LLM otherwise flattens into prose.
 ``build_visuals`` emits small declarative specs the frontend renders with
 pre-built components. New ``course_*`` refs carry only a course identifier
-(and optional term); the client hydrates them from ``/api/catalog/{id}``. Legacy ``gpa_chart`` / ``prereq_tree`` shapes remain
-renderable for older persisted messages.
+(and optional term); the client hydrates them from ``/api/catalog/{id}``,
+which every school serves (UW Course Map, UVA's snapshot, CU's FOSE), so
+course cards are built for every provider (eng review R7). Snapshot answers
+keep their ``data_as_of`` in the catalog payload for the card's label (R8).
+Legacy ``gpa_chart`` / ``prereq_tree`` shapes remain renderable for older
+persisted messages.
 """
 
 from __future__ import annotations
@@ -15,9 +19,6 @@ from typing import Any, Dict, List, Optional, Union
 from app.sources import academics
 
 logger = logging.getLogger(__name__)
-
-# Ordered grade buckets as stored by the grades tool (UW-Madison 4.0 scale).
-_GRADE_BUCKETS = ["a", "ab", "b", "bc", "c", "d", "f"]
 
 VisualSpec = Dict[str, Any]
 BuilderResult = Union[VisualSpec, List[VisualSpec], None]
@@ -31,6 +32,8 @@ def _course_ref(course: str, visual_type: str, term: Optional[str] = None) -> Vi
 
 
 def _latest_graded_term(result: Dict[str, Any]) -> Optional[str]:
+    """The newest graded term's code: UW's numeric term id (the largest), or
+    a label like UVA's "2026 Spring" (providers list terms newest first)."""
     terms = result.get("terms") or []
     graded = [
         str(t.get("term_code"))
@@ -39,7 +42,9 @@ def _latest_graded_term(result: Dict[str, Any]) -> Optional[str]:
     ]
     if not graded:
         return None
-    return max(graded, key=lambda code: int(code) if str(code).isdigit() else 0)
+    if all(code.isdigit() for code in graded):
+        return max(graded, key=int)
+    return graded[0]
 
 
 def _grades_specs(result: Dict[str, Any]) -> List[VisualSpec]:
@@ -50,7 +55,8 @@ def _grades_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
     cumulative = result.get("cumulative") or {}
     distribution = cumulative.get("distribution") or {}
-    has_grades = any((distribution.get(b) or 0) for b in _GRADE_BUCKETS)
+    # Each school's own buckets (UW a..f, UVA A+..C- and DFW).
+    has_grades = any(isinstance(v, (int, float)) and v > 0 for v in distribution.values())
     if not has_grades and not cumulative.get("average_gpa"):
         return []
 
@@ -67,29 +73,15 @@ def _grades_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 def _prereq_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """A ``course_prereq_map`` ref: the card hydrates the course's
+    ``prereq_tree`` and ``prereq_chain`` (prerequisites of prerequisites)
+    from ``/api/catalog/{id}``. Only when the result names a course; the
+    legacy flat ``prereq_tree`` spec is no longer emitted."""
     course = (result.get("course_identifier") or "").strip()
-    prereqs = result.get("prerequisites") or []
-    prereq_text = (result.get("prereq_text") or "").strip()
-    if not course or (not prereqs and not prereq_text):
+    prereqs = [p for p in result.get("prerequisites") or [] if isinstance(p, dict) and p.get("identifier")]
+    if not course or not prereqs:
         return []
-    # The course API has no prerequisite graph yet, so a course_prereq_map card
-    # would always be empty; the flat tree is built from the tool result itself.
-    return [
-        {
-            "type": "prereq_tree",
-            "course": course,
-            "title": result.get("title", ""),
-            "prereq_text": prereq_text,
-            "prerequisites": [
-                {
-                    "identifier": p.get("identifier", ""),
-                    "title": p.get("title") or "",
-                }
-                for p in prereqs
-                if p.get("identifier")
-            ],
-        },
-    ]
+    return [_course_ref(course, "course_prereq_map")]
 
 
 def _next_specs(result: Dict[str, Any]) -> List[VisualSpec]:
@@ -124,6 +116,17 @@ def _sections_specs(result: Dict[str, Any]) -> List[VisualSpec]:
         _course_ref(course, "course_schedule"),
         _course_ref(course, "course_instructors"),
     ]
+
+
+def _fose_specs(result: Dict[str, Any]) -> List[VisualSpec]:
+    """CU's ``search_courses`` (FOSE section rows): schedule and instructor
+    cards when the rows are one course; a subject listing gets none."""
+    codes = {" ".join(str(c.get("course_code") or "").split()).upper() for c in result.get("courses") or []}
+    codes.discard("")
+    if len(codes) != 1:
+        return []
+    course = codes.pop()
+    return [_course_ref(course, "course_schedule"), _course_ref(course, "course_instructors")]
 
 
 def _search_specs(result: Dict[str, Any]) -> List[VisualSpec]:
@@ -188,7 +191,11 @@ def _place_specs(result: Dict[str, Any]) -> List[VisualSpec]:
 
 
 _PROPOSAL_KEYS = ("id", "status", "summary", "ops", "diff", "term", "base_revision", "created_at", "expires_at")
-_SHORTLIST_KEYS = ("option_id", "id", "title", "why", "labels", "prereqs", "credits")
+_SHORTLIST_KEYS = (
+    "option_id", "id", "title", "why", "labels", "prereqs", "credits",
+    # Schedule fit (eng review R9): the first clash-free section, its times and the course GPA.
+    "gpa", "difficulty", "fit", "fit_reason", "section", "clashes_with",
+)
 
 
 def _proposal_specs(result: Dict[str, Any]) -> List[VisualSpec]:
@@ -221,13 +228,14 @@ def _shortlist_specs(result: Dict[str, Any]) -> List[VisualSpec]:
     }]
 
 
-# Cards hydrated from the course detail API: only for providers with course pages.
+# Cards hydrated from ``/api/catalog/{id}``, served for every school (R7).
 _COURSE_BUILDERS = {
     "course_grades": _grades_specs,
     "course_prerequisites": _prereq_specs,
     "course_next": _next_specs,
     "course_sections": _sections_specs,
     "course_search": _search_specs,
+    "search_courses": _fose_specs,
 }
 # Cards built entirely from the tool result: work for every school.
 _SELF_CONTAINED_BUILDERS = {
@@ -268,16 +276,11 @@ def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     skipped.
     """
     visuals: List[Dict[str, Any]] = []
-    # Providers without course detail pages (snapshots) have nothing to
-    # hydrate course cards from; those cards would call another school's API.
-    course_pages = academics.links_to_course_pages()
     for entry in tool_outputs or []:
         name = entry.get("name")
         result = entry.get("result")
         builder = _BUILDERS.get(name)
         if not builder or not isinstance(result, dict) or result.get("error"):
-            continue
-        if name in _COURSE_BUILDERS and (not course_pages or "data_as_of" in result):
             continue
         try:
             spec = builder(result)

@@ -173,6 +173,72 @@ class TestLookups(RatingsTestCase):
         self.rmp.assert_not_awaited()
 
 
+class TestTermRating(RatingsTestCase):
+    """Design Q15: the mean rating of the plan term's instructors, null when none."""
+
+    async def rate(self, teaching, term=None, **kwargs):
+        with patch.object(academics, "term_instructors", new=AsyncMock(return_value=teaching)) as names, \
+                patch.object(academics, "next_term", return_value="Spring 2027"):
+            body = await self.ratings_for(**kwargs) if term is None else await self.rated_for(term, **kwargs)
+        return body, names
+
+    async def rated_for(self, term, **kwargs):
+        with patch.object(academics, "course_summary", new=AsyncMock(return_value=summary(**kwargs))):
+            return await ratings.course_ratings("CS 2100", term=term)
+
+    async def test_mean_of_matched_term_instructors(self):
+        self.found = {"Ann One": [prof("Ann One", rating=4.0)], "Bob Two": [prof("Bob Two", rating=3.2)],
+                      "Cat Three": [prof("Cat Three"), prof("Cat Three")]}  # ambiguous: left out
+        body, names = await self.rate(["Ann One", "Bob Two", "Cat Three", "Staff"], instructors=["Ann One"])
+        self.assertEqual(body["instructor_rating"], {"rating": 3.6, "instructors": 2, "term": "Spring 2027"})
+        names.assert_awaited_once_with("CS 2100", "Spring 2027")
+        # The listed ratings are still the course's own instructors.
+        self.assertEqual([r["name"] for r in body["ratings"]], ["Ann One"])
+
+    async def test_past_instructors_do_not_count(self):
+        self.found = {"Dan Four": [prof("Dan Four")]}
+        body, _ = await self.rate([], instructor_grades=["Dan Four"])
+        self.assertEqual([r["name"] for r in body["ratings"]], ["Dan Four"])
+        self.assertIsNone(body["instructor_rating"])
+
+    async def test_asked_term_is_used(self):
+        self.found = {"Ann One": [prof("Ann One", rating=4.4)]}
+        body, names = await self.rate(["Ann One"], term="fall 2026")
+        names.assert_awaited_once_with("CS 2100", "Fall 2026")
+        self.assertEqual(body["instructor_rating"]["term"], "Fall 2026")
+
+    async def test_no_term_data_is_null(self):
+        body, _ = await self.rate(None, instructors=["Ann One"])
+        self.assertIsNone(body["instructor_rating"])
+
+    async def test_rmp_disabled_is_null(self):
+        app.config._settings = AppSettings(
+            tools={"course_search": {"enabled": True}}, academics={"provider": "csv_snapshot"},
+        )
+        body, _ = await self.rate(["Ann One"])
+        self.assertIsNone(body["instructor_rating"])
+
+
+class TestTermInstructors(unittest.IsolatedAsyncioTestCase):
+    def tearDown(self):
+        app.config._settings = None
+
+    async def test_cu_reads_fose_rows_for_the_term(self):
+        from app.tools import search_courses
+
+        app.config._settings = AppSettings(tools={"search_courses": {"enabled": True}})
+        rows = [{"code": "CSCI 2270", "instr": "K. Nielsen/H. Hu"}, {"code": "CSCI 2270", "instr": ""},
+                {"code": "CSCI 3104", "instr": "A. Prof"}]
+        with patch.object(search_courses, "fose_sections", new=AsyncMock(return_value=rows)) as fose:
+            names = await academics.term_instructors("CSCI 2270", "spring 2027")
+        fose.assert_awaited_once_with("CSCI", "Spring 2027")
+        self.assertEqual(names, ["K. Nielsen", "H. Hu"])
+
+    async def test_uw_has_no_per_term_instructors(self):
+        app.config._settings = AppSettings(tools={"course_search": {"enabled": True}})
+        self.assertIsNone(await academics.term_instructors("COMP SCI 300", "Spring 2027"))
+
+
 class TestRoutes(unittest.TestCase):
     def setUp(self):
         app.config._settings = AppSettings(**UW)
@@ -191,7 +257,7 @@ class TestRoutes(unittest.TestCase):
                 patch.object(academics, "course_summary", new=AsyncMock(return_value={"ok": 1})) as summarized:
             self.assertEqual(self.client.get("/api/catalog/ratings/COMP SCI 400").json(), {"ratings": []})
             self.assertEqual(self.client.get("/api/catalog/COMP SCI 400").json(), {"ok": 1})
-        rated.assert_awaited_once_with("COMP SCI 400")
+        rated.assert_awaited_once_with("COMP SCI 400", term=None)
         summarized.assert_awaited_once_with("COMP SCI 400")
 
     def test_uw_uses_course_map_ratings(self):
@@ -201,7 +267,12 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(body["identifier"], "COMPSCI 300")
         self.assertEqual(body["ratings"], [{"name": "Jim Williams", "rating": 2.98, "difficulty": 3.39, "num_ratings": 155}])
         self.assertEqual(body["source"]["name"], "UW Course Map")
+        # Course Map names instructors per course, so the mean has no term.
+        self.assertEqual(body["instructor_rating"], {"rating": 3.0, "instructors": 1, "term": None})
         rmp.assert_not_awaited()
+
+    def test_bad_term_is_422(self):
+        self.assertEqual(self.client.get("/api/catalog/ratings/COMP SCI 300?term=;drop").status_code, 422)
 
     def test_unknown_course_is_404(self):
         with patch.object(_uw_source, "_fetch_json", side_effect=fake_coursemap([[]])):
@@ -249,6 +320,13 @@ class TestUVARoute(unittest.TestCase):
         self.assertCountEqual(asked, ["Briana Morrison", "Ana Lab"])
         self.client.get("/api/catalog/ratings/CS 2100")
         self.assertEqual(self.rmp.await_count, 2)
+
+    def test_term_rating_from_the_snapshot_sections(self):
+        body = self.client.get("/api/catalog/ratings/CS 2100", params={"term": "Fall 2026"}).json()
+        # Both Fall 2026 sections' instructors were looked up; only Morrison matches.
+        self.assertEqual(body["instructor_rating"], {"rating": 4.2, "instructors": 1, "term": "Fall 2026"})
+        other = self.client.get("/api/catalog/ratings/CS 2100", params={"term": "Spring 2027"}).json()
+        self.assertIsNone(other["instructor_rating"])  # no file for that term
 
 
 if __name__ == "__main__":

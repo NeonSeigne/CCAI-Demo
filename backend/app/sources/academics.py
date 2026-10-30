@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 from app.config import get_settings
-from app.planner.facts import CourseFacts, Meeting, PrereqNode, Section
+from app.planner.facts import CourseFacts, Meeting, PrereqNode, Section, difficulty_of
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +74,11 @@ _CAPABILITIES: Dict[str, Dict[str, bool]] = {
         "meeting_times": False, "section_bundles": False, "gen_ed": True,
     },
     # UVA: theCourseForum snapshot. Seats are counts at snapshot time.
+    # Prerequisites are read from the description text (not checkable by the planner).
     "csv_snapshot": {
         "keyword_search": True, "seat_filter": True, "grades": True, "sections": True,
         "seats": True, "seats_historical": True, "instructors": True,
-        "prerequisites": False, "next_courses": False,
+        "prerequisites": True, "next_courses": False,
         "meeting_times": True, "section_bundles": True, "gen_ed": True,
     },
     # CU: FOSE needs a subject code and lists sections without seat counts.
@@ -340,6 +341,9 @@ def _grade_figure(summary: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]
         "pct_a": pct(_A_BUCKETS),
         "pct_df": pct(_DF_BUCKETS),
         "distribution": distribution,
+        # The school's own buckets, best grade first (UW a..f, UVA A+..C- then
+        # DFW); the frontend groups them per school (eng review R11).
+        "buckets": [{"key": key, "label": key.upper()} for key in distribution],
     }
 
 
@@ -383,6 +387,12 @@ def _section_row(row: Dict[str, Any]) -> Dict[str, Any]:
         out["meetings"] = row["meetings"]
     if (row.get("schedule") or {}).get("raw"):
         out["meetings"] = [row["schedule"]["raw"]]
+    # Parsed times (UVA, CU): [{day: "Mo", start: "09:05", end: "09:55"}].
+    if row.get("meeting_times"):
+        out["meeting_times"] = row["meeting_times"]
+    # Students waiting at snapshot time (UVA); no other source publishes it.
+    if row.get("waitlist_at_snapshot") is not None:
+        out["waitlist"] = row["waitlist_at_snapshot"]
     # FOSE's building (``bldg``, carried as ``location``); other sources have none.
     bldg = " ".join(re.sub(r"<[^>]+>", " ", str(row.get("location") or "")).split())
     if bldg:
@@ -441,10 +451,13 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
     for term in fose_terms():
         # Cached per subject and term, so the facts read below asks FOSE once.
         items = await fose.fose_sections(subject, term)
-        rows = [
-            row for row in (fose.row_to_course(item, term) for item in items)
-            if row and _same_code(row.get("course_code")) == code
-        ]
+        rows = []
+        for item in items:
+            row = fose.row_to_course(item, term)
+            if row and _same_code(row.get("course_code")) == code:
+                meetings = _fose_meetings(item) or ()
+                row["meeting_times"] = [{"day": m.day, "start": m.start, "end": m.end} for m in meetings]
+                rows.append(row)
         if rows:
             break
     if not rows:
@@ -456,6 +469,37 @@ async def _fose_summary(identifier: str, caps: Dict[str, bool]) -> Dict[str, Any
         "sections": _sections_figure(rows, rows[0].get("semester"), caps, None),
         "instructors": list(dict.fromkeys(n for r in rows for n in _names(r.get("instructor") or ""))),
     }
+
+
+async def term_instructors(identifier: str, term: str) -> Optional[List[str]]:
+    """Who teaches the course's sections in ``term``: UVA from that term's
+    snapshot file, CU from FOSE's rows for the term. None when the source
+    can't say per term (UW: Course Map lists instructors per course) or
+    can't be read; ``[]`` when the term lists the course with no names."""
+    term = _same_term(term)
+    backend = catalog_backend()
+    try:
+        if backend == "csv_snapshot":
+            from app.sources import csv_snapshot
+
+            return await csv_snapshot.term_instructors(identifier, term)
+        if backend == FOSE:
+            from app.tools import search_courses as fose
+
+            subject, number, _ = parse_query(identifier)
+            if not (subject and number):
+                return None
+            items = await fose.fose_sections(subject, term)
+            code = f"{subject} {number}"
+            names = [
+                name.strip()
+                for item in items if _same_code(item.get("code")) == code
+                for name in re.split(r"[,/]", item.get("instr") or "")
+            ]
+            return list(dict.fromkeys(n for n in names if n))
+    except RuntimeError as exc:
+        logger.info("term instructors for %s %s unavailable: %s", identifier, term, exc)
+    return None
 
 
 def prereq_dict(node: Optional[PrereqNode]) -> Optional[Dict[str, Any]]:
@@ -488,14 +532,112 @@ def _grade_history(result: Dict[str, Any]) -> List[Dict[str, Any]]:
     return sorted(history, key=lambda h: _term_order(h["term"]))
 
 
+def easier_from_gpa() -> Optional[float]:
+    """The school's "easier" cutoff when its pack sets one (else the default)."""
+    value = getattr(get_settings().planner, "easier_from_gpa", None)
+    return float(value) if isinstance(value, (int, float)) else None
+
+
+def course_difficulty(facts: Optional[CourseFacts]) -> Optional[str]:
+    """``easier`` / ``typical`` / ``harder`` / None by the school's rule (R5)."""
+    return difficulty_of(facts, easier_from_gpa())
+
+
+# Prerequisite chains: how deep, how many courses and how long to look.
+CHAIN_DEPTH = 4
+CHAIN_LIMIT = 30
+CHAIN_BUDGET_S = 6.0
+CHAIN_CONCURRENCY = 6
+
+
+async def prereq_chain(
+    identifier: str,
+    *,
+    first: Optional[Dict[str, Any]] = None,
+    depth: int = CHAIN_DEPTH,
+    limit: int = CHAIN_LIMIT,
+    budget_s: float = CHAIN_BUDGET_S,
+) -> Optional[Dict[str, Any]]:
+    """Prerequisites of prerequisites, read level by level from the provider's
+    ``prerequisites`` (``first`` is the root's result when already fetched).
+
+    ``{"root", "courses": [{"id", "title", "depth", "requires", "known"}],
+    "complete"}``: courses in breadth-first order, the root at depth 0;
+    ``requires`` are the course ids each one's requisites name (how they
+    combine is in its ``prereq_tree`` or text, not here); ``known`` is false
+    when the source couldn't answer for that course. ``complete`` is false
+    when ``depth``, ``limit`` or ``budget_s`` cut the chain short. None when
+    the school has no prerequisite data or the root names no courses.
+    """
+    if not catalog_capabilities()["prerequisites"]:
+        return None
+    provider = get_provider()
+    gate = asyncio.Semaphore(CHAIN_CONCURRENCY)
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + budget_s
+
+    async def fetch(course: str) -> Dict[str, Any]:
+        async with gate:
+            try:
+                return await provider.prerequisites(course_identifier=course)
+            except Exception as exc:  # noqa: BLE001 — one course never sinks the chain
+                logger.info("prerequisites for %s failed: %s", course, exc)
+                return {"error": str(exc)}
+
+    nodes: Dict[str, Dict[str, Any]] = {}
+    complete = True
+    frontier = [identifier]
+    level = 0
+    while frontier:
+        if level == 0 and first is not None:
+            results = [first]
+        else:
+            tasks = [asyncio.ensure_future(fetch(c)) for c in frontier]
+            done, pending = await asyncio.wait(tasks, timeout=max(0.0, deadline - loop.time()))
+            for task in pending:
+                task.cancel()
+            if pending:
+                complete = False
+            results = [t.result() if t in done else {"error": "timeout"} for t in tasks]
+        upcoming: List[str] = []
+        for course, result in zip(frontier, results):
+            known = not result.get("error")
+            requires = [
+                c["identifier"] for c in (result.get("prerequisites") or [])
+                if isinstance(c, dict) and c.get("identifier") and c["identifier"] != course
+            ] if known else []
+            requires = list(dict.fromkeys(requires))
+            nodes[course] = {
+                "id": course, "title": result.get("title") or "", "depth": level,
+                "requires": requires, "known": known,
+            }
+            for code in requires:
+                if code in nodes or code in frontier or code in upcoming:
+                    continue
+                waiting = sum(1 for c in frontier if c not in nodes)
+                if level + 1 > depth or len(nodes) + waiting + len(upcoming) >= limit:
+                    complete = False
+                    continue
+                upcoming.append(code)
+        frontier = [c for c in upcoming if c not in nodes]
+        level += 1
+        if frontier and loop.time() >= deadline:
+            complete = False
+            break
+    if not nodes.get(identifier, {}).get("requires"):
+        return None
+    return {"root": identifier, "courses": list(nodes.values()), "complete": complete}
+
+
 async def _facts_fields(identifier: str) -> Dict[str, Any]:
-    """``credits``, ``gen_ed`` and ``prereq_tree`` from the planner's course
-    facts for the next term (the sources cache what the summary already read).
-    A field the school doesn't publish is left out."""
+    """``difficulty``, ``credits``, ``gen_ed`` and ``prereq_tree`` from the
+    planner's course facts for the next term (the sources cache what the
+    summary already read). ``difficulty`` is always present (None when
+    unknown); any other field the school doesn't publish is left out."""
     facts = (await course_facts([identifier], next_term())).get(identifier)
     if facts is None or facts.known != "yes":
-        return {}
-    out: Dict[str, Any] = {}
+        return {"difficulty": None}
+    out: Dict[str, Any] = {"difficulty": course_difficulty(facts)}
     if facts.credits:
         out["credits"] = {"min": facts.credits[0], "max": facts.credits[1]}
     if facts.gen_ed:
@@ -562,6 +704,9 @@ async def course_summary(identifier: str) -> Dict[str, Any]:
             "text": result.get("prereq_text") or "",
             "courses": result.get("prerequisites") or [],
         }
+        chain = await prereq_chain(canonical, first=result)
+        if chain:
+            summary["prereq_chain"] = chain
     if caps["next_courses"]:
         result = await provider.next_courses(course_identifier=canonical)
         summary["next_courses"] = None if result.get("error") else result.get("next_courses") or []
