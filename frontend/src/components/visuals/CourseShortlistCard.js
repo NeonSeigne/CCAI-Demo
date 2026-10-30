@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { usePlanner } from '../../contexts/PlannerContext';
 import { plannerError } from '../../api/planner';
-import { creditSpan, statusWord } from '../planner/planFormat';
+import { gpaText } from '../../modules/course';
+import { meetingClock } from '../../modules/campus';
 import ProposalCard from './ProposalCard';
 import { Icon } from '../icons';
 import '../../styles/CourseVisuals.css';
 
 /**
- * Chat card for a `course_shortlist` visual (design 19A).
+ * Chat card for a `course_shortlist` visual (design 19A, R9, Q9; chat-grades).
  *
- * visual: {type: 'course_shortlist', items: [{id, title, why, labels, prereqs, credits}], reason?, term?}
+ * visual: {type: 'course_shortlist', items: [{id, title, prereqs, gpa, difficulty,
+ *          fit, section, clashes_with, ...}], reason?, term?}
  *
- * Up to five rows, "Show more" for the next five. Choose creates the single
- * pending proposal (an `add` op, into `term` when the visual names one)
- * through the shared planner, and the new proposal's card appears under the
- * list.
+ * Rows that fit the schedule come first with the time they fit, then those
+ * the check couldn't settle, then clashing rows tagged "Clashes". The card is
+ * titled "Fits your schedule" when at least one row fits, else "Suggested
+ * courses". Up to five rows, "Show more" for the next five. The round +
+ * creates the single pending proposal (an `add` op, into `term` when the
+ * visual names one) through the shared planner, and the new proposal's card
+ * appears under the list.
  */
 
 const PAGE = 5;
@@ -23,18 +28,37 @@ const EXAMPLES = [
   'Something with climate, no mornings',
   'A lighter course that counts toward my major',
 ];
+const FIT_ORDER = { fits: 0, unknown: 1, clashes: 2 };
+const DAY_ORDER = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-const PREREQ_TEXT = {
-  met: 'Prerequisites met',
-  short: 'Prerequisites not met yet',
-  unknown: 'Prerequisites unknown',
-};
+/**
+ * "TuTh 8:00": the days and start of the chosen section's first meeting
+ * kind (the lecture); null without meetings.
+ */
+export function fitTime(section) {
+  const meetings = (section?.meetings || []).filter((m) => m?.day && m.start);
+  if (!meetings.length) return null;
+  const kind = meetings[0].kind;
+  const first = meetings.filter((m) => m.kind === kind);
+  const start = first[0].start;
+  const days = [...new Set(first.filter((m) => m.start === start).map((m) => m.day))]
+    .sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
+  return `${days.join('')} ${meetingClock(start)}`;
+}
 
-function Head() {
+/** Fitting rows first, then unknown, then clashing ones; the server's order within each. */
+export function orderByFit(items) {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (FIT_ORDER[a.item.fit] ?? 1) - (FIT_ORDER[b.item.fit] ?? 1) || a.index - b.index)
+    .map(({ item }) => item);
+}
+
+function Head({ title }) {
   return (
     <div className="vc-head">
       <Icon name="playlist_add" size={20} />
-      <h3>Suggested courses</h3>
+      <h3>{title}</h3>
     </div>
   );
 }
@@ -50,7 +74,7 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
   if (!items.length) {
     return (
       <div className="vc-card vc-shortlist">
-        <Head />
+        <Head title="Suggested courses" />
         <p className="vc-line is-muted">{visual?.reason || 'No courses matched; try other words'}</p>
         {onAsk && (
           <div className="vc-chips">
@@ -62,6 +86,9 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
       </div>
     );
   }
+
+  const ordered = orderByFit(items);
+  const anyFits = items.some((item) => item.fit === 'fits');
 
   const choose = async (item) => {
     setChoosing(item.id);
@@ -81,51 +108,44 @@ export default function CourseShortlistCard({ visual, onAsk, onSelectCourse }) {
 
   return (
     <div className="vc-card vc-shortlist">
-      <Head />
-      {visual?.reason && <p className="vc-lead">{visual.reason}</p>}
+      <Head title={anyFits ? 'Fits your schedule' : 'Suggested courses'} />
       <ul className="vc-rows">
-        {items.slice(0, shown).map((item) => {
-          const credits = creditSpan(item.credits);
-          const prereq = item.prereqs?.status || 'unknown';
-          const chips = (item.labels || []).filter((label) => !/^Prerequisites/i.test(label));
+        {ordered.slice(0, shown).map((item) => {
+          const time = item.fit === 'fits' ? fitTime(item.section) : null;
+          const gpa = gpaText(item.gpa);
           return (
-            <li key={item.id} className="vc-srow">
+            <li key={item.id} className={`vc-srow ${item.fit ? `is-${item.fit}` : ''}`.trim()}>
               <div className="vc-srow-main">
-                <span>
-                  {onSelectCourse ? (
-                    <button type="button" className="vc-link" onClick={() => onSelectCourse(item.id)}>{item.id}</button>
-                  ) : <span className="vc-code">{item.id}</span>}
-                  {credits && <span className="vc-code"> · {credits} cr</span>}
-                </span>
+                {onSelectCourse ? (
+                  <button type="button" className="vc-srow-code" onClick={() => onSelectCourse(item.id)}>{item.id}</button>
+                ) : <span className="vc-srow-code">{item.id}</span>}
                 {item.title && <b>{item.title}</b>}
-                {item.why && <p className="vc-srow-why">{item.why}</p>}
-                {chips.length > 0 && (
-                  <div className="vc-srow-chips">
-                    {chips.map((label) => <span key={label} className="vc-tag">{label}</span>)}
-                  </div>
+                {item.prereqs?.status === 'short' && (
+                  <span className="vc-srow-prereq">Prerequisites not met yet</span>
                 )}
-                <span className={`vc-srow-prereq ${prereq === 'short' ? 'is-short' : ''}`.trim()}>
-                  {PREREQ_TEXT[prereq] || statusWord(prereq)}
-                  {item.prereqs?.reason ? ` · ${item.prereqs.reason}` : ''}
-                </span>
-                {error?.id === item.id && <p className="vc-alert" role="alert">{error.text}</p>}
+                {error?.id === item.id && (
+                  <p className="vc-alert" role="alert"><Icon name="error" size={20} />{error.text}</p>
+                )}
               </div>
+              {time && <span className="vc-tag is-plan vc-srow-time">{time}</span>}
+              {item.fit === 'clashes' && <span className="vc-tag vc-srow-clash">Clashes</span>}
+              {gpa && <span className={`vc-srow-gpa ${item.difficulty ? `is-${item.difficulty}` : ''}`.trim()}>{gpa}</span>}
               {planner && (
                 <button
                   type="button"
-                  className="vc-btn"
+                  className="vc-btn is-icon vc-srow-add"
                   disabled={!!choosing}
-                  aria-label={`Choose ${item.id}`}
+                  aria-label={`Add ${item.id}`}
                   onClick={() => choose(item)}
                 >
-                  {choosing === item.id ? 'Checking…' : <><Icon name="add" size={20} />Choose</>}
+                  {choosing === item.id ? <span className="vc-spinner" aria-hidden="true" /> : <Icon name="add" size={20} />}
                 </button>
               )}
             </li>
           );
         })}
       </ul>
-      {items.length > shown && (
+      {ordered.length > shown && (
         <button type="button" className="vc-btn vc-more-btn" onClick={() => setShown(shown + PAGE)}>Show more</button>
       )}
       {chosen && (
