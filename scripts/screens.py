@@ -21,7 +21,7 @@ Screens and the mockup each maps to (designs/design-system-20261029/):
     degree-map        transit-a.html (desktop) / transit-b.html (phone)
     degree-semesters  My degree, Semesters view
     saved             Saved (shell only, no mockup page)
-    menu-chat         menus.html "Chat" (chat header's More options)
+    menu-chat         menus.html "Chat" (the chat header's More button)
     menu-course       menus.html "Program" (a course card's menu, My degree Semesters)
 
 Usage (from the repo root; the app and backend must be running):
@@ -233,7 +233,7 @@ def screen_plan(name, ids):
             return "/chat", None, []  # the empty chat page
         steps = [open_chat_js(ids["chat"]), wait_js(1500), ["wait", "--networkidle"]]
         if name == "menu-chat":
-            steps += [js_step(SETTLE_JS), click_js('[aria-label="More options"]'), wait_js(300)]
+            steps += [js_step(SETTLE_JS), click_js('.chat-head [aria-label="More"]'), wait_js(300)]
         return "/home", None, steps
     if name == "events":
         return "/events", None, []
