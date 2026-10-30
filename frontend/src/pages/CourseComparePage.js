@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, Plus, Search, X } from '../components/icons';
+import { Icon } from '../components/icons';
 import CampusPageShell from '../components/catalog/CampusPageShell';
+import PanelState from '../components/panel/PanelState';
 import {
-  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced,
+  CoursesTabs, GpaValue, InlineError, NotAvailable, SourceChip, useDebounced,
 } from '../components/catalog/CatalogParts';
 import {
   MAX_TICKED, askComparePrompt, askState, formatGpa, formatPct, gradesLabel,
   primarySections, readTicked, shortDate, sourceName, writeTicked,
 } from '../components/catalog/catalogFormat';
 import { searchCatalog } from '../api/campus';
-import { loadCourse } from '../modules/course';
+import {
+  DIFFICULTY_LABEL, GradeBars, difficultyOf, gradeGroups, loadCourse,
+} from '../modules/course';
 import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/CoursesPage.css';
@@ -33,7 +36,7 @@ const parseIds = (value) => {
 function Value({ value, note, extra }) {
   return (
     <>
-      <span className="cmp-value">{value}</span>
+      {typeof value === 'string' ? <span className="cmp-value">{value}</span> : value}
       {note && <span className="cmp-note">{note}</span>}
       {extra && <span className="cmp-note">{extra}</span>}
     </>
@@ -43,7 +46,7 @@ function Value({ value, note, extra }) {
 const gradesMissing = (data) => data.capabilities?.grades === false || !('grades' in data);
 
 /** Each row: header text and how one course fills its cell. */
-function buildRows(school, labels) {
+function buildRows(school, labels, mark) {
   const na = (data) => <NotAvailable school={school} source={data.source} />;
   const noGrades = <span className="cmp-note">No grade data for this course</span>;
   const gradeCell = (fn) => (data) => {
@@ -55,23 +58,32 @@ function buildRows(school, labels) {
     {
       key: 'gpa',
       label: 'Avg GPA',
-      cell: gradeCell((grades, data) => (
-        <Value
-          value={formatGpa(grades.gpa) ?? '—'}
-          note={grades.term}
-          extra={data.cumulative?.gpa != null ? `${formatGpa(data.cumulative.gpa)} across all terms` : null}
-        />
-      )),
+      cell: gradeCell((grades, data) => {
+        const difficulty = difficultyOf(data);
+        const gpa = formatGpa(grades.gpa);
+        return (
+          <Value
+            value={gpa == null ? '—' : <GpaValue className="cmp-value" value={gpa} difficulty={difficulty} school={mark} />}
+            note={[grades.term, difficulty && DIFFICULTY_LABEL[difficulty]].filter(Boolean).join(' · ')}
+            extra={data.cumulative?.gpa != null ? `${formatGpa(data.cumulative.gpa)} across all terms` : null}
+          />
+        );
+      }),
     },
     {
       key: 'grades',
       label: 'Grades',
-      cell: gradeCell((grades) => (
-        <>
-          <GradesBar distribution={grades.distribution} label={gradesLabel(grades)} compact />
-          {grades.term && <span className="cmp-note">{grades.term}</span>}
-        </>
-      )),
+      cell: gradeCell((grades) => {
+        const groups = gradeGroups(grades.distribution, grades.buckets);
+        return (
+          <>
+            {groups.length > 0 && (
+              <GradeBars groups={groups} size="compare" label={`Grade distribution, ${gradesLabel(grades)}`} />
+            )}
+            {grades.term && <span className="cmp-note">{grades.term}</span>}
+          </>
+        );
+      }),
     },
     {
       key: 'a',
@@ -144,7 +156,7 @@ function AddCourse({ ids, suggestions, suggestFrom, onAdd, inputRef, authToken, 
     <section className="cmp-add" aria-labelledby="cmp-add-h">
       <h2 id="cmp-add-h">Add a course</h2>
       <div className="cc-search">
-        <Search size={18} aria-hidden="true" />
+        <Icon name="search" size={20} />
         <label htmlFor="cmp-add-input" className="sr-only">Add a course: code or title</label>
         <input
           id="cmp-add-input"
@@ -157,16 +169,18 @@ function AddCourse({ ids, suggestions, suggestFrom, onAdd, inputRef, authToken, 
         />
       </div>
       {!settled && options.length > 0 && <p className="cmp-add-label">Often taken after {suggestFrom}</p>}
-      {state.status === 'loading' && showPlaceholder && <Placeholder lines={3} />}
+      {state.status === 'loading' && showPlaceholder && <PanelState status="loading" rows={3} label="Loading courses" />}
       {settled && state.status === 'error' && (
         <InlineError
           message={`Couldn't load courses from ${sourceName(state.source)}`}
           onRetry={() => setAttempt((n) => n + 1)}
         />
       )}
-      {settled && state.status === 'hint' && <p className="cc-muted">{state.error?.message || `Try a course code at ${school}.`}</p>}
+      {settled && state.status === 'hint' && (
+        <PanelState status="empty" icon="search" message={state.error?.message || `Try a course code at ${school}.`} />
+      )}
       {settled && state.status === 'ready' && options.length === 0 && (
-        <p className="cc-muted">No courses match &ldquo;{settled}&rdquo;</p>
+        <PanelState status="empty" icon="search_off" message={<>No courses match &ldquo;{settled}&rdquo;</>} />
       )}
       {options.length > 0 && state.status !== 'loading' && (
         <ul className="cmp-add-list">
@@ -178,9 +192,11 @@ function AddCourse({ ids, suggestions, suggestFrom, onAdd, inputRef, authToken, 
                 aria-label={`Add ${course.identifier} to compare`}
                 onClick={() => { setQuery(''); onAdd(course); }}
               >
-                <Plus size={16} aria-hidden="true" />
-                <span>{course.identifier}</span>
-                {course.title && <span className="cmp-add-title">{course.title}</span>}
+                <Icon name="add" size={21} />
+                <span className="cmp-add-text">
+                  <span className="cc-code">{course.identifier}</span>
+                  {course.title && <span className="cmp-add-title">{course.title}</span>}
+                </span>
               </button>
             </li>
           ))}
@@ -195,7 +211,7 @@ export default function CourseComparePage() {
   const openCourse = useOpenCourse();
   const [params, setParams] = useSearchParams();
   const { authToken } = useAuth();
-  const { name: school } = useSchool();
+  const { name: school, mark } = useSchool();
   const ids = useMemo(() => parseIds(params.get('ids')), [params]);
   const idsKey = ids.join(',');
 
@@ -283,7 +299,7 @@ export default function CourseComparePage() {
   const ready = ids.map((id) => columns[id]).filter((col) => col?.status === 'ready');
   const firstGrades = ready.find((col) => col.data.grades)?.data.grades;
   const labels = firstGrades?.labels || { a: 'A/AB', df: 'D/F' };
-  const rows = buildRows(school, labels);
+  const rows = buildRows(school, labels, mark);
   const source = ready[0]?.data.source;
   const first = ids[0] && columns[ids[0]]?.data;
   const suggestions = (first?.next_courses || []).map((course) => (
@@ -307,13 +323,15 @@ export default function CourseComparePage() {
     <p className="cmp-add cmp-add-full">Compare up to {MAX_TICKED}</p>
   );
 
+  const asOf = ready.some((col) => col.data.capabilities?.seats_historical && col.data.as_of)
+    ? ready.find((col) => col.data.as_of)?.data.as_of
+    : null;
+
   return (
     <CampusPageShell className="cc-compare">
       <div className="cc-page">
         <header className="cc-page-head">
-          <div>
-            <h1>Compare courses</h1>
-          </div>
+          <h1>Compare courses</h1>
           <CoursesTabs
             active="compare"
             count={ids.length}
@@ -325,96 +343,91 @@ export default function CourseComparePage() {
         {!enough ? (
           <div className="cmp-layout">
             <div className="cmp-empty">
-              <p>Tick at least 2 courses to compare.</p>
+              <PanelState status="empty" icon="compare_arrows" message="Tick at least 2 courses to compare." />
               <Link className="cc-btn" to="/courses?view=browse">Back to Browse</Link>
             </div>
             {addPanel}
           </div>
         ) : (
           <div className="cmp-layout">
-            <div className="cmp-scroll" role="region" aria-label="Comparison table" tabIndex={0}>
-              <table className="cmp-table">
-                <caption className="sr-only">Comparing {ids.join(', ')}</caption>
-                <thead>
-                  <tr>
-                    <td className="cmp-corner" />
-                    {ids.map((id, index) => {
-                      const col = columns[id];
-                      return (
-                        <th key={id} scope="col" className="cmp-col-head">
-                          <button type="button" className="cmp-col-name" onClick={() => openCourse(col?.data?.identifier || id)}>
-                            <span className="cc-code">{col?.data?.identifier || id}</span>
-                            <span className="cmp-col-title">{col?.data?.title || titleOf(id)}</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="cmp-remove"
-                            ref={(node) => { removeRefs.current[id] = node; }}
-                            aria-label={`Remove ${id} from compare`}
-                            onClick={() => remove(index)}
-                          >
-                            <X size={16} aria-hidden="true" />
-                          </button>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, rowIndex) => (
-                    <tr key={row.key}>
-                      <th scope="row" className="cmp-row-head">{row.label}</th>
-                      {ids.map((id) => {
+            <div className="cmp-main">
+              <div className="cmp-scroll" role="region" aria-label="Comparison table" tabIndex={0}>
+                <table className="cmp-table">
+                  <caption className="sr-only">Comparing {ids.join(', ')}</caption>
+                  <thead>
+                    <tr>
+                      <td className="cmp-corner" />
+                      {ids.map((id, index) => {
                         const col = columns[id];
-                        if (col?.status === 'error') {
-                          if (rowIndex > 0) return null;
-                          return (
-                            <td key={id} rowSpan={rows.length} className="cmp-cell cmp-cell-error">
-                              <InlineError
-                                message={col.error?.notFound
-                                  ? `We couldn't find ${id} at ${school}`
-                                  : `Couldn't load ${id} from ${sourceName(source)}`}
-                                onRetry={col.error?.notFound ? null : () => load(id)}
-                                retryLabel="Retry"
-                              />
-                            </td>
-                          );
-                        }
-                        if (col?.status !== 'ready') {
-                          return (
-                            <td key={id} className="cmp-cell" aria-busy="true">
-                              {showPlaceholder ? <Placeholder lines={2} /> : null}
-                            </td>
-                          );
-                        }
-                        return <td key={id} className="cmp-cell">{row.cell(col.data)}</td>;
+                        return (
+                          <th key={id} scope="col" className="cmp-col-head">
+                            <button type="button" className="cmp-col-name" onClick={() => openCourse(col?.data?.identifier || id)}>
+                              <span className="cc-code">{col?.data?.identifier || id}</span>
+                              <span className="cmp-col-title">{col?.data?.title || titleOf(id)}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="cmp-remove"
+                              ref={(node) => { removeRefs.current[id] = node; }}
+                              aria-label={`Remove ${id} from compare`}
+                              onClick={() => remove(index)}
+                            >
+                              <Icon name="close" size={20} />
+                            </button>
+                          </th>
+                        );
                       })}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, rowIndex) => (
+                      <tr key={row.key}>
+                        <th scope="row" className="cmp-row-head">{row.label}</th>
+                        {ids.map((id) => {
+                          const col = columns[id];
+                          if (col?.status === 'error') {
+                            if (rowIndex > 0) return null;
+                            return (
+                              <td key={id} rowSpan={rows.length} className="cmp-cell cmp-cell-error">
+                                <InlineError
+                                  message={col.error?.notFound
+                                    ? `We couldn't find ${id} at ${school}`
+                                    : `Couldn't load ${id} from ${sourceName(source)}`}
+                                  onRetry={col.error?.notFound ? null : () => load(id)}
+                                  retryLabel="Retry"
+                                />
+                              </td>
+                            );
+                          }
+                          if (col?.status !== 'ready') {
+                            return (
+                              <td key={id} className="cmp-cell" aria-busy="true">
+                                {showPlaceholder ? <PanelState status="loading" rows={1} label={`Loading ${id}`} /> : null}
+                              </td>
+                            );
+                          }
+                          return <td key={id} className="cmp-cell">{row.cell(col.data)}</td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="cmp-ask">
+                <button type="button" className="cc-btn cc-btn-primary" onClick={askCompare}>
+                  <Icon name="forum" size={20} /> Ask Campus Companion
+                  <span className="sr-only"> to compare {ids.join(', ')}</span>
+                </button>
+                {source && (
+                  <SourceChip>
+                    {sourceName(source)}
+                    {asOf ? ` · as of ${shortDate(asOf)}` : ''}
+                  </SourceChip>
+                )}
+              </div>
             </div>
             {addPanel}
           </div>
-        )}
-
-        {enough && (
-          <div className="cmp-ask">
-            <MessageSquare size={18} aria-hidden="true" />
-            <p>Want a plain-English take on which fits your semester?</p>
-            <button type="button" className="cc-btn cc-btn-primary" onClick={askCompare}>
-              Ask Campus Companion
-              <span className="sr-only"> to compare {ids.join(', ')}</span>
-            </button>
-          </div>
-        )}
-        {source && (
-          <p className="cc-footnote">
-            Grades and seats from {sourceName(source)}
-            {ready.some((col) => col.data.capabilities?.seats_historical && col.data.as_of)
-              ? ` · as of ${shortDate(ready.find((col) => col.data.as_of)?.data.as_of)}`
-              : ''}
-          </p>
         )}
       </div>
     </CampusPageShell>

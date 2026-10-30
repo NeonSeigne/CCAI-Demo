@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw } from '../icons';
-import { DEBOUNCE_MS, gradeSegments, notAvailableText } from './catalogFormat';
+import { Icon } from '../icons';
+import { DEBOUNCE_MS, notAvailableText } from './catalogFormat';
 
 /** `value` once it has stopped changing for `delay` ms. */
 export function useDebounced(value, delay = DEBOUNCE_MS) {
@@ -69,57 +69,46 @@ export function NotAvailable({ school, source, className = '' }) {
   return <p className={`cc-na ${className}`.trim()}>{notAvailableText(school, source)}</p>;
 }
 
-/** "Couldn't load <what> from <source>" + Retry (11A). */
+/** "Couldn't load <what> from <source>" + Retry (11A): ink text with an icon (design Q4). */
 export function InlineError({ message, onRetry, retryLabel = 'Retry' }) {
   return (
     <div className="cc-error" role="alert">
+      <Icon name="error" size={20} />
       <span>{message}</span>
       {onRetry && (
         <button type="button" className="cc-retry" onClick={onRetry}>
-          <RefreshCw size={14} aria-hidden="true" /> {retryLabel}
+          <Icon name="refresh" size={18} /> {retryLabel}
         </button>
       )}
     </div>
   );
 }
 
-/**
- * Stacked grade bar with its legend. The bar is decorative; the legend list
- * ("A 25%", ...) is the text alternative (28A).
- */
-export function GradesBar({ distribution, label, compact = false }) {
-  const segments = gradeSegments(distribution);
-  if (!segments.length) return null;
+/** The source chip ("theCourseForum · as of Oct 12") in place of a footnote. */
+export function SourceChip({ children, className = '' }) {
   return (
-    <div className={`cc-grades ${compact ? 'is-compact' : ''}`}>
-      <div className="cc-grades-bar" aria-hidden="true">
-        {segments.map((segment) => (
-          <span
-            key={segment.key}
-            className={`cc-seg cc-tone-${segment.tone}`}
-            style={{ flexGrow: segment.pct }}
-          >
-            {!compact && segment.pct >= 9 ? segment.label : ''}
-          </span>
-        ))}
-      </div>
-      <ul className="cc-grades-legend" aria-label={label ? `Grade distribution, ${label}` : 'Grade distribution'}>
-        {segments.map((segment) => (
-          <li key={segment.key}>
-            <span className={`cc-dot cc-tone-${segment.tone}`} aria-hidden="true" />
-            {segment.label} {Math.round(segment.pct)}%
-          </li>
-        ))}
-      </ul>
-    </div>
+    <p className={`cc-checked ${className}`.trim()}>
+      <span className="cc-src">
+        <Icon name="verified" size={16} />
+        {children}
+      </span>
+    </p>
   );
 }
 
-/** Grey bars sized like the content they stand in for (9A). */
-export function Placeholder({ lines = 1, className = '' }) {
+/**
+ * The GPA in Unbounded, coloured by the backend's difficulty. At UW,
+ * "harder" is ink, so it carries the trending_down icon (DESIGN.md).
+ */
+export function GpaValue({
+  value, difficulty, school, className = '',
+}) {
+  if (value == null) return null;
+  const icon = difficulty === 'harder' && school === 'UW';
   return (
-    <div className={`cc-ph-group ${className}`.trim()} aria-hidden="true">
-      {Array.from({ length: lines }, (_, index) => <span key={index} className="cc-ph" />)}
-    </div>
+    <span className={`${className} ${difficulty ? `is-${difficulty}` : ''}`.trim()}>
+      {icon && <Icon name="trending_down" size={15} className="cc-harder-icon" />}
+      {value}
+    </span>
   );
 }

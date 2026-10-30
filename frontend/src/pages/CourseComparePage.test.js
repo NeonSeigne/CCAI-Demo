@@ -74,6 +74,21 @@ test('Compare is a real table with course column headers and labelled rows', asy
 
   expect(screen.getByRole('tab', { name: /Compare/ })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByRole('tab', { name: /Compare/ })).toHaveTextContent('2');
+  // The source is a chip beside Ask, not a footnote; no tagline.
+  expect(screen.getByText('UW Course Map')).toHaveClass('cc-src');
+  expect(screen.queryByText(/plain-English/)).not.toBeInTheDocument();
+});
+
+test('Avg GPA is coloured by the backend difficulty and names it under the term', async () => {
+  getCatalogCourse.mockImplementation((token, id) => Promise.resolve(
+    id === 'COMP SCI 300' ? { ...COURSES[id], difficulty: 'easier' } : { ...COURSES[id], difficulty: 'harder' },
+  ));
+  renderPage('COMP SCI 300,COMP SCI 400');
+  const table = await screen.findByRole('table');
+  expect(await within(table).findByText('3.17')).toHaveClass('is-easier');
+  expect(within(table).getByText('3.42')).toHaveClass('is-harder');
+  expect(within(table).getByText('Spring 2026 · Easier')).toBeInTheDocument();
+  expect(within(table).getByText('Spring 2026 · Harder')).toBeInTheDocument();
 });
 
 test('rows read "Not available" where a school lacks the data and name the snapshot date', async () => {

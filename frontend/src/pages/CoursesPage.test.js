@@ -99,12 +99,28 @@ test('before a search it lists the starters and saved courses under "Start with"
   expect(await screen.findByRole('heading', { level: 2, name: 'Programming II' })).toBeInTheDocument();
   expect(getCatalogCourse).toHaveBeenCalledWith('token', 'COMP SCI 300', expect.anything());
   expect(screen.getByText('Taught by Jim Williams')).toBeInTheDocument();
-  expect(screen.getByText('Grades, Spring 2026 · 486 students')).toBeInTheDocument();
-  expect(screen.getByRole('list', { name: 'Grade distribution, Spring 2026 · 486 students' })).toHaveTextContent('A 25%');
+  expect(screen.getByRole('heading', { name: 'Grades, Spring 2026 486 students' })).toBeInTheDocument();
+  const bars = screen.getByRole('figure', { name: 'Grade distribution, Spring 2026 · 486 students' });
+  expect(bars).toHaveTextContent('25%A');
   expect(screen.getByRole('heading', { name: 'Spring 2027 lectures' })).toBeInTheDocument();
   expect(screen.getByText('Full')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Preview COMP SCI 400' })).toBeInTheDocument();
-  expect(screen.getByText(/Grades, seats and requirements from UW Course Map/)).toBeInTheDocument();
+  // The source is a chip, not a footnote.
+  expect(screen.getByText('UW Course Map').closest('.cc-src')).toBeInTheDocument();
+  expect(screen.queryByText(/Grades, seats and requirements from/)).not.toBeInTheDocument();
+});
+
+test('a row shows its GPA at right, coloured by the backend difficulty', async () => {
+  uwStarters([
+    row('COMP SCI 300', 'Programming II', { gpa: 3.17, difficulty: 'easier' }),
+    row('COMP SCI 400', 'Programming III', { gpa: 2.42, difficulty: 'harder' }),
+  ]);
+  renderPage();
+  const easy = await screen.findByRole('button', { name: /^COMP SCI 300 Programming II/ });
+  expect(easy).toHaveTextContent('3.17');
+  expect(within(easy).getByText('3.17')).toHaveClass('is-easier');
+  const hard = screen.getByRole('button', { name: /^COMP SCI 400 Programming III/ });
+  expect(within(hard).getByText('2.42')).toHaveClass('is-harder');
 });
 
 test('search waits 300 ms after typing stops and cancels a superseded request', async () => {
@@ -234,7 +250,7 @@ test('UVA shows historical seats as of the snapshot and "Not available" for prer
   expect(screen.getByText('got A range')).toBeInTheDocument();
   expect(screen.getByText('got DFW')).toBeInTheDocument();
   expect(screen.getAllByText('Not available for UVA (theCourseForum)')).toHaveLength(2);
-  expect(screen.getByText(/from theCourseForum · as of Sep 3/)).toBeInTheDocument();
+  expect(screen.getByText('theCourseForum · as of Sep 3')).toHaveClass('cc-src');
 });
 
 test('CU shows "Not available" tiles and lines and says seats are not published', async () => {

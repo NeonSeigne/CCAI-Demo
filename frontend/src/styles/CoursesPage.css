@@ -1,5 +1,5 @@
-/* Courses (Browse) page and the pieces Compare shares with it.
-   Tokens only (design 24A): colours come from brand-tokens.css via var(). */
+/* Courses (Browse) page and the pieces Compare shares with it
+   (phase9 courses-browse.html, compare.html). Roles only, via var(). */
 
 .cc-page-main {
   flex: 999 1 560px;
@@ -8,12 +8,16 @@
   padding: 40px 32px 64px;
 }
 
+/* Browse and Compare: the system's main padding (.main). */
+.cc-browse-page .cc-page-main,
+.cc-compare .cc-page-main { padding: 28px 36px 40px; }
+
 .cc-page {
-  max-width: 1120px;
+  max-width: 1128px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .cc-page :focus-visible {
@@ -21,42 +25,46 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* ---- Header + Browse | Compare tablist ----------------------------------- */
+/* ---- Title row: h1 and the Browse | My degree | Compare seg --------------- */
 .cc-page-head {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .cc-page-head h1 {
   margin: 0;
-  font-size: clamp(26px, 3.4vw, 32px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
 }
 
 .cc-tabs {
   display: inline-flex;
-  gap: 4px;
+  gap: 2px;
   padding: 4px;
-  border-radius: 14px;
-  background: var(--line);
+  border-radius: var(--r-full);
+  background: var(--raised);
 }
 
 .cc-tab {
-  min-height: 44px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 0 16px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-full);
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-weight: 600;
+  font-family: var(--font-app);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -71,13 +79,13 @@
   height: 20px;
   padding: 0 6px;
   box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--surface);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: var(--tint);
+  color: var(--tint-ink);
   font-size: 12px;
+  font-weight: 700;
 }
 
 /* ---- Shared bits ---------------------------------------------------------- */
@@ -85,186 +93,143 @@
   font-family: var(--font-code);
   font-size: 11px;
   font-weight: 700;
-  color: var(--domain-academics-ink);
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-.cc-muted { margin: 0; color: var(--muted); font-size: 14px; }
+.cc-muted { margin: 0; color: var(--muted); font-size: 14px; font-weight: 500; }
 
 .cc-na {
   margin: 0;
   padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--canvas);
+  border-radius: var(--r-md);
+  background: var(--raised);
   color: var(--muted);
   font-size: 14px;
+  font-weight: 600;
 }
 
-.cc-footnote { margin: 0; font-size: 13px; color: var(--muted); }
+/* Source chip (components.css .checked .src). */
+.cc-checked {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
 
-/* .cc-btn and .cc-btn-primary come from components.css (lane B). */
-.cc-btn-light { background: var(--surface); border-color: var(--surface); color: var(--ink); }
+.cc-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: var(--r-full);
+  background: var(--tint);
+  color: var(--tint-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* The floating bar's button: the school mark's colours on deep. */
+.cc-btn-mark { background: var(--mark-bg); border-color: transparent; color: var(--mark-ink); }
+.cc-btn-mark:hover:not(:disabled) { background: var(--mark-bg); opacity: 0.92; }
 
 .cc-empty {
-  margin: 0;
-  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
-  color: var(--muted);
+  gap: 8px;
 }
 
-.cc-empty p { margin: 0; color: var(--ink); }
-
+/* Error: ink text with an icon and a round Retry (design Q4). */
 .cc-error {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px 10px;
   flex-wrap: wrap;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: var(--error-tint);
-  color: var(--error);
-  font-size: 14px;
+  padding: 12px 4px;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 600;
 }
 
 .cc-retry {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 12px;
-  border: 1px solid currentColor;
-  border-radius: 10px;
+  gap: 4px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
   background: var(--surface);
-  color: var(--error);
+  color: var(--ink);
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }
 
-/* Placeholders (9A) */
-.cc-ph-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.cc-retry:hover { background: var(--raised); }
 
+/* Placeholder blocks in raised (also My degree's). */
 .cc-ph {
   display: block;
   height: 12px;
-  border-radius: 6px;
-  background: var(--line);
+  border-radius: var(--r-sm);
+  background: var(--raised);
 }
 
-.cc-ph-group .cc-ph:first-child { width: 40%; }
-.cc-ph-group .cc-ph:nth-child(2) { width: 70%; }
-.cc-ph-bar { height: 28px; border-radius: 8px; }
-.cc-ph-tile { min-height: 64px; background: var(--line); }
-
-/* Grade bar: blues for A/B/C, orange for D/F; text sits in the legend. */
-.cc-grades { display: flex; flex-direction: column; gap: 8px; }
-
-.cc-grades-bar {
-  display: flex;
-  height: 26px;
-  gap: 2px;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.cc-grades.is-compact .cc-grades-bar { height: 18px; }
-
-.cc-seg {
-  min-width: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--surface);
-  font-size: 11px;
-  font-weight: 700;
-  overflow: hidden;
-}
-
-.cc-tone-a { background: var(--domain-academics-ink); }
-.cc-tone-ab { background: color-mix(in srgb, var(--domain-academics-ink) 55%, var(--academics)); }
-.cc-tone-b { background: var(--academics); }
-.cc-tone-bc { background: color-mix(in srgb, var(--academics) 55%, var(--surface)); }
-.cc-tone-c { background: color-mix(in srgb, var(--academics) 30%, var(--surface)); }
-.cc-tone-df { background: var(--life); }
-
-.cc-grades-legend {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: 13px;
-  color: var(--ink);
-}
-
-.cc-grades-legend li { display: inline-flex; align-items: center; gap: 4px; }
-.cc-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
-
-/* ---- Browse layout -------------------------------------------------------- */
-.cc-browse {
-  display: grid;
-  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.cc-list { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-
+/* ---- Search pill ------------------------------------------------------------ */
 .cc-search {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
   background: var(--surface);
   color: var(--muted);
 }
 
-.cc-search:focus-within { border-color: var(--ink); }
+.cc-search:focus-within { border-color: transparent; box-shadow: 0 0 0 2px var(--ink); }
 
 .cc-search input {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 40px;
   border: 0;
   outline: none;
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 500;
 }
+
+.cc-search input::placeholder { color: var(--faint); opacity: 1; }
+
+/* ---- Browse layout -------------------------------------------------------- */
+.cc-browse {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.cc-list { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
 .cc-filters {
   /* relative: the chips' screen-reader labels are absolutely positioned, and
      must be clipped by this scroller, not widen the page on phones. */
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 2px;
 }
 
-.cc-filter {
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.cc-filter.is-on { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+/* 36px drawn, 44px to tap (design Q19). */
+.cc-filter { position: relative; flex: none; }
+.cc-filter::after { content: ""; position: absolute; inset: -4px 0; }
 
 .cc-ticked { display: flex; flex-direction: column; gap: 6px; }
 
@@ -278,76 +243,105 @@
 }
 
 .cc-ticked-chip {
-  min-height: 44px;
+  position: relative;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
-  border: 1px solid var(--academics);
-  border-radius: 999px;
-  background: var(--domain-academics-tint);
-  color: var(--domain-academics-ink);
+  padding: 0 10px 0 14px;
+  border: 1px solid var(--tint);
+  border-radius: var(--r-full);
+  background: var(--tint);
+  color: var(--tint-ink);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
 }
 
-.cc-cap-note { margin: 0; font-size: 13px; color: var(--muted); }
+.cc-ticked-chip::after { content: ""; position: absolute; inset: -4px 0; }
+.cc-ticked-chip .cc-code { color: inherit; }
+
+.cc-cap-note { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
 
 .cc-list-heading {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: 6px 4px 0;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--muted);
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
+/* ---- Rows: tick, code column, title, GPA at right, grip ------------------- */
 .cc-rows {
   margin: 0;
   padding: 0;
   list-style: none;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--surface);
+  box-shadow: var(--shadow-rest);
   overflow: hidden;
 }
 
+.cc-rows-state { padding: 12px; }
+
 .cc-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 36px;
   align-items: stretch;
-  border-top: 1px solid var(--line);
+  padding: 0 6px 0 7px;
+  border-top: 1px solid var(--rule);
 }
 
 .cc-row:first-child { border-top: 0; }
 .cc-row.is-selected { background: var(--tint); }
-.cc-row-ph { padding: 16px; }
+.cc-row.is-selected .cc-code,
+.cc-row.is-selected .cc-row-title { color: var(--tint-ink); }
 
 .cc-row-check {
-  flex: 0 0 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 
-.cc-row-check input {
-  width: 20px;
-  height: 20px;
+/* The native box stays for keyboard and screen readers, drawn as a round tick. */
+.cc-tick-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  accent-color: var(--ink);
+  opacity: 0;
   cursor: pointer;
 }
 
-.cc-row-check input:disabled { cursor: not-allowed; }
+.cc-tick-input:disabled { cursor: not-allowed; }
+
+.cc-tick {
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--control);
+  border-radius: 50%;
+  background: var(--surface);
+  pointer-events: none;
+}
+
+.cc-tick .ms { font-variation-settings: "FILL" 0, "wght" 700, "GRAD" 0, "opsz" 20; }
+.cc-tick-input:checked + .cc-tick { background: var(--deep); border-color: var(--deep); color: var(--on-deep); }
+html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--tint-strong); border-color: var(--tint-strong); color: var(--tint-ink); }
+.cc-tick-input:disabled + .cc-tick { opacity: 0.45; }
+.cc-tick-input:focus-visible + .cc-tick { outline: var(--focus-ring); outline-offset: 2px; }
 
 .cc-row-main {
-  flex: 1;
   min-width: 0;
-  min-height: 60px;
+  min-height: 46px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px 10px 0;
+  gap: 14px;
+  padding: 12px 6px 12px 10px;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -356,9 +350,17 @@
   cursor: pointer;
 }
 
-.cc-row-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cc-row-name {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
 
 .cc-row-title {
+  min-width: 0;
   font-size: 15px;
   font-weight: 600;
   overflow: hidden;
@@ -367,50 +369,69 @@
 }
 
 .cc-row-gpa {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-family: var(--font-code);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
-.cc-row-gpa small { font-family: var(--font-app); font-size: 11px; font-weight: 500; color: var(--muted); }
+.cc-row-gpa.is-easier { color: var(--easier); }
+.cc-row-gpa.is-harder { color: var(--harder); }
 
+.cc-harder-icon { font-variation-settings: "FILL" 0, "wght" 600, "GRAD" 0, "opsz" 20; }
+
+.cc-row-grip {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  cursor: grab;
+}
+
+.cc-row-grip:hover { color: var(--ink); }
+
+/* Floating bar (tick to compare). */
 .cc-tickbar {
   display: flex;
   align-items: center;
+  gap: 14px;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 10px 10px 16px;
-  border-radius: 14px;
-  background: var(--ink);
-  color: var(--surface);
-  font-weight: 600;
+  margin-top: 4px;
+  padding: 6px 6px 6px 22px;
+  border-radius: var(--r-full);
+  background: var(--deep);
+  color: var(--on-deep);
+  font-weight: 700;
+  box-shadow: var(--shadow-float);
   /* Stays in reach under a long result list. */
   position: sticky;
   bottom: 16px;
   z-index: 5;
-  box-shadow: var(--shadow-float);
 }
 
 /* ---- Preview -------------------------------------------------------------- */
 .cc-preview {
+  position: sticky;
+  top: 20px;
   min-width: 0;
-  padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: var(--surface);
+  box-shadow: var(--shadow-rest);
+  overflow: hidden;
 }
+
+.cc-preview > .pnl-state,
+.cc-preview > .cc-error { padding: 20px 22px; }
 
 .cc-back { display: none; }
 
-.cc-preview-body {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  animation: cc-fade 150ms ease-out;
-}
+.cc-preview-body { animation: cc-fade 150ms ease-out; }
 
 @keyframes cc-fade {
   from { opacity: 0; }
@@ -422,101 +443,167 @@
 }
 
 .cc-preview-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  flex-wrap: wrap;
+  align-items: start;
+  padding: 20px 22px 6px;
 }
 
-.cc-preview-name { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cc-preview-name { min-width: 0; }
 
 .cc-preview-name h2 {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  margin: 4px 0 6px;
+  font-size: 19px;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
 }
 
+.cc-preview-by { margin: 0; color: var(--muted); font-size: 14px; }
+
 .cc-preview-actions { display: flex; align-items: center; gap: 8px; }
+
+/* The bookmark as a round outlined icon button. */
+.cc-preview-save.cc-save { width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+.cc-preview-save.cc-save:hover { background: var(--raised); }
 
 .cc-tiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  padding: 12px 22px 4px;
 }
 
 .cc-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px;
-  border-radius: 12px;
-  background: var(--canvas);
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border-radius: var(--r-lg);
+  background: var(--raised);
 }
 
-.cc-tile-value { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-.cc-tile-value.is-missing { font-size: 15px; font-weight: 600; color: var(--muted); }
-.cc-tile-label { font-size: 13px; color: var(--muted); }
+.cc-tile-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); }
 
-.cc-block { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.cc-tile-value {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-.cc-block h3 { margin: 0; font-size: 14px; font-weight: 700; }
+.cc-tile-value.is-easier { color: var(--easier); }
+.cc-tile-value.is-typical { color: var(--typical); }
+.cc-tile-value.is-harder { color: var(--harder); }
+.cc-tile-value.is-missing { font-family: var(--font-app); font-size: 15px; letter-spacing: 0; color: var(--muted); }
+
+/* Sections (components.css .sect). */
+.cc-pv-sect { padding: 14px 20px 4px; min-width: 0; }
+
+.cc-pv-sect h3 {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cc-pv-sect h3 small {
+  margin-left: 6px;
+  font-family: var(--font-app);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.cc-pv-sect > .cc-muted,
+.cc-pv-sect > .cc-na { margin-bottom: 12px; }
+
+/* Grade bars: neutral, the largest group in signal, label then share below. */
+.crs-bars--browse { margin: 4px 0 8px; }
+.crs-bars--browse .crs-bar-fill { background: var(--raised); border-radius: 4px 4px 0 0; }
+.crs-bars--browse .crs-bar.is-top .crs-bar-fill { background: var(--signal); }
+.crs-bars--browse .crs-bar { gap: 2px; }
+.crs-bars--browse .crs-bar-label { order: 2; margin-top: 4px; font-size: 12.5px; }
+.crs-bars--browse .crs-bar-pct { order: 3; color: var(--ink); font-size: 12.5px; }
 
 .cc-preview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
 }
 
-.cc-preview-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cc-preview-side { min-width: 0; }
+.cc-preview-side + .cc-preview-side { border-left: 1px solid var(--rule); }
 
-.cc-prereq {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border-radius: 12px;
-  background: var(--canvas);
-}
-
+.cc-prereq { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; }
+.cc-prereq .cc-chips { padding-bottom: 0; }
 .cc-prereq-text { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
 
 .cc-chips {
   margin: 0;
-  padding: 0;
+  padding: 2px 0 12px;
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/* .cc-chip comes from components.css (lane B). */
-.cc-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--academics); }
+/* A course code as a round tag (.tag.plan): 28px drawn, 44px to tap. */
+.cc-code-tag {
+  position: relative;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--raised);
+  color: var(--muted);
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
 
-.cc-sections { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.cc-code-tag::after { content: ""; position: absolute; inset: -8px 0; }
+.cc-code-tag:hover { color: var(--ink); }
+
+.cc-sections { margin: 0 0 8px; padding: 0; list-style: none; }
 
 .cc-section-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
+  padding: 7px 0;
   font-size: 14px;
 }
 
-.cc-section-name { font-family: var(--font-code); font-size: 11px; font-weight: 700; }
+.cc-section-row + .cc-section-row { border-top: 1px solid var(--rule); }
+
+.cc-section-name {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 .cc-section-fill {
   height: 6px;
-  border-radius: 3px;
-  background: var(--line);
+  border-radius: var(--r-sm);
+  background: var(--raised);
   overflow: hidden;
 }
 
-.cc-section-fill span { display: block; height: 100%; background: var(--ink); }
-.cc-section-fill span.is-full { background: var(--error); }
+.cc-section-fill span { display: block; height: 100%; border-radius: var(--r-sm); background: var(--track); }
 
 .cc-section-who {
+  min-width: 0;
   color: var(--muted);
   font-size: 13px;
   overflow: hidden;
@@ -524,46 +611,98 @@
   text-overflow: ellipsis;
 }
 
-.cc-section-seats { font-weight: 500; white-space: nowrap; }
-.cc-section-seats.is-full { color: var(--error); font-weight: 600; }
+/* Seat tags (.tag.done; Full is the neutral tag with ink text, design Q14). */
+.cc-section-seats {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  background: var(--good-tint);
+  color: var(--good);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
-/* ---- 701-1099px: narrower list and preview -------------------------------- */
+.cc-section-seats.is-full { background: var(--raised); color: var(--ink); }
+
+.cc-preview-src { padding: 6px 22px 18px; }
+
+/* Loading: the preview's layout in raised. */
+.cc-preview .pnl-loading > div { gap: 12px; }
+.cc-ph-head { height: 64px; width: 60%; }
+.cc-ph-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cc-ph-tiles .pnl-block { height: 64px; border-radius: var(--r-lg); }
+.cc-ph-bars { height: 96px; }
+
+/* ---- Tablet (701–1180px): the preview's halves stack ----------------------- */
+@media (max-width: 1180px) and (min-width: 701px) {
+  .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
+  .cc-preview-side + .cc-preview-side { border-left: 0; border-top: 1px solid var(--rule); }
+}
+
 @media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
-  .cc-browse { grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); gap: 16px; }
-  .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
+  .cc-browse-page .cc-page-main,
+  .cc-compare .cc-page-main { padding: 24px 20px 40px; }
+  .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cc-row-title { white-space: normal; }
+  .cc-preview-head { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
 @media (max-width: 700px) {
   .cc-page-main { padding: 20px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
+  .cc-browse-page .cc-page-main,
+  .cc-compare .cc-page-main { padding: 18px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-page { gap: 16px; }
+  .cc-page-head h1 { font-size: 23px; }
+  .cc-page-head .cc-tabs { width: 100%; }
+  .cc-page-head .cc-tab { flex: 1; justify-content: center; padding: 0 8px; }
   .cc-browse { grid-template-columns: minmax(0, 1fr); }
+
+  .cc-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-right: -16px;
+    padding: 4px 16px 4px 0;
+    scrollbar-width: none;
+  }
 
   .cc-courses.is-list .cc-preview { display: none; }
   .cc-courses.is-preview .cc-list,
   .cc-courses.is-preview .cc-page-head { display: none; }
 
-  .cc-preview { padding: 16px; border-radius: 16px; }
+  .cc-preview { position: static; }
+
+  .cc-row { grid-template-columns: 40px minmax(0, 1fr); padding: 0 8px 0 4px; }
+  .cc-row-main { padding: 11px 6px 11px 4px; gap: 12px; }
+  .cc-row-grip { display: none; }
 
   .cc-back {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: -8px 0 8px -8px;
+    margin: 10px 0 0 12px;
     padding: 0 8px;
     border: 0;
     background: transparent;
     color: var(--ink);
     font: inherit;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
   }
 
-  .cc-tiles { gap: 6px; }
+  .cc-preview-head { padding: 12px 18px 6px; }
+  .cc-preview-actions { flex-wrap: wrap; }
+  .cc-tiles { gap: 6px; padding: 10px 18px 4px; }
   .cc-tile { padding: 10px; }
   .cc-tile-value { font-size: 18px; }
+  .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
+  .cc-preview-side + .cc-preview-side { border-left: 0; border-top: 1px solid var(--rule); }
+  .cc-preview-src { padding: 6px 18px 18px; }
 
   .cc-tickbar {
     position: fixed;
@@ -571,25 +710,8 @@
     right: 16px;
     bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
     z-index: 40;
-    box-shadow: var(--shadow-float);
   }
 }
-
-/* ---- Browse rows as drag sources (D4) ------------------------------------ */
-.cc-row-grip {
-  flex: 0 0 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: grab;
-}
-
-.cc-row-grip:hover { color: var(--ink); }
-
-.cc-tab { white-space: nowrap; }
 
 /* My degree and the semester view use the full column width. */
 .cc-page.cc-page-wide { max-width: none; }
