@@ -6,12 +6,16 @@ import {
 } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, Search, ChevronRight, BookOpen, iconFor } from './icons';
+import { Icon, resolveIconName } from './icons';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { userGuideTopics } from '../data/userGuide';
 import AppDialog from './AppDialog';
 import '../styles/UserGuide.css';
 
+/**
+ * Help (help.html): the band title, the topics with a search at the left
+ * (chips on phones) and the topic in a reading column.
+ */
 const UserGuide = ({ leftInset = 0 }) => {
   const { config } = useAppConfig();
   const [isOpen, setIsOpen] = useState(false);
@@ -52,75 +56,78 @@ const UserGuide = ({ leftInset = 0 }) => {
       open={isOpen}
       onClose={() => setIsOpen(false)}
       leftInset={activeInset}
-      maxWidth="lg"
+      maxWidth={false}
+      className="ug-dialog"
       aria-labelledby="user-guide-title"
-      slotProps={{
-        paper: {
-          sx: {
-            height: '80vh',
-            maxHeight: 720,
-            overflow: 'hidden',
-          },
-        },
-      }}
     >
       <DialogTitle id="user-guide-title" className="ug-header">
-        <span className="ug-title">
-          <span className="ug-title-icon">
-            <BookOpen size={18} />
-          </span>
-          <span>User Guide</span>
-        </span>
+        <span className="ug-title">Help</span>
         <IconButton
           className="ug-close"
           onClick={() => setIsOpen(false)}
           aria-label="Close user guide"
-          size="small"
         >
-            <X size={20} />
+          <Icon name="close" size={20} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent className="ug-body" sx={{ p: 0, overflow: 'hidden' }}>
-          {/* Sidebar / TOC */}
-          <aside className="ug-sidebar">
-            <div className="ug-search">
-              <Search size={14} />
-              <input
-                type="text"
-                placeholder="Search the guide…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <nav className="ug-toc">
-              {filteredTopics.length === 0 && (
-                <div className="ug-empty">No matches</div>
-              )}
-              {filteredTopics.map((t) => {
-                const TopicIcon = t.icon ? iconFor(t.icon) : BookOpen;
-                return (
+      <DialogContent className="ug-body">
+        <nav className="ug-toc" aria-label="Topics">
+          <label className="ug-search">
+            <Icon name="search" size={20} />
+            <span className="sr-only">Search the guide</span>
+            <input
+              type="search"
+              placeholder="Search the guide…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          {filteredTopics.length === 0 && (
+            <div className="ug-empty">No matches</div>
+          )}
+          <ul className="ug-topics">
+            {filteredTopics.map((t) => {
+              const on = t.id === activeTopic.id;
+              return (
+                <li key={t.id}>
                   <button
-                    key={t.id}
-                    className={`ug-toc-item ${t.id === activeId ? 'active' : ''}`}
+                    type="button"
+                    className={`ug-topic ${on ? 'is-on' : ''}`.trim()}
+                    aria-current={on ? 'true' : undefined}
                     onClick={() => setActiveId(t.id)}
                   >
-                    <TopicIcon size={16} />
+                    <Icon name={resolveIconName(t.icon)} size={21} filled={on} />
                     <span>{t.title}</span>
-                    <ChevronRight size={14} className="ug-toc-arrow" />
                   </button>
-                );
-              })}
-            </nav>
-          </aside>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
-          {/* Content */}
-          <main className="ug-content" key={activeTopic.id}>
+        <div className="ug-chips" role="group" aria-label="Topics">
+          {userGuideTopics.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className="cc-chip"
+              aria-pressed={t.id === activeTopic.id}
+              onClick={() => setActiveId(t.id)}
+            >
+              {t.title}
+            </button>
+          ))}
+        </div>
+
+        <div className="ug-read">
+          <article className="ug-content" key={activeTopic.id}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {activeTopic.content
                 .replace(/\{\{appName\}\}/g, appName)}
             </ReactMarkdown>
-          </main>
+          </article>
+        </div>
       </DialogContent>
     </AppDialog>
   );

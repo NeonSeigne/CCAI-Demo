@@ -21,26 +21,6 @@ export const userGuideTopics = [
 You can return to this guide anytime by clicking the **?** icon in the header.`,
   },
   {
-    id: 'conversations',
-    title: 'Conversations & Replies',
-    icon: 'MessageCircle',
-    content: `# Conversations & Replies
-
-## Asking a question
-Type into the chat box at the bottom. All advisors will respond with their unique perspective.
-
-## Replying to a specific advisor
-Click on any advisor's response to **reply directly to them**. This continues the conversation with just that persona, letting you go deeper on their specific angle.
-
-## Expanding a response
-Some responses include an **"Expand"** action to ask the advisor to elaborate further with more detail.
-
-## Tips
-- Be specific. The more context, the better the advice
-- Ask follow-up questions to refine the response
-- Different advisors will sometimes disagree, and that's a feature, not a bug`,
-  },
-  {
     id: 'documents',
     title: 'Uploading Documents',
     icon: 'Paperclip',
@@ -65,7 +45,7 @@ Documents are processed using **RAG (retrieval-augmented generation)**. The syst
   {
     id: 'sessions',
     title: 'Sessions & History',
-    icon: 'MessagesSquare',
+    icon: 'forum',
     content: `# Sessions & History
 
 Every conversation is automatically saved as a session.
@@ -81,31 +61,6 @@ Click the pencil/edit icon next to the search bar to start a fresh conversation.
 
 ## Renaming or deleting
 Hover any session to reveal the **menu**. From there you can rename or delete.`,
-  },
-  {
-    id: 'canvas',
-    title: 'Progress Canvas',
-    icon: 'BarChart3',
-    content: `# {{appName}} Canvas
-
-The Canvas is a **structured dashboard view** of your PhD journey. It pulls insights from your conversations and organizes them into 10 sections:
-
-- Research Progress
-- Methodology
-- Theoretical Framework
-- Challenges & Obstacles
-- Next Steps
-- Writing & Communication
-- Career Development
-- Literature Review
-- Data Analysis
-- Motivation & Mindset
-
-## Accessing the Canvas
-Click the **{{appName}} Canvas** button in the sidebar.
-
-## Exporting
-You can print or download the Canvas as a snapshot of your progress.`,
   },
   {
     id: 'tips',
