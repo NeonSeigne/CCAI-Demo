@@ -1,164 +1,143 @@
 import React from 'react';
 import {
-  act, fireEvent, render, screen, waitFor, within,
+  fireEvent, render, screen, waitFor, within,
 } from '@testing-library/react';
 import CoursePopup from './CoursePopup';
+import { clearCourseCache } from '../../modules/course';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
 import { cuPopupCourse, uvaPopupCourse, uwPopupCourse } from '../../pages/__fixtures__/popups';
 
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
 
 const realFetch = global.fetch;
-afterEach(() => { global.fetch = realFetch; });
+afterEach(() => {
+  global.fetch = realFetch;
+  clearCourseCache();
+});
 
-const diff = {
-  credits: { before: [13, 13], after: [16, 16] },
-  difficulty: { before: 'Balanced', after: 'Heavy' },
-  clashes: { before: 'unknown', after: 'unknown' },
-  rules: [{
-    rule_id: 'core',
-    title: 'Comp Sci core',
-    before: { status: 'short', completed: 2, planned: 0, needed: 4 },
-    after: { status: 'short', completed: 2, planned: 1, needed: 4 },
-  }],
-  added_courses: [{ id: 'COMP SCI 400', prereqs: { status: 'met', reason: null } }],
-  unknowns: [],
-};
-
-function serve(course, { ratings = [], preview = { status: 200, body: { diff, revision: 3 } } } = {}) {
+function serve(course, { instructorRating = null } = {}) {
   global.fetch = routeFetch([
-    ['/api/catalog/ratings/', { body: { identifier: course.identifier, ratings, source: null } }],
+    ['/api/catalog/ratings/', { body: { identifier: course.identifier, ratings: [], source: null, instructor_rating: instructorRating } }],
     ['/api/catalog/', { body: course }],
-    ['/api/planner/preview', preview],
   ]);
 }
 
-it('renders the UW course with its numbers, tabs, Fits tile and prerequisite web', async () => {
-  serve(uwPopupCourse(), {
-    ratings: [{ name: 'Jim Williams', rating: 4.4, difficulty: 3.1, num_ratings: 52 }],
-  });
+const sectionNamed = (name) => screen.getByRole('heading', { name }).closest('section');
+const fetched = () => global.fetch.mock.calls.map(([url]) => String(url));
+
+it('renders the UW course as the mockup: three tiles, grades, sections, prerequisites, footer', async () => {
+  serve({ ...uwPopupCourse(), difficulty: 'harder' }, { instructorRating: { rating: 4.12, instructors: 2, term: null } });
   const onAdd = jest.fn();
+  const onCompare = jest.fn();
   const onOpenCourse = jest.fn();
-  render(
+  const { container } = render(
     <CoursePopup
       courseId="COMP SCI 400"
       term="Spring 2027"
-      plan={{ revision: 3 }}
-      requirements={['Comp Sci B.S. · Core']}
+      states={{ 'COMP SCI 300': 'done', 'MATH 240': 'now' }}
       onAdd={onAdd}
-      onAsk={jest.fn()}
+      onCompare={onCompare}
+      onSave={jest.fn()}
       onClose={jest.fn()}
       onOpenCourse={onOpenCourse}
     />,
   );
 
   expect(await screen.findByRole('heading', { name: 'Programming III' })).toBeInTheDocument();
-  expect(screen.getByText('COMP SCI 400 · 3 credits · Spring 2027')).toBeInTheDocument();
-  expect(screen.getByText('Comp Sci B.S. · Core')).toBeInTheDocument();
-  expect(screen.getByText('Natural Science breadth')).toBeInTheDocument();
+  expect(screen.getByText('COMP SCI 400 · 3 credits')).toBeInTheDocument();
+  // No description, requirement chips, drag grip or term in the band.
+  expect(screen.queryByText(/third course/)).not.toBeInTheDocument();
+  expect(screen.queryByText('Natural Science breadth')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /Drag/ })).not.toBeInTheDocument();
 
-  // Five big numbers, same labels at every school (D6).
-  expect(screen.getByText('Avg GPA · Sp 26')).toBeInTheDocument();
-  expect(screen.getByText('3.41')).toBeInTheDocument();
-  expect(screen.getByText('Got an A')).toBeInTheDocument();
-  expect(screen.getByText('D or F')).toBeInTheDocument();
-  expect(screen.getByText('Seats left')).toBeInTheDocument();
-  expect(screen.getByText('Students · Sp 26')).toBeInTheDocument();
+  // Number above label. The GPA is the one the label is read from (every term), not the latest term's 3.41.
+  const gpaLabel = screen.getByText('Average GPA · Harder');
+  expect(gpaLabel.previousSibling).toHaveTextContent('3.29');
+  expect(screen.queryByText('3.41')).not.toBeInTheDocument();
+  expect(await screen.findByText('Instructor rating')).toBeInTheDocument();
+  expect(screen.getByText('4.1')).toBeInTheDocument();
+  expect(screen.getByText('Seats open').previousSibling).toHaveTextContent('8');
+  expect(container.querySelectorAll('.crs-tile')).toHaveLength(3);
+  // The rating covers the plan term's instructors (Q15).
+  expect(fetched().some((url) => url.includes('/api/catalog/ratings/') && url.includes('term=Spring+2027')
+    || url.includes('term=Spring%202027'))).toBe(true);
 
-  const tabs = screen.getByRole('tablist');
-  expect(within(tabs).getByRole('tab', { name: 'Grades' })).toHaveAttribute('aria-selected', 'true');
-  expect(within(tabs).getByRole('tab', { name: /Sections/ })).toBeInTheDocument();
-  // A value on every point of the GPA line, and a text list of them (D22).
-  expect(screen.getByText('Fall 2023: 2.97, 571 students')).toBeInTheDocument();
+  // Grades: UW's six groups, no percentages on screen.
+  const grades = sectionNamed('Grades');
+  expect(within(grades).getAllByRole('listitem').map((li) => li.lastChild.textContent))
+    .toEqual(['A', 'AB', 'B', 'BC', 'C', 'D/F']);
+  expect(grades.querySelector('.crs-bar-pct')).toBeNull();
+  expect(grades.querySelector('.crs-bars--popup .is-top')).toHaveTextContent('B');
 
-  // Ratings arrive after the band: the Instructors tab appears.
-  expect(await within(tabs).findByRole('tab', { name: /Instructors/ })).toBeInTheDocument();
+  // Sections: code, instructor, live seat tag.
+  const sections = sectionNamed('Sections');
+  const rows = within(sections).getAllByRole('listitem');
+  expect(rows).toHaveLength(3);
+  expect(rows[0]).toHaveTextContent('001');
+  expect(within(rows[0]).getByText('Jim Williams')).toBeInTheDocument();
+  expect(within(rows[0]).getByText('4 seats')).toHaveClass('crs-tag--seats');
+  expect(within(rows[2]).getByText('Full')).toBeInTheDocument();
 
-  expect(await screen.findByRole('heading', { name: 'Fits Spring 2027' })).toBeInTheDocument();
-  expect(screen.getByRole('meter', { name: 'Credits' })).toHaveAttribute('aria-valuenow', '16');
-  expect(screen.getByText('Heavy')).toBeInTheDocument();
-  expect(screen.getByText('✓ Met')).toBeInTheDocument();
-  expect(screen.getByText('3 of 4')).toBeInTheDocument();
-  // Clash status unknown (no published times): no Clashes row (D23).
-  expect(screen.queryByText('Clashes')).not.toBeInTheDocument();
+  // Prerequisites: code tags with the student's states.
+  const prereqs = sectionNamed('Prerequisites');
+  expect(within(prereqs).getByRole('button', { name: /^COMP SCI 300.*Done/ })).toHaveClass('is-done');
+  expect(within(prereqs).getByRole('button', { name: /^MATH 240.*This term/ })).toHaveClass('is-now');
+  fireEvent.click(within(prereqs).getByRole('button', { name: /^COMP SCI 367/ }));
+  expect(onOpenCourse).toHaveBeenCalledWith('COMP SCI 367');
 
-  expect(screen.getByRole('heading', { name: 'Prerequisites' })).toBeInTheDocument();
-  expect(screen.getByTestId('prereq-web-graph')).toBeInTheDocument();
-  expect(screen.getByText('One of')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'MATH 240' })).toBeInTheDocument();
+  // The tabs, GPA chart, Fits column and Ask are gone.
+  expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Fall 2023/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/^Fits/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Ask' })).not.toBeInTheDocument();
+  expect(fetched().some((url) => url.includes('/api/planner/preview'))).toBe(false);
 
-  fireEvent.click(screen.getByRole('button', { name: 'Open the full prerequisite graph' }));
-  expect(screen.getAllByText('Unlocks').length).toBeGreaterThan(0);
-  fireEvent.click(screen.getByRole('button', { name: 'COMP SCI 537' }));
-  expect(onOpenCourse).toHaveBeenCalledWith('COMP SCI 537');
-  fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-
-  fireEvent.click(screen.getByRole('button', { name: /Add to Spring 2027/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Add to plan/ }));
   expect(onAdd).toHaveBeenCalledWith('COMP SCI 400');
+  fireEvent.click(screen.getByRole('button', { name: /Compare/ }));
+  expect(onCompare).toHaveBeenCalledWith('COMP SCI 400', 'Programming III');
+  expect(screen.getByRole('button', { name: 'Save COMP SCI 400' })).toBeInTheDocument();
 });
 
-it('renders the UVA course without Prerequisites and with grades by instructor', async () => {
-  serve(uvaPopupCourse());
+it('UVA: snapshot seats read enrolled of limit with the term, no Seats tile; DFW keeps its name', async () => {
+  serve({ ...uvaPopupCourse(), difficulty: 'typical' });
   render(<CoursePopup courseId="CS 2100" term="Spring 2027" />);
 
   expect(await screen.findByRole('heading', { name: 'Data Structures and Algorithms 1' })).toBeInTheDocument();
-  expect(screen.queryByRole('heading', { name: 'Prerequisites' })).not.toBeInTheDocument();
-  // No plan: no Fits tile.
-  expect(screen.queryByText(/^Fits/)).not.toBeInTheDocument();
-  // UVA seats carry their term (D23).
-  expect(screen.getByText('Seats left · Fa 26')).toBeInTheDocument();
+  expect(screen.getByText('Average GPA · Typical').previousSibling).toHaveTextContent('3.20');
+  expect(screen.queryByText('Seats open')).not.toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole('tab', { name: /Instructors/ }));
-  expect(screen.getByText('Ada Byron')).toBeInTheDocument();
-  expect(screen.getByText('3.31')).toBeInTheDocument();
-  expect(screen.getByText('Nate McBurney')).toBeInTheDocument();
+  const tag = within(sectionNamed('Sections')).getByText('288 of 300 · Fall 2026');
+  expect(tag).toHaveClass('crs-tag--snapshot');
+  expect(screen.queryByText(/waiting|seats$/)).not.toBeInTheDocument();
+
+  expect(within(sectionNamed('Grades')).getAllByRole('listitem').map((li) => li.lastChild.textContent))
+    .toEqual(['A', 'B', 'C', 'DFW']);
 });
 
-it('shows no empty tiles, tabs or numbers for a CU course', async () => {
+it('hides the instructor rating tile when nobody is rated; the rest stretch', async () => {
+  serve({ ...uvaPopupCourse(), difficulty: 'typical' }, { instructorRating: null });
+  const { container } = render(<CoursePopup courseId="CS 2100" term="Spring 2027" />);
+  await screen.findByRole('heading', { name: 'Data Structures and Algorithms 1' });
+  await waitFor(() => expect(fetched().some((url) => url.includes('/api/catalog/ratings/'))).toBe(true));
+  expect(screen.queryByText('Instructor rating')).not.toBeInTheDocument();
+  const tiles = container.querySelector('.crs-tiles');
+  expect(tiles.children).toHaveLength(1);
+  expect(tiles).toHaveStyle({ '--crs-tiles': '1' });
+});
+
+it('shows no empty tiles, grades or prerequisites for a CU course', async () => {
   serve(cuPopupCourse());
   const { container } = render(<CoursePopup courseId="CSCI 1300" />);
-
   expect(await screen.findByRole('heading', { name: /Computer Science 1/ })).toBeInTheDocument();
-  expect(screen.queryByText(/Avg GPA/)).not.toBeInTheDocument();
-  expect(screen.queryByText('Seats left')).not.toBeInTheDocument();
-  expect(container.querySelector('.pop-numbers')).toBeNull();
-  expect(screen.queryByRole('tab', { name: 'Grades' })).not.toBeInTheDocument();
-  expect(screen.getByRole('tab', { name: /Sections/ })).toHaveAttribute('aria-selected', 'true');
+  expect(container.querySelector('.crs-tiles')).toBeNull();
+  expect(screen.queryByRole('heading', { name: 'Grades' })).not.toBeInTheDocument();
   expect(screen.queryByRole('heading', { name: 'Prerequisites' })).not.toBeInTheDocument();
-  container.querySelectorAll('.pop-tile').forEach((tile) => expect(tile.textContent.trim()).not.toBe(''));
-});
-
-/** Waits until every fetch so far has answered and React has applied the results. */
-async function settle() {
-  await act(async () => {
-    await Promise.all(global.fetch.mock.results.map((r) => Promise.resolve(r.value).catch(() => {})));
-    await new Promise((resolve) => { setTimeout(resolve, 0); });
-  });
-}
-
-const previewCalled = () => global.fetch.mock.calls.some(([url]) => String(url).includes('/api/planner/preview'));
-
-async function renderWithPreview(preview) {
-  serve(uwPopupCourse(), { preview });
-  render(<CoursePopup courseId="COMP SCI 400" term="Spring 2027" plan={{ revision: 3 }} />);
-  expect(await screen.findByRole('heading', { name: 'Programming III' })).toBeInTheDocument();
-  await waitFor(() => expect(previewCalled()).toBe(true));
-  await settle();
-}
-
-it.each([404, 409, 422])('hides the Fits tile when the preview answers %i', async (status) => {
-  await renderWithPreview({ status, body: { detail: 'nope' } });
-  expect(screen.queryByRole('heading', { name: /^Fits/ })).not.toBeInTheDocument();
-});
-
-it.each([
-  ['a server error', { status: 502, body: { detail: 'down' } }],
-  ['a network failure', new TypeError('Failed to fetch')],
-])('shows "Couldn\'t load · Retry" in the Fits tile on %s', async (_, preview) => {
-  // The same wait as the hidden cases, so a tile that renders on error is caught there.
-  await renderWithPreview(preview);
-  const tile = screen.getByRole('heading', { name: 'Fits Spring 2027' }).closest('section');
-  expect(within(tile).getByRole('alert')).toHaveTextContent("Couldn't load · Retry");
+  const rows = within(sectionNamed('Sections')).getAllByRole('listitem');
+  expect(rows[0]).toHaveTextContent('100');
+  expect(rows[0].querySelector('.crs-tag')).toBeNull();
+  // No plan term: no Add to plan.
+  expect(screen.queryByRole('button', { name: /Add to plan/ })).not.toBeInTheDocument();
 });
 
 it('shows a not-found state with no Retry for a 404', async () => {
@@ -168,24 +147,10 @@ it('shows a not-found state with no Retry for a 404', async () => {
   expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
 });
 
-it('shows the Unlocks web when a course has no prerequisite tree', async () => {
-  serve({ ...uwPopupCourse(), prereq_tree: undefined });
-  render(<CoursePopup courseId="COMP SCI 400" onOpenCourse={jest.fn()} />);
-  expect(await screen.findByRole('heading', { name: 'Unlocks' })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'COMP SCI 537' })).toBeInTheDocument();
-  expect(screen.queryByRole('heading', { name: 'Prerequisites' })).not.toBeInTheDocument();
-});
-
-it('makes the header a drag source with a labelled grip', async () => {
-  serve(uwPopupCourse());
-  render(<CoursePopup courseId="COMP SCI 400" />);
-  await screen.findByRole('heading', { name: 'Programming III' });
-  expect(screen.getByRole('button', { name: 'Drag COMP SCI 400' })).toHaveAttribute('title', 'Drag');
-});
-
 it("shows the sheet's error state with Retry when the course request fails, and retries", async () => {
   let calls = 0;
   global.fetch = routeFetch([
+    ['/api/catalog/ratings/', { body: { ratings: [] } }],
     ['/api/catalog/', () => {
       calls += 1;
       return calls === 1 ? { status: 502, body: { detail: 'down' } } : { body: uwPopupCourse() };

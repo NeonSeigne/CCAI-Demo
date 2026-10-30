@@ -2,19 +2,50 @@
    "Course card / pop-up") and the chat course cards built from its pieces.
    The band, tiles and actions are the band sheet's (modules/sheet/BandSheet.css). */
 
-.cp-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
-  align-items: start;
+/* ---- The pop-up: one 640px column (course-popup.html, plan D1) ----------- */
+
+/* The dialog: min(640px, the page column) (design Q18); full width on phones. */
+.pop-dialog-paper--course.pop-dialog-paper { width: min(640px, calc(100% - 32px)); }
+
+.cp-sheet .pop-band { padding: 20px 22px 18px; }
+.cp-sheet .pop-title { font-size: 22px; margin: 3px 0 0; }
+.cp-sheet .pop-actions--close { top: 14px; right: 14px; }
+
+/* Close: 36px drawn, 44px to tap (design Q19). */
+.cp-sheet .pop-icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--on-deep-soft);
+}
+.cp-sheet .pop-icon-btn::after { content: ""; position: absolute; inset: -4px; }
+
+/* The tiles span the band under the close button. */
+.cp-sheet .crs-tiles { margin: 14px -44px 0 0; }
+.cp-sheet .pop-numbers { margin-top: 14px; }
+
+.cp-column { padding: 6px 4px 4px; }
+
+.cp-block-title {
+  margin: 14px 18px 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
-.cp-body.is-single { grid-template-columns: minmax(0, 1fr); }
-.cp-main { min-width: 0; }
-.cp-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cp-block .crs-bars { padding: 6px 18px 8px; }
+.cp-block .crs-prereqs { padding: 4px 18px 10px; }
+.cp-skel-bars { height: 96px; margin: 20px 22px; }
 
-@media (max-width: 1279px) {
-  .cp-body { grid-template-columns: minmax(0, 1fr); }
+.cp-sheet .pop-foot { padding: 12px 18px 16px; }
+
+@media (max-width: 700px) {
+  .pop-dialog-paper--course.pop-dialog-paper { width: 100%; }
+  .cp-sheet .pop-title { font-size: 22px; }
+  .cp-sheet .pop-foot .pop-btn--primary { flex: 0 0 auto; }
 }
 
 .cp-grades { display: flex; flex-direction: column; gap: 20px; }
@@ -167,58 +198,6 @@
 }
 
 .cp-seatbar span { display: block; height: 100%; border-radius: var(--r-full); background: var(--track); }
-
-.cp-fits-credits {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin: 4px 0 8px;
-  font-family: var(--font-display);
-}
-
-.cp-fits-before { font-size: 1.7rem; font-weight: 700; color: var(--muted); }
-.cp-fits-after { font-size: 1.7rem; font-weight: 700; color: var(--domain-academics-ink); }
-.cp-fits-credits small { font-family: var(--font-app); font-weight: 600; color: var(--domain-academics-ink); }
-.cp-fits-band { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
-
-.cp-band {
-  position: relative;
-  height: 6px;
-  margin-bottom: 10px;
-  border-radius: 999px;
-  background: var(--raised);
-  overflow: hidden;
-}
-
-.cp-band-ok { position: absolute; top: 0; bottom: 0; background: var(--domain-academics-tint); }
-.cp-band-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-full); background: var(--academics); }
-
-.cp-fit-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
-  font-size: 0.88rem;
-}
-
-.cp-fit-row .is-easier { color: var(--difficulty-easier-ink); }
-.cp-fit-row .is-harder { color: var(--difficulty-harder-ink); }
-
-/* The prerequisite graph (PrereqGraph, styled in CourseVisuals.css) in a raised well. */
-.cp-graph {
-  padding: 12px;
-  border-radius: var(--r-lg);
-  background: var(--canvas);
-}
-
-.cp-graph .pg-node .pg-box { fill: var(--surface); }
-.cp-graph .pg-node.is-asked .pg-box { fill: var(--band); }
-.cp-graph .pg-node.is-done .pg-box { fill: var(--good-tint); }
-.cp-graph .pg-node.is-now .pg-box { fill: var(--tint); }
-
-.cp-graph--full { padding: 16px; }
-.cp-fullgraph .pop-tile-head { justify-content: flex-start; }
 
 /* Chat course cards built from pop-up pieces. */
 .cc-metric { display: flex; flex-direction: column; gap: 4px; }

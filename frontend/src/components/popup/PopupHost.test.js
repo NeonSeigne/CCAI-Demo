@@ -6,7 +6,7 @@ import {
   MemoryRouter, Route, Routes, useLocation,
 } from 'react-router-dom';
 import PopupHost from './PopupHost';
-import { requirementLabels } from '../course/CourseSheet';
+import { compareIds } from '../course/CourseSheet';
 import { useCloseOnce } from '../../utils/openCourse';
 import { ChatContext } from '../../contexts/ChatContext';
 import { ChatDockContext, ChatDockProvider, useChatDock } from '../../contexts/ChatDockContext';
@@ -14,7 +14,7 @@ import { PlannerContext } from '../../contexts/PlannerContext';
 import CourseChip from '../visuals/CourseChip';
 import CourseRedirect from '../course/CourseRedirect';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
-import { uwPopupCourse } from '../../pages/__fixtures__/popups';
+import { richPlace, uwPopupCourse } from '../../pages/__fixtures__/popups';
 
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
 
@@ -23,6 +23,8 @@ beforeEach(() => {
   global.fetch = routeFetch([
     ['/api/catalog/ratings/', { body: { ratings: [] } }],
     ['/api/catalog/', { body: uwPopupCourse() }],
+    ['/api/places/', { body: { place: richPlace } }],
+    ['/api/events?', { body: { events: [] } }],
   ]);
 });
 afterEach(() => { global.fetch = realFetch; });
@@ -74,15 +76,14 @@ it('closes once per open pop-up, however many close events arrive', () => {
   expect(close).toHaveBeenCalledTimes(2);
 });
 
-it("labels requirement chips from the student's programs", () => {
-  const programs = [
-    { id: 'cs', name: 'Comp Sci B.S.', rules: [{ id: 'core', title: 'Core', courses: ['COMP SCI 400'] }] },
-    { id: 'math', name: 'Math B.S.', rules: [{ id: 'el', title: 'Electives', courses: ['COMP SCI 400'] }] },
-  ];
-  expect(requirementLabels('COMP SCI 400', programs, ['cs'])).toEqual(['Comp Sci B.S. · Core']);
+it('Compare adds the course to the ticked ones, oldest dropped past four', () => {
+  const t = (...ids) => ids.map((identifier) => ({ identifier }));
+  expect(compareIds(t('MATH 222'), 'COMP SCI 400')).toEqual(['MATH 222', 'COMP SCI 400']);
+  expect(compareIds(t('A', 'B', 'C', 'D'), 'E')).toEqual(['B', 'C', 'D', 'E']);
+  expect(compareIds(t('COMP SCI 400', 'B'), 'COMP SCI 400')).toEqual(['B', 'COMP SCI 400']);
 });
 
-describe('Ask from the course pop-up', () => {
+describe('Ask from a pop-up', () => {
   // The chat page's composer takes focus requests through the dock state.
   function VisibleComposer() {
     const dock = useChatDock();
@@ -126,35 +127,34 @@ describe('Ask from the course pop-up', () => {
   }
 
   const openAndAsk = async () => {
-    fireEvent.click(screen.getByRole('button', { name: /comp sci 400/i }));
-    await screen.findByRole('dialog', { name: 'Programming III' });
-    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+    await screen.findByRole('dialog', { name: 'Alderman Library' });
+    fireEvent.click(screen.getByRole('button', { name: 'Ask about Alderman Library' }));
   };
 
   it('with the dock beside the page, keeps the pop-up open and opens the dock', async () => {
     const dock = { available: true, openDock: jest.fn(), requestComposerFocus: jest.fn() };
-    const { chat } = renderAt('/map', { dock });
+    const { chat } = renderAt('/home?place=alderman', { dock });
     await openAndAsk();
-    expect(chat.attach).toHaveBeenCalledWith({ type: 'course', id: 'COMP SCI 400', title: 'Programming III' });
+    expect(chat.attach).toHaveBeenCalledWith({ type: 'place', id: 'alderman', title: 'Alderman Library' });
     expect(dock.openDock).toHaveBeenCalled();
-    expect(screen.getByRole('dialog', { name: 'Programming III' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Alderman Library' })).toBeInTheDocument();
   });
 
   it('on /chat, closes the pop-up, then attaches and focuses the visible composer', async () => {
-    const { chat } = renderAt('/chat');
+    const { chat } = renderAt('/chat?place=alderman');
     await openAndAsk();
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/);
-    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'COMP SCI 400' }));
+    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'alderman' }));
     await waitFor(() => expect(screen.getByLabelText('Composer')).toHaveFocus());
   });
 
   it('on /home, closes the pop-up, then goes to /chat with the item attached', async () => {
-    const { chat } = renderAt('/home');
+    const { chat } = renderAt('/home?place=alderman');
     await openAndAsk();
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(/^\/chat$/));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'COMP SCI 400' }));
+    expect(chat.attach).toHaveBeenCalledWith(expect.objectContaining({ id: 'alderman' }));
   });
 });
 
@@ -190,14 +190,32 @@ describe('Add from the course pop-up', () => {
   it('offers Add for a course not in the plan', async () => {
     renderWith(planWith([{ id: 'MATH 222', term: 'Fall 2026' }]));
     await screen.findByRole('dialog', { name: 'Programming III' });
-    expect(screen.getByRole('button', { name: /add to fall 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add to plan/i })).toBeInTheDocument();
   });
 
   it('offers no Add and asks for no preview when the course is already planned', async () => {
     renderWith(planWith([{ id: 'comp sci  400', term: 'Spring 2027' }]));
     await screen.findByRole('dialog', { name: 'Programming III' });
-    expect(screen.queryByRole('button', { name: /add to/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add to plan/i })).not.toBeInTheDocument();
     const urls = global.fetch.mock.calls.map(([url]) => String(url));
     expect(urls.some((url) => url.includes('/api/planner/preview'))).toBe(false);
   });
+});
+
+it('Compare in the course pop-up opens Compare with the course added', async () => {
+  window.sessionStorage.setItem('cc.courses.ticked', JSON.stringify([{ identifier: 'MATH 222', title: 'Calculus' }]));
+  render(
+    <MemoryRouter initialEntries={['/courses?course=COMP+SCI+400']}>
+      <PopupHost />
+      <LocationProbe />
+    </MemoryRouter>,
+  );
+  await screen.findByRole('dialog', { name: 'Programming III' });
+  fireEvent.click(screen.getByRole('button', { name: /Compare/ }));
+  await waitFor(() => expect(screen.getByTestId('location'))
+    .toHaveTextContent('/courses/compare?ids=MATH+222%2CCOMP+SCI+400'));
+  expect(JSON.parse(window.sessionStorage.getItem('cc.courses.ticked')).map((c) => c.identifier))
+    .toEqual(['MATH 222', 'COMP SCI 400']);
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  window.sessionStorage.clear();
 });

@@ -106,6 +106,7 @@ describe('tiles', () => {
     render(<CourseTiles tiles={courseFacts({ ...uwCourse(), difficulty: 'harder' }).tiles} />);
     const label = screen.getByText('Average GPA · Harder');
     // The number sits above its label.
+    // eslint-disable-next-line testing-library/no-node-access
     expect(label.previousSibling).toHaveTextContent('3.29');
     expect(screen.getByText('Seats open')).toBeInTheDocument();
     expect(screen.queryByText('Instructor rating')).not.toBeInTheDocument();
