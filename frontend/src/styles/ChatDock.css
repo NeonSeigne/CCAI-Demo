@@ -88,8 +88,8 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 16px 12px 10px 18px;
+  gap: 6px;
+  padding: 16px 16px 10px;
 }
 
 .cc-dock.is-sheet .cc-dock-head { padding-top: 4px; }
@@ -102,10 +102,12 @@
   letter-spacing: -0.02em;
 }
 
+/* 36px drawn, 44px to tap (design Q19). */
 .cc-dock-icon-btn {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  margin: -4px;
   display: inline-grid;
   place-items: center;
   padding: 0;
@@ -119,7 +121,7 @@
 
 .cc-dock-icon-btn:hover { background: var(--raised); color: var(--ink); }
 
-.cc-dock.is-strip .cc-dock-icon-btn { width: 40px; height: 40px; }
+.cc-dock.is-strip .cc-dock-icon-btn { width: 44px; height: 44px; margin: 0; }
 
 .cc-dock-unread {
   position: absolute;
@@ -145,7 +147,7 @@
 
 .cc-dock-composer {
   flex-shrink: 0;
-  padding: 8px 12px 12px;
+  padding: 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AddCommentRounded, ChatBubbleOutlineRounded, CloseRounded, KeyboardTabRounded } from './icons';
+import { useNavigate } from 'react-router-dom';
+import { ChatBubbleOutlineRounded, Icon } from './icons';
 import Composer from './chat/Composer';
 import Thread from './chat/Thread';
 import { useDropTarget } from './dnd';
@@ -84,12 +85,16 @@ function SheetHandle({ snap, onSnap, onClose }) {
 /**
  * The chat dock (design D17): the one conversation beside every page.
  * Docked at >= 1280px (collapses to a 48px strip), a 400px drawer at
- * 701–1279px, a bottom sheet at 700px and under (opened by the Ask tab). Dropping a
- * course, event or place on it attaches the item to the composer.
+ * 701–1279px (design Q17, Q18), a bottom sheet at 700px and under (opened
+ * by the Ask tab). The header (events.html .dock-h) has Open in full, which
+ * continues the conversation on the chat page, and Close. The composer takes
+ * the page's placeholder and has no mic. Dropping a course, event or place
+ * on it attaches the item to the composer.
  */
 export default function ChatDock() {
   const dock = useChatDock();
   const chat = useChat();
+  const navigate = useNavigate();
   const panelRef = useRef(null);
   const stripButtonRef = useRef(null);
   const unread = useUnread(!dock?.available || Boolean(dock?.open));
@@ -149,20 +154,18 @@ export default function ChatDock() {
         <button
           type="button"
           className="cc-dock-icon-btn"
-          aria-label="New chat"
-          title="New chat"
-          onClick={() => chat.newChat()}
+          aria-label="Open in full"
+          onClick={() => navigate('/chat')}
         >
-          <AddCommentRounded fontSize="small" />
+          <Icon name="open_in_full" size={20} />
         </button>
         <button
           type="button"
           className="cc-dock-icon-btn"
           aria-label={mode === 'docked' ? 'Collapse Ask' : 'Close Ask'}
-          title={mode === 'docked' ? 'Collapse' : 'Close'}
           onClick={close}
         >
-          {mode === 'docked' ? <KeyboardTabRounded fontSize="small" /> : <CloseRounded fontSize="small" />}
+          <Icon name="right_panel_close" size={22} />
         </button>
       </header>
       <Thread variant="dock" />

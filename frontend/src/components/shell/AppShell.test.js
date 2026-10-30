@@ -287,3 +287,43 @@ describe('pop-ups in the page column (R15)', () => {
     expect(document.documentElement.style.overflow).toBe('');
   });
 });
+
+describe('the dock header and composer (events.html)', () => {
+  test('Open in full and Close, no New chat; no mic', async () => {
+    renderShell();
+    const askDock = screen.getByRole('heading', { name: 'Ask' }).closest('aside');
+    expect(within(askDock).getByRole('button', { name: 'Open in full' })).toBeInTheDocument();
+    expect(within(askDock).getByRole('button', { name: 'Collapse Ask' })).toBeInTheDocument();
+    expect(within(askDock).queryByRole('button', { name: 'New chat' })).not.toBeInTheDocument();
+    expect(within(askDock).queryByRole('button', { name: 'Voice input' })).not.toBeInTheDocument();
+    await screen.findByText('Your chats will show up here.');
+  });
+
+  test('Events gives the dock its own placeholder', async () => {
+    renderShell('/events', <Page>Events</Page>);
+    expect(screen.getByPlaceholderText('Ask about these events')).toBeInTheDocument();
+    await screen.findByText('Your chats will show up here.');
+  });
+});
+
+describe('the account menu', () => {
+  test('the rail user row opens Profile, Settings, Model, Help, Sign out', async () => {
+    renderShell();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('button', { name: 'Account' }));
+    const menu = screen.getByRole('menu', { name: 'Account' });
+    expect([...menu.querySelectorAll('.cc-menu-label')].map((label) => label.textContent))
+      .toEqual(['Profile', 'Settings', 'Model', 'Help', 'Sign out']);
+    fireEvent.click(within(menu).getByRole('menuitem', { name: 'Profile' }));
+    expect(await screen.findByRole('button', { name: 'Close settings' })).toBeInTheDocument();
+  });
+
+  test('on a phone the header avatar opens it as a bottom sheet', async () => {
+    setWidth(390);
+    renderShell();
+    fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: 'Account' }));
+    const menu = screen.getByRole('menu', { name: 'Account' });
+    expect(menu.closest('.cc-menu')).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument();
+    await screen.findByText('Your chats will show up here.');
+  });
+});
