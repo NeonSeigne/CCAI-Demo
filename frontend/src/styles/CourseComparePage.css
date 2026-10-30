@@ -1,56 +1,58 @@
-/* Compare courses: a real table (28A), values and term labels only (30A).
-   Shared pieces (tabs, grade bar, buttons, errors) live in CoursesPage.css. */
+/* Compare courses (phase9 compare.html): a real table (28A), values and
+   term labels only (30A). Shared pieces (tabs, buttons, errors, the search
+   pill and the source chip) live in CoursesPage.css. */
 
 .cmp-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px;
+  gap: 20px;
   align-items: start;
 }
 
+.cmp-main { min-width: 0; }
+
+/* The table's panel (.panel), scrolling sideways when the columns don't fit. */
 .cmp-scroll {
   min-width: 0;
   overflow-x: auto;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--surface);
+  box-shadow: var(--shadow-rest);
   scroll-snap-type: x proximity;
 }
 
 .cmp-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  min-width: 620px;
+  border-collapse: collapse;
   table-layout: fixed;
 }
 
 .cmp-corner,
-.cmp-row-head {
-  width: 120px;
-}
+.cmp-row-head { width: 120px; }
 
 .cmp-table th,
 .cmp-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--line);
+  padding: 14px 18px;
+  border-top: 1px solid var(--rule);
   text-align: left;
   vertical-align: top;
 }
 
-.cmp-table tbody tr:last-child th,
-.cmp-table tbody tr:last-child td { border-bottom: 0; }
+.cmp-table thead th,
+.cmp-table thead td { border-top: 0; padding-top: 18px; padding-bottom: 16px; }
 
 .cmp-col-head {
-  min-width: 180px;
+  position: relative;
+  padding-right: 48px;
   scroll-snap-align: start;
 }
-
-.cmp-col-head { position: relative; padding-right: 56px; }
 
 .cmp-col-name {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-height: 44px;
   padding: 0;
   border: 0;
@@ -60,24 +62,36 @@
   text-align: left;
   cursor: pointer;
 }
-.cmp-col-name:hover .cmp-col-title { text-decoration: underline; }
-.cmp-col-title { font-size: 15px; font-weight: 700; color: var(--ink); }
 
+.cmp-col-name:hover .cmp-col-title { text-decoration: underline; }
+
+.cmp-col-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+/* A ghost icon button: 36px drawn, 44px to tap (design Q19). */
 .cmp-remove {
   position: absolute;
-  top: 8px;
+  top: 12px;
   right: 8px;
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
 }
+
+.cmp-remove::after { content: ""; position: absolute; inset: -4px; }
+.cmp-remove:hover { background: var(--raised); color: var(--ink); }
 
 .cmp-row-head {
   position: sticky;
@@ -85,117 +99,133 @@
   z-index: 1;
   background: var(--surface);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .cmp-value {
   display: block;
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   color: var(--ink);
 }
 
-.cmp-note { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
+.cmp-value.is-easier { color: var(--easier); }
+.cmp-value.is-typical { color: var(--typical); }
+.cmp-value.is-harder { color: var(--harder); }
+.cmp-value .cc-harder-icon { margin-right: 4px; vertical-align: -2px; }
 
-.cmp-cell .cc-grades + .cmp-note { margin-top: 6px; }
-.cmp-cell .cc-na { font-size: 13px; }
-.cmp-cell-error { vertical-align: top; }
+.cmp-note { display: block; margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--muted); }
 
-/* Add a course */
-.cmp-add {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-  padding: 16px;
-  border: 1px dashed var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-}
-
-.cmp-add h2 { margin: 0; font-size: 16px; }
-.cmp-add-full { color: var(--muted); font-size: 14px; }
-.cmp-add-label { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
-
-.cmp-add-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
-
-.cmp-add-item {
-  width: 100%;
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px;
-  border: 0;
-  border-top: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-}
-
-.cmp-add-title {
-  color: var(--muted);
+/* Grade bars: 40px, neutral, the largest group in signal, labels only. */
+.crs-bars--compare { max-width: 160px; margin-bottom: 2px; }
+.crs-bars--compare .crs-bars-list { gap: 3px; }
+.crs-bars--compare .crs-bar { position: relative; }
+.crs-bars--compare .crs-bar-box { height: 40px; }
+.crs-bars--compare .crs-bar-fill { background: var(--raised); border-radius: 4px 4px 0 0; }
+.crs-bars--compare .crs-bar.is-top .crs-bar-fill { background: var(--signal); }
+.crs-bars--compare .crs-bar-label { font-size: 11.5px; }
+/* The share stays for screen readers only. */
+.crs-bars--compare .crs-bar-pct {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
-.cmp-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-}
-
-.cmp-empty p { margin: 0; font-size: 16px; font-weight: 600; }
+.cmp-cell .cc-na { font-size: 13px; }
+.cmp-cell .pnl-row { height: 40px; }
 
 .cmp-ask {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 12px 12px 20px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
+  flex-wrap: wrap;
+  margin-top: 16px;
 }
 
-.cmp-ask p { flex: 1; margin: 0; font-size: 15px; }
+/* Add a course: a panel with menu-like rows. */
+.cmp-add {
+  margin: 0;
+  padding-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+  overflow: hidden;
+}
+
+.cmp-add h2 { margin: 0; padding: 18px 22px 12px; font-size: 16px; }
+.cmp-add .cc-search { margin: 0 16px 6px; }
+.cmp-add > .pnl-state { padding: 10px 20px; }
+.cmp-add > .cc-error { padding: 10px 20px; }
+.cmp-add-full { padding: 18px 22px; color: var(--muted); font-size: 14px; font-weight: 600; }
+.cmp-add-label { display: block; margin: 0; padding: 10px 20px 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+
+.cmp-add-list { margin: 0; padding: 0 6px; list-style: none; display: flex; flex-direction: column; }
+
+.cmp-add-item {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--r-lg);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmp-add-item:hover { background: var(--raised); }
+.cmp-add-item .ms { margin-top: 2px; color: var(--muted); }
+.cmp-add-text { min-width: 0; display: flex; flex-direction: column; }
+.cmp-add-title { line-height: 1.4; }
+
+.cmp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+}
 
 @media (max-width: 1099px) {
   .cmp-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Phones (27A): two course columns on screen, row labels stay put, swipe for more. */
+/* Phones (27A): row labels stay put, swipe for more columns. */
 @media (max-width: 700px) {
-  .cc-compare .cc-page-main { padding-bottom: calc(56px + 32px + env(safe-area-inset-bottom, 0px)); }
-
+  .cmp-table { min-width: 560px; }
   .cmp-corner,
-  .cmp-row-head { width: 96px; }
+  .cmp-row-head { width: 92px; }
 
-  .cmp-table { table-layout: auto; width: auto; }
-
-  .cmp-col-head,
-  .cmp-cell {
-    min-width: calc((100vw - 32px - 96px) / 2);
-    max-width: calc((100vw - 32px - 96px) / 2);
-    box-sizing: border-box;
+  .cmp-table thead td,
+  .cmp-row-head {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    white-space: normal;
   }
 
-  .cmp-scroll { scroll-snap-type: x mandatory; }
   .cmp-table th,
-  .cmp-table td { padding: 12px 10px; }
-  .cmp-col-head { padding-right: 52px; }
-  .cmp-value { font-size: 17px; }
-
-  .cmp-ask { flex-wrap: wrap; padding: 12px; }
+  .cmp-table td { padding: 12px; }
+  .cmp-row-head,
+  .cmp-table thead td { padding-left: 14px; padding-right: 10px; }
+  .cmp-col-head { padding-right: 44px; }
 }

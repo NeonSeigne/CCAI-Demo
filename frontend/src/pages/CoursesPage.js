@@ -2,11 +2,12 @@ import React, {
   Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Search, X, DragIndicatorRounded } from '../components/icons';
+import { Icon } from '../components/icons';
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import SaveButton from '../components/SaveButton';
+import PanelState from '../components/panel/PanelState';
 import {
-  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced,
+  CoursesTabs, GpaValue, InlineError, NotAvailable, SourceChip, useDebounced,
 } from '../components/catalog/CatalogParts';
 import {
   MAX_TICKED, askCoursePrompt, askState, compareUrl, formatGpa, formatPct, gradesLabel, levelOf,
@@ -14,7 +15,9 @@ import {
   sourceName, titleFromSaved, writeTicked,
 } from '../components/catalog/catalogFormat';
 import { getCatalogStarters, searchCatalog } from '../api/campus';
-import { loadCourse } from '../modules/course';
+import {
+  GradeBars, difficultyOf, gradeGroups, loadCourse,
+} from '../modules/course';
 import { useSchool } from '../modules/campus';
 import { useAuth } from '../contexts/AuthContext';
 import { useSaved } from '../contexts/SavedContext';
@@ -43,24 +46,21 @@ function mergeCourses(...lists) {
   return out;
 }
 
-function StatTile({ value, label, available }) {
+function StatTile({
+  value, label, available, tone,
+}) {
+  const shown = available && value != null;
   return (
     <div className="cc-tile">
-      {available && value != null ? (
-        <>
-          <strong className="cc-tile-value">{value}</strong>
-          <span className="cc-tile-label">{label}</span>
-        </>
-      ) : (
-        <>
-          <strong className="cc-tile-value is-missing">Not available</strong>
-          <span className="cc-tile-label">{label}</span>
-        </>
-      )}
+      <span className="cc-tile-label">{label}</span>
+      <strong className={`cc-tile-value ${shown ? '' : 'is-missing'} ${shown && tone ? `is-${tone}` : ''}`.trim()}>
+        {shown ? value : 'Not available'}
+      </strong>
     </div>
   );
 }
 
+/** Course codes as round tags; each previews that course. */
 function CourseChips({ courses, onSelect, label }) {
   return (
     <ul className="cc-chips" aria-label={label}>
@@ -68,8 +68,7 @@ function CourseChips({ courses, onSelect, label }) {
         const id = typeof course === 'string' ? course : course.identifier;
         return (
           <li key={id}>
-            <button type="button" className="cc-chip" onClick={() => onSelect(id)} aria-label={`Preview ${id}`}>
-              <span className="cc-chip-dot" aria-hidden="true" />
+            <button type="button" className="cc-code-tag" onClick={() => onSelect(id)} aria-label={`Preview ${id}`}>
               {id}
             </button>
           </li>
@@ -84,7 +83,7 @@ function SectionsBlock({ data, school }) {
   const source = data.source;
   if (caps.sections === false || !('sections' in data)) {
     return (
-      <section className="cc-block" aria-labelledby="cc-seats-h">
+      <section className="cc-pv-sect" aria-labelledby="cc-seats-h">
         <h3 id="cc-seats-h">Sections and seats</h3>
         <NotAvailable school={school} source={source} />
       </section>
@@ -93,7 +92,7 @@ function SectionsBlock({ data, school }) {
   const sections = data.sections;
   if (!sections || !(sections.rows || []).length) {
     return (
-      <section className="cc-block" aria-labelledby="cc-seats-h">
+      <section className="cc-pv-sect" aria-labelledby="cc-seats-h">
         <h3 id="cc-seats-h">Sections and seats</h3>
         <p className="cc-muted">No sections listed for this course.</p>
       </section>
@@ -102,7 +101,7 @@ function SectionsBlock({ data, school }) {
   const rows = sections.seats_published ? primarySections(sections.rows) : sections.rows;
   const shown = rows.slice(0, SECTION_ROWS);
   return (
-    <section className="cc-block" aria-labelledby="cc-seats-h">
+    <section className="cc-pv-sect" aria-labelledby="cc-seats-h">
       <h3 id="cc-seats-h">{seatsHeading(sections)}</h3>
       <ul className="cc-sections">
         {shown.map((row, index) => {
@@ -113,7 +112,7 @@ function SectionsBlock({ data, school }) {
               <span className="cc-section-name">{sectionName(row)}</span>
               {sections.seats_published && fill != null ? (
                 <span className="cc-section-fill" aria-hidden="true">
-                  <span className={seats === 'Full' ? 'is-full' : ''} style={{ width: `${fill}%` }} />
+                  <span style={{ width: `${fill}%` }} />
                 </span>
               ) : (
                 <span className="cc-section-who">{row.instructors || (row.meetings || []).join(', ')}</span>
@@ -142,6 +141,8 @@ function CoursePreview({
   const instructors = Array.isArray(data.instructors) ? data.instructors : [];
   const labels = grades?.labels || { a: 'A/AB', df: 'D/F' };
   const termSuffix = grades?.term ? `, ${grades.term}` : '';
+  const groups = grades ? gradeGroups(grades.distribution, grades.buckets) : [];
+  const gradeTiles = hasGrades && Boolean(grades);
 
   return (
     <article className="cc-preview-body" key={code} aria-labelledby="cc-preview-title">
@@ -149,54 +150,57 @@ function CoursePreview({
         <div className="cc-preview-name">
           <span className="cc-code">{code}</span>
           <h2 id="cc-preview-title" ref={headingRef} tabIndex={-1}>{title || code}</h2>
-          {instructors.length > 0 && <p className="cc-muted">Taught by {instructors.slice(0, 3).join(', ')}</p>}
+          {instructors.length > 0 && <p className="cc-preview-by">Taught by {instructors.slice(0, 3).join(', ')}</p>}
         </div>
         <div className="cc-preview-actions">
-          <SaveButton item={{ kind: 'course', key: code, display_name: title ? `${code} ${title}` : code }} />
+          <SaveButton className="cc-preview-save" item={{ kind: 'course', key: code, display_name: title ? `${code} ${title}` : code }} />
           <button type="button" className="cc-btn" onClick={() => onDetails(code)}>
             Details
             <span className="sr-only"> {code}</span>
           </button>
           <button type="button" className="cc-btn cc-btn-primary" onClick={() => onAsk(code, title)}>
-            <MessageSquare size={16} aria-hidden="true" /> Ask about it
+            <Icon name="forum" size={20} /> Ask about it
             <span className="sr-only"> {code}</span>
           </button>
         </div>
       </header>
 
       <div className="cc-tiles">
-        <StatTile available={hasGrades && Boolean(grades)} value={formatGpa(grades?.gpa)} label={`avg GPA${termSuffix}`} />
-        <StatTile available={hasGrades && Boolean(grades)} value={formatPct(grades?.pct_a)} label={`got ${labels.a}`} />
-        <StatTile available={hasGrades && Boolean(grades)} value={formatPct(grades?.pct_df)} label={`got ${labels.df}`} />
+        <StatTile available={gradeTiles} value={formatGpa(grades?.gpa)} label={`avg GPA${termSuffix}`} tone={difficultyOf(data)} />
+        <StatTile available={gradeTiles} value={formatPct(grades?.pct_a)} label={`got ${labels.a}`} />
+        <StatTile available={gradeTiles} value={formatPct(grades?.pct_df)} label={`got ${labels.df}`} />
       </div>
 
-      <section className="cc-block" aria-labelledby="cc-grades-h">
-        <h3 id="cc-grades-h">{grades ? `Grades, ${gradesLabel(grades)}` : 'Grades'}</h3>
+      <section className="cc-pv-sect" aria-labelledby="cc-grades-h">
+        <h3 id="cc-grades-h">
+          {grades?.term ? `Grades, ${grades.term}` : 'Grades'}
+          {grades?.students ? <small> {grades.students.toLocaleString('en-US')} students</small> : null}
+        </h3>
         {!hasGrades && <NotAvailable school={school} source={source} />}
-        {hasGrades && !grades && <p className="cc-muted">No grade data for this course.</p>}
-        {grades && <GradesBar distribution={grades.distribution} label={gradesLabel(grades)} />}
+        {hasGrades && (!grades || !groups.length) && <p className="cc-muted">No grade data for this course.</p>}
+        {groups.length > 0 && (
+          <GradeBars groups={groups} size="browse" label={`Grade distribution, ${gradesLabel(grades)}`} />
+        )}
       </section>
 
       <div className="cc-preview-grid">
-        <section className="cc-block" aria-labelledby="cc-prereq-h">
-          <h3 id="cc-prereq-h">Prerequisites</h3>
-          {caps.prerequisites === false || !('prerequisites' in data) ? (
-            <NotAvailable school={school} source={source} />
-          ) : !data.prerequisites || (!data.prerequisites.courses?.length && !data.prerequisites.text) ? (
-            <p className="cc-muted">No prerequisites listed.</p>
-          ) : (
-            <div className="cc-prereq">
-              {data.prerequisites.courses?.length > 0 && (
-                <CourseChips courses={data.prerequisites.courses} onSelect={onSelectCourse} label={`Prerequisites for ${code}`} />
-              )}
-              {data.prerequisites.text && <p className="cc-prereq-text">{data.prerequisites.text}</p>}
-            </div>
-          )}
-        </section>
-
         <div className="cc-preview-side">
-          <SectionsBlock data={data} school={school} />
-          <section className="cc-block" aria-labelledby="cc-next-h">
+          <section className="cc-pv-sect" aria-labelledby="cc-prereq-h">
+            <h3 id="cc-prereq-h">Prerequisites</h3>
+            {caps.prerequisites === false || !('prerequisites' in data) ? (
+              <NotAvailable school={school} source={source} />
+            ) : !data.prerequisites || (!data.prerequisites.courses?.length && !data.prerequisites.text) ? (
+              <p className="cc-muted">No prerequisites listed.</p>
+            ) : (
+              <div className="cc-prereq">
+                {data.prerequisites.courses?.length > 0 && (
+                  <CourseChips courses={data.prerequisites.courses} onSelect={onSelectCourse} label={`Prerequisites for ${code}`} />
+                )}
+                {data.prerequisites.text && <p className="cc-prereq-text">{data.prerequisites.text}</p>}
+              </div>
+            )}
+          </section>
+          <section className="cc-pv-sect" aria-labelledby="cc-next-h">
             <h3 id="cc-next-h">Often taken next</h3>
             {caps.next_courses === false || !('next_courses' in data) ? (
               <NotAvailable school={school} source={source} />
@@ -207,22 +211,29 @@ function CoursePreview({
             )}
           </section>
         </div>
+
+        <div className="cc-preview-side">
+          <SectionsBlock data={data} school={school} />
+        </div>
       </div>
 
-      <p className="cc-footnote">
-        Grades, seats and requirements from {sourceName(source)}
+      <SourceChip className="cc-preview-src">
+        {sourceName(source)}
         {data.as_of && caps.seats_historical ? ` · as of ${shortDate(data.as_of)}` : ''}
-      </p>
+      </SourceChip>
     </article>
   );
 }
 
 /**
- * A Browse row: a draggable course source (D4). The grip is the keyboard
- * handle; a pointer drag can start anywhere on the row.
+ * A Browse row (the approved row, course-popup.html): the round tick, the
+ * code column, the title and the GPA at right, coloured by difficulty. The
+ * catalog rows carry no rating, so the GPA is the only value (Phase 9).
+ * Also a draggable course source (D4): the grip is the keyboard handle; a
+ * pointer drag can start anywhere on the row.
  */
 export function BrowseRow({
-  course, isTicked, isSelected, full, onTick, onOpen,
+  course, isTicked, isSelected, full, onTick, onOpen, schoolMark,
 }) {
   const rowId = `cc-row-${safeId(course.identifier)}`;
   const drag = useDraggableItem({
@@ -242,12 +253,16 @@ export function BrowseRow({
       <label className="cc-row-check">
         <input
           type="checkbox"
+          className="cc-tick-input"
           checked={isTicked}
           disabled={!isTicked && full}
           onChange={() => onTick(course)}
           aria-labelledby={`cc-tick-word ${rowId}`}
           aria-describedby={!isTicked && full ? 'cc-cap-note' : undefined}
         />
+        <span className="cc-tick" aria-hidden="true">
+          {isTicked && <Icon name="check" size={16} />}
+        </span>
       </label>
       <button
         type="button"
@@ -260,9 +275,9 @@ export function BrowseRow({
           {course.title && <span className="cc-row-title"> {course.title}</span>}
         </span>
         {course.gpa != null && (
-          <span className="cc-row-gpa">
-            {formatGpa(course.gpa)}
-            <small>GPA</small>
+          <span className="cc-row-value">
+            <GpaValue className="cc-row-gpa" value={formatGpa(course.gpa)} difficulty={difficultyOf(course)} school={schoolMark} />
+            <span className="sr-only"> GPA</span>
           </span>
         )}
       </button>
@@ -274,23 +289,24 @@ export function BrowseRow({
         aria-label={`Drag ${course.identifier}`}
         title="Drag"
       >
-        <DragIndicatorRounded fontSize="small" aria-hidden="true" />
+        <Icon name="drag_indicator" size={20} />
       </button>
     </li>
   );
 }
 
+/** The preview's layout in raised blocks while it loads (design Q4). */
 function PreviewPlaceholder() {
   return (
-    <div className="cc-preview-body" aria-hidden="true">
-      <Placeholder lines={2} className="cc-ph-head" />
-      <div className="cc-tiles">
-        <span className="cc-tile cc-ph-tile" />
-        <span className="cc-tile cc-ph-tile" />
-        <span className="cc-tile cc-ph-tile" />
-      </div>
-      <span className="cc-ph cc-ph-bar" />
-    </div>
+    <PanelState status="loading" label="Loading course">
+      <span className="pnl-block cc-ph-head" />
+      <span className="cc-ph-tiles">
+        <span className="pnl-block" />
+        <span className="pnl-block" />
+        <span className="pnl-block" />
+      </span>
+      <span className="pnl-block cc-ph-bars" />
+    </PanelState>
   );
 }
 
@@ -299,7 +315,7 @@ function BrowseView({ tabs }) {
   const [params] = useSearchParams();
   const { authToken } = useAuth();
   const saved = useSaved();
-  const { name: school } = useSchool();
+  const { name: school, mark: schoolMark } = useSchool();
   const requested = params.get('selected');
 
   const [query, setQuery] = useState('');
@@ -482,11 +498,9 @@ function BrowseView({ tabs }) {
   let listBody;
   if (listLoading && showListPlaceholder) {
     listBody = (
-      <ul className="cc-rows" aria-hidden="true">
-        {Array.from({ length: 5 }, (_, index) => (
-          <li key={index} className="cc-row cc-row-ph"><Placeholder lines={2} /></li>
-        ))}
-      </ul>
+      <div className="cc-rows cc-rows-state">
+        <PanelState status="loading" rows={5} label="Loading courses" />
+      </div>
     );
   } else if (mode === 'search' && results.status === 'error') {
     listBody = (
@@ -497,17 +511,17 @@ function BrowseView({ tabs }) {
       <InlineError message={listError(starters.error)} onRetry={() => setStartersTry((n) => n + 1)} />
     );
   } else if (mode === 'search' && results.status === 'hint') {
-    listBody = <p className="cc-empty">{results.error?.message || `Try a course code at ${school}.`}</p>;
+    listBody = <PanelState status="empty" icon="search" message={results.error?.message || `Try a course code at ${school}.`} />;
   } else if (!listLoading && rows.length === 0) {
     listBody = mode === 'search' ? (
       <div className="cc-empty">
-        <p>No courses match &ldquo;{results.q}&rdquo;</p>
+        <PanelState status="empty" icon="search_off" message={<>No courses match &ldquo;{results.q}&rdquo;</>} />
         <button type="button" className="cc-btn" onClick={clearFilters}>
           {level != null || openOnly ? 'Clear filters' : 'Clear search'}
         </button>
       </div>
     ) : (
-      <p className="cc-empty">Search by course code or title to get started.</p>
+      <PanelState status="empty" icon="search" message="Search by course code or title to get started." />
     );
   } else {
     listBody = (
@@ -521,6 +535,7 @@ function BrowseView({ tabs }) {
             full={full}
             onTick={toggleTick}
             onOpen={openDetails}
+            schoolMark={schoolMark}
           />
         ))}
       </ul>
@@ -532,7 +547,7 @@ function BrowseView({ tabs }) {
     previewBody = <PreviewPlaceholder />;
   } else if (preview.status === 'error') {
     previewBody = preview.error?.notFound ? (
-      <p className="cc-empty">We couldn&apos;t find {preview.id} at {school}.</p>
+      <PanelState status="empty" icon="search_off" message={`We couldn't find ${preview.id} at ${school}.`} />
     ) : (
       <InlineError
         message={`Couldn't load ${preview.id} from ${listSource}`}
@@ -551,23 +566,21 @@ function BrowseView({ tabs }) {
       />
     );
   } else {
-    previewBody = <p className="cc-empty">Pick a course to see grades and seats.</p>;
+    previewBody = <PanelState status="empty" icon="school" message="Pick a course to see grades and seats." />;
   }
 
   return (
-    <CampusPageShell className={`cc-courses is-${phoneView}`}>
+    <CampusPageShell className={`cc-courses cc-browse-page is-${phoneView}`}>
       <div className="cc-page">
         <header className="cc-page-head">
-          <div>
-            <h1>Courses</h1>
-          </div>
+          <h1>Courses</h1>
           {tabs({ count: ticked.length, onCompare: goCompare })}
         </header>
 
         <div className="cc-browse">
           <section className="cc-list" aria-label="Find courses">
             <div className="cc-search">
-              <Search size={18} aria-hidden="true" />
+              <Icon name="search" size={20} />
               <label htmlFor="cc-search-input" className="sr-only">Search courses</label>
               <input
                 id="cc-search-input"
@@ -583,7 +596,7 @@ function BrowseView({ tabs }) {
             <div className="cc-filters" role="group" aria-label="Filters">
               <button
                 type="button"
-                className={`cc-filter ${level == null ? 'is-on' : ''}`}
+                className={`cc-chip cc-filter ${level == null ? 'is-on' : ''}`}
                 aria-pressed={level == null}
                 onClick={() => setLevel(null)}
               >
@@ -593,7 +606,7 @@ function BrowseView({ tabs }) {
                 <button
                   key={value}
                   type="button"
-                  className={`cc-filter ${level === value ? 'is-on' : ''}`}
+                  className={`cc-chip cc-filter ${level === value ? 'is-on' : ''}`}
                   aria-pressed={level === value}
                   onClick={() => setLevel(level === value ? null : value)}
                 >
@@ -603,7 +616,7 @@ function BrowseView({ tabs }) {
               {caps.seat_filter && (
                 <button
                   type="button"
-                  className={`cc-filter ${openOnly ? 'is-on' : ''}`}
+                  className={`cc-chip cc-filter ${openOnly ? 'is-on' : ''}`}
                   aria-pressed={openOnly}
                   onClick={() => setOpenOnly((on) => !on)}
                 >
@@ -625,8 +638,8 @@ function BrowseView({ tabs }) {
                         aria-label={`Remove ${course.identifier} from compare`}
                         onClick={() => removeChip(index)}
                       >
-                        {course.identifier}
-                        <X size={14} aria-hidden="true" />
+                        <span className="cc-code">{course.identifier}</span>
+                        <Icon name="close" size={18} />
                       </button>
                     </li>
                   ))}
@@ -640,7 +653,7 @@ function BrowseView({ tabs }) {
             {mode === 'search' && <h2 className="sr-only">Results</h2>}
             {listBody}
             {listAsOf && caps.seats_historical && rows.length > 0 && (
-              <p className="cc-footnote">As of {shortDate(listAsOf)}</p>
+              <SourceChip>{listSource} · as of {shortDate(listAsOf)}</SourceChip>
             )}
             <p className="sr-only" role="status" aria-live="polite">
               {mode === 'search' && results.status === 'ready'
@@ -651,8 +664,8 @@ function BrowseView({ tabs }) {
             {ticked.length >= 2 && ticked.length <= MAX_TICKED && (
               <div className="cc-tickbar">
                 <span>{ticked.length} courses ticked</span>
-                <button type="button" className="cc-btn cc-btn-light" onClick={goCompare}>
-                  Compare them
+                <button type="button" className="cc-btn cc-btn-mark" onClick={goCompare}>
+                  <Icon name="compare_arrows" size={20} /> Compare them
                 </button>
               </div>
             )}
@@ -660,7 +673,7 @@ function BrowseView({ tabs }) {
 
           <section className="cc-preview" aria-label="Course preview" aria-busy={preview.status === 'loading'}>
             <button type="button" className="cc-back" onClick={backToResults}>
-              <ArrowLeft size={16} aria-hidden="true" /> Back to results
+              <Icon name="arrow_back" size={20} /> Back to results
             </button>
             {previewBody}
           </section>
