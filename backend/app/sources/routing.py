@@ -16,6 +16,7 @@ as normal: the route endpoint answers 503 and list rows show no time.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -149,3 +150,13 @@ def walking_table(origin: Dict[str, Any], places: List[Dict[str, Any]]) -> Dict[
         out[place["id"]] = row
         cache.write_entry(_key("table", origin, place), json.dumps(row))
     return out
+
+
+async def walk_minutes(origin: Dict[str, Any], targets: List[Dict[str, Any]]) -> Dict[str, int]:
+    """Place id -> walking minutes from *origin*: one ``walking_table`` call
+    (FOSSGIS rate-limits bursts), off the event loop. Places past the first 25
+    uncached ones, or that the call could not answer, are left out."""
+    if not targets:
+        return {}
+    rows = await asyncio.to_thread(walking_table, origin, targets)
+    return {pid: row["minutes"] for pid, row in rows.items()}

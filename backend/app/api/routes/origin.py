@@ -26,7 +26,7 @@ class CampusOriginRequest(BaseModel):
 
 def _response(user: User) -> Dict[str, Any]:
     stored = places.get(user.campus_origin) if user.campus_origin else None
-    place: Optional[Dict[str, Any]] = stored or places.default_origin()
+    place: Optional[Dict[str, Any]] = places.start_place(user.campus_origin)
     return {"place": places.public(place) if place else None, "is_default": stored is None}
 
 

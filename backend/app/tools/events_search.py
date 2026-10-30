@@ -4,10 +4,10 @@ events_search tool — campus events from the school's public calendars.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from app.config import get_settings
-from app.sources import ical_events, places
+from app.sources import ical_events, places, routing
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,26 @@ TOOL_DEFINITION: Dict[str, Any] = {
 }
 
 
-async def execute(*, name: str = "", when: str = "today", keyword: str = "") -> Dict[str, Any]:
-    """Return events overlapping the requested window."""
+async def _add_walks(rows: List[Dict[str, Any]], venues: Dict[str, Optional[Dict[str, Any]]], context: Any) -> None:
+    """``walk_minutes`` per row from the student's start place (the same
+    batched table call as ``GET /api/events``); null for unmatched venues, a
+    failed table call, or no start place. Only for a chat (``context``)."""
+    for row in rows:
+        row["walk_minutes"] = None
+    origin = places.start_place(getattr(context, "campus_origin", None)) if context is not None else None
+    targets = list({p["id"]: p for p in venues.values() if p}.values())
+    if not origin or not targets:
+        return
+    minutes = await routing.walk_minutes(origin, targets)
+    for row in rows:
+        venue = venues.get(row.get("location") or "")
+        if venue and venue["id"] in minutes:
+            row["walk_minutes"] = minutes[venue["id"]]
+
+
+async def execute(*, name: str = "", when: str = "today", keyword: str = "", context: Any = None) -> Dict[str, Any]:
+    """Return events overlapping the requested window. With the chat's
+    ``context``, rows carry ``walk_minutes`` from the student's start place."""
     settings = get_settings()
     limit = settings.tools.get_tool_config(TOOL_NAME).get("max_results", 15)
     window = when if when in ical_events.WINDOWS else "today"
@@ -88,8 +106,10 @@ async def execute(*, name: str = "", when: str = "today", keyword: str = "") -> 
 
     truncated = len(events) > limit
     venues: Dict[str, Optional[Dict[str, Any]]] = {}
+    rows = [_for_chat(e, venues) for e in events[:limit]]
+    await _add_walks(rows, venues, context)
     return {
-        "events": [_for_chat(e, venues) for e in events[:limit]],
+        "events": rows,
         "total_results": len(events),
         "truncated": truncated,
         "window": {"label": window, "start": start.isoformat(), "end": end.isoformat()},

@@ -196,7 +196,9 @@ Every event row also carries, always present and `null` when the feed doesn't sa
 | `cost` | str \| null | UVA "Cost" text as the feed writes it ("Free", "$15 General / $5 Students"). CU and UW: null |
 | `place_name` | str \| null | Name of the campus place the venue matched (the same match as `place_id`); null when no place matched |
 
-The chat `events_search` result rows and the `event_list` card rows carry `kind` and `place_name` too (card rows: `title, start, end, all_day, location, url, calendar, ongoing, kind, place_name, id`). The card groups rows by date client-side from `start` in the card's `timezone` (design Q10).
+The chat `events_search` result rows and the `event_list` card rows carry `kind` and `place_name` too (card rows: `title, start, end, all_day, location, url, calendar, ongoing, kind, place_name, walk_minutes, id`). The card groups rows by date client-side from `start` in the card's `timezone` (design Q10).
+
+In chat, `events_search` rows also carry `walk_minutes` (int \| null): walking minutes from the student's start place (`ToolContext.campus_origin`, the saved `campus_origin`, else the pack's `campus.default_origin`) to the matched venue, from one `routing.walking_table` call per tool call, the same as `GET /api/events?from=`. Null when the venue matched no place, the table call didn't answer, there is no start place, or the tool ran without a chat context (`GET /api/campus/today`).
 
 ### `GET /api/places/{id}`
 
@@ -206,7 +208,7 @@ The chat `events_search` result rows and the `event_list` card rows carry `kind`
 | `floors` | int \| null | OSM `building:levels` (same value as `building_levels`) |
 | `access` | `"yes"` \| `"limited"` \| `"no"` \| null | OSM `wheelchair` ("designated" reads as "yes") |
 
-The same three keys are in `places.public()` (the `find_place` chat tool rows).
+The same three keys are in `places.public()` (the `find_place` chat tool rows). `find_place` rows and `place_card` rows also carry `open_now` (bool \| null) and `open_until` (ISO time in the school's timezone \| null, set only while open and not 24/7) from `places.hours_status`, as on `GET /api/places`. Card rows: `id, name, category, lat, lon, map_url, distance_m, walk_minutes_estimate, hours, open_now, open_until, access, type, floors`; missing keys read null.
 
 ### Chat sessions (`/api/chat-sessions`)
 
