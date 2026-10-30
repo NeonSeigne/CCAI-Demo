@@ -1,0 +1,12 @@
+/* An event's domain dot (components/events/eventKind.js): the three data colours. */
+.ev-kd {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.ev-kd.is-academics { background: var(--academics); }
+.ev-kd.is-life { background: var(--life); }
+.ev-kd.is-campus { background: var(--campus); }
