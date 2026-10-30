@@ -172,6 +172,7 @@
 .pop-btn--primary:hover { background: var(--signal-hover); border-color: var(--signal-hover); }
 
 .pop-icon-btn {
+  position: relative;
   display: inline-grid;
   place-items: center;
   width: 38px;
@@ -187,8 +188,13 @@
 
 .pop-icon-btn:hover { background: var(--band-line); }
 
+/* 38px drawn, 44px to tap (design Q19). */
+.pop-icon-btn::after { content: ""; position: absolute; inset: -3px; }
+.pop-band--compact .pop-icon-btn::after { inset: -4px; }
+
 .pop-foot .pop-save,
 .pop-foot .cc-save {
+  position: relative;
   width: 42px;
   height: 42px;
   border: 1px solid var(--control);
@@ -452,8 +458,11 @@
 
 .pop-sheet .pop-foot { flex-wrap: nowrap; padding: 14px 20px 20px; }
 
-/* An icon-only action: round, 42px. */
-.pop-btn--icon { justify-content: center; width: 42px; padding: 0; }
+/* An icon-only action: round, 42px drawn, 44px to tap (design Q19). */
+.pop-btn--icon { position: relative; justify-content: center; width: 42px; padding: 0; }
+.pop-btn--icon::after,
+.pop-foot .pop-save::after,
+.pop-foot .cc-save::after { content: ""; position: absolute; inset: -2px; }
 
 /* ---- Narrow ------------------------------------------------------------- */
 

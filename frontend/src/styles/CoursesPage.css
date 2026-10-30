@@ -468,7 +468,8 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 .cc-preview-actions { display: flex; align-items: center; gap: 8px; }
 
 /* The bookmark as a round outlined icon button. */
-.cc-preview-save.cc-save { width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+.cc-preview-save.cc-save { position: relative; width: 42px; height: 42px; border: 1px solid var(--control); background: var(--surface); color: var(--ink); }
+.cc-preview-save.cc-save::after { content: ""; position: absolute; inset: -2px; }
 .cc-preview-save.cc-save:hover { background: var(--raised); }
 
 .cc-tiles {
