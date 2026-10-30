@@ -1,7 +1,7 @@
 import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/icons';
 import { useOpenEvent } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
@@ -10,7 +10,10 @@ import {
   useStartPlace, walkText,
 } from '../modules/campus';
 import { KindDot, placeName } from '../components/events/eventKind';
-import EventActionsSheet from '../components/events/EventActionsSheet';
+import { EventActionsSheet } from '../components/menus';
+import { useSaved } from '../contexts/SavedContext';
+import { useToast } from '../components/Toast';
+import useAsk from '../hooks/useAsk';
 import { useAuth } from '../contexts/AuthContext';
 import { listEvents, listPlaces } from '../api/campus';
 import { downloadEventIcs } from '../utils/ics';
@@ -66,6 +69,50 @@ const saveItem = (event) => (event.id ? {
 } : null);
 
 const isPhysical = (event) => hasPhysicalLocation(event.location);
+
+/**
+ * A phone row's actions (mockup "Event actions on phone") on the shared
+ * sheet. An action the event can't take is left out: no Directions without
+ * a matched place, no Share where the browser has none.
+ */
+function RowActionsSheet({ event, onClose }) {
+  const saved = useSaved();
+  const toast = useToast();
+  const ask = useAsk();
+  const navigate = useNavigate();
+  if (!event) return null;
+
+  const physical = isPhysical(event);
+  const on = Boolean(saved && event.id && saved.isSaved('event', event.id));
+  const canShare = Boolean(event.url) && typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const toggleSave = () => {
+    const done = on
+      ? saved.unsave('event', event.id).then(() => toast.show({ message: 'Removed' }))
+      : saved.save({
+        kind: 'event', key: event.id, display_name: event.title, event_start: event.start, event_end: event.end,
+      }).then(() => toast.show({ message: 'Saved to Unsorted', actions: [{ label: 'Move', to: '/saved' }] }));
+    done.catch(() => toast.show({ message: on ? "Couldn't remove" : "Couldn't save", tone: 'error' }));
+  };
+
+  return (
+    <EventActionsSheet
+      open
+      onClose={onClose}
+      label={event.title}
+      walkText={physical ? walkText(event.walk_minutes) : null}
+      saved={on}
+      onDirections={event.place_id && physical
+        ? () => navigate(`/map?to=${encodeURIComponent(event.place_id)}`) : undefined}
+      onAddToCalendar={event.start ? () => downloadEventIcs(event) : undefined}
+      onToggleSave={saved && event.id ? toggleSave : undefined}
+      onAsk={event.id ? () => ask({ type: 'event', id: event.id, title: event.title }) : undefined}
+      onShare={canShare
+        ? () => navigator.share({ title: event.title, text: placeName(event) || undefined, url: event.url }).catch(() => {})
+        : undefined}
+    />
+  );
+}
 
 /** "Happening now", "Starts in 12 min" (within 15 min), else null (13A). */
 export function soonTag(event, now) {
@@ -1003,7 +1050,7 @@ const EventsPage = () => {
             </div>
           </main>
         </div>
-        {phone && <EventActionsSheet event={actionsFor} onClose={() => setActionsFor(null)} />}
+        {phone && <RowActionsSheet event={actionsFor} onClose={() => setActionsFor(null)} />}
       </EventActionsContext.Provider>
     </EventOpenContext.Provider>
   );
