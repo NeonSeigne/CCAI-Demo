@@ -100,6 +100,7 @@
 
 @media (max-width: 700px) {
   .st-main.campus-main { padding: 18px 16px 48px; }
+  .st-panel .cc-panel-head { padding-left: 18px; padding-right: 18px; }
   .st-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 18px; }
   .st-foot { padding: 12px 18px 18px; }
   .st-foot .cc-btn { flex: 1; }

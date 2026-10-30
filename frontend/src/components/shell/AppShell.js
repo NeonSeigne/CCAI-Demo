@@ -13,8 +13,8 @@ import { PageColumnContext } from './PageColumnContext';
 import { modelLabel } from '../../pages/SettingsPage';
 import '../../styles/AppShell.css';
 
-/** Pages that are the ask themselves, so they show no dock (D17). */
-const NO_DOCK = ['/home', '/chat'];
+/** Pages that are the ask themselves, so they show no dock (D17), and Settings (settings.html). */
+const NO_DOCK = ['/home', '/chat', '/settings'];
 
 /** The dock's placeholder on a page that has its own wording (events.html). */
 const DOCK_PLACEHOLDERS = [['/events', 'Ask about these events']];
@@ -109,7 +109,10 @@ export default function AppShell({ children }) {
               onProfile={() => navigate('/settings#profile')}
               onSettings={() => navigate('/settings')}
               onModel={() => navigate('/settings#model')}
-              onHelp={() => window.dispatchEvent(new CustomEvent('open-user-guide', { detail: { leftInset: 0 } }))}
+              onHelp={() => window.dispatchEvent(new CustomEvent('open-user-guide', {
+                // Help sits beside the rail, which stays undimmed (help.html, D10).
+                detail: { leftInset: railSlot?.querySelector('.campus-rail')?.offsetWidth || 0 },
+              }))}
               onSignOut={signOut}
             />
           </DndProvider>

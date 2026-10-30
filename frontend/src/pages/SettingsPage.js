@@ -324,11 +324,20 @@ export default function SettingsPage() {
   const { hash } = useLocation();
   const navigate = useNavigate();
 
+  // #profile / #model: focus that panel's heading and bring it into view,
+  // after RouteFocus has focused the page title.
   useEffect(() => {
     const id = hash.replace('#', '');
-    if (!id) return;
-    const section = document.getElementById(id);
-    if (section && typeof section.scrollIntoView === 'function') section.scrollIntoView({ block: 'start' });
+    if (!id) return undefined;
+    const timer = setTimeout(() => {
+      const heading = document.getElementById(`${id}-title`);
+      if (!heading) return;
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+      const section = document.getElementById(id);
+      if (typeof section?.scrollIntoView === 'function') section.scrollIntoView({ block: 'start' });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [hash]);
 
   const onDeleted = () => {

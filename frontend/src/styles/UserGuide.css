@@ -118,6 +118,8 @@
 .ug-content p { margin: 0 0 12px; }
 .ug-content ol,
 .ug-content ul { margin: 0 0 12px; padding-left: 22px; }
+.ug-content ol { list-style: decimal; }
+.ug-content ul { list-style: disc; }
 .ug-content li { margin: 4px 0; padding-left: 4px; }
 .ug-content li::marker { color: var(--muted); font-weight: 700; }
 .ug-content strong { font-weight: 700; }
