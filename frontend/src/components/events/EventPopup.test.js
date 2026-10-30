@@ -97,10 +97,12 @@ it('renders the UW event without image, categories or details, and no empty tile
   container.querySelectorAll('.pop-tile').forEach((tile) => expect(tile.textContent.trim()).not.toBe(''));
 });
 
-it("shows \"Couldn't load · Retry\" when the event request fails", async () => {
+it("shows the sheet's error state with Retry when the event request fails", async () => {
   global.fetch = routeFetch([['/api/events/', { status: 502, body: { detail: 'down' } }]]);
   renderPopup({ eventId: 'x' });
-  expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load · Retry");
+  const alert = await screen.findByRole('alert');
+  expect(alert).toHaveTextContent(/Couldn.t load/);
+  expect(within(alert).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
 });
 
 it('shows a not-found state with no Retry for a 404', async () => {

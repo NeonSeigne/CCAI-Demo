@@ -1,7 +1,6 @@
 import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
-import { CloseRounded } from '../../icons';
 import AppDialog from '../../AppDialog';
 import ConfirmDialog from '../../ConfirmDialog';
 import { usePageColumn } from '../../shell/PageColumnContext';
@@ -12,6 +11,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { GRADES, normalizeCourseId } from '../completedCourses';
 import { checklistCourses } from '../checklist';
 import DegreeSummary from './DegreeSummary';
+import { SheetBand } from '../../../modules/sheet';
 
 const SEARCH_LIMIT = 8;
 const STEPS = ['Program', 'Completed', 'First term'];
@@ -539,9 +539,10 @@ export default function SetupDialog({
         maxWidth="md"
         slotProps={{ paper: { className: 'su-dialog' } }}
       >
-        <header className="su-band">
-          <div className="su-steps">
-            <ol>
+        <SheetBand
+          className="su-band"
+          eyebrow={(
+            <ol className="su-steps">
               {STEPS.map((name, index) => {
                 let state = '';
                 if (index === step) state = 'is-on';
@@ -554,12 +555,11 @@ export default function SetupDialog({
                 );
               })}
             </ol>
-            <button type="button" className="su-close" aria-label="Close" title="Close" onClick={requestClose}>
-              <CloseRounded fontSize="small" aria-hidden="true" />
-            </button>
-          </div>
-          <h2 id="su-title">{STEPS[step]}</h2>
-        </header>
+          )}
+          title={STEPS[step]}
+          titleId="su-title"
+          onClose={requestClose}
+        />
 
         <div className="su-body">{body[step]}</div>
 

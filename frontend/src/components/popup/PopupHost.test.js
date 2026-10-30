@@ -5,13 +5,14 @@ import {
 import {
   MemoryRouter, Route, Routes, useLocation,
 } from 'react-router-dom';
-import CoursePopupHost, { requirementLabels } from './CoursePopupHost';
+import PopupHost from './PopupHost';
+import { requirementLabels } from '../course/CourseSheet';
 import { useCloseOnce } from '../../utils/openCourse';
 import { ChatContext } from '../../contexts/ChatContext';
 import { ChatDockContext, ChatDockProvider, useChatDock } from '../../contexts/ChatDockContext';
 import { PlannerContext } from '../../contexts/PlannerContext';
 import CourseChip from '../visuals/CourseChip';
-import CourseRedirect from './CourseRedirect';
+import CourseRedirect from '../course/CourseRedirect';
 import { routeFetch } from '../../pages/__fixtures__/routeFetch';
 import { uwPopupCourse } from '../../pages/__fixtures__/popups';
 
@@ -35,7 +36,7 @@ it('a chip on the map page opens the pop-up without changing the path, and Close
   render(
     <MemoryRouter initialEntries={['/map']}>
       <CourseChip identifier="COMP SCI 400" />
-      <CoursePopupHost />
+      <PopupHost />
       <LocationProbe />
     </MemoryRouter>,
   );
@@ -111,7 +112,7 @@ describe('Ask from the course pop-up', () => {
                   <>
                     <CourseChip identifier="COMP SCI 400" />
                     <VisibleComposer />
-                    <CoursePopupHost />
+                    <PopupHost />
                     <LocationProbe />
                   </>
                 )}
@@ -162,7 +163,7 @@ it('loads the plan once per course, not on every planner change', async () => {
   const planner = () => ({ ensureLoaded, view: null, programs: [] });
   const tree = (value) => (
     <MemoryRouter initialEntries={['/map?course=COMP+SCI+400']}>
-      <PlannerContext.Provider value={value}><CoursePopupHost /></PlannerContext.Provider>
+      <PlannerContext.Provider value={value}><PopupHost /></PlannerContext.Provider>
     </MemoryRouter>
   );
   const { rerender } = render(tree(planner()));
@@ -182,7 +183,7 @@ describe('Add from the course pop-up', () => {
   });
   const renderWith = (planner) => render(
     <MemoryRouter initialEntries={['/courses?course=COMP+SCI+400']}>
-      <PlannerContext.Provider value={planner}><CoursePopupHost /></PlannerContext.Provider>
+      <PlannerContext.Provider value={planner}><PopupHost /></PlannerContext.Provider>
     </MemoryRouter>,
   );
 

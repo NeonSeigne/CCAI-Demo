@@ -1,0 +1,43 @@
+/* The still mini map (components/map/MiniMap.js). */
+
+.mini-map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--raised);
+}
+
+.mini-map-tiles { position: absolute; inset: 0; }
+.mini-map-tile { position: absolute; width: 256px; height: 256px; user-select: none; }
+
+/* Dark mode: OSM tiles inverted and dimmed (DESIGN.md "Dark mode"). */
+html[data-theme="dark"] .mini-map-tiles,
+html[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6);
+}
+
+.mini-map-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--signal);
+  color: var(--on-signal);
+  box-shadow: 0 0 0 5px var(--surface), var(--shadow-float);
+}
+
+.mini-map-credit {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  font-size: 11px;
+  color: var(--muted);
+}

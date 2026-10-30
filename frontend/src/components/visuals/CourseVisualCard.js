@@ -14,7 +14,8 @@ import {
 import PrereqGraph from '../course/PrereqGraph';
 import { dateIn, prereqStates } from '../planner/semester/semesterData';
 import { titleCase } from './CourseAnswerCard';
-import '../../styles/Popups.css';
+import '../../modules/sheet/BandSheet.css';
+import '../../styles/CoursePopup.css';
 import '../../styles/CourseVisuals.css';
 
 const COURSE_VISUAL_TYPES = new Set([

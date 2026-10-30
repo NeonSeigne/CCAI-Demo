@@ -1,5 +1,6 @@
 import React from 'react';
 import { Icon } from '../icons';
+import './MiniMap.css';
 
 /**
  * A still map centred on one point: a 3×3 block of OpenStreetMap tiles

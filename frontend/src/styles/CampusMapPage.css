@@ -588,5 +588,5 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  .map-card .ps-grab { display: block; }
+  .map-card .pop-grab { display: block; }
 }

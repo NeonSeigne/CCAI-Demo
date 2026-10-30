@@ -8,7 +8,8 @@ import React, { useId, useState } from 'react';
 import { gradeSegments, sectionName, seatsText } from '../../components/catalog/catalogFormat';
 import { nameKey, termShort } from '../../components/course/popupFormat';
 import { gpaText } from './facts';
-import '../../styles/Popups.css';
+import '../sheet/BandSheet.css';
+import '../../styles/CoursePopup.css';
 
 /**
  * Average GPA by term, drawn in the course's difficulty colour (the

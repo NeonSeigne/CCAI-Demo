@@ -1,0 +1,95 @@
+/* The place card body (components/map/PlaceSheet.js, DESIGN.md "Map"). Its
+   band, tiles and actions are the band sheet's (modules/sheet/BandSheet.css). */
+
+.ps-chip { display: inline-flex; align-items: center; gap: 6px; }
+.ps-operator::before { content: "· "; }
+
+.ps-open { display: flex; flex-direction: column; }
+.ps-open strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--on-deep);
+}
+
+.ps-access { display: inline-flex; align-items: center; gap: 4px; color: var(--on-deep); font-weight: 700; font-size: 13px; }
+.ps-access-text { font-family: var(--font-display); }
+
+.ps-photo { position: relative; margin: 0; height: 140px; border-radius: var(--r-lg); overflow: hidden; background: var(--raised); }
+.ps-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.ps-credit {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ps-credit a { color: inherit; text-decoration: none; }
+.ps-credit a:hover { text-decoration: underline; }
+
+.ps-content { padding: 16px 20px 4px; display: flex; flex-direction: column; gap: 16px; }
+
+.ps-section-title {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.ps-count { font-family: var(--font-app); font-weight: 700; color: var(--muted); }
+
+.ps-hours { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.ps-hours tr { border-top: 1px solid var(--rule); }
+.ps-hours tr:first-child { border-top: 0; }
+.ps-hours th { padding: 7px 0; text-align: left; font-weight: 600; color: var(--muted); }
+.ps-hours td { padding: 7px 0; text-align: right; font-weight: 600; }
+.ps-hours tr.is-today th,
+.ps-hours tr.is-today td { color: var(--ink); font-weight: 800; }
+
+.ps-events { list-style: none; margin: 0; padding: 0; }
+
+.ps-event {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ps-events li:first-child .ps-event { border-top: 0; }
+div.ps-event { cursor: default; }
+.ps-event .ms { color: var(--muted); }
+
+.ps-event-time {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.ps-event-title { font-weight: 700; }
+button.ps-event:hover .ps-event-title { text-decoration: underline; }
+
+.ps-links { display: flex; flex-direction: column; gap: 6px; margin: 0; font-size: 14px; }
+.ps-link { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 600; }
+a.ps-link { text-decoration: underline; text-underline-offset: 3px; }
+.ps-link .ms { color: var(--muted); flex-shrink: 0; }

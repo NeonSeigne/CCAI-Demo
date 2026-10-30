@@ -3,13 +3,7 @@ import React, {
 } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/icons';
-import AppDialog from '../components/AppDialog';
-import EventPopup from '../components/events/EventPopup';
-import { usePopupContainer } from '../components/shell/PageColumnContext';
-import usePopupAsk from '../hooks/usePopupAsk';
-import {
-  EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
-} from '../utils/openCourse';
+import { useOpenEvent } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
 import {
   eventRange as formatEventRange, eventTime as formatEventTime, hasPhysicalLocation, isHere, useSchool, useStartPlace,
@@ -793,14 +787,9 @@ const EventsPage = () => {
     tabRefs.current[next.id]?.focus();
   };
 
-  // The event pop-up (?event=ID) over the page column (D3).
-  const eventId = params.get(EVENT_PARAM) || '';
-  const openParam = useOpenParam(EVENT_PARAM);
-  const openEvent = useCallback((event) => openParam(event?.id), [openParam]);
-  const closeEvent = useCloseOnce(eventId, useCloseParam(EVENT_PARAM));
-  const popup = usePopupContainer();
-  const ask = usePopupAsk(eventId, closeEvent);
-  const seedEvent = eventId ? events.find((event) => event.id === eventId) : null;
+  // A row opens the event pop-up (?event=ID), which the shell's pop-up host
+  // shows over the page column (D3); the row is its seed while it loads.
+  const openEvent = useOpenEvent();
 
   let body;
   if (result.status === 'error') {
@@ -986,28 +975,6 @@ const EventsPage = () => {
 
           </div>
         </main>
-
-        {eventId && popup.ready && (
-          <AppDialog
-            open
-            container={popup.container}
-            onClose={closeEvent}
-            maxWidth={false}
-            aria-labelledby="event-popup-title"
-            slotProps={{ paper: { className: 'pop-dialog-paper' } }}
-          >
-            <EventPopup
-              eventId={eventId}
-              event={seedEvent}
-              from={originId || undefined}
-              timezone={timezone}
-              onAsk={ask}
-              onClose={closeEvent}
-              onOpenEvent={openEvent}
-              titleId="event-popup-title"
-            />
-          </AppDialog>
-        )}
       </div>
     </EventOpenContext.Provider>
   );

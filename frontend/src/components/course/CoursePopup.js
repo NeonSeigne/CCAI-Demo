@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Icon, Plus, X,
+  ChevronLeft, ChevronRight, Icon, Plus,
 } from '../icons';
 import SaveButton from '../SaveButton';
 import { useCoursePreview } from '../../hooks/useCampusDetail';
@@ -12,23 +12,22 @@ import {
 } from '../../modules/course/popupTabs';
 import { gradeSegments, primarySections } from '../catalog/catalogFormat';
 import PrereqGraph from './PrereqGraph';
-import {
-  CouldntLoad, DragGrip, isNotFound, NotFound, usePopupDrag,
-} from '../popup/PopupParts';
+import { CouldntLoad, isNotFound, usePopupDrag } from '../popup/PopupParts';
+import { BandSheet, SheetActions, SheetBand } from '../../modules/sheet';
 import {
   creditsHigh, creditsText, gpaText, pctText, prereqCourses, termShort,
 } from './popupFormat';
-import '../../styles/Popups.css';
+import '../../styles/CoursePopup.css';
 
 /**
  * The course pop-up's body (DESIGN.md "Course card / pop-up"): the band with
  * the code, title and stat tiles; Grades / Instructors / Sections tabs beside
- * the Fits and prerequisite tiles; then the actions. The dialog shell is the
- * host's (CoursePopupHost).
+ * the Fits and prerequisite tiles; then the actions. The frame is the band
+ * sheet's (modules/sheet); the dialog is the shell's pop-up host (PopupHost).
  *
  * D7: a field the school lacks is not rendered (tile, tab, row or number);
- * a failed request shows "Couldn't load · Retry". Skeletons cover only the
- * band, the numbers and the Grades tab.
+ * a failed request shows the band sheet's error state with Retry. Skeletons
+ * cover only the band, the numbers and the Grades tab.
  *
  * Props
  *   courseId                    the catalog identifier ("COMP SCI 400")
@@ -68,16 +67,8 @@ function Clamp({ text, lines = 2, className = '' }) {
 // ---------------------------------------------------------------------------
 // Band
 
-function BigNumber({ label, children, tone }) {
-  return (
-    <div className="pop-number">
-      <span className="pop-number-label">{label}</span>
-      <span className={`pop-number-value ${tone ? `is-${tone}` : ''}`.trim()}>{children}</span>
-    </div>
-  );
-}
-
-function bigNumbers(data) {
+/** The band's stat tiles (band sheet tiles); a number the course lacks is left out. */
+export function courseTiles(data) {
   const grades = data.grades || null;
   const sections = data.sections || null;
   const out = [];
@@ -86,46 +77,31 @@ function bigNumbers(data) {
   if (gpa) {
     // The backend's label (R5); a course without one shows its GPA alone.
     const level = difficultyOf(data);
-    out.push(
-      <BigNumber key="gpa" label={`Avg GPA${gradeTerm}`} tone={level}>
-        {gpa}
-        {level && <small> {DIFFICULTY_LABEL[level]}</small>}
-      </BigNumber>,
-    );
+    out.push({
+      key: 'gpa', label: `Avg GPA${gradeTerm}`, value: gpa, unit: level ? DIFFICULTY_LABEL[level] : null, tone: level,
+    });
   }
   const pctA = pctText(grades?.pct_a);
-  if (pctA) out.push(<BigNumber key="a" label="Got an A" tone="a">{pctA}</BigNumber>);
+  if (pctA) out.push({ key: 'a', label: 'Got an A', value: pctA, tone: 'a' });
   const pctDf = pctText(grades?.pct_df);
-  if (pctDf) out.push(<BigNumber key="df" label="D or F" tone="df">{pctDf}</BigNumber>);
+  if (pctDf) out.push({ key: 'df', label: 'D or F', value: pctDf, tone: 'df' });
   if (sections?.seats_published && sections.seats_open != null) {
     const rows = primarySections(sections.rows || []);
     const capacity = rows.every((row) => row.capacity != null)
       ? rows.reduce((sum, row) => sum + Number(row.capacity || 0), 0)
       : null;
     const when = sections.historical && sections.term ? ` · ${termShort(sections.term)}` : '';
-    out.push(
-      <BigNumber key="seats" label={`Seats left${when}`}>
-        {sections.seats_open.toLocaleString('en-US')}
-        {capacity ? <small> of {capacity.toLocaleString('en-US')}</small> : null}
-      </BigNumber>,
-    );
+    out.push({
+      key: 'seats',
+      label: `Seats left${when}`,
+      value: sections.seats_open.toLocaleString('en-US'),
+      unit: capacity ? `of ${capacity.toLocaleString('en-US')}` : null,
+    });
   }
   if (grades?.students) {
-    out.push(
-      <BigNumber key="students" label={`Students${gradeTerm}`}>
-        {Number(grades.students).toLocaleString('en-US')}
-      </BigNumber>,
-    );
+    out.push({ key: 'students', label: `Students${gradeTerm}`, value: Number(grades.students).toLocaleString('en-US') });
   }
   return out;
-}
-
-function CloseButton({ onClose }) {
-  return (
-    <button type="button" className="pop-icon-btn" aria-label="Close" title="Close" onClick={onClose}>
-      <X size={20} aria-hidden="true" />
-    </button>
-  );
 }
 
 /** Add, Ask and Save, under the body. */
@@ -134,7 +110,7 @@ function Actions({
 }) {
   const item = { type: 'course', id, title: title || '' };
   return (
-    <footer className="pop-foot">
+    <SheetActions>
       {onAdd && term && (
         <button type="button" className="pop-btn pop-btn--primary" onClick={() => onAdd(id)}>
           <Plus size={20} aria-hidden="true" /> Add to {term}
@@ -152,7 +128,7 @@ function Actions({
       ) : (
         <SaveButton className="pop-save" item={{ kind: 'course', key: id, display_name: id }} />
       )}
-    </footer>
+    </SheetActions>
   );
 }
 
@@ -167,48 +143,32 @@ function Band({
     ...(requirements || []).map((label) => ({ label, kind: 'req' })),
     ...(data?.gen_ed || []).map((label) => ({ label, kind: 'gen' })),
   ];
-  const numbers = data ? bigNumbers(data) : null;
   const drag = usePopupDrag(item);
 
   return (
-    <header ref={drag.ref} className={`pop-band ${drag.className}`}>
-      <div className="pop-band-top">
-        <DragGrip drag={drag} label={`Drag ${id}`} />
-        <div className="pop-band-text">
-          <p className="pop-eyebrow">{eyebrow}</p>
-          {data ? (
-            <h2 id={titleId} className="pop-title">{data.title || id}</h2>
-          ) : (
-            <h2 id={titleId} className="pop-title"><span className="sr-only">{id}</span><span className="pop-skel pop-skel--title" /></h2>
-          )}
-          {data ? (
-            <Clamp text={data.description} lines={2} className="pop-desc" />
-          ) : (
-            <span className="pop-skel pop-skel--line" />
-          )}
-          {chips.length > 0 && (
-            <ul className="pop-chips">
-              {chips.map((chip) => (
-                <li key={`${chip.kind}-${chip.label}`} className={`pop-chip pop-chip--${chip.kind}`}>{chip.label}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {onClose && (
-          <div className="pop-actions pop-actions--close">
-            <CloseButton onClose={onClose} />
-          </div>
-        )}
-      </div>
-      {numbers === null && (
-        <div className="pop-numbers" aria-hidden="true">
-          {[0, 1, 2, 3, 4].map((n) => (
-            <div key={n} className="pop-number"><span className="pop-skel pop-skel--label" /><span className="pop-skel pop-skel--number" /></div>
-          ))}
-        </div>
+    <SheetBand
+      eyebrow={eyebrow}
+      title={data ? data.title || id : null}
+      titleId={titleId}
+      titleLabel={id}
+      drag={drag}
+      dragLabel={`Drag ${id}`}
+      onClose={onClose}
+      tiles={data ? courseTiles(data) : 5}
+    >
+      {data ? (
+        <Clamp text={data.description} lines={2} className="pop-desc" />
+      ) : (
+        <span className="pop-skel pop-skel--line" />
       )}
-      {numbers && numbers.length > 0 && <div className="pop-numbers">{numbers}</div>}
-    </header>
+      {chips.length > 0 && (
+        <ul className="pop-chips">
+          {chips.map((chip) => (
+            <li key={`${chip.kind}-${chip.label}`} className={`pop-chip pop-chip--${chip.kind}`}>{chip.label}</li>
+          ))}
+        </ul>
+      )}
+    </SheetBand>
   );
 }
 
@@ -430,39 +390,24 @@ export default function CoursePopup({
   if (detail.error) {
     const missing = isNotFound(detail.error);
     return (
-      <article className="pop cp" aria-labelledby={titleId}>
-        <header className="pop-band">
-          <div className="pop-band-top">
-            <div className="pop-band-text">
-              <p className="pop-eyebrow">{courseId}</p>
-              <h2 id={titleId} className="pop-title">{courseId}</h2>
-            </div>
-            {onClose && (
-              <div className="pop-actions pop-actions--close">
-                <CloseButton onClose={onClose} />
-              </div>
-            )}
-          </div>
-        </header>
-        <div className="pop-body">
-          {missing ? <NotFound>Course not found</NotFound> : <CouldntLoad onRetry={detail.retry} />}
-        </div>
-      </article>
+      <BandSheet
+        kind="course"
+        titleId={titleId}
+        status="error"
+        error={missing ? { message: 'Course not found' } : { onRetry: detail.retry }}
+        band={<SheetBand eyebrow={courseId} title={courseId} titleId={titleId} onClose={onClose} />}
+      />
     );
   }
 
   if (!data) {
     return (
-      <article className="pop cp" aria-labelledby={titleId} aria-busy="true">
-        {band}
-        <div className="pop-body cp-body">
-          <div className="cp-main">
-            <div className="pop-tabs" aria-hidden="true"><span className="pop-skel pop-skel--tab" /></div>
-            <GradesSkeleton />
-          </div>
+      <BandSheet kind="course" titleId={titleId} status="loading" loadingLabel={`Loading ${courseId}`} band={band} actions={actions}>
+        <div className="cp-main">
+          <div className="pop-tabs"><span className="pop-skel pop-skel--tab" /></div>
+          <GradesSkeleton />
         </div>
-        {actions}
-      </article>
+      </BandSheet>
     );
   }
 
@@ -529,8 +474,7 @@ export default function CoursePopup({
   }
 
   return (
-    <article className="pop cp" aria-labelledby={titleId}>
-      {band}
+    <BandSheet kind="course" titleId={titleId} band={band} actions={actions}>
       {(main || showFits || showWeb) && (
         <div className={`pop-body cp-body ${showFits || showWeb ? '' : 'is-single'}`.trim()}>
           {main && <div className="cp-main">{main}</div>}
@@ -553,7 +497,6 @@ export default function CoursePopup({
           )}
         </div>
       )}
-      {actions}
-    </article>
+    </BandSheet>
   );
 }
