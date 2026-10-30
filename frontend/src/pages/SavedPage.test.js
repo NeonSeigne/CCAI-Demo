@@ -110,7 +110,8 @@ test('Unsorted comes first, shows its count and is selected by default', async (
   setup({ items: [course('COMP SCI 300'), course('COMP SCI 400', 'c1')] });
   await screen.findByRole('heading', { level: 2, name: 'Unsorted' });
   const buttons = collectionsNav().getAllByRole('button');
-  expect(buttons[0]).toHaveTextContent(/^Unsorted1$/);
+  // Icon ligatures are text too ("inbox"), so match the name and the count at the end.
+  expect(buttons[0]).toHaveTextContent(/Unsorted1$/);
   expect(buttons[0]).toHaveAttribute('aria-current', 'true');
   expect(buttons[1]).toHaveTextContent('Spring 2027 schedule');
   expect(buttons[buttons.length - 1]).toHaveTextContent('New collection');
@@ -226,8 +227,22 @@ test('the row menu works from the keyboard and Escape returns focus', async () =
   fireEvent.keyDown(menu, { key: 'ArrowDown' });
   expect(within(menu).getByRole('menuitem', { name: 'Move to…' })).toHaveFocus();
   fireEvent.keyDown(menu, { key: 'Escape' });
-  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-  expect(trigger).toHaveFocus();
+  await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+  await waitFor(() => expect(trigger).toHaveFocus());
+});
+
+test('New collection… in the row menu names a collection and moves the item there', async () => {
+  api.createCollection.mockResolvedValue({ id: 'c3', name: 'This week', count: 0 });
+  api.updateSaved.mockResolvedValue({});
+  setup({ items: [course('COMP SCI 300')] });
+  fireEvent.click(await screen.findByRole('button', { name: 'More actions for COMP SCI 300' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Move to…' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'New collection…' }));
+  const field = screen.getByLabelText('Name of the new collection for COMP SCI 300');
+  await waitFor(() => expect(field).toHaveFocus());
+  fireEvent.change(field, { target: { value: 'This week' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Create and move' }));
+  await waitFor(() => expect(api.updateSaved).toHaveBeenCalledWith('token', 'id-COMP SCI 300', { collection_id: 'c3' }));
 });
 
 test('Remove unsaves with "Removed · Undo", and Undo re-saves into the old collection', async () => {
@@ -354,13 +369,32 @@ test('a failed load shows "Couldn\'t load saved items" with Retry', async () => 
   expect(await screen.findByTestId('saved-row-A 1')).toBeInTheDocument();
 });
 
-test('the phone picker lists the same collections and switches the selection', async () => {
-  setup({ items: [course('A 1')] });
-  const picker = await screen.findByLabelText('Collection');
-  expect(within(picker).getAllByRole('option').map((option) => option.textContent))
-    .toEqual(['Unsorted (1)', 'Spring 2027 schedule (0)', 'Study spots (0)']);
-  fireEvent.change(picker, { target: { value: 'c2' } });
-  expect(await screen.findByRole('heading', { level: 2, name: 'Study spots' })).toBeInTheDocument();
+describe('on a phone', () => {
+  const original = window.matchMedia;
+  beforeEach(() => {
+    window.matchMedia = (query) => ({
+      matches: query === '(max-width: 700px)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    });
+  });
+  afterEach(() => { window.matchMedia = original; });
+
+  test('the picker opens the collections as a sheet and switches the selection', async () => {
+    setup({ items: [course('A 1')] });
+    const picker = await screen.findByRole('button', { name: 'Collection: Unsorted' });
+    expect(screen.queryByRole('navigation', { name: 'Collections' })).not.toBeInTheDocument();
+    fireEvent.click(picker);
+    const sheet = await screen.findByRole('dialog', { name: 'Collection' });
+    const rows = within(sheet).getAllByRole('button', { name: /Unsorted|Spring 2027 schedule|Study spots/ });
+    expect(rows.map((button) => button.textContent.replace(/^(inbox|folder)/, '')))
+      .toEqual(['Unsorted1', 'Spring 2027 schedule0', 'Study spots0']);
+    expect(within(sheet).getByRole('button', { name: 'New collection' })).toBeInTheDocument();
+    fireEvent.click(within(sheet).getByRole('button', { name: /Study spots/ }));
+    expect(await screen.findByRole('heading', { level: 2, name: 'Study spots' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
 });
 
 test('walk times come from the starting place; off-campus events show none', async () => {

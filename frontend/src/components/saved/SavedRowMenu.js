@@ -1,67 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MoreHorizontal } from '../icons';
-
-const focusItem = (container, step) => {
-  if (!container) return;
-  const items = Array.from(container.querySelectorAll('[role="menuitem"]'));
-  if (items.length === 0) return;
-  const index = items.indexOf(document.activeElement);
-  const next = step === 'first' ? 0
-    : step === 'last' ? items.length - 1
-      : (index + step + items.length) % items.length;
-  items[next].focus();
-};
+import { Icon } from '../icons';
+import {
+  Menu, MenuItem, MenuSeparator, useMenu,
+} from '../menus';
 
 /**
- * A saved row's "More actions" menu (design 19A): "Move to…" opens the list of
- * other homes (Unsorted, collections) plus "New collection…", and "Remove"
- * unsaves the item. Arrow keys move between entries; Escape or a click outside
- * closes it and returns focus to the trigger (28A).
+ * A saved row's "More actions" menu (design 19A, phase9 saved.html): "Move
+ * to…" opens the list of other homes (Unsorted, collections) plus "New
+ * collection…", and "Remove" unsaves the item. Built on the shared Menu, so
+ * arrow keys move between entries, Escape or a click outside closes it and
+ * returns focus to the trigger, and on phones it rises as a sheet.
  *
  * destinations: [{id, name}] (the item's own home left out)
  */
-export default function SavedRowMenu({ name, destinations, onMove, onCreateAndMove, onRemove }) {
-  const [view, setView] = useState(null); // null (closed) | 'main' | 'move' | 'new'
+export default function SavedRowMenu({
+  name, destinations, onMove, onCreateAndMove, onRemove,
+}) {
+  const menu = useMenu();
+  const [view, setView] = useState('main'); // 'main' | 'move' | 'new'
   const [draft, setDraft] = useState('');
-  const trigger = useRef(null);
-  const panel = useRef(null);
   const input = useRef(null);
-  const open = view !== null;
-
-  const close = (refocus = true) => {
-    setView(null);
-    setDraft('');
-    if (refocus) trigger.current?.focus();
-  };
 
   useEffect(() => {
-    if (!open) return undefined;
     if (view === 'new') input.current?.focus();
-    else focusItem(panel.current, 'first');
-    const onPointer = (event) => {
-      if (panel.current?.contains(event.target) || trigger.current?.contains(event.target)) return;
-      setView(null);
-      setDraft('');
-    };
-    document.addEventListener('mousedown', onPointer);
-    return () => document.removeEventListener('mousedown', onPointer);
-  }, [open, view]);
+  }, [view]);
 
-  const onKeyDown = (event) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      close();
-      return;
-    }
-    if (view === 'new') return;
-    const steps = { ArrowDown: 1, ArrowUp: -1, Home: 'first', End: 'last' };
-    if (event.key in steps) {
-      event.preventDefault();
-      focusItem(panel.current, steps[event.key]);
-    } else if (event.key === 'Tab') {
-      close(false);
-    }
+  const close = () => {
+    menu.closeMenu();
+    setDraft('');
+  };
+
+  const open = (event) => {
+    // The menu hands focus back to whatever had it when it opened; Safari
+    // doesn't focus a clicked button, so make that the trigger.
+    event.currentTarget.focus();
+    setView('main');
+    menu.openMenu(event);
   };
 
   const act = (fn) => () => {
@@ -77,75 +51,83 @@ export default function SavedRowMenu({ name, destinations, onMove, onCreateAndMo
     onCreateAndMove(value);
   };
 
+  const labels = {
+    main: `Actions for ${name}`,
+    move: `Move ${name} to`,
+    new: `New collection for ${name}`,
+  };
+
+  let items;
+  if (view === 'main') {
+    items = [
+      <MenuItem key="move" icon="drive_file_move" aria-haspopup="menu" onSelect={() => setView('move')}>
+        Move to…
+      </MenuItem>,
+      <MenuItem key="remove" icon="delete" danger onSelect={act(onRemove)}>Remove</MenuItem>,
+    ];
+  } else if (view === 'move') {
+    items = [
+      ...destinations.map((destination) => (
+        <MenuItem
+          key={destination.id}
+          icon={destination.id === 'unsorted' ? 'inbox' : 'folder'}
+          onSelect={act(() => onMove(destination.id))}
+        >
+          {destination.name}
+        </MenuItem>
+      )),
+      <MenuSeparator key="sep" />,
+      <MenuItem key="new" icon="add" onSelect={() => setView('new')}>New collection…</MenuItem>,
+    ];
+  } else {
+    items = [
+      // The form keeps its own keys: typing, Tab and Enter stay in it (Escape still closes).
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+      <li
+        key="form"
+        role="none"
+        className="saved-menu-form"
+        onKeyDown={(event) => { if (event.key !== 'Escape') event.stopPropagation(); }}
+      >
+        <form className="saved-inline-form" onSubmit={submitNew}>
+          <label htmlFor={`saved-menu-new-${name}`} className="sr-only">
+            Name of the new collection for {name}
+          </label>
+          <input
+            id={`saved-menu-new-${name}`}
+            ref={input}
+            value={draft}
+            maxLength={60}
+            placeholder="Collection name"
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <button type="submit" className="cc-btn cc-btn-primary" disabled={!draft.trim()}>Create and move</button>
+        </form>
+      </li>,
+    ];
+  }
+
   return (
-    <div className="saved-menu">
+    <>
       <button
-        ref={trigger}
         type="button"
-        className="saved-icon-btn"
+        className={`saved-icon-btn ${menu.open ? 'is-on' : ''}`.trim()}
         aria-label={`More actions for ${name}`}
         aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => (open ? close() : setView('main'))}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' && !open) {
-            event.preventDefault();
-            setView('main');
-          }
-        }}
+        aria-expanded={menu.open}
+        onClick={open}
       >
-        <MoreHorizontal size={18} aria-hidden="true" />
+        <Icon name="more_horiz" size={22} />
       </button>
-
-      {open && (
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-        <div className="saved-menu-panel" ref={panel} onKeyDown={onKeyDown}>
-          {view === 'main' && (
-            <ul role="menu" aria-label={`Actions for ${name}`}>
-              <li role="none">
-                <button type="button" role="menuitem" aria-haspopup="menu" onClick={() => setView('move')}>
-                  Move to…
-                </button>
-              </li>
-              <li role="none">
-                <button type="button" role="menuitem" onClick={act(onRemove)}>Remove</button>
-              </li>
-            </ul>
-          )}
-
-          {view === 'move' && (
-            <ul role="menu" aria-label={`Move ${name} to`}>
-              {destinations.map((destination) => (
-                <li role="none" key={destination.id}>
-                  <button type="button" role="menuitem" onClick={act(() => onMove(destination.id))}>
-                    {destination.name}
-                  </button>
-                </li>
-              ))}
-              <li role="none">
-                <button type="button" role="menuitem" onClick={() => setView('new')}>New collection…</button>
-              </li>
-            </ul>
-          )}
-
-          {view === 'new' && (
-            <form className="saved-inline-form" onSubmit={submitNew}>
-              <label htmlFor={`saved-menu-new-${name}`} className="sr-only">
-                Name of the new collection for {name}
-              </label>
-              <input
-                id={`saved-menu-new-${name}`}
-                ref={input}
-                value={draft}
-                maxLength={60}
-                placeholder="Collection name"
-                onChange={(event) => setDraft(event.target.value)}
-              />
-              <button type="submit" className="saved-btn" disabled={!draft.trim()}>Create and move</button>
-            </form>
-          )}
-        </div>
-      )}
-    </div>
+      <Menu
+        anchorEl={menu.anchorEl}
+        onClose={close}
+        label={labels[view]}
+        placement="bottom-end"
+        className={`saved-row-menu ${view === 'new' ? 'is-form' : ''}`.trim()}
+      >
+        {items}
+      </Menu>
+    </>
   );
 }
