@@ -44,7 +44,12 @@ class PreviewTests(PlannerTestCase):
     async def test_preview_in_another_term(self):
         await self.edit([add("ECON 3010")])
         diff = (await self.preview([{"op": "move", "course": "ECON 3010", "to_term": FALL}], term=FALL))["diff"]
-        self.assertEqual(diff["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": FALL}])
+        self.assertEqual(diff["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": FALL,
+                                                     "title": "ECON 3010 title", "credits": [3.0, 3.0]}])
+        self.assertEqual([t["term"] for t in diff["terms"]], ["Spring 2027", FALL])
+        spring, fall = diff["terms"]
+        self.assertEqual((spring["before"]["min"], spring["after"]["min"]), (3.0, 0))
+        self.assertEqual((fall["before"]["min"], fall["after"]["min"]), (0, 3.0))
         self.assertEqual(diff["credits"], {"before": [0, 0], "after": [3.0, 3.0]})
         self.assertIn("ECON 3010 isn't offered in Fall 2027", diff["unknowns"])
 

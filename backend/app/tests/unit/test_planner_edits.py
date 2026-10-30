@@ -213,7 +213,9 @@ class DiffTests(unittest.TestCase):
         ops = [{"op": "move", "course": "ECON 3010", "to_term": "Fall 2027"}]
         result = edits.diff(self.report(before_plan), self.report(edits.apply_ops(before_plan, ops)), ops,
                             notes=["Couldn't verify ECON 1990; kept as you entered it"])
-        self.assertEqual(result["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": "Fall 2027"}])
+        # Without the destination term's report the lead row has no title or credits.
+        self.assertEqual(result["courses"]["moved"], [{"id": "ECON 3010", "from": "Spring 2027", "to": "Fall 2027",
+                                                       "title": None, "credits": None}])
         # Unknowns about courses the edit doesn't touch stay off the card (found in the browser).
         self.assertNotIn("Prerequisites not published for ECON 3300", result["unknowns"])
         # An added course's own unknowns do show.
@@ -224,7 +226,7 @@ class DiffTests(unittest.TestCase):
         self.assertNotIn("Prerequisites not published for ECON 3300", added["unknowns"])
         self.assertEqual(result["unknowns"][0], "Couldn't verify ECON 1990; kept as you entered it")
         self.assertEqual(set(result), {"heading", "courses", "rules", "credits", "difficulty", "clashes", "unknowns", "literal_differs",
-                                       "added_courses", "schedule"})
+                                       "added_courses", "schedule", "terms", "prereqs"})
 
     def test_literal_differs(self):
         before_plan = plan(["ECON 3010"])

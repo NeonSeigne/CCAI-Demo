@@ -96,10 +96,21 @@ report = {
 
 diff = {
   "heading": "Move ECON 3010 to fall, add ECON 3300",
-  "courses": {"added": [ids], "removed": [ids], "moved": [{"id", "from", "to"}]},
+  "courses": {"added": [ids], "removed": [ids],
+              "moved": [{"id", "from", "to",    # a lead "Move" row:
+                         "title": str|null,     # from the destination term's report
+                         "credits": [min, max]|null}]},
   "rules": [{"rule_id", "title", "before": {status, completed, planned, needed},
              "after": {...}}],          # every rule whose counts or status change
-  "credits": {"before": [min, max], "after": [min, max]},
+  "credits": {"before": [min, max], "after": [min, max]},   # the shown term only
+  "terms": [{"term": "Spring 2027",     # one row per term whose courses or sections change, term order
+             "before": {"min", "max", "status"}, "after": {"min", "max", "status"},
+             "limits": {"min", "max"}|null}],
+  "prereqs": {"status": "met"|"not_met"|"unknown",   # R10 Prerequisites row
+              "courses": [{"id", "term", "status": "met"|"not_met"|"unknown", "reason": str|null}]},
+              # checked: added / moved / swapped-in courses, plus any course (in an affected
+              # term or a later planned term) whose prerequisite status the edit changes;
+              # one not_met -> not_met, else one unknown -> unknown; nothing to check -> met
   "difficulty": {"before": label, "after": label},
   "clashes": {"before": status, "after": status},
   "unknowns": [str],                    # "Prerequisites not published for UVA"
