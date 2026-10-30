@@ -39,7 +39,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from app.planner.facts import CourseFacts, PrereqNode, Section
+from app.planner.facts import CourseFacts, PrereqNode, Section, difficulty_of
 
 # ---------------------------------------------------------------------------
 # Shared helpers
@@ -568,8 +568,13 @@ def check(
     programs: Sequence[Any],
     *,
     credit_limits: Optional[Dict[str, float]] = None,
+    easier_from_gpa: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """The full report for the plan's term; see ``CONTRACTS.md`` for the shape."""
+    """The full report for the plan's term; see ``CONTRACTS.md`` for the shape.
+
+    ``easier_from_gpa`` is the school's "easier" cutoff for each row's
+    ``difficulty`` (``difficulty_of``; None uses the default).
+    """
     term = plan.get("term")
     courses = planned_courses(plan)
     term_courses = [c for c in courses if c.get("term") == term]
@@ -588,6 +593,7 @@ def check(
             "term": term,
             "credits": list(fact.credits) if usable and fact.credits else None,
             "harder": fact.harder if usable else None,
+            "difficulty": difficulty_of(fact, easier_from_gpa) if usable else None,
             "gen_ed": list(fact.gen_ed) if usable and fact.gen_ed is not None else None,
             "offered": fact.offered if usable else "unknown",
             "prereqs": check_prereqs(course["id"], term, plan, fact),

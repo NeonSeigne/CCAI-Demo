@@ -86,6 +86,7 @@ report = {
              "unit": "courses"|"credits", "completed": n, "planned": n, "needed": n,
              "completed_courses": [ids], "planned_courses": [ids], "reason": str|null}],
   "courses": [{"id", "title", "term", "credits": [min, max]|null, "harder": bool|null,
+               "difficulty": "easier"|"typical"|"harder"|null,   # facts.difficulty_of (R5)
                "gen_ed": [str]|null, "offered": "yes"|"no"|"unknown",
                "prereqs": {"status": "met"|"short"|"unknown", "reason": str|null},
                "fills": [str]}],
@@ -143,6 +144,7 @@ degree = {
     "difficulty": {label, harder, graded, total},
     "courses": [{"id", "title", "credits": [min, max]|null, "avg_gpa": n|null,
                  "harder": bool|null, "offered": "yes"|"no"|"unknown",
+                 "difficulty": "easier"|"typical"|"harder"|null,   # facts.difficulty_of (R5)
                  "requirements": [rule titles], "gen_ed": [str]|null,
                  "sections": [{"id", "kind"|null,              # the sections the plan picked ([] when none)
                                "meetings": [{"day", "start", "end"}]|null,  # null: times not published
@@ -302,6 +304,19 @@ has no "harder" cutoff. Per school: UVA all three labels; UW "harder" below
 3.4, so with the default easier cutoff a UW course is "harder" or "easier",
 never "typical", until its pack sets `easier_from_gpa`; CU always null (FOSE
 publishes no grades).
+
+The same `difficulty` is on every `/api/planner/plan` report course row and
+every `/api/planner/degree` term course row (`checker.check(...,
+easier_from_gpa=)`, from the same course facts as `harder`).
+
+Catalog search rows (`GET /api/catalog/search`, `{courses: [...]}`) carry
+`difficulty` too (always present), from the row's own `gpa` with no extra
+fetch (`academics.gpa_difficulty`): "harder" below a fixed
+`planner.harder_below_gpa`, else "easier"/"typical" by `easier_from_gpa`.
+null when the row has no GPA or the school has no fixed `harder_below_gpa`
+(the hardest-third rule needs the whole grade table). Per school: UW labelled
+(Course Map search rows carry a GPA); UVA null (snapshot search rows carry no
+GPA, so the label shows on the summary only); CU null.
 
 ## Chat course cards (`api/visuals.py`)
 

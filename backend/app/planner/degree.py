@@ -131,6 +131,7 @@ def _course_row(
         "credits": row["credits"],
         "avg_gpa": fact.avg_gpa if _usable(fact) else None,
         "harder": row["harder"],
+        "difficulty": row.get("difficulty"),
         "offered": row["offered"],
         "requirements": list(dict.fromkeys(fills)),
         "gen_ed": row["gen_ed"],
@@ -148,8 +149,10 @@ def _term_entry(
     credit_limits: Optional[Dict[str, float]],
     covered: bool,
     opened: Optional[Callable[[str], Dict[str, Any]]] = None,
+    easier_from_gpa: Optional[float] = None,
 ) -> Dict[str, Any]:
-    report = checker.check(dict(plan, term=term), facts, programs, credit_limits=credit_limits)
+    report = checker.check(dict(plan, term=term), facts, programs, credit_limits=credit_limits,
+                           easier_from_gpa=easier_from_gpa)
     planned = {c["id"]: c for c in checker.planned_courses(plan) if (c.get("term") or plan["term"]) == term}
     return {
         "term": term,
@@ -441,8 +444,10 @@ def board(
     *,
     credit_limits: Optional[Dict[str, float]] = None,
     covered: Callable[[str], bool] = lambda term: True,
+    easier_from_gpa: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """The ``/api/planner/degree`` body for ``plan``."""
+    """The ``/api/planner/degree`` body for ``plan``; ``easier_from_gpa`` is
+    the school's "easier" cutoff for each course row's ``difficulty``."""
     facts = _merged(plan, by_term)
     rules, fills = checker.check_rules(plan, facts, programs)
     index = opens_index(plan, facts)
@@ -456,7 +461,7 @@ def board(
     return {
         "revision": plan["revision"],
         "term": plan["term"],
-        "terms": [_term_entry(plan, t, facts, programs, fills, credit_limits, covered(t), opened)
+        "terms": [_term_entry(plan, t, facts, programs, fills, credit_limits, covered(t), opened, easier_from_gpa)
                   for t in planned_terms(plan)],
         "completed": _completed_rows(plan, facts, opened),
         "rules": rules,

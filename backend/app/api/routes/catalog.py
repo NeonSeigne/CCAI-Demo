@@ -40,6 +40,7 @@ def _page_row(row: Dict[str, Any]) -> Dict[str, Any]:
     out = {key: row.get(key) for key in _ROW_FIELDS}
     if "average_gpa" in row:
         out["gpa"] = row["average_gpa"]
+    out["difficulty"] = academics.gpa_difficulty(row.get("average_gpa"))
     if "seats_open_at_snapshot" in row:
         out["seats_open"] = row["seats_open_at_snapshot"]
     if "sections" in row:

@@ -271,7 +271,8 @@ class LabelTests(unittest.TestCase):
         self.assertEqual(set(report), {"term", "data_as_of", "credits", "difficulty", "clashes", "rules", "courses", "later", "schedule"})
         self.assertEqual(report["later"], [{"id": "ECON 4010", "term": "Fall 2027"}])
         self.assertEqual(report["data_as_of"], "2026-10-01")
-        self.assertEqual(set(report["courses"][0]), {"id", "title", "term", "credits", "harder", "gen_ed", "offered", "prereqs", "fills"})
+        self.assertEqual(set(report["courses"][0]), {"id", "title", "term", "credits", "harder", "difficulty", "gen_ed", "offered",
+                                                     "prereqs", "fills"})
 
 
 if __name__ == "__main__":
