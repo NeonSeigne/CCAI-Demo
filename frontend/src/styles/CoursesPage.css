@@ -89,11 +89,10 @@
 
 /* ---- Shared bits ---------------------------------------------------------- */
 .cc-code {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
   color: var(--domain-academics-ink);
-  letter-spacing: 0.01em;
 }
 
 .cc-muted { margin: 0; color: var(--muted); font-size: 14px; }
@@ -378,8 +377,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: var(--font-mono);
-  font-size: 15px;
+  font-family: var(--font-code);
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -512,7 +511,7 @@
   font-size: 14px;
 }
 
-.cc-section-name { font-family: var(--font-mono); font-size: 13px; }
+.cc-section-name { font-family: var(--font-code); font-size: 11px; font-weight: 700; }
 
 .cc-section-fill {
   height: 6px;

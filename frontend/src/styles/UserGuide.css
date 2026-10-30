@@ -205,7 +205,6 @@
   background: var(--surface);
   font-size: 0.9em;
   color: var(--ink);
-  font-family: var(--font-mono);
 }
 
 .ug-content a {
