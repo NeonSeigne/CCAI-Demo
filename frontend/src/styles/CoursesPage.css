@@ -359,6 +359,9 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   align-items: center;
 }
 
+/* Long cross-listed codes (COMPSCI/MATH 240) wrap at the slash. */
+.cc-row-name .cc-code { white-space: normal; overflow-wrap: anywhere; }
+
 .cc-row-title {
   min-width: 0;
   font-size: 15px;
@@ -442,15 +445,16 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
   .cc-preview-body { animation: none; }
 }
 
+/* Name and actions side by side; the actions drop below when the column is narrow. */
 .cc-preview-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: flex-start;
   padding: 20px 22px 6px;
 }
 
-.cc-preview-name { min-width: 0; }
+.cc-preview-name { flex: 1 1 220px; min-width: 0; }
 
 .cc-preview-name h2 {
   margin: 4px 0 6px;
@@ -636,19 +640,31 @@ html[data-theme="dark"] .cc-tick-input:checked + .cc-tick { background: var(--ti
 .cc-ph-tiles .pnl-block { height: 64px; border-radius: var(--r-lg); }
 .cc-ph-bars { height: 96px; }
 
-/* ---- Tablet (701–1180px): the preview's halves stack ----------------------- */
-@media (max-width: 1180px) and (min-width: 701px) {
+/* ---- Narrow columns (tablet, or the Ask dock open): sized by the column ----
+   Container queries on a column's own width, not viewport breakpoints (Q18):
+   the open dock narrows the page without changing the viewport. */
+/* Not on phones: containment would trap the fixed compare bar in the list. */
+@media (min-width: 701px) {
+  .cc-list,
+  .cc-preview { container-type: inline-size; }
+}
+
+/* The preview's halves stack. */
+@container (width <= 480px) {
   .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
   .cc-preview-side + .cc-preview-side { border-left: 0; border-top: 1px solid var(--rule); }
+}
+
+/* The code sits above the title. */
+@container (width <= 440px) {
+  .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cc-row-title { white-space: normal; }
 }
 
 @media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
   .cc-browse-page .cc-page-main,
   .cc-compare .cc-page-main { padding: 24px 20px 40px; }
-  .cc-row-name { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .cc-row-title { white-space: normal; }
-  .cc-preview-head { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
