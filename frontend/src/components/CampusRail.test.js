@@ -8,8 +8,9 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token', user: { firstName: 'Ada', lastName: 'Lovelace' } }),
 }));
+let mockApp = { institution: 'UW–Madison' };
 jest.mock('../contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' }, school: { slug: 'uw-madison' } } }),
+  useAppConfig: () => ({ config: { app: mockApp, school: { slug: 'uw-madison' } } }),
 }));
 
 const SESSIONS = Array.from({ length: 8 }, (_, index) => ({ id: `s${index}`, title: `Chat ${index}` }));
@@ -143,4 +144,19 @@ test('the rail shows the school mark and name, and the theme toggle above the pr
   // The phone header carries the same toggle.
   expect(screen.getAllByRole('group', { name: 'Theme' })).toHaveLength(2);
   await screen.findByText('Your chats will show up here.');
+});
+
+test('the rail names the school by its short name, else the institution', async () => {
+  jest.spyOn(global, 'fetch').mockImplementation(() => ok([]));
+  mockApp = { institution: 'University of Wisconsin–Madison', short_name: 'UW–Madison' };
+  const { unmount } = renderRail();
+  expect(within(rail()).getByText('UW–Madison')).toBeInTheDocument();
+  await screen.findByText('Your chats will show up here.');
+  unmount();
+
+  mockApp = { institution: 'University of Wisconsin–Madison' };
+  renderRail();
+  expect(within(rail()).getByText('University of Wisconsin–Madison')).toBeInTheDocument();
+  await screen.findByText('Your chats will show up here.');
+  mockApp = { institution: 'UW–Madison' };
 });

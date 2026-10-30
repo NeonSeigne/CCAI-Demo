@@ -233,7 +233,7 @@ export default function CampusRail({
   const dock = useChatDock();
   const railSlot = useRailSlot();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
+  const school = config?.app?.short_name || config?.app?.institution || config?.app?.title || 'Your campus';
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
 
   const brandMark = (
