@@ -60,7 +60,8 @@ const num = (value) => Math.max(0, Number(value) || 0);
  * Hatched credits come from the server (`unknown_grade_credits`: the
  * group's own ungraded courses, never ones counted elsewhere).
  */
-export function waffleModel(waffle) {
+export function waffleModel(waffle, toneOf) {
+  const tone = typeof toneOf === 'function' ? toneOf : groupTone;
   let running = 0;
   let edge = 0;
   const cut = (value) => {
@@ -80,7 +81,7 @@ export function waffleModel(waffle) {
     return {
       ...group,
       index,
-      tone: groupTone(group, index),
+      tone: tone(group, index),
       hatched,
       earned: hatched + graded,
       planned,
@@ -96,9 +97,9 @@ export function waffleModel(waffle) {
 }
 
 /** One square per credit, group after group: ungraded (hatched), earned, planned, open. */
-export function waffleSquares(waffle) {
+export function waffleSquares(waffle, toneOf) {
   const squares = [];
-  waffleModel(waffle).groups.forEach((g) => {
+  waffleModel(waffle, toneOf).groups.forEach((g) => {
     const push = (count, state) => {
       for (let i = 0; i < count; i += 1) squares.push({ group: g.index, tone: g.tone, state });
     };

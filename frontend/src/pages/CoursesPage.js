@@ -730,19 +730,17 @@ export default function CoursesPage() {
 
   const ticked = readTicked();
   const goCompare = () => navigate(compareUrl(ticked.map((course) => course.identifier)));
-  const head = (
-    <>
-      <h1 className="sr-only">Courses</h1>
-      {tabs({ count: ticked.length, onCompare: goCompare })}
-    </>
-  );
+  const tabRow = tabs({ count: ticked.length, onCompare: goCompare });
 
   let body = null;
-  if (mode === 'degree') body = <DegreeBoard head={head} />;
+  if (mode === 'degree') body = <DegreeBoard tabs={tabRow} />;
   else if (mode === 'semester') {
     body = (
       <>
-        <div className="dg-toolbar">{head}</div>
+        <div className="dg-toolbar">
+          <h1 className="sr-only">Courses</h1>
+          {tabRow}
+        </div>
         <Suspense fallback={null}>
           <SemesterView term={params.get('term')} />
         </Suspense>
