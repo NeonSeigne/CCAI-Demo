@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getEvent, getPlace, listEvents } from '../api/campus';
-import { previewEdits } from '../api/planner';
 import { isAbort } from '../utils/loading';
 
 /**
- * Data hooks for the event and place pop-ups and the course pop-up's plan
- * preview. Course summaries and ratings come from the course module's cached
- * loader (`modules/course`). Each returns
- * `{data, error, loading, retry}`: `data` stays null until the request
+ * Data hooks for the event and place pop-ups. Course summaries and ratings
+ * come from the course module's cached loader (`modules/course`). Each
+ * returns `{data, error, loading, retry}`: `data` stays null until the request
  * answers, `error` is the thrown `ApiError` (D7: a failed request is shown,
  * a missing field is not). A changed key aborts the previous request.
  */
@@ -44,21 +42,6 @@ function useRequest(key, load, enabled = true) {
   }, [authToken, key, enabled, version]);
 
   return { ...state, retry };
-}
-
-/**
- * What adding `id` would change in the plan (`POST /api/planner/preview`):
- * `{diff, revision}`. Keyed by the ops payload and the plan revision (R2).
- */
-export function useCoursePreview(id, { revision, enabled = true } = {}) {
-  const course = (id || '').trim();
-  const ops = [{ op: 'add', course }];
-  const key = course ? `${JSON.stringify(ops)}@${revision ?? ''}` : '';
-  return useRequest(
-    key,
-    (token, signal) => previewEdits(token, { ops, expected_revision: revision }, { signal }),
-    enabled,
-  );
 }
 
 /** One event (`GET /api/events/{id}`): `{event, timezone}`. `from` adds walk minutes. */

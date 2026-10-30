@@ -18,14 +18,6 @@ export function termShort(term) {
   return season ? `${season} ${match[2].slice(2)}` : String(term);
 }
 
-/** The upper end of a credits value, for bars. */
-export function creditsHigh(credits) {
-  if (credits == null) return null;
-  if (typeof credits === 'number') return credits;
-  const [min, max] = Array.isArray(credits) ? credits : [credits.min, credits.max];
-  return max ?? min ?? null;
-}
-
 /** "José Q. O'Neil" -> "jose oneil", for matching ratings to grade rows. */
 export function nameKey(name) {
   return String(name || '')

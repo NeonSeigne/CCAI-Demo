@@ -35,8 +35,6 @@ export function paramLocation(location, param, value) {
   return `${location?.pathname || '/'}${search ? `?${search}` : ''}${location?.hash || ''}`;
 }
 
-export const courseLocation = (location, id) => paramLocation(location, COURSE_PARAM, id);
-
 /**
  * `open(value, seed)` sets `?param=value` on the current location: a new
  * history entry (Back closes it), or a replacement when one is already open.
@@ -71,19 +69,10 @@ export function useCloseParam(param) {
 /** `openCourse(id)` opens the course pop-up over the current page (R8). */
 export const useOpenCourse = () => useOpenParam(COURSE_PARAM);
 
-/** `closeCourse()` removes `?course=`. */
-export const useCloseCourse = () => useCloseParam(COURSE_PARAM);
-
 /** `openEvent(event)` opens the event pop-up over the current page (`?event=ID`). */
 export function useOpenEvent() {
   const open = useOpenParam(EVENT_PARAM);
   return useCallback((event) => open(event?.id, event?.id ? event : null), [open]);
-}
-
-/** `openPlace(place)` opens the place card over the current page (`?place=ID`). */
-export function useOpenPlace() {
-  const open = useOpenParam(PLACE_PARAM);
-  return useCallback((place) => open(place?.id, place?.id ? place : null), [open]);
 }
 
 /**
