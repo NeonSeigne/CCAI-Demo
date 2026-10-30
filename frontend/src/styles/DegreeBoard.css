@@ -34,7 +34,6 @@
 
 .dg-program h2 {
   margin: 0;
-  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   line-height: 1.2;
@@ -287,7 +286,6 @@
 
 .dg-col-title h3 {
   margin: 0;
-  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -507,7 +505,7 @@
   scroll-snap-align: start;
 }
 
-.dg-past h3 { margin: 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+.dg-past h3 { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
 
 .dg-past-terms { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; flex: 1; }
 
@@ -530,10 +528,6 @@
 .dg-past-actions .dg-open { padding: 0 12px; }
 
 /* ---- Completed editor (O2) ---------------------------------------------- */
-.dg-editor { padding: 20px; border-radius: 16px !important; font-family: var(--font-app); }
-
-.dg-editor-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.dg-editor-head h2 { margin: 0; font-size: 20px; }
 
 .dg-editor-search { display: flex; flex-direction: column; gap: 8px; }
 
@@ -565,10 +559,8 @@
 .dg-editor-check input { width: 18px; height: 18px; accent-color: var(--ink); }
 .dg-editor-title { font-size: 13px; color: var(--muted); }
 
-.dg-editor-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-
 /* ---- Setup dialog (docs/designs/setup-dialog.md) ------------------------ */
-.cc-dialog .su-dialog { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
+.su-dialog.MuiDialog-paper { border-radius: var(--r-2xl); overflow: hidden; font-family: var(--font-app); }
 
 .su-band { background: var(--band); color: var(--on-deep); padding: 18px 20px 18px 24px; }
 .su-steps { display: flex; align-items: center; gap: 12px; }
@@ -604,7 +596,6 @@
 .su-band :focus-visible { outline-color: var(--on-deep); }
 .su-band h2 {
   margin: 14px 0 0;
-  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 700;
   line-height: 1.15;
@@ -693,13 +684,13 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
 .dg-editor-row.is-flagged { background: var(--domain-student-life-tint); }
 .su-credits { margin-left: auto; font-family: var(--font-code); font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 
-@media (max-width: 900px) {
+@media (max-width: 1099px) {
   .su-program { grid-template-columns: 1fr; }
 }
 
 /* Phones: a tall bottom sheet (components.css places it at the bottom edge). */
-@media (max-width: 767px) {
-  .cc-dialog .su-dialog {
+@media (max-width: 700px) {
+  .su-dialog.MuiDialog-paper {
     margin: 0;
     width: 100%;
     max-width: 100%;
@@ -727,12 +718,12 @@ html[data-theme="dark"] .su-chip.is-on { background: var(--tint-strong); border-
 .dg-ph-card { height: 72px !important; border-radius: var(--r-md) !important; }
 
 /* ---- Widths (D17) ------------------------------------------------------- */
-@media (max-width: 1100px) {
+@media (max-width: 1099px) {
   .dg-summary { grid-template-columns: minmax(150px, 180px) 1fr; }
   .dg-key { grid-column: 1 / -1; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .dg-summary { --dg-square: 12px; grid-template-columns: 1fr; padding: 16px; }
   .dg-waffle { justify-self: start; }
   .dg-terms { scroll-snap-type: x mandatory; }

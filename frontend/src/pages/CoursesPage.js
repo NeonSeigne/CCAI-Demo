@@ -6,7 +6,7 @@ import { ArrowLeft, MessageSquare, Search, X, DragIndicatorRounded } from '../co
 import CampusPageShell from '../components/catalog/CampusPageShell';
 import SaveButton from '../components/SaveButton';
 import {
-  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced, useDelayedFlag,
+  CoursesTabs, GradesBar, InlineError, NotAvailable, Placeholder, useDebounced,
 } from '../components/catalog/CatalogParts';
 import {
   MAX_TICKED, askCoursePrompt, askState, compareUrl, formatGpa, formatPct, gradesLabel, levelOf,
@@ -22,16 +22,14 @@ import { useOpenCourse } from '../utils/openCourse';
 import { useDraggableItem } from '../components/dnd';
 import DegreeBoard from '../components/planner/degree/DegreeBoard';
 import '../styles/CoursesPage.css';
+import { isAbort, useDelayedFlag } from '../utils/loading';
+import { isPhoneWidth } from '../hooks/useViewport';
 
 const SemesterView = lazy(() => import('../components/planner/semester/SemesterView'));
 
 const SEARCH_LIMIT = 20;
 const MODES = ['browse', 'degree', 'semester'];
 const SECTION_ROWS = 6;
-const isAbort = (error) => error?.name === 'AbortError';
-const isPhone = () => typeof window !== 'undefined'
-  && typeof window.matchMedia === 'function'
-  && window.matchMedia('(max-width: 767px)').matches;
 
 /** Starters and saved courses, once each (R6). */
 function mergeCourses(...lists) {
@@ -459,7 +457,7 @@ function BrowseView({ tabs }) {
       next.set('selected', id);
       return next;
     }, { replace: true });
-    if (isPhone()) {
+    if (isPhoneWidth()) {
       listScroll.current = window.scrollY;
       setPhoneView('preview');
       window.scrollTo?.(0, 0);
@@ -578,7 +576,6 @@ function BrowseView({ tabs }) {
       <div className="cc-page">
         <header className="cc-page-head">
           <div>
-            <p className="cc-kicker">{school}</p>
             <h1>Courses</h1>
           </div>
           {tabs({ count: ticked.length, onCompare: goCompare })}

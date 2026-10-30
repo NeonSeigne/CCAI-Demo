@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSaved } from '../../contexts/SavedContext';
-import useMediaMatch from '../../hooks/useMediaMatch';
+import useViewport from '../../hooks/useViewport';
 import useDropTarget from './useDropTarget';
 import useDropToast from './dropToast';
 
@@ -26,7 +26,7 @@ export function savedEntryFor(item) {
 export default function useSavedDropTarget() {
   const saved = useSaved();
   const toast = useDropToast();
-  const phone = useMediaMatch('(max-width: 767px)');
+  const phone = useViewport() === 'phone';
   const [pulse, setPulse] = useState(false);
   const timer = useRef(null);
 

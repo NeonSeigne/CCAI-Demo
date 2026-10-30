@@ -2,28 +2,10 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import EnhancedChatInput from './EnhancedChatInput';
 
-const AdvisorIcon = () => <svg aria-hidden="true" />;
-
-jest.mock('../contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({
-    advisors: {
-      academic_planner: {
-        name: 'Academic Planner',
-        icon: AdvisorIcon,
-        avatarUrl: null,
-      },
-    },
-    isAdvisorEnabled: () => true,
-  }),
-}));
-
 const defaultProps = {
   onSendMessage: jest.fn(),
   uploadedDocuments: [],
   isLoading: false,
-  responseMode: 'panel',
-  onResponseModeChange: jest.fn(),
-  onSelectedAdvisorIdsChange: jest.fn(),
 };
 
 beforeEach(() => {
@@ -47,20 +29,6 @@ test('prefills, enables send, and submits the controlled message', () => {
   fireEvent.click(enabledSendButton);
   expect(onSendMessage).toHaveBeenCalledWith('Plan my semester');
   expect(onMessageChange).toHaveBeenCalledWith('');
-});
-
-test('opens the advisor menu and selects an exact responder', () => {
-  const onSelectedAdvisorIdsChange = jest.fn();
-  render(
-    <EnhancedChatInput
-      {...defaultProps}
-      onSelectedAdvisorIdsChange={onSelectedAdvisorIdsChange}
-    />,
-  );
-
-  fireEvent.click(screen.getByTitle('Choose advisors for this message'));
-  fireEvent.click(screen.getByRole('button', { name: /Academic Planner/ }));
-  expect(onSelectedAdvisorIdsChange).toHaveBeenCalledWith(['academic_planner']);
 });
 
 test('shows attached items as chips with a remove button', () => {
@@ -90,12 +58,4 @@ test('the composer card shows +, the scope chip, mic and Send', () => {
 
   rerender(<EnhancedChatInput {...defaultProps} compact showScope={false} />);
   expect(screen.queryByText('Courses, events and places')).not.toBeInTheDocument();
-});
-
-test('the response mode control marks the current mode', () => {
-  const onResponseModeChange = jest.fn();
-  render(<EnhancedChatInput {...defaultProps} onResponseModeChange={onResponseModeChange} />);
-  expect(screen.getByRole('button', { name: /Panel/ })).toHaveAttribute('aria-pressed', 'true');
-  fireEvent.click(screen.getByRole('button', { name: /Aggregated/ }));
-  expect(onResponseModeChange).toHaveBeenCalledWith('aggregated');
 });

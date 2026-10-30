@@ -30,13 +30,6 @@
   flex-wrap: wrap;
 }
 
-.cc-kicker {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
 .cc-page-head h1 {
   margin: 0;
   font-size: clamp(26px, 3.4vw, 32px);
@@ -89,11 +82,10 @@
 
 /* ---- Shared bits ---------------------------------------------------------- */
 .cc-code {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
   color: var(--domain-academics-ink);
-  letter-spacing: 0.01em;
 }
 
 .cc-muted { margin: 0; color: var(--muted); font-size: 14px; }
@@ -378,8 +370,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: var(--font-mono);
-  font-size: 15px;
+  font-family: var(--font-code);
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -512,7 +504,7 @@
   font-size: 14px;
 }
 
-.cc-section-name { font-family: var(--font-mono); font-size: 13px; }
+.cc-section-name { font-family: var(--font-code); font-size: 11px; font-weight: 700; }
 
 .cc-section-fill {
   height: 6px;
@@ -535,15 +527,15 @@
 .cc-section-seats { font-weight: 500; white-space: nowrap; }
 .cc-section-seats.is-full { color: var(--error); font-weight: 600; }
 
-/* ---- 768-1023px: narrower list and preview -------------------------------- */
-@media (max-width: 1023px) {
+/* ---- 701-1099px: narrower list and preview -------------------------------- */
+@media (max-width: 1099px) {
   .cc-page-main { padding: 32px 20px 56px; }
   .cc-browse { grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); gap: 16px; }
   .cc-preview-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---- Phones (27A): list full width; the preview is its own screen --------- */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cc-page-main { padding: 20px 16px calc(56px + 88px + env(safe-area-inset-bottom, 0px)); }
   .cc-page { gap: 16px; }
   .cc-browse { grid-template-columns: minmax(0, 1fr); }

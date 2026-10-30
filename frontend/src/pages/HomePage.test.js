@@ -22,14 +22,7 @@ jest.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { name: 'Pierce' }, authToken: 'token', handleSignOut: jest.fn(), handleUserUpdate: jest.fn() }),
 }));
 let mockConfig;
-jest.mock('../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: mockConfig, advisors: {} }) }));
-jest.mock('../components/CampusRail', () => ({
-  __esModule: true,
-  default: () => <nav aria-label="Rail" />,
-  RecentChats: () => null,
-  useRecentChats: () => [],
-}));
-jest.mock('../components/SettingsModal', () => () => null);
+jest.mock('../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: mockConfig }) }));
 
 // Thursday 29 October 2026, 11:00 in Charlottesville.
 const NOW = new Date('2026-10-29T15:00:00Z');
@@ -123,7 +116,7 @@ test('Next up lists the coming events with walking times from the start place', 
     state: expect.objectContaining({ pendingPrompt: 'How do I get to Bryant Hall?' }),
   }));
   expect(within(board).getByRole('link', { name: 'All events today' })).toHaveAttribute('href', '/events');
-  expect(within(board).getByText('From UVA Events')).toBeInTheDocument();
+  expect(within(board).queryByText('From UVA Events')).not.toBeInTheDocument();
 });
 
 test('Next up says so when nothing else is on', async () => {

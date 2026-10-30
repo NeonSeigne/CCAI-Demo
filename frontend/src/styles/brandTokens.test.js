@@ -63,8 +63,25 @@ describe('shared roles', () => {
     expect(contrast(r.mark_ink, r.mark_bg)).toBeGreaterThanOrEqual(4.5);
   });
 
-  test.each(['easier', 'typical', 'harder', 'a', 'df'])('band %s text passes AA on the darkest band', (name) => {
+  test.each(['a', 'df'])('band %s text passes AA on the darkest band', (name) => {
     expect(contrast(light[`band-${name}-text`], '#14171F')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // 2:15, 4:band: the mockup's difficulty colours on the band, in both modes.
+  test.each(['light', 'dark'])('%s band difficulty colours are the mockup\'s and pass AA', (mode) => {
+    const roles = resolveRoles(undefined, mode);
+    expect([roles.band_easier_text, roles.band_typical_text, roles.band_harder_text])
+      .toEqual(['#7FDCA4', '#F5B36E', '#FF8F87']);
+    ['easier', 'typical', 'harder'].forEach((name) => {
+      expect(contrast(roles[`band_${name}_text`], '#14171F')).toBeGreaterThanOrEqual(4.5);
+    });
+  });
+
+  test('a school\'s dark difficulty override reaches the band in both modes', () => {
+    const theme = { light: { harder: '#14171F' }, dark: { harder: '#EEF0F4' } };
+    expect(resolveRoles(theme, 'light').band_harder_text).toBe('#EEF0F4');
+    expect(resolveRoles(theme, 'dark').band_harder_text).toBe('#EEF0F4');
+    expect(resolveRoles(theme, 'light').band_easier_text).toBe('#7FDCA4');
   });
 });
 
@@ -74,8 +91,6 @@ const RAW_COLOUR_ALLOWED = {
   'styles/brand-tokens.css': 'the data palettes',
   'components/Login.js': "Google's sign-in logo",
   'components/Signup.js': "Google's sign-in logo",
-  'contexts/AppConfigContext.js': 'persona colours; callers append alpha suffixes',
-  'data/advisors.js': 'persona colours; callers append alpha suffixes',
 };
 
 const sourceFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -132,4 +147,53 @@ test('every var() names a defined token', () => {
     .filter((m) => !defined.has(m[1]))
     .map((m) => `${rel}: --${m[1]}`));
   expect([...new Set(missing)]).toEqual([]);
+});
+
+const withoutComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '');
+
+// Design Q18: phone up to 700px, tablet from 701px, desktop from 1100px, the
+// dock docked from 1280px. A max-width query names the last pixel before a
+// boundary, a min-width query the first one.
+const MEDIA_WIDTHS = { max: [700, 1099, 1279], min: [701, 1100, 1280] };
+
+test('media queries use only the 700, 1100 and 1280 breakpoints', () => {
+  const found = allSources().flatMap(([rel, text]) => [...withoutComments(text)
+    .matchAll(/\((max|min)-width:\s*(\d+)px\)/g)]
+    .filter((m) => !MEDIA_WIDTHS[m[1]].includes(Number(m[2])))
+    .map((m) => `${rel}: ${m[0]}`));
+  expect(found).toEqual([]);
+});
+
+// Course codes and numbers use --font-code; the monospace face is for
+// literal code blocks only (index.css `code, pre`).
+const FONT_MONO_ALLOWED = ['styles/brand-tokens.css', 'index.css'];
+
+test('--font-mono is used only for code blocks', () => {
+  const found = allSources()
+    .filter(([rel]) => !FONT_MONO_ALLOWED.includes(rel))
+    .filter(([, text]) => /--font-mono/.test(withoutComments(text)))
+    .map(([rel]) => rel);
+  expect(found).toEqual([]);
+});
+
+// Each class is owned by one stylesheet: the first class of a selector names
+// the stylesheet's own block (`.chat-frame .user-message` is ChatFrame's).
+// State classes (is-*, has-*) and MUI's and Leaflet's own classes are shared.
+test("a class is a selector's first class in one stylesheet only", () => {
+  const owners = {};
+  allSources().filter(([rel]) => rel.endsWith('.css')).forEach(([rel, text]) => {
+    [...withoutComments(text).matchAll(/([^{}]+)\{/g)]
+      .map((m) => m[1].trim())
+      .filter((selector) => !selector.startsWith('@') && !/^(from|to|[\d.%,\s]+)$/.test(selector))
+      .flatMap((selector) => selector.split(','))
+      .forEach((part) => {
+        const first = part.replace(/\[[^\]]*\]|:[a-z-]+\([^)]*\)/g, '').match(/\.(-?[_a-zA-Z][\w-]*)/);
+        if (!first || /^(Mui|leaflet|is-|has-)/.test(first[1])) return;
+        (owners[first[1]] = owners[first[1]] || new Set()).add(rel);
+      });
+  });
+  const shared = Object.entries(owners)
+    .filter(([, files]) => files.size > 1)
+    .map(([name, files]) => `.${name}: ${[...files].sort().join(', ')}`);
+  expect(shared).toEqual([]);
 });

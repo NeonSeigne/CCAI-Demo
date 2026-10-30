@@ -35,11 +35,9 @@ jest.mock('../api/campus', () => {
   };
 });
 jest.mock('../utils/ics', () => ({ downloadEventIcs: jest.fn() }));
-jest.mock('../components/CampusRail', () => function CampusRail() { return null; });
-jest.mock('../components/SettingsModal', () => function SettingsModal() { return null; });
 jest.mock('../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token', user: { firstName: 'Ada' } }) }));
 jest.mock('../contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' }, school: { timezone: 'America/Chicago' } }, advisors: [] }),
+  useAppConfig: () => ({ config: { app: { institution: 'UW–Madison' }, school: { timezone: 'America/Chicago' } } }),
 }));
 const mockReload = jest.fn();
 jest.mock('../contexts/SavedContext', () => ({ useSaved: () => ({ reload: mockReload, count: 0 }) }));

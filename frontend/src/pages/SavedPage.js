@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeftRight, ChevronDown, ChevronRight, Plus, RefreshCw } from '../components/icons';
-import CampusRail from '../components/CampusRail';
 import ConfirmDialog from '../components/ConfirmDialog';
-import SettingsModal from '../components/SettingsModal';
 import SavedRowMenu from '../components/saved/SavedRowMenu';
 import { useToast } from '../components/Toast';
 import { formatEventRange } from '../components/visuals/EventListCard';
@@ -293,10 +291,9 @@ function NameForm({ id, label, initial = '', submitLabel, onSubmit, onCancel }) 
  * save time stands in when the lookup can't resolve it (18A).
  */
 const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { authToken } = useAuth();
+  const { config } = useAppConfig();
   const savedContext = useSaved();
   const toast = useToast();
 
@@ -308,7 +305,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const [renaming, setRenaming] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pastOpen, setPastOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const newButton = useRef(null);
   const renameButton = useRef(null);
   const controllers = useRef(new Map());
@@ -316,7 +312,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
   const originId = useRef(null);
   const loadRun = useRef(0);
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
   const syncRail = () => savedContext?.reload?.();
 
@@ -539,11 +534,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
       .catch(() => failed("Couldn't delete the collection", removeCollection));
   };
 
-  const handleSignOutClick = () => {
-    handleSignOut();
-    navigate('/', { replace: true });
-  };
-
   // ---- Render ----
   const rowFor = (item, isPastRow = false) => {
     const homeId = homeOf(item);
@@ -752,23 +742,11 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
 
   return (
     <div className="saved-page">
-      <CampusRail
-        onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-        onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-        onShowAllChats={() => navigate('/search')}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onSignOut={handleSignOutClick}
-      />
-
       <main className="saved-main" id="main-content">
         <header className="saved-header">
-          <p className="saved-kicker">{school}</p>
           <h1>Saved</h1>
         </header>
         {body}
-        {status === 'ready' && (items.length > 0 || collections.length > 0) && (
-          <p className="saved-footnote">Anything you save from a page or an answer card lands in Unsorted until you file it.</p>
-        )}
       </main>
 
       <ConfirmDialog
@@ -780,17 +758,6 @@ const SavedPage = ({ lookupTimeout = LOOKUP_TIMEOUT_MS }) => {
         onConfirm={removeCollection}
         onCancel={() => setConfirmDelete(false)}
       />
-
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={handleUserUpdate}
-          onSignOut={handleSignOutClick}
-          advisors={advisors}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      )}
     </div>
   );
 };

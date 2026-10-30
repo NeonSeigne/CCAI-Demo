@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUp, Icon } from '../components/icons';
-import CampusRail, { RecentChats, useRecentChats } from '../components/CampusRail';
-import SettingsModal from '../components/SettingsModal';
+import { RecentChats, useShellRecentChats } from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -184,14 +183,13 @@ function SavedRow({ item, onOpenCourse }) {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { authToken } = useAuth();
+  const { config } = useAppConfig();
   const saved = useSaved();
   const openCourse = useOpenCourse();
   const [question, setQuestion] = useState('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const inputRef = useRef(null);
-  const recent = useRecentChats(authToken);
+  const recent = useShellRecentChats(authToken);
 
   const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
@@ -222,24 +220,10 @@ const HomePage = () => {
     }
   };
 
-  const handleSignOutClick = () => {
-    handleSignOut();
-    navigate('/', { replace: true });
-  };
-
   const showSide = (classes && classes.length > 0) || savedItems.length > 0;
 
   return (
     <div className="campus-home">
-      <CampusRail
-        recent={recent}
-        onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-        onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-        onShowAllChats={() => navigate('/search')}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onSignOut={handleSignOutClick}
-      />
-
       <main className="campus-main ah-main" id="main-content">
         <div className="ah-column">
           {/* Phones only: the rail is hidden, so recent chats lead the page (26A). */}
@@ -297,7 +281,6 @@ const HomePage = () => {
               )}
               <div className="ah-panel-foot">
                 <Link className="ah-more" to="/events">All events today</Link>
-                {today.source?.length > 0 && <p className="campus-footnote">From {today.source.join(', ')}</p>}
               </div>
             </section>
 
@@ -342,16 +325,6 @@ const HomePage = () => {
         </div>
       </main>
 
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={handleUserUpdate}
-          onSignOut={handleSignOutClick}
-          advisors={advisors}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      )}
     </div>
   );
 };

@@ -14,7 +14,7 @@ jest.mock('./contexts/AuthContext', () => ({
   AuthProvider: ({ children }) => children,
 }));
 jest.mock('./contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: { institution: 'UVA' }, school: { timezone: 'UTC' } }, advisors: [] }),
+  useAppConfig: () => ({ config: { app: { institution: 'UVA' }, school: { timezone: 'UTC' } } }),
   AppConfigProvider: ({ children }) => children,
 }));
 jest.mock('./pages/ChatPage', () => () => <div>Chat page</div>);
@@ -31,8 +31,6 @@ jest.mock('./pages/CampusMapPage', () => {
 jest.mock('./pages/HomePage', () => () => <div>Home page</div>);
 jest.mock('./pages/OnboardingPage', () => () => null);
 jest.mock('./components/UserGuide', () => () => null);
-jest.mock('./components/CampusRail', () => () => null);
-jest.mock('./components/SettingsModal', () => () => null);
 jest.mock('./components/ChatDock', () => () => <aside data-testid="dock">Ask</aside>);
 
 const realFetch = global.fetch;

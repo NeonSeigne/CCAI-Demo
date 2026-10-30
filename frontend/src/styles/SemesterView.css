@@ -153,8 +153,8 @@
   color: var(--muted);
 }
 
-/* D17: below 1440px the gauges become a row of three compact tiles. */
-@media (max-width: 1439px) {
+/* D17: below 1280px the gauges become a row of three compact tiles. */
+@media (max-width: 1279px) {
   .sv-body { grid-template-columns: minmax(0, 1fr); }
   .sv-side {
     display: grid;
@@ -164,7 +164,7 @@
   .sv-gauge-svg { max-width: 120px; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .sv-side { grid-template-columns: minmax(0, 1fr); }
   .sv-head { flex-wrap: wrap; }
 }
@@ -227,7 +227,7 @@
   white-space: nowrap;
 }
 
-.sv-gauge-value { font-family: var(--font-mono); font-size: 36px; }
+.sv-gauge-value { font-family: var(--font-code); font-size: 28px; }
 .sv-gauge-value.is-off { color: var(--difficulty-harder-ink); }
 .sv-gauge-word { font-size: 22px; }
 .sv-gauge-word.is-easier { color: var(--difficulty-easier-ink); }
@@ -300,8 +300,8 @@
 .sv-rq-title { font-weight: 600; min-width: 0; }
 
 .sv-rq-value {
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-family: var(--font-code);
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -435,7 +435,7 @@
 
 .sv-result:hover { background: var(--canvas); }
 .sv-result.is-dragging { opacity: 0.5; }
-.sv-result-code { font: 600 12px var(--font-mono); }
+.sv-result-code { font: 700 11px var(--font-code); }
 .sv-result-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sv-result-in { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
@@ -514,16 +514,15 @@
 .sv-card-r1 { display: flex; align-items: center; gap: 8px; min-height: 20px; }
 
 .sv-code {
-  font: 600 12px var(--font-mono);
+  font: 700 11px var(--font-code);
   color: var(--sv-course-ink, var(--muted));
-  letter-spacing: 0.01em;
 }
 
 .sv-gpa {
   display: inline-block;
   padding: 2px 7px;
   border-radius: 6px;
-  font: 700 12px var(--font-mono);
+  font: 700 11px var(--font-code);
 }
 
 .sv-gpa.is-easier { background: var(--difficulty-easier-tint); color: var(--difficulty-easier-ink); }
@@ -531,7 +530,7 @@
 .sv-gpa.is-harder { background: var(--difficulty-harder-tint); color: var(--difficulty-harder-ink); }
 
 .sv-cr { font-size: 12px; color: var(--muted); }
-.sv-cr b { font-family: var(--font-mono); color: var(--ink); }
+.sv-cr b { font-family: var(--font-code); color: var(--ink); }
 
 .sv-flag {
   padding: 1px 7px;
@@ -649,7 +648,7 @@
 
 .sv-tag {
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--r-full);
   background: var(--canvas);
   color: var(--muted);
   font-size: 11.5px;
@@ -668,7 +667,7 @@
 .sv-menu .MuiMenuItem-root.is-danger,
 .sv-menu .MuiMenuItem-root.is-danger svg { color: var(--difficulty-harder-ink); }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .sv-card { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
   .sv-card-side { padding: 10px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .sv-courses-tools { width: 100%; margin-left: 0; }

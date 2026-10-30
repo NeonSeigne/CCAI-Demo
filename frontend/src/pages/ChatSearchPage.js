@@ -152,7 +152,7 @@ const ChatSearchPage = () => {
             sx={{
               '& .MuiOutlinedInput-root': {
                 background: 'var(--surface)',
-                borderRadius: 2,
+                borderRadius: 'var(--r-full)',
               },
             }}
           />
@@ -187,7 +187,7 @@ const ChatSearchPage = () => {
               sx={{
                 background: 'var(--surface)',
                 border: '1px solid var(--line)',
-                borderRadius: 2,
+                borderRadius: 'var(--r-xl)',
                 overflow: 'hidden',
               }}
             >

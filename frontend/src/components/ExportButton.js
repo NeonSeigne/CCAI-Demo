@@ -184,11 +184,6 @@ const ExportButton = ({ hasMessages = false, currentSessionId = null, authToken 
           <Typography variant="subtitle1" fontWeight={700}>
             Share or export
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {currentSessionId
-              ? 'Download this saved conversation'
-              : 'Download the current conversation'}
-          </Typography>
         </Box>
 
         <Box sx={{ px: 2, pb: 2 }}>

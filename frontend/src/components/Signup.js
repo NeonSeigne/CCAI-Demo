@@ -139,13 +139,10 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
       <div className="signup-container">
         {/* Header */}
         <div className="signup-header">
-          <div className="logo-container">
-            <BookOpen className="logo-icon" />
+          <div className="signup-logo-container">
+            <BookOpen className="signup-logo-icon" />
           </div>
           <h1 className="signup-title">Join Our Community</h1>
-          <p className="signup-subtitle">
-            {config?.login?.signup_subtitle || 'Create your account to get personalized guidance from expert advisors'}
-          </p>
         </div>
 
         {/* Main Signup Form */}
@@ -153,151 +150,151 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
           <form onSubmit={handleSubmit} className="signup-form">
             
             {/* Name Fields Row */}
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName" className="form-label">
+            <div className="signup-form-row">
+              <div className="signup-form-group">
+                <label htmlFor="firstName" className="signup-form-label">
                   First Name
                 </label>
-                <div className="input-container">
-                  <User className="input-icon" />
+                <div className="signup-input-container">
+                  <User className="signup-input-icon" />
                   <input
                     type="text"
                     id="firstName"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
-                    className={`form-input ${errors.firstName ? 'error' : ''}`}
+                    className={`signup-form-input ${errors.firstName ? 'error' : ''}`}
                     placeholder="First name"
                     disabled={isLoading}
                   />
                 </div>
                 {errors.firstName && (
-                  <span className="error-message">{errors.firstName}</span>
+                  <span className="signup-error-message">{errors.firstName}</span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="lastName" className="form-label">
+              <div className="signup-form-group">
+                <label htmlFor="lastName" className="signup-form-label">
                   Last Name
                 </label>
-                <div className="input-container">
-                  <User className="input-icon" />
+                <div className="signup-input-container">
+                  <User className="signup-input-icon" />
                   <input
                     type="text"
                     id="lastName"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
-                    className={`form-input ${errors.lastName ? 'error' : ''}`}
+                    className={`signup-form-input ${errors.lastName ? 'error' : ''}`}
                     placeholder="Last name"
                     disabled={isLoading}
                   />
                 </div>
                 {errors.lastName && (
-                  <span className="error-message">{errors.lastName}</span>
+                  <span className="signup-error-message">{errors.lastName}</span>
                 )}
               </div>
             </div>
 
             {/* Email Field */}
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
+            <div className="signup-form-group">
+              <label htmlFor="email" className="signup-form-label">
                 Email Address
               </label>
-              <div className="input-container">
-                <Mail className="input-icon" />
+              <div className="signup-input-container">
+                <Mail className="signup-input-icon" />
                 <input
                   type="email"
                   id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.email ? 'error' : ''}`}
+                  className={`signup-form-input ${errors.email ? 'error' : ''}`}
                   placeholder="Enter your email"
                   disabled={isLoading}
                 />
               </div>
               {errors.email && (
-                <span className="error-message">{errors.email}</span>
+                <span className="signup-error-message">{errors.email}</span>
               )}
             </div>
 
             {/* Password Fields Row */}
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="password" className="form-label">
+            <div className="signup-form-row">
+              <div className="signup-form-group">
+                <label htmlFor="password" className="signup-form-label">
                   Password
                 </label>
-                <div className="input-container">
-                  <Lock className="input-icon" />
+                <div className="signup-input-container">
+                  <Lock className="signup-input-icon" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`form-input ${errors.password ? 'error' : ''}`}
+                    className={`signup-form-input ${errors.password ? 'error' : ''}`}
                     placeholder="Create password"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="password-toggle"
+                    className="signup-password-toggle"
                     disabled={isLoading}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <span className="error-message">{errors.password}</span>
+                  <span className="signup-error-message">{errors.password}</span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="confirmPassword" className="form-label">
+              <div className="signup-form-group">
+                <label htmlFor="confirmPassword" className="signup-form-label">
                   Confirm Password
                 </label>
-                <div className="input-container">
-                  <Lock className="input-icon" />
+                <div className="signup-input-container">
+                  <Lock className="signup-input-icon" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                    className={`signup-form-input ${errors.confirmPassword ? 'error' : ''}`}
                     placeholder="Confirm password"
                     disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="password-toggle"
+                    className="signup-password-toggle"
                     disabled={isLoading}
                   >
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <span className="error-message">{errors.confirmPassword}</span>
+                  <span className="signup-error-message">{errors.confirmPassword}</span>
                 )}
               </div>
             </div>
 
             {/* Academic Stage */}
-            <div className="form-group">
-              <label htmlFor="academicStage" className="form-label">
+            <div className="signup-form-group">
+              <label htmlFor="academicStage" className="signup-form-label">
                 Academic Stage
               </label>
-              <div className="input-container">
-                <GraduationCap className="input-icon" />
+              <div className="signup-input-container">
+                <GraduationCap className="signup-input-icon" />
                 <select
                   id="academicStage"
                   name="academicStage"
                   value={formData.academicStage}
                   onChange={handleInputChange}
-                  className={`form-select ${errors.academicStage ? 'error' : ''}`}
+                  className={`signup-form-select ${errors.academicStage ? 'error' : ''}`}
                   disabled={isLoading}
                 >
                   {academicStages.map(stage => (
@@ -308,24 +305,24 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
                 </select>
               </div>
               {errors.academicStage && (
-                <span className="error-message">{errors.academicStage}</span>
+                <span className="signup-error-message">{errors.academicStage}</span>
               )}
             </div>
 
             {/* Research Area (Optional) */}
-            <div className="form-group">
-              <label htmlFor="researchArea" className="form-label">
-                Research Area <span className="optional">(Optional)</span>
+            <div className="signup-form-group">
+              <label htmlFor="researchArea" className="signup-form-label">
+                Research Area <span className="signup-optional">(Optional)</span>
               </label>
-              <div className="input-container">
-                <BookOpen className="input-icon" />
+              <div className="signup-input-container">
+                <BookOpen className="signup-input-icon" />
                 <input
                   type="text"
                   id="researchArea"
                   name="researchArea"
                   value={formData.researchArea}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className="signup-form-input"
                   placeholder="e.g., Computer Science, Biology, Psychology..."
                   disabled={isLoading}
                 />
@@ -333,18 +330,18 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
             </div>
 
             {/* Terms and Privacy */}
-            <div className="terms-section">
-              <p className="terms-text">
+            <div className="signup-terms-section">
+              <p className="signup-terms-text">
                 By creating an account, you agree to our{' '}
-                <button type="button" className="link-btn">Terms of Service</button>
+                <button type="button" className="signup-link-btn">Terms of Service</button>
                 {' '}and{' '}
-                <button type="button" className="link-btn">Privacy Policy</button>
+                <button type="button" className="signup-link-btn">Privacy Policy</button>
               </p>
             </div>
 
             {/* Submit Error */}
             {errors.submit && (
-              <div className="submit-error">
+              <div className="signup-submit-error">
                 {errors.submit}
               </div>
             )}
@@ -352,12 +349,12 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
             {/* Submit Button */}
             <button 
               type="submit" 
-              className={`submit-btn btn-primary ${isLoading ? 'loading' : ''}`}
+              className={`signup-submit-btn ${isLoading ? 'loading' : ''}`}
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <div className="loading-spinner"></div>
+                  <div className="signup-loading-spinner"></div>
                   Creating Account...
                 </>
               ) : (
@@ -370,19 +367,19 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
           </form>
 
           {/* Divider */}
-          <div className="divider">
+          <div className="signup-divider">
             <span>or sign up with</span>
           </div>
 
           {/* Social Signup Options */}
-          <div className="social-signup">
+          <div className="signup-social-signup">
             <button 
               type="button" 
-              className="google-btn"
+              className="signup-google-btn"
               onClick={handleGoogleSignUp}
               disabled={isLoading}
             >
-              <svg className="google-icon" viewBox="0 0 24 24">
+              <svg className="signup-google-icon" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -393,7 +390,7 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
 
             <button 
               type="button" 
-              className="phone-btn"
+              className="signup-phone-btn"
               onClick={handlePhoneSignUp}
               disabled={isLoading}
             >
@@ -409,7 +406,7 @@ const Signup = ({ onNavigateToLogin, onAuthSuccess }) => {
             Already have an account?{' '}
             <button 
               type="button" 
-              className="link-btn"
+              className="signup-link-btn"
               onClick={onNavigateToLogin}
             >
               Sign in here

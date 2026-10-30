@@ -205,7 +205,6 @@
   background: var(--surface);
   font-size: 0.9em;
   color: var(--ink);
-  font-family: var(--font-mono);
 }
 
 .ug-content a {
@@ -218,7 +217,7 @@
 }
 
 /* Mobile */
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .ug-body {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;

@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover } from '@mui/material';
-import { ArrowUp, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, Users, Sparkles, CalendarDays, Icon } from './icons';
+import { ArrowUp, Plus, Paperclip, FileText, X, Trash2, Mic, MicOff, MessageCircle, ClipboardList, Loader2, CalendarDays, Icon } from './icons';
 import FileUpload from './FileUpload';
-import { useAppConfig } from '../contexts/AppConfigContext';
 import { attachmentLabel } from '../contexts/ChatContext';
 
 const EnhancedChatInput = ({ 
@@ -12,21 +11,16 @@ const EnhancedChatInput = ({
   isLoading,
   currentChatSessionId,
   authToken, 
-  placeholder = "Ask your advisors anything...",
+  placeholder = "Ask about courses, events or places",
   showProfileButtons = false,
   onOpenOnboarding,
   onOpenProfileForm,
-  responseMode = 'panel',
-  onResponseModeChange,
   ensureSessionId,
   initialMessage = '',
   messageValue,
   onMessageChange,
-  selectedAdvisorIds = null,
-  onSelectedAdvisorIdsChange,
   isLanding = false,
-  // One-row pill (+, text, mic, send), without the advisor and answer-style
-  // controls: the chat page always gives one combined answer.
+  // One-row pill (+, text, mic, send).
   compact = false,
   onInvokeSkill,
   activeSkills = [],
@@ -37,7 +31,6 @@ const EnhancedChatInput = ({
   // What Ask looks through, as a chip beside +. The dock leaves it out.
   showScope = true,
 }) => {
-  const { advisors, isAdvisorEnabled } = useAppConfig();
   const [inputMessage, setInputMessage] = useState(initialMessage || '');
   const [showUpload, setShowUpload] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
@@ -50,7 +43,6 @@ const EnhancedChatInput = ({
   const uploadRef = useRef(null);
   const plusBtnRef = useRef(null);
   const appliedInitialRef = useRef('');
-  const [advisorAnchorEl, setAdvisorAnchorEl] = useState(null);
   const [plusAnchorEl, setPlusAnchorEl] = useState(null);
 
   useEffect(() => {
@@ -212,10 +204,8 @@ const EnhancedChatInput = ({
   };
 
   const getFileIcon = (type) => {
-    if (type.includes('pdf')) return '📄';
-    if (type.includes('word') || type.includes('document')) return '📝';
-    if (type.includes('text')) return '📃';
-    return '📄';
+    if (type.includes('word') || type.includes('document')) return 'draft';
+    return 'description';
   };
 
   const formatUploadTime = (date) => {
@@ -229,20 +219,10 @@ const EnhancedChatInput = ({
 
   const isDisabled = isLoading || isUploading;
   const canSend = inputMessage.trim() && !isDisabled;
-  const advisorEntries = Object.entries(advisors || {});
-  const hasExactSelection = Array.isArray(selectedAdvisorIds);
 
   const updateMessage = (value) => {
     setInputMessage(value);
     onMessageChange?.(value);
-  };
-
-  const toggleSelectedAdvisor = (advisorId) => {
-    const current = hasExactSelection ? selectedAdvisorIds : [];
-    const next = current.includes(advisorId)
-      ? current.filter((id) => id !== advisorId)
-      : [...current, advisorId];
-    onSelectedAdvisorIdsChange?.(next.length > 0 ? next : null);
   };
 
   return (
@@ -282,13 +262,12 @@ const EnhancedChatInput = ({
               <div className="no-documents">
                 <FileText size={24} />
                 <p>No documents uploaded yet</p>
-                <span>Upload documents to reference them in your conversations</span>
               </div>
             ) : (
               uploadedDocuments.map((doc) => (
                 <div key={doc.id} className="document-item">
                   <div className="document-icon">
-                    {getFileIcon(doc.type)}
+                    <Icon name={getFileIcon(doc.type)} size={20} />
                   </div>
                   <div className="document-info">
                     <div className="document-name">{doc.name}</div>
@@ -425,65 +404,6 @@ const EnhancedChatInput = ({
               </button>
             )}
 
-            {!compact && (
-            <button
-              type="button"
-              className={`advisor-menu-button ${hasExactSelection ? 'active' : ''}`}
-              onClick={(event) => setAdvisorAnchorEl(event.currentTarget)}
-              aria-haspopup="dialog"
-              aria-expanded={Boolean(advisorAnchorEl)}
-              title="Choose advisors for this message"
-            >
-              <Users size={18} />
-              <span>{hasExactSelection ? `${selectedAdvisorIds.length} advisors` : 'Advisors'}</span>
-            </button>
-            )}
-            <Popover
-              open={Boolean(advisorAnchorEl)}
-              anchorEl={advisorAnchorEl}
-              onClose={() => setAdvisorAnchorEl(null)}
-              anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-              transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-              slotProps={{ paper: { className: 'composer-advisor-popover' } }}
-            >
-              <div className="composer-advisor-menu">
-                <div className="composer-advisor-menu-header">
-                  <strong>Advisors for this message</strong>
-                  <span>Choose exact responders or let the app decide.</span>
-                </div>
-                <button
-                  type="button"
-                  className={`composer-advisor-option ${!hasExactSelection ? 'selected' : ''}`}
-                  onClick={() => onSelectedAdvisorIdsChange?.(null)}
-                >
-                  <span className="advisor-option-check">{!hasExactSelection ? '✓' : ''}</span>
-                  Automatic selection
-                </button>
-                {advisorEntries.map(([id, advisor]) => {
-                  const AdvisorIcon = advisor.icon;
-                  const selected = hasExactSelection && selectedAdvisorIds.includes(id);
-                  const enabled = isAdvisorEnabled(id);
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`composer-advisor-option ${selected ? 'selected' : ''}`}
-                      onClick={() => toggleSelectedAdvisor(id)}
-                      disabled={!enabled}
-                    >
-                      <span className="advisor-option-avatar" aria-hidden="true">
-                        {advisor.avatarUrl
-                          ? <img src={advisor.avatarUrl} alt="" />
-                          : <AdvisorIcon size={15} />}
-                      </span>
-                      <span>{advisor.name}</span>
-                      {!enabled && <small>Off</small>}
-                      <span className="advisor-option-check">{selected ? '✓' : ''}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </Popover>
             {showProfileButtons && (
               <>
                 <button
@@ -505,28 +425,6 @@ const EnhancedChatInput = ({
               </>
             )}
 
-            {!compact && (
-            <div role="group" aria-label="Response mode" className="cc-segmented composer-mode">
-              {[
-                { mode: 'panel', icon: <Users size={18} />, label: 'Panel' },
-                { mode: 'aggregated', icon: <Sparkles size={18} />, label: 'Aggregated' },
-              ].map(({ mode, icon, label }) => {
-                const active = responseMode === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    disabled={isDisabled}
-                    aria-pressed={active}
-                    className={active ? 'is-on' : ''}
-                    onClick={() => onResponseModeChange?.(mode)}
-                  >
-                    {icon} {label}
-                  </button>
-                );
-              })}
-            </div>
-            )}
           </div>
 
           {/* Right - Mic + Send */}

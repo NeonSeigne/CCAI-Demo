@@ -34,7 +34,7 @@
 }
 
 /* The Saved count rises once after a drop. */
-.campus-nav-count.is-pulsing { animation: dnd-pulse 600ms ease-out; }
+.dnd-pulse { animation: dnd-pulse 600ms ease-out; }
 
 @keyframes dnd-pulse {
   0% { transform: scale(1); }
@@ -43,7 +43,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .campus-nav-count.is-pulsing {
+  .dnd-pulse {
     animation: none;
     box-shadow: 0 0 0 2px var(--academics);
   }

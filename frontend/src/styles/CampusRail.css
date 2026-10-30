@@ -300,9 +300,8 @@
 .campus-phone-header,
 .campus-tabbar { display: none; }
 
-@media (max-width: 767px) {
-  /* The chat page keeps its rail as a slide-in drawer (ChatFrame.css). */
-  .campus-rail:not(.chat-rail) { display: none; }
+@media (max-width: 700px) {
+  .campus-rail { display: none; }
 
   .campus-phone-header {
     position: sticky;
@@ -321,8 +320,6 @@
     color: var(--on-deep);
     font-family: var(--font-app);
   }
-
-  .chat-frame .campus-phone-header { display: none; }
 
   .campus-phone-header .campus-brand-mark { width: 32px; height: 32px; font-size: 9px; }
 

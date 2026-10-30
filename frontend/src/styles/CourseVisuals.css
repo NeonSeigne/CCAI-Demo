@@ -4,7 +4,6 @@
    Colours come from the role tokens only. */
 
 /* ---- Plain answer: text, cards, sources --------------------------------- */
-.advisor-message-container.is-plain { display: block; }
 
 .answer {
   display: flex;
@@ -52,15 +51,8 @@
   border-top: 0;
 }
 
-/* The chat page's side panel lists what was checked; inline once it hides. */
-.chat-frame .answer-checked { display: none; }
-
-@media (max-width: 1100px) {
-  .chat-frame .answer-checked { display: block; }
-}
-
 /* ---- The user's message: a tint bubble ---------------------------------- */
-.user-message.vc-ubub {
+.vc-ubub.user-message {
   max-width: 80%;
   padding: 12px 16px;
   border: 0;
@@ -73,8 +65,7 @@
   font-weight: 600;
 }
 
-.user-message.vc-ubub p { margin: 0; color: inherit; line-height: 1.45; }
-.user-message.vc-ubub .reply-indicator { color: inherit; opacity: 0.8; }
+.vc-ubub.user-message p { margin: 0; color: inherit; line-height: 1.45; }
 
 /* ---- "Checked" line ------------------------------------------------------ */
 .vc-checked {
@@ -108,7 +99,6 @@
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--surface);
-  box-shadow: var(--shadow-rest);
   color: var(--ink);
   font-family: var(--font-app);
 }
@@ -126,7 +116,6 @@
   min-width: 0;
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -243,7 +232,7 @@
   align-items: center;
   height: 24px;
   padding: 0 10px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-full);
   background: var(--raised);
   color: var(--muted);
   font-size: 12.5px;
@@ -273,7 +262,6 @@
 
 .vc-band h3 {
   margin: 3px 0 0;
-  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -555,7 +543,6 @@
 @keyframes vc-spin { to { transform: rotate(360deg); } }
 
 .vc-chosen { padding: 0 20px 18px; }
-.vc-chosen .vc-card { box-shadow: none; }
 
 /* ---- Shortlist ----------------------------------------------------------- */
 .vc-lead { margin: 0; padding: 0 20px 8px; font-size: 14.5px; color: var(--muted); }
@@ -676,8 +663,6 @@
   text-decoration: none;
 }
 
-
-
 .vc-evt-more {
   display: flex;
   flex-wrap: wrap;
@@ -699,7 +684,6 @@
 
 .vc-place-map { position: relative; min-height: 200px; overflow: hidden; background: var(--raised); }
 .vc-place-map .mini-map { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border-radius: 0; }
-html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6); }
 
 .vc-place-body { min-width: 0; padding: 16px 20px 18px; }
 
@@ -718,7 +702,6 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
   flex: 1;
   min-width: 0;
   margin: 4px 0 12px;
-  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -730,7 +713,7 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
 .vc-place-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 /* ---- Phone ----------------------------------------------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .vc-head, .vc-body, .vc-foot { padding-left: 16px; padding-right: 16px; }
   .vc-kpis { grid-template-columns: 1fr 1fr; }
   .vc-band h3 { font-size: 17px; }
@@ -750,7 +733,7 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
   .vc-place-map { min-height: 150px; }
   .vc-prereq .pg { padding: 4px 12px 14px; }
   .vc-context-link { margin-left: 0; }
-  .user-message.vc-ubub { max-width: 88%; }
+  .vc-ubub.user-message { max-width: 88%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -769,7 +752,6 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--surface);
-  box-shadow: var(--shadow-rest);
 }
 
 .course-section-heading {
@@ -782,7 +764,6 @@ html[data-theme="dark"] .vc-place-map .mini-map-tile { filter: invert(1) hue-rot
 
 .course-section-heading h2 {
   margin: 0;
-  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;

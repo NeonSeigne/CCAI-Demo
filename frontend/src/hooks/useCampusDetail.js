@@ -4,6 +4,7 @@ import {
   getCatalogCourse, getCourseRatings, getEvent, getPlace, listEvents,
 } from '../api/campus';
 import { previewEdits } from '../api/planner';
+import { isAbort } from '../utils/loading';
 
 /**
  * Data hooks for the course, event and place pop-ups. Each returns
@@ -16,7 +17,6 @@ import { previewEdits } from '../api/planner';
  * payload, cached so an answer's cards share one request.
  */
 
-const isAbort = (error) => error?.name === 'AbortError';
 
 /** One request per `key`; `load(token, signal)` resolves to the data. */
 function useRequest(key, load, enabled = true) {

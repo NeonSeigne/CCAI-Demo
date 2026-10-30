@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  createContext, useCallback, useContext, useEffect, useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { Icon, LogOut, MessageSquare, Plus, RefreshCw, Settings2 } from './icons';
@@ -107,6 +109,16 @@ export function useRecentChats(authToken, refreshTrigger = 0) {
   return { ...state, retry };
 }
 
+/** The app shell's recent chats, so a page that lists them doesn't load them again. */
+export const RecentChatsContext = createContext(null);
+
+/** The shell's recent chats, or the page's own outside the shell. */
+export function useShellRecentChats(authToken) {
+  const shared = useContext(RecentChatsContext);
+  const own = useRecentChats(shared ? null : authToken);
+  return shared || own;
+}
+
 /** Recent chats, "Couldn't load chats · Retry" on failure, and All chats. */
 export function RecentChats({ recent, currentSessionId, onSelectSession, onShowAllChats, className = '' }) {
   const { sessions, failed, loading, retry } = recent;
@@ -153,7 +165,7 @@ export function RecentChats({ recent, currentSessionId, onSelectSession, onShowA
 function SavedCount({ count, pulse = false }) {
   if (!count) return null;
   return (
-    <span className={`campus-nav-count ${pulse ? 'is-pulsing' : ''}`.trim()}>
+    <span className={`campus-nav-count ${pulse ? 'dnd-pulse' : ''}`.trim()}>
       {count}
       <span className="sr-only"> saved</span>
     </span>
@@ -195,7 +207,7 @@ function SavedNavItem({ item, current, savedCount }) {
 /**
  * The Campus Companion left rail, in the school's deep colour: the round
  * school mark with the product and school names, the five page links, New
- * chat, recent chats, the theme toggle and the signed-in user. Under 768px it
+ * chat, recent chats, the theme toggle and the signed-in user. At 700px and under it
  * gives way to a school-coloured header and a bottom tab bar (26A).
  *
  * Pass `recent` (from useRecentChats) when the page also shows the chats, so
@@ -221,7 +233,7 @@ export default function CampusRail({
   const dock = useChatDock();
   const railSlot = useRailSlot();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
+  const school = config?.app?.short_name || config?.app?.institution || config?.app?.title || 'Your campus';
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || '?';
 
   const brandMark = (
@@ -322,7 +334,7 @@ export default function CampusRail({
   return (
     <>
       {railSlot ? createPortal(rail, railSlot) : rail}
-      {/* Phones (<768px): school-coloured header on top, tab bar at the bottom. */}
+      {/* Phones (<=700px): school-coloured header on top, tab bar at the bottom. */}
       <header className="campus-phone-header">
         {brandMark}
         <span className="campus-phone-school">{school}</span>

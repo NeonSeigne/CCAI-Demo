@@ -5,7 +5,6 @@ import {
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AppShell from '../shell/AppShell';
-import CampusRail from '../CampusRail';
 import { SavedContext } from '../../contexts/SavedContext';
 import useDraggableItem from './useDraggableItem';
 import useAsk from '../../hooks/useAsk';
@@ -25,7 +24,10 @@ const mockChat = {
   addDocument: jest.fn(),
 };
 
-jest.mock('../../contexts/ChatContext', () => ({ useChat: () => mockChat }));
+jest.mock('../../contexts/ChatContext', () => ({
+  useChat: () => mockChat,
+  ChatContext: jest.requireActual('react').createContext(null),
+}));
 jest.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ authToken: 'token', user: { firstName: 'Ada' } }),
 }));
@@ -54,7 +56,7 @@ function AskButton() {
   return <button type="button" onClick={() => ask(COURSE)}>Ask about ECON 3720</button>;
 }
 
-/** /courses has the dock; /home has only the rail's Saved target. */
+/** /courses has the dock; /home has no dock, only the rail's Saved target. */
 const renderAt = (path, saved = { count: 0 }) => render(
   <MemoryRouter initialEntries={[path]}>
     <SavedContext.Provider value={saved}>
@@ -64,7 +66,6 @@ const renderAt = (path, saved = { count: 0 }) => render(
             path={path}
             element={(
               <div>
-                {path === '/home' && <CampusRail />}
                 <Card />
                 <AskButton />
               </div>
@@ -191,7 +192,7 @@ test('arrows step between the targets that take the item', async () => {
       <SavedContext.Provider value={saved}>
         <Routes>
           <Route element={<AppShell />}>
-            <Route path="/saved" element={<div><CampusRail /><Card /></div>} />
+            <Route path="/saved" element={<div><Card /></div>} />
           </Route>
         </Routes>
       </SavedContext.Provider>
@@ -237,7 +238,7 @@ test('an already-saved item only pulses the count', async () => {
   expect(saved.save).not.toHaveBeenCalled();
   await waitFor(() => expect(
     screen.getByRole('link', { name: /^Saved/ }).querySelector('.campus-nav-count'),
-  ).toHaveClass('is-pulsing'));
+  ).toHaveClass('dnd-pulse'));
 });
 
 test('useAsk attaches, opens the dock and focuses the composer without sending', async () => {

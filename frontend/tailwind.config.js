@@ -1,34 +1,35 @@
 /** @type {import('tailwindcss').Config} */
+// Only the base reset and utilities are used; colours, type and shadows come
+// from the role tokens in brand-tokens.css and ThemeContext.
 module.exports = {
   content: ['./src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
         ink: 'var(--ink)',
-        'ink-soft': 'var(--ink-soft)',
-        paper: 'var(--paper)',
-        'paper-sunken': 'var(--paper-sunken)',
+        muted: 'var(--muted)',
+        surface: 'var(--surface)',
+        raised: 'var(--raised)',
+        canvas: 'var(--canvas)',
         line: 'var(--line)',
-        'bg-primary': 'var(--bg-primary)',
-        'text-primary': 'var(--text-primary)',
-        'text-secondary': 'var(--text-secondary)',
-        card: 'var(--card-bg)',
-        'border-primary': 'var(--border-primary)',
-        'accent-primary': 'var(--accent-primary)',
-        'accent-red': 'var(--accent-red)',
-        'accent-blue': 'var(--accent-blue)',
-        'accent-green': 'var(--accent-green)',
+        signal: 'var(--signal)',
+        'on-signal': 'var(--on-signal)',
       },
       fontFamily: {
         sans: ['var(--font-app)'],
-        mono: ['var(--font-mono)'],
+        display: ['var(--font-display)'],
+        code: ['var(--font-code)'],
       },
       boxShadow: {
-        soft: 'var(--shadow-soft)',
-        'soft-md': 'var(--shadow-soft-md)',
+        rest: 'var(--shadow-rest)',
+        float: 'var(--shadow-float)',
       },
       borderRadius: {
-        '2xl': '1rem',
+        sm: 'var(--r-sm)',
+        md: 'var(--r-md)',
+        lg: 'var(--r-lg)',
+        xl: 'var(--r-xl)',
+        '2xl': 'var(--r-2xl)',
       },
     },
   },

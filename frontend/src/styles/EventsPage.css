@@ -36,7 +36,6 @@
 
 .ev-title-row h1 {
   margin: 2px 0 0;
-  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.12;
@@ -224,8 +223,6 @@ html[data-theme="dark"] .ev-chip-btn.is-current {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
-
-.ev-tz { margin-left: auto; font-size: 13px; color: var(--muted); }
 
 .ev-listed { margin: 0; font-size: 13px; color: var(--muted); }
 
@@ -647,7 +644,7 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
 
 .ev-hour-list { display: flex; flex-direction: column; gap: 8px; }
 .ev-hour-list-head { display: flex; align-items: center; justify-content: space-between; }
-.ev-hour-list-head h3 { margin: 0; font-family: var(--font-display); font-size: 14px; letter-spacing: -0.02em; }
+.ev-hour-list-head h3 { margin: 0; font-size: 14px; letter-spacing: -0.02em; }
 
 /* ---- Phone ----------------------------------------------------------------- */
 .ev-agenda { display: flex; flex-direction: column; gap: 10px; }
@@ -658,7 +655,7 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
   .ev-page * { transition: none !important; animation: none !important; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .ev-main { padding: 18px 16px 48px; }
   .ev-title-row h1 { font-size: 23px; }
   .ev-tabs { width: 100%; }
@@ -667,7 +664,6 @@ button.ev-block { display: block; font-family: inherit; text-align: left; cursor
   .ev-chips { flex-wrap: nowrap; overflow-x: auto; margin-right: -16px; padding-right: 16px; scrollbar-width: none; }
   .ev-chip-btn { flex: 0 0 auto; }
   .ev-search { max-width: none; }
-  .ev-tz { margin-left: 0; width: 100%; }
   .ev-feature { padding: 18px; }
   .ev-feature-title { font-size: 17px; }
   .ev-row {

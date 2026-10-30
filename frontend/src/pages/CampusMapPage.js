@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { ExternalLink, Icon } from '../components/icons';
 import 'leaflet/dist/leaflet.css';
-import CampusRail from '../components/CampusRail';
 import SaveButton from '../components/SaveButton';
 import PlaceSheet, { CATEGORY_ICONS } from '../components/map/PlaceSheet';
 import useAsk from '../hooks/useAsk';
-import SettingsModal from '../components/SettingsModal';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -16,6 +14,7 @@ import {
 } from '../api/campus';
 import '../styles/CampusHome.css';
 import '../styles/CampusMapPage.css';
+import { isAbort, useDelayedFlag } from '../utils/loading';
 
 /** OpenStreetMap standard tiles (tile usage policy: visible attribution). */
 export const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -23,7 +22,6 @@ export const OSM_ATTRIBUTION = '© OpenStreetMap contributors';
 
 const LIST_LIMIT = 25;
 const NEAREST_SHOWN = 3;
-const PLACEHOLDER_DELAY_MS = 300;
 const SEARCH_DEBOUNCE_MS = 300;
 
 /** Backend category ids → [chip label, lower-case plural for sentences]. */
@@ -42,22 +40,6 @@ const CATEGORY_NAMES = {
 const CATEGORY_ORDER = Object.keys(CATEGORY_NAMES);
 const chipLabel = (category) => (category ? CATEGORY_NAMES[category]?.[0] || category : 'All places');
 const pluralName = (category) => (category ? CATEGORY_NAMES[category]?.[1] || category : 'places');
-
-/** True after `active` has held for `ms` (placeholders after 300 ms, 9A). */
-function useDelayedFlag(active, ms = PLACEHOLDER_DELAY_MS) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setShown(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setShown(true), ms);
-    return () => clearTimeout(timer);
-  }, [active, ms]);
-  return shown;
-}
-
-const isAbort = (error) => error?.name === 'AbortError';
 
 const iconName = (category) => CATEGORY_ICONS[category] || 'location_on';
 
@@ -357,13 +339,10 @@ function RoutePanel({ origin, originStatus, selected, route, onChangeStart, star
 }
 
 const CampusMapPage = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { authToken } = useAuth();
+  const { config } = useAppConfig();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const timezone = config?.school?.timezone;
 
   // URL context from chat cards (14A), read once.
@@ -539,10 +518,6 @@ const CampusMapPage = () => {
     window.open(openStreetMapUrl(place, origin), '_blank', 'noopener,noreferrer');
   }, [origin]);
 
-  const handleSignOutClick = () => {
-    handleSignOut();
-    navigate('/', { replace: true });
-  };
 
   // ---- List rows: 3 nearest, the selection kept visible, "See N more".
   const places = list.places;
@@ -573,19 +548,10 @@ const CampusMapPage = () => {
 
   return (
     <div className="campus-home map-page">
-      <CampusRail
-        onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-        onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-        onShowAllChats={() => navigate('/search')}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onSignOut={handleSignOutClick}
-      />
-
       <main className="campus-main map-main" id="main-content">
         <div className="map-layout">
           <div className="map-side">
             <header className="map-header">
-              <p className="campus-kicker">{school}</p>
               <h1>Campus map</h1>
             </header>
 
@@ -756,16 +722,6 @@ const CampusMapPage = () => {
         </div>
       </main>
 
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          authToken={authToken}
-          onUserUpdate={handleUserUpdate}
-          onSignOut={handleSignOutClick}
-          advisors={advisors}
-          onClose={() => setIsSettingsOpen(false)}
-        />
-      )}
     </div>
   );
 };

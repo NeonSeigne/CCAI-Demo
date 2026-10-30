@@ -15,7 +15,6 @@ import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
 import ChatSearchPage from './pages/ChatSearchPage';
 import AuthPage from './pages/AuthPage';
-import CanvasPage from './pages/CanvasPage';
 import EventsPage from './pages/EventsPage';
 import CourseRedirect from './components/course/CourseRedirect';
 import UserGuide from './components/UserGuide';
@@ -75,7 +74,6 @@ export function AppRoutes() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<ChatSearchPage />} />
-          <Route path="/canvas" element={<CanvasPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route
             path="/saved"

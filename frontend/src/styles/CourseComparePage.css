@@ -158,12 +158,12 @@
 
 .cmp-ask p { flex: 1; margin: 0; font-size: 15px; }
 
-@media (max-width: 1023px) {
+@media (max-width: 1099px) {
   .cmp-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Phones (27A): two course columns on screen, row labels stay put, swipe for more. */
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cc-compare .cc-page-main { padding-bottom: calc(56px + 32px + env(safe-area-inset-bottom, 0px)); }
 
   .cmp-corner,

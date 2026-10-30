@@ -27,13 +27,6 @@
 
 .saved-header { display: flex; flex-direction: column; gap: 4px; }
 
-.saved-kicker {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
 .saved-header h1 {
   margin: 0;
   font-size: clamp(28px, 4vw, 36px);
@@ -244,8 +237,9 @@
 .saved-code {
   flex: 0 0 auto;
   min-width: 110px;
-  font-family: var(--font-mono);
-  font-size: 14px;
+  font-family: var(--font-code);
+  font-size: 12px;
+  font-weight: 700;
   color: var(--domain-academics-ink);
 }
 
@@ -404,16 +398,10 @@
 
 @keyframes saved-appear { to { opacity: 1; } }
 
-.saved-footnote {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
 /* ---- Phone picker (27A) --------------------------------------------------- */
 .saved-picker { display: none; }
 
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .saved-page { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   .saved-main { padding: 20px 16px 40px; }
   .saved-layout { grid-template-columns: minmax(0, 1fr); }

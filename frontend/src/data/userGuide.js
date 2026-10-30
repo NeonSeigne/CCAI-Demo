@@ -21,20 +21,6 @@ export const userGuideTopics = [
 You can return to this guide anytime by clicking the **?** icon in the header.`,
   },
   {
-    id: 'advisors',
-    title: 'Your Advisors',
-    icon: 'GraduationCap',
-    content: `# Your Advisors
-
-{{appName}} comes with {{advisorCount}} specialized advisor personas. Each one is tuned with a different perspective and area of expertise.
-
-## Available advisors
-{{advisorList}}
-
-## Seeing who's available
-Click the **"X Advisors"** dropdown in the top right of the chat to see all of your advisors and their current status.`,
-  },
-  {
     id: 'conversations',
     title: 'Conversations & Replies',
     icon: 'MessageCircle',

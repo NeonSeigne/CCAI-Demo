@@ -12,20 +12,6 @@ export function useDebounced(value, delay = DEBOUNCE_MS) {
   return settled;
 }
 
-/** True once `active` has stayed true for `delay` ms, so fast loads never flash a placeholder (9A). */
-export function useDelayedFlag(active, delay = 300) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setShown(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setShown(true), delay);
-    return () => clearTimeout(timer);
-  }, [active, delay]);
-  return active && shown;
-}
-
 /**
  * Browse | Compare (n), a tablist whose tabs switch pages (4A, 28A). Arrow
  * keys move between the two tabs.

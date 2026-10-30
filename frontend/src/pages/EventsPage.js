@@ -1,10 +1,9 @@
 import React, {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
 } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Icon, RefreshCw, X } from '../components/icons';
 import AppDialog from '../components/AppDialog';
-import CampusRail from '../components/CampusRail';
 import EventPopup from '../components/events/EventPopup';
 import { usePopupContainer } from '../components/shell/PageColumnContext';
 import usePopupAsk from '../hooks/usePopupAsk';
@@ -12,7 +11,6 @@ import {
   EVENT_PARAM, useCloseOnce, useCloseParam, useOpenParam,
 } from '../utils/openCourse';
 import SaveButton from '../components/SaveButton';
-import SettingsModal from '../components/SettingsModal';
 import { formatEventRange, formatEventTime, hasPhysicalLocation } from '../components/visuals/EventListCard';
 import { useAppConfig } from '../contexts/AppConfigContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,17 +18,18 @@ import { getCampusOrigin, listEvents, listPlaces, setCampusOrigin } from '../api
 import { downloadEventIcs } from '../utils/ics';
 import {
   WINDOWS, WINDOW_IDS, addDays, dayKey, formatDay, isAllDayLike, listingDay, minutesOfDay, relativeDay,
-  windowDays, windowHeading, windowLabel, windowPhrase, zoneName, coversDay,
+  windowDays, windowHeading, windowLabel, windowPhrase, coversDay,
 } from '../utils/eventWindows';
 import '../styles/CampusHome.css';
 import '../styles/EventsPage.css';
+import useViewport from '../hooks/useViewport';
+import { useDelayedFlag } from '../utils/loading';
 
 const VIEWS = [
   { id: 'next', label: 'Up next' },
   { id: 'list', label: 'List' },
   { id: 'calendar', label: 'Calendar' },
 ];
-const PLACEHOLDER_DELAY = 300;
 const SEARCH_DELAY = 300;
 const SOON_MINUTES = 15;
 const HOUR_PX = 48;
@@ -40,21 +39,6 @@ const ALL_DAY_CHIPS = 2;
 // ---------------------------------------------------------------------------
 // Small hooks
 
-/** True under 768px (27A); false where matchMedia is missing (tests, old browsers). */
-function usePhone() {
-  const query = '(max-width: 767px)';
-  const get = () => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false);
-  const [phone, setPhone] = useState(get);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const list = window.matchMedia(query);
-    const update = () => setPhone(list.matches);
-    list.addEventListener?.('change', update);
-    return () => list.removeEventListener?.('change', update);
-  }, []);
-  return phone;
-}
-
 /** The current time, refreshed each minute for the now-line. Nothing reads it aloud (28A). */
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -63,20 +47,6 @@ function useNow() {
     return () => clearInterval(timer);
   }, []);
   return now;
-}
-
-/** True once `active` has stayed true for `delay` ms (9A placeholders). */
-function useDelayedFlag(active, delay) {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      setShown(false);
-      return undefined;
-    }
-    const timer = setTimeout(() => setShown(true), delay);
-    return () => clearTimeout(timer);
-  }, [active, delay]);
-  return shown;
 }
 
 // ---------------------------------------------------------------------------
@@ -721,15 +691,12 @@ function ListedThrough({ date }) {
 // Page
 
 const EventsPage = () => {
-  const navigate = useNavigate();
-  const { user, authToken, handleSignOut, handleUserUpdate } = useAuth();
-  const { config, advisors } = useAppConfig();
+  const { authToken } = useAuth();
+  const { config } = useAppConfig();
   const [params, setParams] = useSearchParams();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const phone = usePhone();
+  const phone = useViewport() === 'phone';
   const now = useNow();
 
-  const school = config?.app?.institution || config?.app?.title || 'Your campus';
   const configZone = config?.school?.timezone;
 
   const view = VIEWS.some((v) => v.id === params.get('view')) ? params.get('view') : 'next';
@@ -801,7 +768,7 @@ const EventsPage = () => {
   }, [authToken, windowId, q, originId, originReady, attempt]);
 
   const loading = result.status === 'loading';
-  const showPlaceholders = useDelayedFlag(loading, PLACEHOLDER_DELAY);
+  const showPlaceholders = useDelayedFlag(loading);
   const timezone = result.data?.timezone || configZone;
   const todayKey = dayKey(now, timezone);
   const days = useMemo(() => windowDays(windowId, todayKey), [windowId, todayKey]);
@@ -834,11 +801,6 @@ const EventsPage = () => {
     event.preventDefault();
     update({ view: next.id === 'next' ? '' : next.id });
     tabRefs.current[next.id]?.focus();
-  };
-
-  const handleSignOutClick = () => {
-    handleSignOut();
-    navigate('/', { replace: true });
   };
 
   // The event pop-up (?event=ID) over the page column (D3).
@@ -909,25 +871,15 @@ const EventsPage = () => {
   }
 
   const partialError = result.status === 'ready' && result.data?.error;
-  const tzName = zoneName(timezone);
 
   return (
     <EventOpenContext.Provider value={openEvent}>
       <div className="campus-home ev-page">
-        <CampusRail
-          onNewChat={() => navigate('/chat', { state: { startNew: true } })}
-          onSelectSession={(sessionId) => navigate('/chat', { state: { sessionId } })}
-          onShowAllChats={() => navigate('/search')}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onSignOut={handleSignOutClick}
-        />
-
         <main className="campus-main ev-main" id="main-content">
           <div className="ev-column">
             <header className="ev-header">
               <div className="ev-title-row">
                 <div>
-                  <p className="campus-kicker">{school}</p>
                   <h1>Events</h1>
                 </div>
                 <div className="ev-tabs" role="tablist" aria-label="Events view">
@@ -1023,7 +975,6 @@ const EventsPage = () => {
                     <ChevronRight size={18} aria-hidden="true" />
                   </button>
                 )}
-                {tzName && <span className="ev-tz">Times in {tzName}</span>}
               </div>
 
               {partialError && (
@@ -1043,24 +994,8 @@ const EventsPage = () => {
               {body}
             </section>
 
-            {sourceText && (
-              <p className="campus-footnote ev-foot">
-                From {sourceText} · Add to calendar downloads an .ics file for Google, Apple or Outlook Calendar
-              </p>
-            )}
           </div>
         </main>
-
-        {isSettingsOpen && (
-          <SettingsModal
-            user={user}
-            authToken={authToken}
-            onUserUpdate={handleUserUpdate}
-            onSignOut={handleSignOutClick}
-            advisors={advisors}
-            onClose={() => setIsSettingsOpen(false)}
-          />
-        )}
 
         {eventId && popup.ready && (
           <AppDialog
