@@ -472,32 +472,33 @@ export default function DegreeBoard({ tabs = null }) {
         {!program && hasPrograms && (
           <button type="button" className="dg-btn" onClick={() => openSetup(0)}>Program</button>
         )}
-        <div className="dg-spacer" />
-        {tabs && <div className="dg-tabs dg-hide-phone">{tabs}</div>}
-        <button
-          type="button"
-          className="dg-icon-btn dg-hide-phone"
-          aria-label={undoLabel || 'Undo'}
-          title={undoLabel || 'Undo'}
-          disabled={!canUndo}
-          onClick={onUndo}
-        >
-          <Icon name="undo" size={20} />
-        </button>
-        <button
-          type="button"
-          className="dg-icon-btn dg-hide-phone"
-          aria-label={redoLabel || 'Redo'}
-          title={redoLabel || 'Redo'}
-          disabled={!canRedo}
-          onClick={onRedo}
-        >
-          <Icon name="redo" size={20} />
-        </button>
-        <button type="button" className="dg-btn is-primary" onClick={() => setSearchParams({ view: 'browse' })}>
-          <Icon name="add" size={20} />
-          Add course
-        </button>
+        <div className="dg-titletools">
+          {tabs && <div className="dg-tabs dg-hide-phone">{tabs}</div>}
+          <button
+            type="button"
+            className="dg-icon-btn dg-hide-phone"
+            aria-label={undoLabel || 'Undo'}
+            title={undoLabel || 'Undo'}
+            disabled={!canUndo}
+            onClick={onUndo}
+          >
+            <Icon name="undo" size={20} />
+          </button>
+          <button
+            type="button"
+            className="dg-icon-btn dg-hide-phone"
+            aria-label={redoLabel || 'Redo'}
+            title={redoLabel || 'Redo'}
+            disabled={!canRedo}
+            onClick={onRedo}
+          >
+            <Icon name="redo" size={20} />
+          </button>
+          <button type="button" className="dg-btn is-primary" onClick={() => setSearchParams({ view: 'browse' })}>
+            <Icon name="add" size={20} />
+            Add course
+          </button>
+        </div>
       </div>
       {phone && viewSwitch}
 

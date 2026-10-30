@@ -6,6 +6,7 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  container: dg-board / inline-size;
 }
 
 /* Group colours: the six course colours in file order, a neutral "Other credit". */
@@ -36,6 +37,16 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+/* The tabs, undo, redo and Add course wrap as one group at the right. */
+.dg-titletools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.dg-titlerow h1,
+.dg-titletools { flex: none; }
+.dg-titlerow .dg-program-btn { flex: 0 1 auto; }
 .dg-titlerow h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -44,7 +55,6 @@
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
-.dg-spacer { flex: 1; }
 
 /* The Courses tabs as system.css .seg: fully round, no count. */
 .dg-titlerow .cc-tabs,
@@ -82,6 +92,19 @@
 .dg-titlerow .cc-tab-count { display: none; }
 .dg-seg.is-wide { display: flex; }
 .dg-seg.is-wide button { flex: 1; }
+
+/* One row while the board is 760px or wider (transit-a): tighter gaps, and
+   the program name truncates. Narrower, the tools wrap as one group. */
+@container dg-board (min-width: 760px) {
+  .dg-titlerow { flex-wrap: nowrap; gap: 8px; }
+  .dg-titletools { gap: 8px; }
+  .dg-titletools .dg-icon-btn + .dg-icon-btn { margin-left: -6px; }
+}
+@container dg-board (min-width: 760px) and (max-width: 899px) {
+  .dg-titlerow .cc-tab { padding: 7px 12px; }
+  .dg-titlerow .dg-program-btn { padding: 0 10px 0 14px; }
+  .dg-titletools .dg-btn { padding: 0 16px; }
+}
 
 /* Buttons (system.css .btn): 42px, fully round, 700 14.5px. */
 .dg-btn {
