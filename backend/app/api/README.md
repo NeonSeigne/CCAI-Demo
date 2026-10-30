@@ -207,3 +207,14 @@ The chat `events_search` result rows and the `event_list` card rows carry `kind`
 | `access` | `"yes"` \| `"limited"` \| `"no"` \| null | OSM `wheelchair` ("designated" reads as "yes") |
 
 The same three keys are in `places.public()` (the `find_place` chat tool rows).
+
+### Chat sessions (`/api/chat-sessions`)
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| PUT | `/chat-sessions/{id}/messages/{message_id}/feedback` | `{"feedback": "up" \| "down" \| null}` | `{message_id, feedback}`; stored on the message as `feedback` (null removes it). Only answers (`type: "advisor"`) take feedback: 422 otherwise; 404 for an unknown chat or message. Doesn't move the chat in Recent |
+| PUT | `/chat-sessions/{id}` | `{title?, pinned?, messages?}` | Rename and pin/unpin. Only `messages` updates `updated_at`, so renaming or pinning doesn't reorder Recent. `title` is trimmed (inner runs of spaces collapsed), must be non-empty and at most 200 characters (422 otherwise); also on `POST /chat-sessions` |
+
+- `GET /chat-sessions` rows carry `pinned` (bool) and are sorted pinned first, then by `updated_at`. `POST` returns `pinned: false`; `GET /chat-sessions/{id}` carries `pinned`, and its messages carry `feedback` when set.
+- Titles are stored and returned whole; the server never adds "...". (The frontend's `ChatContext.js` still cuts new titles at 30 characters plus "..." when it creates or retitles a chat; that cut has to go for full titles in Recent.)
+- `/chat-stream` `advisor` lines carry `message_id`: the stored message's id to send feedback for (null when the stream has no `chat_session_id`).
