@@ -14,7 +14,8 @@ import DegreeSummary, { DegreeSummarySkeleton } from './DegreeSummary';
 import TermColumn, { TermColumnSkeleton } from './TermColumn';
 import { PastColumn, PastTermColumn } from './PastColumn';
 import SetupDialog from './SetupDialog';
-import ProgramMenu from './ProgramMenu';
+import { ProgramMenu } from '../../menus';
+import { useDockClosedByDefault } from '../../../contexts/ChatDockContext';
 import RouteMap, { RouteList } from './RouteMap';
 import { DetailCard, RequirementsPanel } from './RoutePanels';
 import {
@@ -141,6 +142,7 @@ function RouteSkeleton() {
  * whenever the plan moves past it.
  */
 export default function DegreeBoard({ tabs = null }) {
+  useDockClosedByDefault('degree');
   const planner = usePlanner();
   const [, setSearchParams] = useSearchParams();
   const toast = useDropToast();
@@ -446,7 +448,9 @@ export default function DegreeBoard({ tabs = null }) {
   }
 
   /** The program menu's choice saves through one planner edit, like setup's Program step. */
-  const chooseProgram = (next) => {
+  const chooseProgram = (id) => {
+    const next = (programs || []).find((p) => p.id === id);
+    if (!next) return;
     const op = { op: 'set_profile', program_ids: [next.id] };
     if (next.catalog_year) op.catalog_year = next.catalog_year;
     edit([op]).catch(() => {});
@@ -456,36 +460,45 @@ export default function DegreeBoard({ tabs = null }) {
     <div className="dg-board">
       <div className="dg-titlerow">
         <h1>My degree</h1>
-        {program && <ProgramMenu program={program} programs={programs} onChoose={chooseProgram} />}
+        {program && (
+          <ProgramMenu
+            programs={programs}
+            value={program.id}
+            onChange={chooseProgram}
+            label="Programs"
+            className="dg-program-btn"
+          />
+        )}
         {!program && hasPrograms && (
           <button type="button" className="dg-btn" onClick={() => openSetup(0)}>Program</button>
         )}
-        <div className="dg-spacer" />
-        {tabs && <div className="dg-tabs dg-hide-phone">{tabs}</div>}
-        <button
-          type="button"
-          className="dg-icon-btn dg-hide-phone"
-          aria-label={undoLabel || 'Undo'}
-          title={undoLabel || 'Undo'}
-          disabled={!canUndo}
-          onClick={onUndo}
-        >
-          <Icon name="undo" size={20} />
-        </button>
-        <button
-          type="button"
-          className="dg-icon-btn dg-hide-phone"
-          aria-label={redoLabel || 'Redo'}
-          title={redoLabel || 'Redo'}
-          disabled={!canRedo}
-          onClick={onRedo}
-        >
-          <Icon name="redo" size={20} />
-        </button>
-        <button type="button" className="dg-btn is-primary" onClick={() => setSearchParams({ view: 'browse' })}>
-          <Icon name="add" size={20} />
-          Add course
-        </button>
+        <div className="dg-titletools">
+          {tabs && <div className="dg-tabs dg-hide-phone">{tabs}</div>}
+          <button
+            type="button"
+            className="dg-icon-btn dg-hide-phone"
+            aria-label={undoLabel || 'Undo'}
+            title={undoLabel || 'Undo'}
+            disabled={!canUndo}
+            onClick={onUndo}
+          >
+            <Icon name="undo" size={20} />
+          </button>
+          <button
+            type="button"
+            className="dg-icon-btn dg-hide-phone"
+            aria-label={redoLabel || 'Redo'}
+            title={redoLabel || 'Redo'}
+            disabled={!canRedo}
+            onClick={onRedo}
+          >
+            <Icon name="redo" size={20} />
+          </button>
+          <button type="button" className="dg-btn is-primary" onClick={() => setSearchParams({ view: 'browse' })}>
+            <Icon name="add" size={20} />
+            Add course
+          </button>
+        </div>
       </div>
       {phone && viewSwitch}
 

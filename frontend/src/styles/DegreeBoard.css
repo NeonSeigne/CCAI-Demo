@@ -6,6 +6,7 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  container-type: inline-size;
 }
 
 /* Group colours: the six course colours in file order, a neutral "Other credit". */
@@ -30,12 +31,29 @@
 }
 
 /* ---- Title row (transit-a: h1, program, spacer, tabs, undo, redo, Add course) */
+/*
+ * The title row (transit-a): title, program, then the tabs, undo, redo and
+ * Add course as one group at the right. Gaps and paddings tighten with the
+ * board's width; the program name gives way first (down to 72px, truncated),
+ * then the group wraps as a unit to a second line.
+ */
 .dg-titlerow {
+  --dg-title-gap: clamp(8px, 2cqi - 8px, 12px);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 12px var(--dg-title-gap);
   flex-wrap: wrap;
 }
+.dg-titletools {
+  display: flex;
+  align-items: center;
+  gap: var(--dg-title-gap);
+  margin-left: auto;
+}
+.dg-titlerow h1,
+.dg-titletools { flex: none; }
+.dg-titlerow .dg-program-btn { flex: 1 1 0; min-width: 72px; max-width: max-content; }
+.dg-titletools .dg-btn { padding: 0 clamp(14px, 4cqi - 20px, 18px); }
 .dg-titlerow h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -44,7 +62,6 @@
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
-.dg-spacer { flex: 1; }
 
 /* The Courses tabs as system.css .seg: fully round, no count. */
 .dg-titlerow .cc-tabs,
@@ -71,6 +88,7 @@
   cursor: pointer;
 }
 /* 44px hit areas round the 37px items (design Q19). */
+.dg-titlerow .cc-tab { padding: 7px clamp(12px, 4cqi - 20px, 16px); }
 .dg-titlerow .cc-tab::after,
 .dg-seg button::after { content: ""; position: absolute; inset: -4px 0; }
 .dg-titlerow .cc-tab.is-selected,
@@ -104,7 +122,6 @@
 .dg-btn:active { transform: scale(0.95); }
 .dg-btn.is-primary { border-color: var(--signal); background: var(--signal); color: var(--on-signal); }
 .dg-btn.is-primary:hover { background: var(--signal-hover); }
-.dg-program-btn .ms { margin-right: -4px; }
 
 /* Ghost icon buttons: 42px, no border (system.css .btn.icon.ghost). */
 .dg-icon-btn {
@@ -127,40 +144,6 @@
 .dg-icon-btn:disabled { color: var(--muted); opacity: 0.45; cursor: not-allowed; }
 .dg-icon-btn:not(:disabled):hover { background: var(--raised); }
 .dg-icon-btn:not(:disabled):active { transform: scale(0.95); }
-
-/* The program menu (menus.html "Program"). */
-.dg-menu.MuiPaper-root {
-  width: 260px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-float);
-}
-.dg-menu .MuiList-root { padding: 0; }
-.dg-menu .dg-menu-head {
-  padding: 10px 12px 6px;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.dg-menu .dg-menu-item {
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: var(--r-lg);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-}
-.dg-menu .dg-menu-item .ms { color: var(--muted); }
-.dg-menu .dg-menu-item:hover,
-.dg-menu .dg-menu-item.Mui-focusVisible { background: var(--raised); }
-.dg-menu .dg-menu-item.is-on { background: var(--tint); color: var(--tint-ink); }
-.dg-menu .dg-menu-item.is-on .ms { color: var(--tint-ink); }
 
 /* ---- Counts row (transit-a .figs) ---------------------------------------- */
 .dg-counts {

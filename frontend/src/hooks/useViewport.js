@@ -7,7 +7,6 @@ import useMediaMatch from './useMediaMatch';
  */
 export const BP_PHONE = 700;
 export const BP_DESKTOP = 1100;
-export const BP_DOCK = 1280;
 
 export const PHONE_QUERY = `(max-width: ${BP_PHONE}px)`;
 export const DESKTOP_QUERY = `(min-width: ${BP_DESKTOP}px)`;

@@ -111,9 +111,6 @@ export function waffleSquares(waffle, toneOf) {
   return squares;
 }
 
-/** Totals across the waffle's groups, in whole squares. */
-export const waffleTotals = (waffle) => waffleModel(waffle).totals;
-
 /** Rule groups not yet met: the count shown when there's no Finish date (D13). */
 export const openRequirements = (waffle) => (waffle?.groups || [])
   .filter((group) => group.rule_id && group.status !== 'met').length;

@@ -440,10 +440,11 @@ describe('EventsPage on a phone', () => {
     renderPage('/events?view=list');
     const row = (await screen.findByText('Jazz Night')).closest('li');
     fireEvent.contextMenu(row);
-    const sheet = await screen.findByRole('dialog', { name: 'Jazz Night' });
-    expect(within(sheet).getByRole('link', { name: /Directions/ })).toHaveAttribute('href', '/map?to=union');
+    const sheet = await screen.findByRole('menu', { name: 'Jazz Night' });
     expect(within(sheet).getByText('7 min')).toBeInTheDocument();
-    expect(within(sheet).getByRole('button', { name: 'Add to calendar' })).toBeInTheDocument();
-    expect(within(sheet).getByRole('button', { name: 'Ask about this' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('menuitem', { name: 'Add to calendar' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('menuitem', { name: 'Ask about this' })).toBeInTheDocument();
+    fireEvent.click(within(sheet).getByRole('menuitem', { name: /Directions/ }));
+    await waitFor(() => expect(params().get('to')).toBe('union'));
   });
 });

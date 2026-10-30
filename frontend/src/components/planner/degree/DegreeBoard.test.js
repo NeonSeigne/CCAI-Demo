@@ -226,7 +226,7 @@ describe('waffle and top bar', () => {
     expect(screen.queryByText('Finish')).not.toBeInTheDocument();
     expect(screen.getByText('Open requirements')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'My degree' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Economics B.A.' })).toHaveAttribute('aria-haspopup', 'menu');
+    expect(screen.getByRole('button', { name: 'Programs: Economics B.A.' })).toHaveAttribute('aria-haspopup', 'menu');
     const table = screen.getByRole('table', { name: 'Economics B.A. credits' });
     expect(within(table).getByRole('row', { name: /Core theory 0 7 2 0 9/ })).toBeInTheDocument();
   });
@@ -699,7 +699,7 @@ describe('Setup dialog', () => {
       id: 'mpp', name: 'Master of Public Policy', type: 'graduate', catalog_year: 2026, rules: [],
     }];
     const { planner } = renderBoard(makePlanner({ programs }));
-    fireEvent.click(screen.getByRole('button', { name: 'Economics B.A.' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Programs: Economics B.A.' }));
     const menu = await screen.findByRole('menu', { name: 'Programs' });
     expect(within(menu).getByText('Undergraduate')).toBeInTheDocument();
     expect(within(menu).getByText('Graduate')).toBeInTheDocument();

@@ -2,20 +2,6 @@ import React from 'react';
 import { DragIndicatorRounded } from '../icons';
 import { useDraggableItem } from '../dnd';
 
-/** D7: a failed request, in the tile or pop-up body. */
-export function CouldntLoad({ onRetry, className = '' }) {
-  return (
-    <p className={`pop-error ${className}`.trim()} role="alert">
-      Couldn&apos;t load · <button type="button" className="pop-link-btn" onClick={onRetry}>Retry</button>
-    </p>
-  );
-}
-
-/** A 404: the item is gone, so there is nothing to retry. */
-export function NotFound({ children }) {
-  return <p className="pop-error" role="status">{children}</p>;
-}
-
 /** 404 from an ApiError. */
 export const isNotFound = (error) => error?.status === 404;
 

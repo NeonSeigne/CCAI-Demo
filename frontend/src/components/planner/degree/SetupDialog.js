@@ -40,7 +40,7 @@ export const defaultStartTerm = (startTerm, classYear) => (
   startTerm || (classYear ? `Fall ${Number(classYear) - 4}` : null));
 
 /** Programs in two groups, graduate programs last (eng review D2). */
-export function programGroups(programs) {
+function programGroups(programs) {
   const sorted = [...(programs || [])].sort((a, b) => a.name.localeCompare(b.name));
   return [
     { label: 'Undergraduate', programs: sorted.filter((p) => p.type !== 'graduate') },

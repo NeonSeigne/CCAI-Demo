@@ -29,11 +29,12 @@ describe('CourseVisualCard', () => {
     expect(screen.getByText(/loading course card/i)).toBeInTheDocument();
   });
 
-  it('renders the GPA from the catalog summary with the pop-up label', async () => {
+  it('renders the every-term GPA the difficulty label is read from, with the pop-up label', async () => {
     serve(uwPopupCourse());
     renderCard({ type: 'course_gpa', course: 'COMP SCI 400' });
-    expect(await screen.findByText('Avg GPA · Spring 2026')).toBeInTheDocument();
-    expect(screen.getByText('3.41')).toBeInTheDocument();
+    expect(await screen.findByText(/^Average GPA/)).toBeInTheDocument();
+    expect(screen.getByText('3.29')).toBeInTheDocument();
+    expect(screen.queryByText('3.41')).not.toBeInTheDocument();
   });
 
   it('renders GPA by term, the prerequisite web and sections', async () => {

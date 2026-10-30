@@ -301,19 +301,6 @@
 
 .pop-body { padding: 16px 24px 12px; }
 
-.pop-error { margin: 12px 4px; color: var(--muted); font-weight: 600; }
-
-.pop-link-btn {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-weight: 700;
-  color: var(--ink);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 /* A tile is a titled section; inside a pop-up it sits on the surface without its own card. */
 .pop-tile {
   border: 1px solid var(--line);
