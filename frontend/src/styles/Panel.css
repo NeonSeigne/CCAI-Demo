@@ -1,0 +1,71 @@
+/* The advisor panel under an answer (DESIGN.md Components, "Panel").
+   Each advisor wears one course-palette colour: --adv ring, --adv-ink
+   icon, --adv-tint fill. */
+.adv-1 { --adv: var(--course-1); --adv-ink: var(--course-1-ink); --adv-tint: var(--course-1-tint); }
+.adv-2 { --adv: var(--course-2); --adv-ink: var(--course-2-ink); --adv-tint: var(--course-2-tint); }
+.adv-3 { --adv: var(--course-3); --adv-ink: var(--course-3-ink); --adv-tint: var(--course-3-tint); }
+.adv-4 { --adv: var(--course-4); --adv-ink: var(--course-4-ink); --adv-tint: var(--course-4-tint); }
+.adv-5 { --adv: var(--course-5); --adv-ink: var(--course-5-ink); --adv-tint: var(--course-5-tint); }
+.adv-6 { --adv: var(--course-6); --adv-ink: var(--course-6-ink); --adv-tint: var(--course-6-tint); }
+
+.ap-panel { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+
+.ap-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ap-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 16px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--dur-hover) var(--ease), border-color var(--dur-hover) var(--ease), transform var(--dur-press) var(--ease);
+}
+
+.ap-tab:hover { border-color: var(--control); }
+.ap-tab[aria-pressed="true"] { border-color: var(--adv); background: var(--adv-tint); }
+.ap-tab:active { transform: scale(0.98); }
+
+.ap-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--adv-tint);
+  box-shadow: 0 0 0 2px var(--adv);
+  color: var(--adv-ink);
+}
+
+.ap-avatar.is-md { width: 32px; height: 32px; }
+.ap-avatar.is-sm { width: 24px; height: 24px; }
+.ap-tab[aria-pressed="true"] .ap-avatar { background: var(--surface); }
+
+.ap-take {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+}
+
+.ap-take-head { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.ap-take-head b { font-weight: 700; }
+
+.ap-take-text { color: var(--ink); font-size: 15px; line-height: 1.6; }
+.ap-take-text p { margin: 0 0 8px; }
+.ap-take-text p:last-child { margin-bottom: 0; }
+.ap-take-text ul, .ap-take-text ol { margin: 0 0 8px; padding-left: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-tab { transition: none; }
+  .ap-tab:active { transform: none; }
+}

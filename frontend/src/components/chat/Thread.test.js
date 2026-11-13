@@ -7,6 +7,7 @@ import Thread from './Thread';
 import { ChatProvider, useChat } from '../../contexts/ChatContext';
 
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
+jest.mock('../../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: { personas: { items: [] } } }) }));
 
 const api = (path) => `${process.env.REACT_APP_API_URL}${path}`;
 const json = (body) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });

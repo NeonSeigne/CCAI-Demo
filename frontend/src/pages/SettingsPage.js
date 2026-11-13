@@ -251,6 +251,55 @@ function ModelPanel({ authToken }) {
   );
 }
 
+/** Show the advisor panel under answers; off gives the merged answer only. */
+function AdvisorPanelSetting({ user, authToken, onUserUpdate }) {
+  const on = user?.show_panel !== false;
+  const [message, setMessage] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const toggle = async () => {
+    setMessage(null);
+    setBusy(true);
+    try {
+      const response = await fetch(`${apiUrl}/api/me/advisor-preferences`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ show_panel: !on }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        setMessage({ type: 'error', text: extractError(data, 'Could not save this setting.') });
+        return;
+      }
+      onUserUpdate?.({ ...user, show_panel: data?.show_panel ?? !on });
+    } catch {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Panel id="advisor-panel" className="st-switch-panel">
+      <div className="cc-panel-head">
+        <h2 id="advisor-panel-title">Advisor panel</h2>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={on}
+          aria-labelledby="advisor-panel-title"
+          className="st-switch"
+          onClick={toggle}
+          disabled={busy}
+        >
+          <span className="st-switch-knob" />
+        </button>
+      </div>
+      <Status message={message} />
+    </Panel>
+  );
+}
+
 function DeletePanel({ authToken, onDeleted }) {
   const [password, setPassword] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -353,6 +402,7 @@ export default function SettingsPage() {
           <ProfilePanel user={user} authToken={authToken} onUserUpdate={handleUserUpdate} />
           <PasswordPanel authToken={authToken} />
           <ModelPanel authToken={authToken} />
+          <AdvisorPanelSetting user={user} authToken={authToken} onUserUpdate={handleUserUpdate} />
           <Panel id="theme" className="st-theme">
             <div className="cc-panel-head">
               <h2 id="theme-title">Theme</h2>

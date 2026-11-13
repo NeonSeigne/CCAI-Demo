@@ -76,6 +76,8 @@ class User(BaseModel):
     academicStage: Optional[str] = None
     researchArea: Optional[str] = None
     disabled_advisors: Optional[List[str]] = None
+    # Show the advisor panel under answers; off gives the merged answer only.
+    show_panel: bool = True
     # Campus place id the Events and Campus map pages start from (per school database).
     campus_origin: Optional[str] = None
     llm_config: Optional[UserLLMConfig] = None
@@ -90,6 +92,7 @@ class UserResponse(BaseModel):
     email: str
     academicStage: Optional[str] = None
     researchArea: Optional[str] = None
+    show_panel: bool = True
     created_at: datetime
     last_login: Optional[datetime] = None
 

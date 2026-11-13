@@ -10,6 +10,8 @@ import { useChat } from '../../contexts/ChatContext';
 import VisualBlock from '../visuals/VisualBlock';
 import CourseChip from '../visuals/CourseChip';
 import AnswerSources from '../visuals/AnswerSources';
+import PanelRow from './PanelRow';
+import { useAuth } from '../../contexts/AuthContext';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -71,11 +73,13 @@ function ActionRow({ message }) {
 }
 
 /**
- * One answer in the thread: the text, its cards, its sources and the
- * action row. Courses open through `onCourseSelect`; a card's follow-up
+ * One answer in the thread: the text, its cards, the advisors who answered
+ * (unless the student turned the panel off), its sources and the action row. Courses open through `onCourseSelect`; a card's follow-up
  * question goes to `onAsk`.
  */
-const Answer = ({ message, onCourseSelect, onAsk }) => {
+const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
+  const { user } = useAuth();
+  const showPanel = user?.show_panel !== false;
   // Every visual follows the text; the old "Checked" line gives way to Sources.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
@@ -356,6 +360,8 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
               ))}
             </div>
           )}
+
+          {showPanel && message?.is_aggregated && <PanelRow message={message} panel={panel} />}
 
           <AnswerSources visuals={cardVisuals} />
 

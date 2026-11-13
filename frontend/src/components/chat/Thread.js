@@ -141,7 +141,7 @@ function ThreadMessages({ variant }) {
             {synthesizing && <SynthesisNote />}
             {shown.map((message) => (
               <div key={message.id} className="single-response-wide">
-                <Answer message={message} onCourseSelect={selectCourse} onAsk={ask} />
+                <Answer message={message} panel={group.panelMessages} onCourseSelect={selectCourse} onAsk={ask} />
               </div>
             ))}
           </div>
