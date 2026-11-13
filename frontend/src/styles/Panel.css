@@ -1,5 +1,5 @@
 /* The advisor panel under an answer (DESIGN.md Components, "Panel").
-   Each advisor wears one course-palette colour: --adv ring, --adv-ink
+   Each advisor wears one course-palette colour (7 and 8 their own): --adv ring, --adv-ink
    icon, --adv-tint fill. */
 .adv-1 { --adv: var(--course-1); --adv-ink: var(--course-1-ink); --adv-tint: var(--course-1-tint); }
 .adv-2 { --adv: var(--course-2); --adv-ink: var(--course-2-ink); --adv-tint: var(--course-2-tint); }
@@ -7,6 +7,8 @@
 .adv-4 { --adv: var(--course-4); --adv-ink: var(--course-4-ink); --adv-tint: var(--course-4-tint); }
 .adv-5 { --adv: var(--course-5); --adv-ink: var(--course-5-ink); --adv-tint: var(--course-5-tint); }
 .adv-6 { --adv: var(--course-6); --adv-ink: var(--course-6-ink); --adv-tint: var(--course-6-tint); }
+.adv-7 { --adv: var(--advisor-7); --adv-ink: var(--advisor-7-ink); --adv-tint: var(--advisor-7-tint); }
+.adv-8 { --adv: var(--advisor-8); --adv-ink: var(--advisor-8-ink); --adv-tint: var(--advisor-8-tint); }
 
 .ap-panel { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
 

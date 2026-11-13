@@ -5,9 +5,9 @@ import { Icon, LEGACY } from '../icons';
 import { useAppConfig } from '../../contexts/AppConfigContext';
 import '../../styles/Panel.css';
 
-// Advisor colours come from the course palette (DESIGN.md Colors), in this
-// order, so no advisor wears the school's own colour.
-const SLOTS = [1, 2, 3, 6, 5, 4];
+// Advisor colours (DESIGN.md Components): the course palette in this order,
+// then two advisor-only colours, so no advisor wears the school's own colour.
+const SLOTS = [1, 2, 3, 6, 5, 4, 7, 8];
 
 // /api/config sends `image: "icon://BookOpen"` (or an avatar URL, shown as
 // the default icon for now).

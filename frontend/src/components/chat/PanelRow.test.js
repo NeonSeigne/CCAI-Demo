@@ -26,6 +26,20 @@ test('advisors follow source_personas, with their icon and course-palette slot',
   ]);
 });
 
+test('advisors 7 and 8 take the two advisor-only colours', () => {
+  const eight = [...PERSONAS,
+    { id: 'wellness_advisor', name: 'Wellness Advisor' }, { id: 'writing_tutor', name: 'Writing Tutor' },
+    { id: 'money_advisor', name: 'Money Advisor', image: 'icon://PiggyBank' }, { id: 'peer_mentor', name: 'Peer Mentor', image: 'icon://Users' }];
+  const replies = [
+    { id: 'p7', persona_id: 'money_advisor', content: 'Check your aid first.' },
+    { id: 'p8', persona_id: 'peer_mentor', content: 'Go to office hours early.' },
+  ];
+  expect(panelAdvisors({ is_aggregated: true }, replies, eight).map((a) => [a.name, a.icon, a.slot])).toEqual([
+    ['Money Advisor', 'savings', 7],
+    ['Peer Mentor', 'group', 8],
+  ]);
+});
+
 test('an avatar image URL falls back to the default icon', () => {
   const guide = [{ id: 'g', persona_id: 'campus_guide', content: 'Try the Union.' }];
   expect(panelAdvisors({ is_aggregated: true }, guide, PERSONAS)[0].icon).toBe('person');
