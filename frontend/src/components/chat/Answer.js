@@ -14,6 +14,7 @@ import PanelRow from './PanelRow';
 import { useAuth } from '../../contexts/AuthContext';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
+import escapeCurrency from '../../utils/escapeCurrency';
 
 const THUMBS = [
   { value: 'up', icon: 'thumb_up', label: 'Good answer' },
@@ -95,8 +96,9 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
     processed = processed.split('\n').map(ln => ln.replace(/\s+$/, '')).join('\n');
 
     // 3) Line fixes outside fenced code: unicode bullets -> '-' (so GFM parses
-    //    lists), and a lone "$$...$$" line split across three lines, which is
-    //    the only form remark-math treats as display math.
+    //    lists), a lone "$$...$$" line split across three lines, which is
+    //    the only form remark-math treats as display math, and prices
+    //    ("$15") escaped so they don't open inline math.
     let inFence = false;
     processed = processed
       .split('\n')
@@ -108,7 +110,7 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
         if (inFence) return [line];
         const bulleted = line.replace(/^\s*[•●▪◦]\s+/, '- ');
         const display = bulleted.match(/^\s*\$\$((?:(?!\$\$).)+)\$\$\s*$/);
-        return display ? ['', '$$', display[1].trim(), '$$', ''] : [bulleted];
+        return display ? ['', '$$', display[1].trim(), '$$', ''] : [escapeCurrency(bulleted)];
       })
       .join('\n');
 
