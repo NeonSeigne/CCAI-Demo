@@ -19,12 +19,11 @@ const THUMBS = [
 ];
 
 /**
- * The answer's meta row (ask-chat.html .meta): the "Checked" source chips,
- * then copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
+ * The answer's meta row (ask-chat.html .meta): copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
  * (design Q19). Thumbs are aria-pressed toggles saved to the chat; a failed
  * save puts the old state back. Answers that aren't saved show no thumbs.
  */
-function ActionRow({ message, checkedVisual }) {
+function ActionRow({ message }) {
   const chat = useChat();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
@@ -50,7 +49,6 @@ function ActionRow({ message, checkedVisual }) {
 
   return (
     <div className="answer-meta">
-      {checkedVisual && <VisualBlock visual={checkedVisual} />}
       <span className="answer-acts">
         <button type="button" className="answer-act" aria-label={copied ? 'Copied' : 'Copy'} onClick={copy}>
           <Icon name={copied ? 'check' : 'content_copy'} size={20} />
@@ -73,14 +71,13 @@ function ActionRow({ message, checkedVisual }) {
 }
 
 /**
- * One answer in the thread: the text, its cards, the Checked chips and the
+ * One answer in the thread: the text, its cards, its sources and the
  * action row. Courses open through `onCourseSelect`; a card's follow-up
  * question goes to `onAsk`.
  */
 const Answer = ({ message, onCourseSelect, onAsk }) => {
-  // The "Checked" line leads the answer; every other visual follows the text.
+  // Every visual follows the text; the old "Checked" line gives way to Sources.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
-  const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
   const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
   // Minimal, safe preprocessing (keep Markdown structure intact)
   const preprocessMarkdown = (content) => {
@@ -362,7 +359,7 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
 
           <AnswerSources visuals={cardVisuals} />
 
-          <ActionRow message={message} checkedVisual={checkedVisual} />
+          <ActionRow message={message} />
         </div>
       </div>
     );

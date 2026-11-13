@@ -20,7 +20,7 @@
 .map-side {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
   min-height: 0;
   padding: 24px 20px;
@@ -33,7 +33,7 @@
 .map-header h1 {
   margin: 2px 0 0;
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
@@ -89,7 +89,7 @@
 .map-picker-label { padding: 0 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
 
 .map-picker input {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
@@ -174,9 +174,9 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 34px;
-  padding: 0 12px 0 10px;
+  padding: 0 12px 0 8px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
   background: var(--surface);
@@ -185,13 +185,13 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 120ms ease-out;
+  transition: transform var(--dur-press) var(--ease);
 }
 
 /* 34px drawn, 44px to tap (design Q19). */
 .map-chip::after { content: ""; position: absolute; inset: -5px 0; }
 
-.map-chip:active { transform: scale(0.95); }
+.map-chip:active { transform: scale(0.98); }
 
 .map-chip.is-on {
   background: var(--deep);
@@ -206,7 +206,7 @@ html[data-theme="dark"] .map-chip.is-on {
 }
 
 /* ---- Place list --------------------------------------------------------------- */
-.map-list { display: flex; flex-direction: column; gap: 10px; }
+.map-list { display: flex; flex-direction: column; gap: 8px; }
 
 .map-rows {
   list-style: none;
@@ -232,7 +232,7 @@ html[data-theme="dark"] .map-chip.is-on {
   align-items: center;
   gap: 12px;
   min-height: 60px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -272,7 +272,7 @@ html[data-theme="dark"] .map-chip.is-on {
   color: var(--muted);
 }
 
-.map-row-walk { font-size: 13.5px; font-weight: 800; color: var(--good); white-space: nowrap; }
+.map-row-walk { font-size: 14px; font-weight: 800; color: var(--good); white-space: nowrap; }
 
 .map-row.is-selected .map-row-kind,
 .map-row.is-selected .map-row-walk { color: var(--tint-ink); }
@@ -281,14 +281,14 @@ html[data-theme="dark"] .map-chip.is-on {
 
 .map-btn {
   align-self: flex-start;
-  min-height: 42px;
-  padding: 0 18px;
+  min-height: 44px;
+  padding: 0 16px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -299,8 +299,8 @@ html[data-theme="dark"] .map-chip.is-on {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  padding: 18px 20px;
+  gap: 8px;
+  padding: 16px 20px;
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--surface);
@@ -376,7 +376,7 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
 }
 
 .map-canvas .leaflet-control-attribution {
-  margin: 0 8px 6px 0;
+  margin: 0 8px 8px 0;
   padding: 1px 8px;
   border-radius: var(--r-full);
   background: var(--surface);
@@ -425,7 +425,7 @@ html[data-theme="dark"] .map-canvas .leaflet-tile-pane {
     z-index: 1; /* under the phone header and tab bar */
     width: auto;
     max-height: none;
-    margin: -28px 0 0;
+    margin: -24px 0 0;
   }
 
   /* A narrow card: tiles and actions wrap instead of clipping. */

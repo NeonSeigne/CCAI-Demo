@@ -8,12 +8,13 @@ const CopyrightNotice = ({ variant = 'footer', className = '' }) => {
   const textClass = isSidebar ? 'sidebar-copyright-text' : 'footer-text';
   const patentsClass = isSidebar ? 'sidebar-patents-link' : 'footer-patents-link';
   const combinedClass = className ? `${textClass} ${className}` : textClass;
+  const year = new Date().getFullYear();
 
   return (
     <p className={combinedClass}>
-      {'\u00A9 '}
+      {`\u00A9${year} `}
       {isSidebar ? (
-        'Neon.ai'
+        'Neon AI'
       ) : (
         <a
           href="https://neon.ai"
@@ -22,7 +23,7 @@ const CopyrightNotice = ({ variant = 'footer', className = '' }) => {
           className="footer-neon-link"
         >
           <img src="/neon-logo.png" alt="" className="footer-neon-logo" />
-          Neon.ai
+          Neon AI
         </a>
       )}
       {institution ? `, \u00A9 ${institution}. All rights reserved. ` : ' '}
@@ -32,7 +33,7 @@ const CopyrightNotice = ({ variant = 'footer', className = '' }) => {
         rel="noopener noreferrer"
         className={patentsClass}
       >
-        Patents and licensing.
+        Patents and licensing
       </a>
     </p>
   );

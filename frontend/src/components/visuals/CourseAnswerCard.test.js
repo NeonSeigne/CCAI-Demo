@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CourseAnswerCard, { groupCourseVisuals, titleCase } from './CourseAnswerCard';
-import { sourceLines } from './AnswerSources';
+import AnswerSources, { citationItems, sourceLines } from './AnswerSources';
 import { SavedContext } from '../../contexts/SavedContext';
 import { PlannerContext } from '../../contexts/PlannerContext';
 import { memoryAdapter, setCourseAdapter } from '../../modules/course';
@@ -247,4 +247,34 @@ test('sources name each feed the cards came from', () => {
     'Events: UW–Madison Today calendar',
     'Map: OpenStreetMap contributors',
   ]);
+});
+
+const CITED = [
+  { type: 'course_answer', course: 'COMPSCI 300', types: ['course_gpa'] },
+  { type: 'event_list', timezone: 'America/Chicago', events: [
+    { title: 'Hack night', start: '2026-11-13T18:00:00-06:00', calendar: 'UW–Madison Today' },
+    { title: 'Hack night', start: '2026-11-13T18:00:00-06:00', calendar: 'UW–Madison Today' },
+  ] },
+  { type: 'place_card', places: [{ name: 'Memorial Union' }] },
+];
+
+test('citations list each course, event and place once, with event dates', () => {
+  expect(citationItems(CITED).map((i) => [i.name, i.detail || null])).toEqual([
+    ['COMPSCI 300', null], ['Hack night', 'Nov 13'], ['Memorial Union', null],
+  ]);
+});
+
+test('two citation pills and +N open the sources panel', async () => {
+  serve({ 'COMPSCI 300': () => PAYLOAD });
+  render(<AnswerSources visuals={CITED} />);
+  const toggle = screen.getByRole('button', { name: /Sources/ });
+  expect(toggle).toHaveTextContent('COMPSCI 300');
+  expect(toggle).toHaveTextContent('Hack night');
+  expect(toggle).toHaveTextContent('+1');
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  fireEvent.click(toggle);
+  const panel = screen.getByRole('region', { name: 'Sources' });
+  expect(within(panel).getByText('Memorial Union')).toBeInTheDocument();
+  expect(within(panel).getByText('Nov 13')).toBeInTheDocument();
+  expect(await within(panel).findByRole('link', { name: 'UW Course Map' })).toHaveAttribute('href', 'https://uwcourses.com');
 });

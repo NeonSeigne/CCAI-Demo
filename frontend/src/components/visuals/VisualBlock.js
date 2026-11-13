@@ -5,7 +5,6 @@ import PrereqTree from './PrereqTree';
 import EventListCard from './EventListCard';
 import PlaceCard from './PlaceCard';
 import CourseAnswerCard from './CourseAnswerCard';
-import SourcesChecked from './SourcesChecked';
 import ProposalCard from './ProposalCard';
 import CourseShortlistCard from './CourseShortlistCard';
 import '../../styles/CourseVisuals.css';
@@ -46,7 +45,6 @@ const REGISTRY = {
   next_courses_tree: PrereqTree,
   event_list: EventListCard,
   place_card: PlaceCard,
-  sources_checked: SourcesChecked,
   course_answer: CourseAnswerCard,
   proposed_change: ProposalCard,
   course_shortlist: CourseShortlistCard,

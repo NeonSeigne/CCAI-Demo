@@ -35,6 +35,7 @@ export const NEUTRAL_SCHOOL = {
     tint: '#EEF0F3', tint_strong: '#D5D9E0', tint_ink: '#14171F',
     band: '#14171F', mark_bg: '#FFFFFF', mark_ink: '#14171F', canvas: '#F3F4F7',
     line_1: '#2F5BEA', line_2: '#6E56CF', line_3: '#1E9E5A',
+    focus: '#14171F',
   },
   dark: {
     deep: '#0B0D12', deep_raised: '#1E222A', on_deep: '#FFFFFF', on_deep_soft: '#FFFFFFA8',
@@ -42,6 +43,7 @@ export const NEUTRAL_SCHOOL = {
     tint: '#23272F', tint_strong: '#3A404B', tint_ink: '#EEF0F4',
     band: '#0B0D12', mark_bg: '#EEF0F4', mark_ink: '#14171F', canvas: '#101217',
     line_1: '#7EA1FF', line_2: '#A792F0', line_3: '#5CC98A',
+    focus: '#EEF0F4',
   },
 };
 
@@ -60,7 +62,25 @@ export function resolveRoles(theme, mode) {
   const band = Object.fromEntries(BAND_DIFFICULTY
     .filter((name) => dark[name])
     .map((name) => [`band_${name}_text`, dark[name]]));
-  return { ...SHARED[mode], ...NEUTRAL_SCHOOL[mode], ...band, ...school };
+  const roles = { ...SHARED[mode], ...NEUTRAL_SCHOOL[mode], ...band, ...school };
+  return { ...roles, focus: focusColour(roles) };
+}
+
+// The focus ring is the signal colour when it reaches 3:1 on the surface
+// (WCAG non-text contrast); otherwise tint ink (CU's gold is too light).
+function focusColour(roles) {
+  return contrast(roles.signal, roles.surface) >= 3 ? roles.signal : roles.tint_ink;
+}
+
+function luminance(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function contrast(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
 }
 
 /** `{deep_raised: '#…'}` → `{'--deep-raised': '#…'}`. */
@@ -89,7 +109,7 @@ export function buildMuiTheme(roles, mode) {
     typography: {
       fontFamily: 'var(--font-app)',
       ...Object.fromEntries(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((variant) => [
-        variant, { fontFamily: 'var(--font-display)', fontWeight: 700, letterSpacing: '-0.02em' },
+        variant, { fontFamily: 'var(--font-display)', fontWeight: variant === 'h1' ? 900 : 800, letterSpacing: '-0.02em' },
       ])),
       button: { textTransform: 'none', fontWeight: 700 },
       // A plain label, never an all-caps eyebrow (DESIGN.md Do's and Don'ts).
@@ -127,7 +147,7 @@ export function buildMuiTheme(roles, mode) {
       MuiDialogTitle: {
         styleOverrides: {
           root: {
-            color: 'var(--ink)', fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700,
+            color: 'var(--ink)', fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 800,
             letterSpacing: '-0.02em', padding: '20px 24px 16px',
           },
         },
@@ -164,9 +184,9 @@ export function buildMuiTheme(roles, mode) {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: {
-            minHeight: 42, padding: '0 18px', borderRadius: 'var(--r-full)', fontWeight: 700,
-            transition: 'transform 120ms ease-out, background-color 150ms ease',
-            '&:active': { transform: 'scale(0.95)' },
+            minHeight: 44, padding: '0 20px', borderRadius: 'var(--r-full)', fontWeight: 700,
+            transition: 'transform var(--dur-press) var(--ease), background-color var(--dur-hover) var(--ease)',
+            '&:active': { transform: 'scale(0.98)' },
             '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active': { transform: 'none' } },
           },
           containedPrimary: {
@@ -212,7 +232,7 @@ export function buildMuiTheme(roles, mode) {
       MuiToggleButton: {
         styleOverrides: {
           root: {
-            border: 0, borderRadius: 'var(--r-full)', padding: '6px 14px', textTransform: 'none',
+            border: 0, borderRadius: 'var(--r-full)', padding: '8px 12px', textTransform: 'none',
             fontWeight: 700, color: 'var(--muted)',
             '&.Mui-selected, &.Mui-selected:hover': {
               backgroundColor: 'var(--surface)', color: 'var(--ink)', boxShadow: 'var(--shadow-rest)',

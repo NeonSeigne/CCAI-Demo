@@ -10,7 +10,7 @@
   border-radius: 8px;
   margin-bottom: 8px;
   border: 1px solid;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.3s var(--ease);
 }
 
 .upload-status.success {
@@ -49,7 +49,7 @@
   border-radius: 4px;
   color: inherit;
   opacity: 0.7;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--dur-hover) var(--ease);
 }
 
 .status-close:hover {
@@ -63,7 +63,7 @@
   padding: 24px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color var(--dur-hover) var(--ease), border-color var(--dur-hover) var(--ease), transform var(--dur-hover) var(--ease);
   background-color: var(--raised);
   position: relative;
   overflow: hidden;
@@ -182,7 +182,7 @@
 }
 
 .file-upload-container.compact .upload-content {
-  gap: 6px;
+  gap: 8px;
 }
 
 .file-upload-container.compact .upload-icon {
@@ -191,7 +191,7 @@
 }
 
 .file-upload-container.compact .supported-types {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 /* Responsive adjustments */
@@ -201,11 +201,11 @@
   }
   
   .supported-types {
-    gap: 6px;
+    gap: 8px;
   }
   
   .file-type-chip {
     font-size: 10px;
-    padding: 3px 6px;
+    padding: 4px 8px;
   }
 }

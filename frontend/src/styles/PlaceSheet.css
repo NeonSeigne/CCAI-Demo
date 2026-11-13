@@ -2,7 +2,7 @@
    map.html). Its band, tiles and actions are the band sheet's
    (modules/sheet/BandSheet.css); this file sets the card's own proportions. */
 
-.ps-kind { display: inline-flex; align-items: center; gap: 6px; }
+.ps-kind { display: inline-flex; align-items: center; gap: 8px; }
 
 /* Tiles share the band's width in the mockup's proportions; a missing tile is
    left out and the rest stretch (design Q5). */
@@ -14,7 +14,7 @@
 .ps .pop-number.ps-tile--floors { flex-grow: 8; }
 .ps .pop-number.ps-tile--access { flex-grow: 9; }
 .ps .pop-band--compact .pop-number-value { font-weight: 600; }
-.ps .pop-band--compact .pop-title { margin-top: 6px; }
+.ps .pop-band--compact .pop-title { margin-top: 8px; }
 
 /* Close: 36px drawn, 44px to tap (design Q19). */
 .ps .pop-icon-btn { position: relative; background: rgba(255, 255, 255, 0.12); }
@@ -25,24 +25,24 @@
 
 .ps-access { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: var(--on-deep); font-weight: 700; font-size: 13px; }
 
-.ps-content { padding: 14px 20px 4px; display: flex; flex-direction: column; gap: 14px; }
+.ps-content { padding: 12px 20px 4px; display: flex; flex-direction: column; gap: 12px; }
 
 .ps-section-title {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-family: var(--font-display);
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
-.ps-section .pnl-empty { padding: 6px 0 12px; }
+.ps-section .pnl-empty { padding: 8px 0 12px; }
 
-.ps-hours { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.ps-hours { width: 100%; border-collapse: collapse; font-size: 15px; }
 .ps-hours tr { border-top: 1px solid var(--rule); }
 .ps-hours tr:first-child { border-top: 0; }
-.ps-hours th { padding: 7px 0; text-align: left; font-weight: 600; color: var(--muted); }
-.ps-hours td { padding: 7px 0; text-align: right; font-weight: 600; }
+.ps-hours th { padding: 8px 0; text-align: left; font-weight: 600; color: var(--muted); }
+.ps-hours td { padding: 8px 0; text-align: right; font-weight: 600; }
 .ps-hours tr.is-today th,
 .ps-hours tr.is-today td { color: var(--ink); font-weight: 800; }
 
@@ -51,7 +51,7 @@
 .ps-event {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   min-height: 44px;
   padding: 8px 0;
@@ -69,15 +69,16 @@ div.ps-event { cursor: default; }
 
 .ps-event-time {
   padding-top: 2px;
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .ps-event-text { display: flex; flex-direction: column; min-width: 0; }
 .ps-event-title { font-weight: 700; }
-.ps-event-end { font-size: 13.5px; color: var(--muted); }
+.ps-event-end { font-size: 14px; color: var(--muted); }
 button.ps-event:hover .ps-event-title { text-decoration: underline; }
 
 .ps .pop-foot .pop-btn--primary { flex: 0 0 auto; }

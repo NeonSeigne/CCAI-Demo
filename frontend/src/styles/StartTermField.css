@@ -2,7 +2,7 @@
 .stf-trigger.cc-btn {
   width: 100%;
   justify-content: space-between;
-  padding: 0 14px 0 18px;
+  padding: 0 12px 0 16px;
   font-weight: 700;
 }
 
@@ -11,16 +11,16 @@
 .stf-value { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 .stf-menu.MuiPaper-root { max-height: 340px; }
-.stf-menu .cc-menu-header { display: none; }
+.stf-menu .cc-menu-header { display: none; font-weight: 800; }
 
 @media (max-width: 700px) {
   .stf-menu.MuiPaper-root { max-height: 70vh; }
   .stf-menu .cc-menu-header {
     display: block;
-    padding: 4px 14px 8px;
+    padding: 4px 12px 8px;
     font-family: var(--font-display);
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--ink);
   }
 }

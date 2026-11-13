@@ -7,8 +7,8 @@
 /* The dialog: min(640px, the page column) (design Q18); full width on phones. */
 .pop-dialog-paper--course.pop-dialog-paper { width: min(640px, calc(100% - 32px)); }
 
-.cp-sheet .pop-band { padding: 20px 22px 18px; }
-.cp-sheet .pop-title { font-size: 22px; margin: 3px 0 0; }
+.cp-sheet .pop-band { padding: 20px 20px 16px; }
+.cp-sheet .pop-title { font-size: 22px; margin: 4px 0 0; }
 .cp-sheet .pop-actions--close { top: 14px; right: 14px; }
 
 /* Close: 36px drawn, 44px to tap (design Q19). */
@@ -22,25 +22,25 @@
 .cp-sheet .pop-icon-btn::after { content: ""; position: absolute; inset: -4px; }
 
 /* The tiles span the band under the close button. */
-.cp-sheet .crs-tiles { margin: 14px -44px 0 0; }
-.cp-sheet .pop-numbers { margin-top: 14px; }
+.cp-sheet .crs-tiles { margin: 12px -48px 0 0; }
+.cp-sheet .pop-numbers { margin-top: 12px; }
 
-.cp-column { padding: 6px 4px 4px; }
+.cp-column { padding: 8px 4px 4px; }
 
 .cp-block-title {
-  margin: 14px 18px 4px;
+  margin: 12px 16px 4px;
   font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
-.cp-block .crs-bars { padding: 6px 18px 8px; }
-.cp-block .crs-prereqs { padding: 4px 18px 10px; }
-.cp-skel-bars { height: 96px; margin: 20px 22px; }
+.cp-block .crs-bars { padding: 8px 16px 8px; }
+.cp-block .crs-prereqs { padding: 4px 16px 8px; }
+.cp-skel-bars { height: 96px; margin: 20px 20px; }
 
-.cp-sheet .pop-foot { padding: 12px 18px 16px; }
+.cp-sheet .pop-foot { padding: 12px 16px 16px; }
 
 @media (max-width: 700px) {
   .pop-dialog-paper--course.pop-dialog-paper { width: 100%; }
@@ -53,7 +53,7 @@
 .cp-legend {
   list-style: none;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   font-size: 0.75rem;
@@ -88,7 +88,7 @@
 .cp-seg.is-none, .cp-dot.is-none { stroke: var(--muted); fill: var(--muted); }
 .cp-dot { stroke: var(--surface) !important; stroke-width: 2; }
 
-.cp-value { font-family: var(--font-display); font-size: 12px; font-weight: 700; }
+.cp-value { font-family: var(--font-figure); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .cp-value.is-easier { fill: var(--difficulty-easier-ink); }
 .cp-value.is-typical { fill: var(--difficulty-typical-ink); }
 .cp-value.is-harder { fill: var(--difficulty-harder-ink); }
@@ -100,7 +100,7 @@
   padding: 0;
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
   height: 150px;
 }
 
@@ -125,7 +125,7 @@
 
 .cp-bar.is-top .cp-bar-fill { background: var(--signal); }
 .cp-bar.is-top .cp-bar-pct { color: var(--ink); }
-.cp-bar-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.cp-bar-label { font-size: 13px; font-weight: 600; color: var(--muted); }
 
 .cp-instructors,
 .cp-sections { list-style: none; margin: 0; padding: 0; }
@@ -135,7 +135,7 @@
   grid-template-columns: minmax(120px, 1.3fr) minmax(60px, 1fr) auto auto 52px;
   gap: 12px;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -151,18 +151,19 @@
 
 .cp-instructor-bar span { display: block; height: 100%; border-radius: var(--r-full); background: var(--signal); }
 .cp-instructor-meta { font-size: 0.8rem; color: var(--muted); }
-.cp-instructor-rating { font-family: var(--font-display); font-size: 0.85rem; }
+.cp-instructor-rating { font-family: var(--font-figure); font-size: 0.85rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .cp-instructor-rating a { color: var(--ink); }
 .cp-instructor-rating small { color: var(--muted); }
 
 .cp-instructor-gpa {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-figure);
+  font-weight: 500;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 
-.cp-section { padding: 11px 0; border-top: 1px solid var(--rule); }
+.cp-section { padding: 12px 0; border-top: 1px solid var(--rule); }
 .cp-section:first-child { border-top: 0; }
 
 .cp-section-head {
@@ -170,23 +171,23 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  font-size: 14.5px;
+  font-size: 15px;
 }
 
 .cp-section-head strong { font-weight: 600; }
 
 .cp-section-seats {
   flex: none;
-  padding: 2px 10px;
+  padding: 2px 8px;
   border-radius: var(--r-full);
   background: var(--good-tint);
   color: var(--good);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.cp-section-sub { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+.cp-section-sub { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
 
 .cp-seatbar {
   display: block;
@@ -202,11 +203,11 @@
 /* Chat course cards built from pop-up pieces. */
 .cc-metric { display: flex; flex-direction: column; gap: 4px; }
 .cc-metric-label { font-size: 0.8rem; color: var(--muted); }
-.cc-metric-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; }
+.cc-metric-value { font-family: var(--font-figure); font-size: 1.6rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .cc-metric-value.is-easier { color: var(--difficulty-easier-ink); }
 .cc-metric-value.is-typical { color: var(--difficulty-typical-ink); }
 .cc-metric-value.is-harder { color: var(--difficulty-harder-ink); }
-.course-visual-status { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+.course-visual-status { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; }
 
 @media (max-width: 700px) {
   .cp-instructor { grid-template-columns: minmax(0, 1fr) auto auto; }

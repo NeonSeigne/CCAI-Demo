@@ -73,7 +73,7 @@ describe('landing', () => {
   test('brand first, the headline, one sign-in action, then the questions', () => {
     renderAt('/');
     expect(screen.getByText('Campus Companion')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: 'Ask about courses, events and places on campus.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Ask about courses, events and places on campus' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /sign in/i })).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /developer mode/i })).not.toBeInTheDocument();
     expect(screen.getByText('“Is CS 2100 hard?”')).toBeInTheDocument();

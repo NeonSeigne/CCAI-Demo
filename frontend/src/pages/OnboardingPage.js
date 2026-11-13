@@ -113,7 +113,7 @@ const OnboardingPage = () => {
                 <span>{school}</span>
               </span>
             </div>
-            <h1>Ask about courses, events and places on campus.</h1>
+            <h1>Ask about courses, events and places on campus</h1>
             <button type="button" className="cc-btn cc-btn-primary cl-cta" onClick={() => navigate('/auth')}>
               Sign in to start asking
               <Icon name="arrow_forward" size={22} />

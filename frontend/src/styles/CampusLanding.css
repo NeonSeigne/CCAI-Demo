@@ -31,8 +31,8 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
-  padding: 22px 32px;
+  gap: 8px;
+  padding: 20px 32px;
 }
 
 .cl-dev.cc-btn {
@@ -83,7 +83,7 @@
   padding: 0 0 12vh 9vw;
 }
 
-.cl-lock { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.cl-lock { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
 .cl-mark.campus-brand-mark { width: 60px; height: 60px; font-size: 15px; }
 .cl-lock b {
   display: block;
@@ -99,16 +99,16 @@
   margin: 0 0 32px;
   font-size: 34px;
   line-height: 1.18;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: -0.03em;
 }
 
 .cl-cta.cc-btn { min-height: 52px; padding: 0 24px; font-size: 16px; font-weight: 700; }
 
 /* The one entrance motion; instant under reduced motion (Q12). */
-.cl-rise { animation: cl-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.cl-rise { animation: cl-rise var(--dur-enter) var(--ease) both; }
 @keyframes cl-rise {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -116,16 +116,16 @@
 }
 
 .cl-asks { max-width: 1040px; margin: 0 auto; padding: 48px 32px 24px; box-sizing: border-box; }
-.cl-asks h2 { margin: 0 0 14px 4px; font-size: 16px; }
+.cl-asks h2 { margin: 0 0 12px 4px; font-size: 16px; }
 
 .cl-questions { margin: 0; padding: 0; list-style: none; }
 
 .cl-q {
   display: grid;
   grid-template-columns: 170px minmax(0, 1fr);
-  gap: 14px;
+  gap: 12px;
   align-items: center;
-  padding: 13px 22px;
+  padding: 12px 20px;
   border-top: 1px solid var(--rule);
 }
 
@@ -134,21 +134,21 @@
 .cl-q.is-cont .cl-domain { visibility: hidden; }
 .cl-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; }
 
-.cl-foot { padding: 18px 16px 32px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; }
+.cl-foot { padding: 16px 16px 32px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 600; }
 .cl-foot p { margin: 0; }
 .cl-foot a { color: inherit; }
 .cl-foot a.footer-neon-link { display: inline-flex; align-items: center; gap: 4px; }
 .cl-foot .footer-neon-logo { display: inline-block; width: auto; height: 12px; margin: 0; }
 
 @media (max-width: 700px) {
-  .cl-bar { padding: 14px 16px; }
+  .cl-bar { padding: 12px 16px; }
   .cl-toggle.cc-theme-toggle { width: 102px; height: 32px; }
   .cl-error { top: 58px; margin: 0 16px; }
   .cl-copy { align-self: end; padding: 0 20px 34vh; }
-  .cl-lock { margin-bottom: 28px; }
+  .cl-lock { margin-bottom: 24px; }
   .cl-mark.campus-brand-mark { width: 52px; height: 52px; font-size: 13px; }
   .cl-lock b { font-size: 18px; }
-  .cl-copy h1 { margin-bottom: 24px; font-size: 26px; }
+  .cl-copy h1 { margin-bottom: 24px; font-size: 26px; font-weight: 900; }
   .cl-cta.cc-btn { width: 100%; }
   .cl-lines { right: -30%; bottom: -10px; width: 150%; height: 34%; }
   .cl-asks { padding: 32px 16px 16px; }

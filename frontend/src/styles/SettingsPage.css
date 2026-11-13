@@ -1,5 +1,5 @@
 /* Settings (settings.html): panels of form rows. Roles only. */
-.st-main.campus-main { padding: 28px 36px 40px; }
+.st-main.campus-main { padding: 24px 32px 40px; }
 
 .st-column {
   max-width: 760px;
@@ -8,19 +8,19 @@
   gap: 16px;
 }
 
-.st-column h1 { margin: 0 0 4px; font-size: 28px; }
+.st-column h1 { margin: 0 0 4px; font-size: 28px; font-weight: 900; }
 
 .st-panel { scroll-margin-top: 24px; }
-.st-panel .cc-panel-head { padding-bottom: 6px; }
+.st-panel .cc-panel-head { padding-bottom: 8px; }
 .st-panel .cc-panel-head h2 { font-size: 16px; }
-.st-theme .cc-panel-head { padding-bottom: 18px; }
+.st-theme .cc-panel-head { padding-bottom: 16px; }
 
 .st-row {
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr);
   gap: 16px;
   align-items: center;
-  padding: 12px 22px;
+  padding: 12px 20px;
 }
 
 .st-row + .st-row { border-top: 1px solid var(--rule); }
@@ -31,7 +31,7 @@
   width: 100%;
   min-width: 0;
   height: 44px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px solid var(--control);
   border-radius: var(--r-lg);
   background: var(--surface);
@@ -47,14 +47,14 @@
 .st-input:disabled { background: var(--raised); border-color: transparent; color: var(--muted); }
 
 .st-select { position: relative; display: block; min-width: 0; }
-.st-select select { appearance: none; -webkit-appearance: none; padding-right: 42px; cursor: pointer; color-scheme: light dark; }
+.st-select select { appearance: none; -webkit-appearance: none; padding-right: 40px; cursor: pointer; color-scheme: light dark; }
 .st-select .ms { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 
 .st-foot {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  padding: 12px 22px 18px;
+  padding: 12px 20px 16px;
 }
 
 .st-danger,
@@ -62,10 +62,10 @@
 
 .st-warn {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-start;
-  margin: 4px 22px 8px;
-  padding: 12px 14px;
+  margin: 4px 20px 8px;
+  padding: 12px 12px;
   border-radius: var(--r-md);
   background: var(--raised);
   font-weight: 600;
@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 4px 22px 0;
+  margin: 4px 20px 0;
   font-size: 14px;
   font-weight: 600;
   color: var(--ink);
@@ -99,11 +99,11 @@
 .st-toggle.cc-theme-toggle button:hover:not([aria-pressed="true"]) { color: var(--ink); }
 
 @media (max-width: 700px) {
-  .st-main.campus-main { padding: 18px 16px 48px; }
-  .st-panel .cc-panel-head { padding-left: 18px; padding-right: 18px; }
-  .st-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 18px; }
-  .st-foot { padding: 12px 18px 18px; }
+  .st-main.campus-main { padding: 16px 16px 48px; }
+  .st-panel .cc-panel-head { padding-left: 16px; padding-right: 16px; }
+  .st-row { grid-template-columns: 1fr; gap: 8px; padding: 12px 16px; }
+  .st-foot { padding: 12px 16px 16px; }
   .st-foot .cc-btn { flex: 1; }
-  .st-warn { margin: 4px 18px 8px; }
-  .st-status { margin: 4px 18px 0; }
+  .st-warn { margin: 4px 16px 8px; }
+  .st-status { margin: 4px 16px 0; }
 }

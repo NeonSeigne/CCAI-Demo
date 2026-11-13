@@ -15,6 +15,13 @@
   --font-display: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-code: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-figure: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* Motion (DESIGN.md Motion): one curve; press, hover and entrance timings. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-press: 80ms;
+  --dur-hover: 140ms;
+  --dur-enter: 420ms;
 
   --bp-phone: 700px;
   --bp-desktop: 1100px;
@@ -87,9 +94,10 @@ html[data-theme="dark"] {
   --gauge-track: #2B3039; --gauge-band: #2D5A40; --gauge-band-tint: #143323;
 }
 
-/* Focus ring, shared by every interactive element. */
+/* Focus ring, shared by every interactive element: the school's signal
+   colour, or its tint ink where signal is under 3:1 (schoolTheme.js). */
 :root {
-  --focus-ring: 2px solid var(--ink);
+  --focus-ring: 2px solid var(--focus);
   --focus-ring-offset: 2px;
 }
 
@@ -98,7 +106,7 @@ html[data-theme="dark"] {
   color: var(--ink);
 }
 
-/* One keyboard focus style everywhere: 2px ink ring, 2px off the element. */
+/* One keyboard focus style everywhere: 2px ring, 2px off the element. */
 :focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
@@ -125,7 +133,7 @@ html[data-theme="dark"] {
   top: 8px;
   left: 8px;
   z-index: 1000;
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 10px;
   background: var(--ink);
   color: var(--surface);

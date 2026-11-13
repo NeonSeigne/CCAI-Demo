@@ -10,27 +10,28 @@
   justify-content: center;
   flex: none;
   width: 64px;
-  padding: 8px 0 10px;
+  padding: 8px 0 8px;
   border-radius: var(--r-lg);
   background: var(--band-raised);
   line-height: 1.1;
 }
 
 .ep-date-month,
-.ep-date-week { font-size: 12.5px; font-weight: 700; color: var(--on-deep-soft); }
+.ep-date-week { font-size: 13px; font-weight: 700; color: var(--on-deep-soft); }
 
 .ep-date-day {
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-weight: 500;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .ep-date-skel { width: 64px; height: 82px; border-radius: var(--r-lg); }
 
 .ep-kind { display: inline-flex; align-items: center; gap: 8px; }
 
-.ep .pop-title { margin-top: 6px; }
+.ep .pop-title { margin-top: 8px; }
 
 /* Tiles: one row of up to four that share the band's width (design Q5);
    values one line, Unbounded 600. */
@@ -52,17 +53,17 @@
 .ep .ep-body {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 18px 40px;
+  gap: 16px 40px;
   padding: 20px 24px 4px;
 }
 
-.ep-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.ep-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 /* No map and no "Also at" (D7): the details take the whole width. */
 .ep-col:empty { display: none; }
 .ep .ep-body:has(> .ep-col:empty) { grid-template-columns: minmax(0, 1fr); }
 
-.ep .pop-tile-title { font-size: 13.5px; }
+.ep .pop-tile-title { font-size: 14px; }
 
 .ep-image { margin: 0; overflow: hidden; }
 .ep .ep-image { border-radius: var(--r-lg); }
@@ -76,9 +77,9 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--rule);
-  font-size: 14.5px;
+  font-size: 15px;
 }
 
 .ep-dl-row:first-child { border-top: 0; }
@@ -101,7 +102,7 @@
 .ep-list-row {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
   width: 100%;
   min-height: 44px;
@@ -121,27 +122,28 @@ div.ep-list-row { cursor: default; }
 
 .ep-list-time {
   padding-top: 2px;
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: 0;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .ep-list-text { display: flex; flex-direction: column; min-width: 0; }
 .ep-list-text strong { font-weight: 700; }
-.ep-list-text span { color: var(--muted); font-size: 13.5px; }
+.ep-list-text span { color: var(--muted); font-size: 14px; }
 
 .ep .ep-list .pnl-empty { padding: 4px 0; }
 
-.ep .pop-foot { padding: 16px 24px 22px; }
+.ep .pop-foot { padding: 16px 24px 20px; }
 
 @media (max-width: 700px) {
-  .ep .pop-band { padding: 22px 24px 20px; }
+  .ep .pop-band { padding: 20px 24px 20px; }
   .ep .pop-title { font-size: 18px; }
   .ep .pop-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* An odd tile out spans the row, so three tiles leave no gap. */
   .ep .pop-number:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .ep .ep-body { grid-template-columns: minmax(0, 1fr); padding: 20px 24px 4px; }
-  .ep .pop-foot { padding: 16px 24px 22px; }
+  .ep .pop-foot { padding: 16px 24px 20px; }
 }
