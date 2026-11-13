@@ -75,6 +75,21 @@ async def persist_message(session_id: str, message: PersistMessage) -> str:
     return msg["id"]
 
 
+async def update_message(session_id: str, message_id: str, fields: dict) -> None:
+    """Set *fields* on one stored message (a data answer gets its panel's
+    ``source_personas`` and ``differences`` after it was saved)."""
+    if not fields:
+        return
+    db = get_database()
+    await db.chat_sessions.update_one(
+        {"_id": ObjectId(session_id), "messages.id": message_id},
+        {
+            "$set": {**{f"messages.$.{key}": value for key, value in fields.items()},
+                     "updated_at": datetime.utcnow()},
+        },
+    )
+
+
 @router.post("/chat-sessions", response_model=dict)
 async def create_chat_session(
     request: CreateChatSessionRequest,

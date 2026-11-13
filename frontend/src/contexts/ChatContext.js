@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { useAuth } from './AuthContext';
 import { usePlanner } from './PlannerContext';
 import { parseServerTime } from '../utils/serverTime';
+import { isMainAnswer } from '../utils/messageGroups';
 import {
   deleteChat, renameChat, setAnswerFeedback, setChatPinned,
 } from '../api/chatSessions';
@@ -337,6 +338,10 @@ export function ChatProvider({ children }) {
     // Always collect this exchange's advisor responses so the panel is stored
     // even when aggregated mode is the default — the user can toggle to it.
     const collectedAdvisorResponses = [];
+    // Takes already in the thread: once the main answer (merged or data) is
+    // shown, a data answer's takes join it as they arrive.
+    const shownIds = new Set();
+    let mainShown = false;
 
     try {
       let id = fresh ? null : sessionId;
@@ -396,16 +401,27 @@ export function ChatProvider({ children }) {
                 responseGroupId,
                 is_aggregated: d.is_aggregated || false,
                 source_personas: d.source_personas || null,
+                differences: d.differences || null,
                 visuals: d.visuals || null,
               };
               collectedAdvisorResponses.push(msg);
               handOffProposals(msg.visuals);
               setThinkingAdvisors((prev) => prev.filter((a) => a !== d.persona_id));
-              if (!aggregatedMode || msg.is_aggregated) {
+              if (isMainAnswer(msg)) mainShown = true;
+              if (!aggregatedMode || mainShown) {
+                shownIds.add(msg.id);
                 setMessages((prev) => [...prev, msg]);
               }
               break;
             }
+            case 'answer_update':
+              // A data answer's panel: who answered and where they differ.
+              setMessages((prev) => prev.map((m) => (
+                m.responseGroupId === responseGroupId && isMainAnswer(m)
+                  ? { ...m, source_personas: d.source_personas || null, differences: d.differences || null }
+                  : m
+              )));
+              break;
             case 'clarification':
               setMessages((prev) => [...prev, {
                 id: generateMessageId(),
@@ -418,6 +434,10 @@ export function ChatProvider({ children }) {
             case 'progress':
               if (d.phase === 'complete') {
                 break;
+              }
+              if (d.phase === 'panel' && Array.isArray(d.advisors)) {
+                // The advisors now working on it; each leaves as its reply arrives.
+                setThinkingAdvisors((prev) => [...new Set([...prev, ...d.advisors])]);
               }
               if (d.phase === 'synthesizing') {
                 setSynthesizingGroups((prev) => ({ ...prev, [responseGroupId]: true }));
@@ -440,9 +460,9 @@ export function ChatProvider({ children }) {
         }
       }
 
-      const hasAggregated = collectedAdvisorResponses.some((m) => m.is_aggregated);
+      const hasAggregated = collectedAdvisorResponses.some(isMainAnswer);
       if (aggregatedMode) {
-        const deferred = collectedAdvisorResponses.filter((m) => !m.is_aggregated);
+        const deferred = collectedAdvisorResponses.filter((m) => !shownIds.has(m.id));
         if (deferred.length > 0) {
           setMessages((prev) => [...prev, ...deferred]);
         }

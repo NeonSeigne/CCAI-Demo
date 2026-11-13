@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from openai import AsyncOpenAI, APIConnectionError, APIStatusError
 
-from app.llm.llm_client import LLMClient, ToolCallInfo, ToolCallResult
+from app.llm.llm_client import LLMClient, ToolCallInfo, ToolCallResult, LLMErrorText
 from app.core.context_manager import get_context_manager
 
 logger = logging.getLogger(__name__)
@@ -64,16 +64,16 @@ class ImprovedVllmClient(LLMClient):
 
         except APIConnectionError:
             logger.error(f"Unable to connect to vLLM at {self.api_url}")
-            return "I'm unable to connect to the AI service. Please ensure the vLLM endpoint is available."
+            return LLMErrorText("I'm unable to connect to the AI service. Please ensure the vLLM endpoint is available.")
         except APIStatusError as e:
             logger.error(f"vLLM API error: {e.status_code} - {e.message}")
             if e.status_code == 404:
                 logger.info("Model not found, will re-discover on next request")
                 self.model_name = self.configured_model
-            return "The AI service encountered an error. Please try again."
+            return LLMErrorText("The AI service encountered an error. Please try again.")
         except Exception as e:
             logger.error(f"Unexpected error in vLLM client: {str(e)}")
-            return "I encountered an unexpected error. Please try again."
+            return LLMErrorText("I encountered an unexpected error. Please try again.")
 
     # ------------------------------------------------------------------
     # Tool-calling support (OpenAI-compatible format)

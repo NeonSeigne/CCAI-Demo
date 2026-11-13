@@ -108,6 +108,17 @@ class ReplyToRef(BaseModel):
     messageId: str
 
 
+class DifferencePosition(BaseModel):
+    persona_id: str
+    stance: str
+
+
+class Difference(BaseModel):
+    """One topic the advisors disagree on ("Where they differ")."""
+    topic: str
+    positions: List[DifferencePosition]
+
+
 class PersistMessage(BaseModel):
     """Schema for a single message stored in a ChatSession's messages array."""
     id: str = Field(default_factory=lambda: str(ObjectId()))
@@ -130,6 +141,8 @@ class PersistMessage(BaseModel):
     response_group_id: Optional[str] = None
     is_aggregated: Optional[bool] = None
     source_personas: Optional[List[str]] = None
+    # Where the panel's advisors disagree; on the merged (or data) answer.
+    differences: Optional[List[Difference]] = None
     # Structured visual specs (e.g. GPA chart, prereq tree) rendered alongside content
     visuals: Optional[List[Dict[str, Any]]] = None
     # Thumbs up/down on an answer (PUT .../messages/{id}/feedback)
@@ -162,8 +175,9 @@ class PersistMessage(BaseModel):
                 raise ValueError("persona_id must be 'aggregated' when is_aggregated is True")
             if not self.source_personas:
                 raise ValueError("source_personas is required when is_aggregated is True")
-        if self.source_personas and not self.is_aggregated:
-            raise ValueError("source_personas should only be set on aggregated messages")
+        # A data answer (the orchestrator's tool answer) lists its panel too.
+        if self.source_personas and not (self.is_aggregated or self.persona_id == 'orchestrator'):
+            raise ValueError("source_personas should only be set on aggregated or data answers")
         return self
 
 

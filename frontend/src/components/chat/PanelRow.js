@@ -16,6 +16,18 @@ const iconFor = (persona) => {
   return (match && LEGACY[match[1]]) || 'person';
 };
 
+/** One advisor's name, icon and colour slot from /api/config. */
+export function advisorFor(id, personas = [], fallbackName = '') {
+  const index = personas.findIndex((p) => p.id === id);
+  const persona = personas[index] || {};
+  return {
+    id,
+    name: persona.name || fallbackName || id,
+    icon: iconFor(persona),
+    slot: SLOTS[(index < 0 ? 0 : index) % SLOTS.length],
+  };
+}
+
 /** The advisors behind an answer, in the order the answer names them. */
 export function panelAdvisors(message, panel = [], personas = []) {
   const replies = panel.filter((m) => m?.persona_id && m.content);
@@ -24,15 +36,7 @@ export function panelAdvisors(message, panel = [], personas = []) {
   return ids.map((id) => {
     const reply = replies.find((m) => m.persona_id === id);
     if (!reply) return null;
-    const index = personas.findIndex((p) => p.id === id);
-    const persona = personas[index] || {};
-    return {
-      id,
-      name: persona.name || reply.advisorName || id,
-      icon: iconFor(persona),
-      slot: SLOTS[(index < 0 ? 0 : index) % SLOTS.length],
-      content: reply.content,
-    };
+    return { ...advisorFor(id, personas, reply.advisorName), content: reply.content };
   }).filter(Boolean);
 }
 

@@ -2,7 +2,7 @@
 
 Bring the advisory panel back into Ask: students see who answered, where the advisors disagree, can talk to one advisor, get the panel's review on schedule changes, and take a brief to a human advisor.
 
-Status: plan. The mockup has four boards: a panel answer, a one-advisor thread, a panel review on a change, and the brief.
+Status: phases 1–3 built. The mockup has four boards: a panel answer, a one-advisor thread, a panel review on a change, and the brief.
 
 ## What exists today
 
@@ -23,6 +23,9 @@ Status: plan. The mockup has four boards: a panel answer, a one-advisor thread, 
 - **The merged answer stays the main answer.** The panel is one tap away, never in the way.
 - **Students can turn the panel off.** A "Show the panel" setting, on by default and saved with the user. Off gives today's experience: the merged answer only, data answers without advisors (phase 2 skips the panel for them), no differences block, no review rows.
 - **Facts come from data, not the panel.** Credits, terms, plans and course facts in the review and the brief are read from the planner and catalog. Advisors only add judgement.
+- **Panel size on data answers is 2.** `chat.panel_size_on_data` changes it per school.
+- **Only course and planning answers get the panel.** Events-only and places-only answers don't.
+- **On phones, an advisor's take opens inline**, as on desktop, not in a bottom sheet.
 
 ## Phases
 
@@ -35,22 +38,26 @@ Status: plan. The mockup has four boards: a panel answer, a one-advisor thread, 
 - Files: `components/chat/Answer.js`, new `components/chat/PanelRow.js`, `utils/messageGroups.js`, `styles/ChatFrame.css` (or a new `Panel.css`), `theme/schoolTheme.js` (advisor tokens), `DESIGN.md`.
 - Tests: the row lists `source_personas` in order; opening one shows its reply; an answer with no panel messages shows no row.
 
-### 2. The panel on data answers (backend, medium)
+### 2. The panel on data answers (backend, medium) — built
 
-- In `chat.py`'s tool path, after the tool answer is streamed and saved, pick advisors as for open questions and run them with the tool's text and a short summary of its visuals as context ("Here is what the data says; add your judgement, do not restate the numbers").
-- Stream each take as `type: "advisor"` with the same `response_group_id`, then the differences (phase 3). The tool answer gets `source_personas`.
-- Skip the panel for place-only lookups (where something is, when it's open); run it for courses, planning and events. A per-school `chat.panel_on_data_answers` flag (default on) and `chat.panel_size_on_data` (default 2) control cost.
-- A new progress event before the takes, `{"phase": "panel", "advisors": [...]}`, so the frontend can show "Asked" while they think.
-- Cost: 2 extra model calls per data question, run in parallel, plus the differences call.
-- Tests: tool answers stream first; takes follow with the group id; place-only questions get no panel; the flag turns it off.
+- In `chat.py`'s tool path, the tool answer is streamed and saved first, as before (now with the exchange's `response_group_id`). Then `_data_panel` picks advisors as for open questions (`choose_advisors`: `active_advisors` exactly, else the top `chat.panel_size_on_data` by relevance, from the allowed advisors the student hasn't turned off) and runs them in parallel. Each reads the tool's text and a plain-text list of its cards (`summarize_visuals`) with "add your judgement, do not restate the numbers" (`data_take_instructions`).
+- The data answer and card list go in the student's message for each take, which ends the request on the user's turn (Mistral rejects a request that ends on the assistant's, and the vLLM formatting drops system messages). Every advisor request now sends history only up to the latest user message (`recent_until_user`).
+- Each take streams as `type: "advisor"` with the answer's `response_group_id` and is saved the same way. A take whose model call failed (the client returns `LLMErrorText`; the result has `failed: True`) is not streamed, saved, listed or compared.
+- Then one `type: "answer_update"` line: `{"message_id", "response_group_id", "source_personas", "differences"}`. The same `source_personas` and `differences` are set on the saved tool answer (`update_message` in `chat_sessions.py`). The frontend merges the line into the answer already shown.
+- The panel runs only when the answer used a course or planning tool, the student's `show_panel` isn't false and the school's `chat.panel_on_data_answers` is on (default true; `chat.panel_size_on_data` defaults to 2, both in `config.py` `ChatConfig`).
+- Both paths emit `{"phase": "panel", "advisors": [...]}` right after advisors are chosen. The frontend adds them to `thinkingAdvisors` for now.
+- The frontend treats the orchestrator's tool answer as the exchange's main answer (`isMainAnswer` in `utils/messageGroups.js`), like a merged one: it shows at once, the takes join it as they arrive and the panel row shows under it. `PersistMessage` allows `source_personas` on it.
+- Routing fix: "I'm struggling to balance my classes with a part-time job. How should I plan my week?" reached the planning domain ("what to take" and "plan" in its description) and the planning pass, told to call `plan_suggest` when a student "wants ideas", returned course suggestions. The classifier now has an `advice` choice (time, a job, money, wellbeing, study habits, careers), with examples; `advice` alone means no tools, so the panel answers. The planning description no longer says "what to take", and the planning pass calls no tool for time, job, money, stress or study-habit questions.
+- Cost: 2 extra model calls per course or planning question, run in parallel, plus the compare call.
+- Tests: `app/tests/unit/test_data_panel.py`, `test_routing.py` (advice), `ChatContext.test.js`.
 
-### 3. Where they differ (backend + frontend, small to medium)
+### 3. Where they differ (backend + frontend, small to medium) — built
 
-- The merge returns JSON: `{"answer": "...", "differences": [{"topic": "When to take it", "positions": [{"persona_id": "...", "stance": "..."}]}]}`. The prompt allows only real disagreements and an empty list otherwise.
-- Data answers get the same `differences` from a short compare call over the takes.
-- Saved on the merged (or tool) message as `differences` (new optional field on `PersistMessage`); streamed with it.
-- Frontend: a "Where they differ" block between the card and the panel row, only when the list isn't empty.
-- Tests: parsing with and without differences; a bad JSON reply falls back to plain text and no block; the block renders positions with advisor names.
+- The merge returns JSON: `{"answer": "...", "differences": [{"topic": "When to take it", "positions": [{"persona_id": "...", "stance": "..."}]}]}`. The prompt allows only real disagreements and an empty list otherwise, and forbids numbers, prices, dollar amounts or statistics the advisors didn't state. `parse_synthesis` keeps differences with at least two positions from advisors who answered; a reply that isn't that JSON is the answer as plain text with no differences.
+- Data answers get the same `differences` from `compare_takes`, a short call over the takes (skipped with fewer than 2).
+- Saved on the merged (or tool) message as `differences` (optional on `PersistMessage`). The merged answer streams it on its own line; a data answer gets it in `answer_update`.
+- Frontend: `components/chat/Differences.js`, a "Where they differ" block after the cards and before the panel row, only when the list isn't empty and the panel is on. Styles in `styles/Panel.css`.
+- Tests: `test_response_mode.py` (parsing with and without differences, bad JSON, cut-off JSON, compare call), `Differences.test.js` (block renders positions with advisor names; hides when empty or the panel is off).
 
 ### 4. Choose the panel (frontend, small)
 
@@ -91,6 +98,4 @@ New labels: Advisor panel, Asked, Add, Where they differ, Reply to {advisor}, Ba
 
 ## Open questions
 
-- Panel size on data answers: 2 or 3.
-- Whether events questions get the panel, or only courses and planning.
-- On phones: does an advisor's take open inline or as a bottom sheet.
+None open.

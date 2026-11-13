@@ -1,4 +1,5 @@
 import asyncio
+import json
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -155,7 +156,8 @@ class TestSynthesizeAggregatedResponse(unittest.TestCase):
             response_length="short",
         ))
         call_kwargs = mock_llm.generate.call_args.kwargs
-        self.assertEqual(call_kwargs["max_tokens"], 800)
+        # 800 for a short answer, plus room for the JSON and the differences.
+        self.assertEqual(call_kwargs["max_tokens"], 1200)
 
     def test_rich_markdown_passes_through(self):
         rich = (
@@ -179,6 +181,110 @@ class TestSynthesizeAggregatedResponse(unittest.TestCase):
         ))
         self.assertIn("persona_name", result)
         self.assertTrue(len(result["persona_name"]) > 0)
+
+
+    def test_plain_text_reply_has_no_differences(self):
+        orch, _ = self._make_orchestrator("Plain answer.")
+        result = _run(orch.synthesize_aggregated_response(
+            user_input="question", panel_results=SAMPLE_PANEL_RESULTS,
+        ))
+        self.assertEqual(result["response"], "Plain answer.")
+        self.assertEqual(result["differences"], [])
+
+    def test_json_reply_with_differences(self):
+        reply = json.dumps({
+            "answer": "Start with the methods course.",
+            "differences": [{"topic": "Where to start", "positions": [
+                {"persona_id": "mentor", "stance": "Read philosophy first."},
+                {"persona_id": "methodologist", "stance": "Start with methods."},
+            ]}],
+        })
+        orch, _ = self._make_orchestrator(reply)
+        result = _run(orch.synthesize_aggregated_response(
+            user_input="question", panel_results=SAMPLE_PANEL_RESULTS,
+        ))
+        self.assertEqual(result["response"], "Start with the methods course.")
+        self.assertEqual([d["topic"] for d in result["differences"]], ["Where to start"])
+        self.assertEqual(result["differences"][0]["positions"][1],
+                         {"persona_id": "methodologist", "stance": "Start with methods."})
+
+    def test_json_reply_without_differences(self):
+        orch, _ = self._make_orchestrator('```json\n{"answer": "They agree.", "differences": []}\n```')
+        result = _run(orch.synthesize_aggregated_response(
+            user_input="question", panel_results=SAMPLE_PANEL_RESULTS,
+        ))
+        self.assertEqual(result["response"], "They agree.")
+        self.assertEqual(result["differences"], [])
+
+    def test_prompt_forbids_invented_figures_and_allows_no_differences(self):
+        orch, mock_llm = self._make_orchestrator("Answer.")
+        _run(orch.synthesize_aggregated_response(user_input="q", panel_results=SAMPLE_PANEL_RESULTS))
+        prompt = mock_llm.generate.call_args.kwargs["system_prompt"]
+        self.assertIn("Never add numbers, prices, dollar amounts or statistics", prompt)
+        self.assertIn('"differences" is an empty list', prompt)
+
+
+# ------------------------------------------------------------------
+# parse_synthesis / compare_takes
+# ------------------------------------------------------------------
+
+
+class TestParseSynthesis(unittest.TestCase):
+    IDS = ["mentor", "methodologist"]
+
+    def test_bad_json_falls_back_to_plain_text(self):
+        from app.core.improved_orchestrator import parse_synthesis
+        self.assertEqual(parse_synthesis("Not JSON at all.", self.IDS), ("Not JSON at all.", []))
+        self.assertEqual(parse_synthesis('{"answer": 3}', self.IDS), ('{"answer": 3}', []))
+
+    def test_cut_off_json_keeps_the_answer_so_far(self):
+        from app.core.improved_orchestrator import parse_synthesis
+        raw = '{"answer": "Start early.\\nThen review", "differences": [{"topic": "x"'
+        self.assertEqual(parse_synthesis(raw, self.IDS), ("Start early.\nThen review", []))
+
+    def test_differences_need_two_known_advisors(self):
+        from app.core.improved_orchestrator import parse_synthesis
+        raw = json.dumps({"answer": "A.", "differences": [
+            {"topic": "One voice", "positions": [{"persona_id": "mentor", "stance": "Yes."}]},
+            {"topic": "Unknown", "positions": [
+                {"persona_id": "mentor", "stance": "Yes."}, {"persona_id": "ghost", "stance": "No."}]},
+            {"topic": "Real", "positions": [
+                {"persona_id": "mentor", "stance": "Yes."}, {"persona_id": "methodologist", "stance": "No."}]},
+            "junk",
+        ]})
+        answer, differences = parse_synthesis(raw, self.IDS)
+        self.assertEqual(answer, "A.")
+        self.assertEqual([d["topic"] for d in differences], ["Real"])
+
+
+class TestCompareTakes(unittest.TestCase):
+    TAKES = [
+        {"persona_id": "mentor", "persona_name": "Mentor", "response": "Wait a term."},
+        {"persona_id": "methodologist", "persona_name": "Methodologist", "response": "Take it now."},
+    ]
+
+    def _orch(self, reply):
+        from app.core.improved_orchestrator import ImprovedChatOrchestrator
+        orch = ImprovedChatOrchestrator.__new__(ImprovedChatOrchestrator)
+        orch.llm_client = MagicMock()
+        orch.llm_client.generate = AsyncMock(return_value=reply)
+        return orch
+
+    def test_fewer_than_two_takes_skips_the_call(self):
+        orch = self._orch("{}")
+        self.assertEqual(_run(orch.compare_takes("q", self.TAKES[:1])), [])
+        orch.llm_client.generate.assert_not_called()
+
+    def test_returns_differences(self):
+        reply = json.dumps({"differences": [{"topic": "Timing", "positions": [
+            {"persona_id": "mentor", "stance": "Wait."}, {"persona_id": "methodologist", "stance": "Now."}]}]})
+        self.assertEqual(_run(self._orch(reply).compare_takes("q", self.TAKES))[0]["topic"], "Timing")
+
+    def test_bad_reply_or_failure_gives_none(self):
+        self.assertEqual(_run(self._orch("no json").compare_takes("q", self.TAKES)), [])
+        orch = self._orch("")
+        orch.llm_client.generate = AsyncMock(side_effect=RuntimeError("down"))
+        self.assertEqual(_run(orch.compare_takes("q", self.TAKES)), [])
 
 
 # ------------------------------------------------------------------

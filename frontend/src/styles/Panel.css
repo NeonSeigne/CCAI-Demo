@@ -71,3 +71,34 @@
   .ap-tab { transition: none; }
   .ap-tab:active { transform: none; }
 }
+
+/* Where they differ (DESIGN.md Components): after the cards, before the panel row. */
+.ap-diff {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+}
+
+.ap-diff-title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ap-diff-topic { display: flex; flex-direction: column; gap: 8px; }
+
+.ap-diff-topic-name { margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
+
+.ap-diff-positions { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.ap-diff-position { display: flex; align-items: flex-start; gap: 8px; }
+
+.ap-diff-position p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.ap-diff-position b { font-weight: 700; }

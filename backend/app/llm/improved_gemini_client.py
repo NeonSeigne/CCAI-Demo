@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from openai import AsyncOpenAI, APIConnectionError, APIStatusError
 
-from app.llm.llm_client import LLMClient, ToolCallInfo, ToolCallResult
+from app.llm.llm_client import LLMClient, ToolCallInfo, ToolCallResult, LLMErrorText
 
 from app.core.context_manager import get_context_manager
 from app.config import get_settings
@@ -110,13 +110,13 @@ class ImprovedGeminiClient(LLMClient):
                 # Better error handling
                 if "candidates" not in result or not result["candidates"]:
                     logger.error(f"No candidates in Gemini response: {result}")
-                    return "I apologize, but I'm unable to generate a response right now. Please try again."
+                    return LLMErrorText("I apologize, but I'm unable to generate a response right now. Please try again.")
                 
                 candidate = result["candidates"][0]
                 
                 if "content" not in candidate or "parts" not in candidate["content"]:
                     logger.error(f"Invalid candidate structure: {candidate}")
-                    return "I apologize, but I received an unexpected response format. Please try again."
+                    return LLMErrorText("I apologize, but I received an unexpected response format. Please try again.")
                 
                 parts = candidate["content"]["parts"]
                 text = "\n\n".join(
@@ -127,19 +127,19 @@ class ImprovedGeminiClient(LLMClient):
                 
                 if not text:
                     logger.warning("Empty response from Gemini")
-                    return "I apologize, but I couldn't generate a meaningful response. Please try rephrasing your question."
+                    return LLMErrorText("I apologize, but I couldn't generate a meaningful response. Please try rephrasing your question.")
                 
                 return self._clean_response(text)
                 
         except httpx.HTTPStatusError as e:
             logger.error(f"Gemini API HTTP error: {e.response.status_code} - {e.response.text}")
-            return "I'm experiencing issues connecting to the AI service. Please try again."
+            return LLMErrorText("I'm experiencing issues connecting to the AI service. Please try again.")
         except httpx.TimeoutException:
             logger.error("Gemini API timeout")
-            return "The AI service is taking too long to respond. Please try again."
+            return LLMErrorText("The AI service is taking too long to respond. Please try again.")
         except Exception as e:
             logger.error(f"Unexpected error in Gemini client: {str(e)}")
-            return "I encountered an unexpected error. Please try again."
+            return LLMErrorText("I encountered an unexpected error. Please try again.")
 
     # ------------------------------------------------------------------
     # Tool-calling support (via Gemini OpenAI-compatible endpoint)

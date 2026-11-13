@@ -11,6 +11,8 @@ import VisualBlock from '../visuals/VisualBlock';
 import CourseChip from '../visuals/CourseChip';
 import AnswerSources from '../visuals/AnswerSources';
 import PanelRow from './PanelRow';
+import Differences from './Differences';
+import { isMainAnswer } from '../../utils/messageGroups';
 import { useAuth } from '../../contexts/AuthContext';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -74,8 +76,9 @@ function ActionRow({ message }) {
 }
 
 /**
- * One answer in the thread: the text, its cards, the advisors who answered
- * (unless the student turned the panel off), its sources and the action row. Courses open through `onCourseSelect`; a card's follow-up
+ * One answer in the thread: the text, its cards, where the advisors differ
+ * and who answered (unless the student turned the panel off), its sources
+ * and the action row. Courses open through `onCourseSelect`; a card's follow-up
  * question goes to `onAsk`.
  */
 const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
@@ -363,7 +366,9 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
             </div>
           )}
 
-          {showPanel && message?.is_aggregated && <PanelRow message={message} panel={panel} />}
+          {showPanel && <Differences differences={message?.differences} panel={panel} />}
+
+          {showPanel && isMainAnswer(message) && <PanelRow message={message} panel={panel} />}
 
           <AnswerSources visuals={cardVisuals} />
 

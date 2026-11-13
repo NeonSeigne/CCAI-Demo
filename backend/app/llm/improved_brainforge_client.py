@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import httpx
 
-from app.llm.llm_client import LLMClient
+from app.llm.llm_client import LLMClient, LLMErrorText
 from app.llm.brainforge_auth import BrainForgeAuthManager
 from app.core.context_manager import get_context_manager
 
@@ -105,7 +105,7 @@ class ImprovedBrainForgeClient(LLMClient):
                 if resp.status_code == 500 and "model not found" in resp.text.lower():
                     logger.info("Model not found, will re-discover on next request")
                     self.model_id = None
-                return "The AI service encountered an error. Please try again."
+                return LLMErrorText("The AI service encountered an error. Please try again.")
 
             data = resp.json()
             text = data["choices"][0]["message"]["content"].strip()
@@ -114,16 +114,16 @@ class ImprovedBrainForgeClient(LLMClient):
 
         except httpx.ConnectError:
             logger.error("Unable to connect to BrainForge at %s", self.api_url)
-            return "I'm unable to connect to the BrainForge service. Please try again later."
+            return LLMErrorText("I'm unable to connect to the BrainForge service. Please try again later.")
         except httpx.TimeoutException:
             logger.error("BrainForge request timed out")
-            return "The BrainForge service is taking too long to respond. Please try again."
+            return LLMErrorText("The BrainForge service is taking too long to respond. Please try again.")
         except RuntimeError as e:
             logger.error("BrainForge auth failure: %s", e)
-            return "Unable to authenticate with BrainForge. Please check credentials."
+            return LLMErrorText("Unable to authenticate with BrainForge. Please check credentials.")
         except Exception as e:
             logger.error("Unexpected error in BrainForge client: %s", e)
-            return "I encountered an unexpected error. Please try again."
+            return LLMErrorText("I encountered an unexpected error. Please try again.")
 
     async def health_check(self) -> bool:
         """Check if BrainForge is reachable and authenticated."""

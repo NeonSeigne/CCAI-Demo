@@ -1,10 +1,10 @@
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional, Tuple
 from app.models.persona import Persona, RESPONSE_FORMAT_V2, STRUCTURE_HINTS, tidy_markdown
 from app.core.session_manager import ConversationContext, get_session_manager
 from app.core.context_manager import get_context_manager
 from app.core.rag_manager import get_rag_manager
 from app.config import get_settings
-from app.llm.llm_client import LLMClient, ToolCallResult
+from app.llm.llm_client import LLMClient, ToolCallResult, is_llm_error
 from app.sources import academics
 from app.tools import ToolContext, get_tool_definitions, get_tool_executor
 
@@ -148,9 +148,29 @@ DOMAIN_DESCRIPTIONS = {
     "academics": "courses, grades, sections, professors, prerequisites",
     "student_life": "campus events, things to do, deadlines on the events calendar",
     "campus": "where buildings, libraries, dining or bus stops are; how to get somewhere",
-    "planning": "the student's semester plan: adding, dropping, moving courses, what to take, requirements",
+    "planning": (
+        "the student's course plan in the planner: adding, dropping, moving or swapping "
+        "courses, which courses to take next term, degree requirements"
+    ),
     "general": "anything else the remaining tools cover",
 }
+# Not a tool domain: the classifier's answer for questions the advisor panel
+# should take (judgement, not data). Picked alone, no tool pass runs.
+ADVICE_DOMAIN = "advice"
+ADVICE_DESCRIPTION = (
+    "advice rather than data: managing time or a week, balancing classes with a "
+    "job, sports or family, money, stress, sleep, wellbeing, motivation, study "
+    "habits, careers, friendships; also when the message mentions classes, a "
+    "schedule or planning"
+)
+CLASSIFIER_RULES = (
+    "Tools only look up facts (courses, events, places) or change the course plan. "
+    f"Pick only \"{ADVICE_DOMAIN}\" when the student wants advice or judgement, "
+    "for example \"How should I plan my week around a part-time job?\" or "
+    "\"I'm stressed about money\". \"plan my week\" or \"balance my classes\" "
+    "is not the planning domain; planning is only about which courses are in "
+    "the student's plan. "
+)
 # Local models (e.g. Ollama on a laptop) need longer; set these in the environment.
 CLASSIFIER_TIMEOUT_S = float(os.getenv("CLASSIFIER_TIMEOUT_S", "5"))
 TOOL_PASS_TIMEOUT_S = float(os.getenv("TOOL_PASS_TIMEOUT_S", "20"))
@@ -170,12 +190,15 @@ _PLANNING_PROMPT = (
     "propose: plan_edit stores your change as a proposal the student accepts "
     "or discards with buttons on a card under your answer. Never say a change "
     "was made, applied or saved; say what you proposed. "
+    "Call a tool only when the student asks to change their course plan or "
+    "which courses to take. Questions about managing their time or week, a "
+    "job, money, stress or study habits are not plan changes: call no tool. "
     "Call plan_edit for adding, dropping, moving or swapping courses, using "
     "course identifiers exactly as they appear in the plan or the shortlist; "
     "pass the student's own words as `asked`. If the student refers to a "
     "shortlist option ('the second one', 'option 2'), use that option's "
-    "course. Call plan_suggest when the student asks what to take or wants "
-    "ideas. "
+    "course. Call plan_suggest when the student asks which courses to take "
+    "or wants course ideas. "
     "Explain a proposal only with what the tool result states: its heading, "
     "its diff (courses, rule counts, credits, difficulty, clashes) and its "
     "unknowns, and for suggestions only the item labels. Never claim a "
@@ -320,6 +343,98 @@ def merge_tool_results(results: List[ToolCallResult]) -> ToolCallResult:
         tool_calls_made=[call for r in used for call in r.tool_calls_made],
         tool_outputs=[output for r in used for output in r.tool_outputs],
     )
+
+
+def recent_until_user(messages: List[Dict[str, Any]], limit: int = 6) -> List[Dict[str, Any]]:
+    """The last *limit* messages up to and including the latest user message.
+
+    Without a user message, the last *limit* messages unchanged.
+    """
+    messages = list(messages or [])
+    last_user = next(
+        (i for i in range(len(messages) - 1, -1, -1) if messages[i].get("role") == "user"), None
+    )
+    if last_user is not None:
+        messages = messages[: last_user + 1]
+    return messages[-limit:]
+
+
+# The merge and the compare call (panel-answers phase 3): only real
+# disagreements, and no figures the advisors did not state.
+NO_INVENTED_FIGURES = (
+    "Never add numbers, prices, dollar amounts or statistics that the advisor "
+    "replies did not state."
+)
+DIFFERENCES_RULES = (
+    "\"differences\" lists only real disagreements: topics where at least two "
+    "advisors recommend different things. Each has a short \"topic\" (a few "
+    "words) and one position per disagreeing advisor: its \"persona_id\" "
+    "exactly as given and its \"stance\" in one short sentence. Different "
+    "emphasis, or advisors covering different points, is not a disagreement. "
+    "When they agree, \"differences\" is an empty list."
+)
+
+
+def _json_object(raw: str) -> Optional[Dict[str, Any]]:
+    """The JSON object in *raw* (code fences and prose around it allowed)."""
+    text = re.sub(r"```(?:json)?", "", raw or "").strip()
+    match = re.search(r"\{.*\}", text, re.S)
+    if not match:
+        return None
+    try:
+        value = json.loads(match.group(0))
+    except (json.JSONDecodeError, ValueError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def clean_differences(value: Any, persona_ids: List[str]) -> List[Dict[str, Any]]:
+    """Keep well-formed differences: a topic and at least two positions from
+    advisors who answered, one per advisor."""
+    if not isinstance(value, list):
+        return []
+    known = set(persona_ids)
+    cleaned: List[Dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        topic = item.get("topic")
+        if not isinstance(topic, str) or not topic.strip():
+            continue
+        positions: List[Dict[str, str]] = []
+        for position in item.get("positions") or []:
+            if not isinstance(position, dict):
+                continue
+            pid, stance = position.get("persona_id"), position.get("stance")
+            if (pid in known and isinstance(stance, str) and stance.strip()
+                    and all(p["persona_id"] != pid for p in positions)):
+                positions.append({"persona_id": pid, "stance": stance.strip()})
+        if len(positions) >= 2:
+            cleaned.append({"topic": topic.strip(), "positions": positions})
+    return cleaned
+
+
+def parse_synthesis(raw: str, persona_ids: List[str]) -> Tuple[str, List[Dict[str, Any]]]:
+    """The merge's ``(answer, differences)``.
+
+    Expects ``{"answer": "...", "differences": [...]}``. A reply that isn't
+    that JSON is the answer as plain text, with no differences; a reply cut
+    off mid-JSON keeps the part of the answer that arrived.
+    """
+    text = (raw or "").strip()
+    parsed = _json_object(text)
+    if parsed is not None and isinstance(parsed.get("answer"), str) and parsed["answer"].strip():
+        return parsed["answer"].strip(), clean_differences(parsed.get("differences"), persona_ids)
+    if text.startswith("{") or text.startswith("```"):
+        partial = re.search(r'"answer"\s*:\s*"((?:[^"\\]|\\.)*)', text, re.S)
+        if partial:
+            try:
+                answer = json.loads(f'"{partial.group(1)}"')
+            except (json.JSONDecodeError, ValueError):
+                answer = partial.group(1)
+            if answer.strip():
+                return answer.strip(), []
+    return text, []
 
 
 class ImprovedChatOrchestrator:
@@ -526,12 +641,16 @@ class ImprovedChatOrchestrator:
 
         *previous* is the previous assistant turn when it was a planning
         reply, so a follow-up like "use the second one" reaches planning.
-        An explicit empty pick means no tools. A failure, timeout, unparseable
+        An explicit empty pick, or "advice" with no known domain, means no
+        tools (the advisor panel answers). A failure, timeout, unparseable
         reply or a pick of only unknown domains means all of them.
         """
+        choices = {d: DOMAIN_DESCRIPTIONS.get(d, d) for d in domains}
+        choices[ADVICE_DOMAIN] = ADVICE_DESCRIPTION
         prompt = (
             "Classify which of these domains a student's message needs. "
-            f"Domains: {json.dumps({d: DOMAIN_DESCRIPTIONS.get(d, d) for d in domains})}. "
+            f"Domains: {json.dumps(choices)}. "
+            f"{CLASSIFIER_RULES}"
             'Reply with JSON only, e.g. {"domains": ["campus"]}. Pick every domain '
             "the message needs; pick none if no domain fits."
         )
@@ -560,6 +679,9 @@ class ImprovedChatOrchestrator:
         if not picked:
             return []
         known = [d for d in picked if d in domains]
+        if not known and ADVICE_DOMAIN in picked:
+            # Advice, not data: the advisor panel answers.
+            return []
         if not known:
             logger.info("Domain classifier picked only unknown domains; using all domains")
             return domains
@@ -910,12 +1032,15 @@ class ImprovedChatOrchestrator:
     
     async def generate_single_persona_response(self, session, persona,
                                                response_length: str = "medium",
-                                               llm_client: LLMClient = None):
+                                               llm_client: LLMClient = None,
+                                               extra_instructions: Optional[str] = None):
         """
         Enhanced version - Generate response from a single persona with enhanced RAG integration.
 
         *llm_client* is forwarded to ``persona.respond()``; when ``None`` the
-        persona uses its default (system-default) client.
+        persona uses its default (system-default) client. *extra_instructions*
+        is added to the student's latest message (a data answer's take reads
+        the data there). A failed model call returns ``failed: True``.
         """
         try:
             # Get the user's latest message for document retrieval
@@ -940,12 +1065,27 @@ class ImprovedChatOrchestrator:
             
             # Build enhanced context for the LLM
             enhanced_context = await self._build_enhanced_context_for_persona(
-                session, persona, user_message, document_context
+                session, persona, user_message, document_context,
+                extra_instructions=extra_instructions,
             )
             
             # Generate response with enhanced context
             response = await persona.respond(enhanced_context, response_length, llm=llm_client)
             
+            if is_llm_error(response):
+                # The model call failed: say so, so callers can leave it out.
+                logger.warning("Model call failed for %s: %s", persona.id, response)
+                return {
+                    "persona_id": persona.id,
+                    "persona_name": persona.name,
+                    "response": response,
+                    "failed": True,
+                    "used_documents": False,
+                    "document_chunks_used": 0,
+                    "response_length": response_length,
+                    "context_quality": "error",
+                }
+
             # Validate and improve response quality
             if not self._is_valid_response(response, persona.id):
                 logger.warning(f"Invalid response from {persona.id}, using fallback")
@@ -971,6 +1111,7 @@ class ImprovedChatOrchestrator:
                 "persona_id": persona.id,
                 "persona_name": persona.name,
                 "response": f"I apologize, but I'm having technical difficulties. {self._get_persona_fallback(persona.id)}",
+                "failed": True,
                 "used_documents": False,
                 "document_chunks_used": 0,
                 "response_length": response_length,
@@ -988,14 +1129,18 @@ class ImprovedChatOrchestrator:
 
         Uses the orchestrator LLM (not a persona) to synthesize the strongest
         points from each advisor into one cohesive response addressed to the
-        user.  Returns ``None`` when synthesis produces nothing usable so the
-        caller can fall back to the panel responses.
+        user, plus ``differences``: where the advisors really disagree (an
+        empty list when they don't). A reply that isn't the expected JSON is
+        used as plain text with no differences. Returns ``None`` when
+        synthesis produces nothing usable so the caller can fall back to the
+        panel responses.
         """
         if not panel_results:
             return None
 
         token_limits = {"short": 800, "medium": 1500, "long": 2400}
-        max_tokens = token_limits.get(response_length, 700)
+        # Room for the JSON wrapper and the differences.
+        max_tokens = token_limits.get(response_length, 700) + 400
 
         perspectives = "\n\n".join(
             f"### {r['persona_name']} ({r['persona_id']})\n{r['response']}"
@@ -1011,11 +1156,17 @@ class ImprovedChatOrchestrator:
             "points from each.\n\n"
             "Guidelines:\n"
             "- Produce ONE unified answer addressed directly to the user.\n"
-            "- Do NOT list or label the individual perspectives.\n"
+            "- In the answer, do NOT list or label the individual perspectives; "
+            "real disagreements go in \"differences\".\n"
             "- Resolve contradictions by noting the trade-off briefly.\n"
+            f"- {NO_INVENTED_FIGURES}\n"
             "- Keep the tone warm, clear, and actionable.\n\n"
             f"{RESPONSE_FORMAT_V2}\n\n"
-            f"{structure_hint}"
+            f"{structure_hint}\n\n"
+            "Reply with JSON only, no code fences: "
+            '{"answer": "<the answer in markdown>", "differences": '
+            '[{"topic": "...", "positions": [{"persona_id": "...", "stance": "..."}]}]}. '
+            f"{DIFFERENCES_RULES}"
         )
 
         user_prompt = (
@@ -1034,18 +1185,20 @@ class ImprovedChatOrchestrator:
                 max_tokens=max_tokens,
             )
 
-            stripped = raw.strip() if raw else ""
-            if not stripped:
+            persona_ids = [r["persona_id"] for r in panel_results]
+            answer, differences = parse_synthesis(raw or "", persona_ids)
+            if not answer:
                 logger.warning("Synthesis LLM returned empty response")
                 return None
-            content = tidy_markdown(stripped)
+            content = tidy_markdown(answer)
 
             return {
                 "persona_id": "aggregated",
                 "persona_name": "Orchestrator",
                 "response": content,
+                "differences": differences,
                 "is_aggregated": True,
-                "source_personas": [r["persona_id"] for r in panel_results],
+                "source_personas": persona_ids,
                 "used_documents": any(r.get("used_documents") for r in panel_results),
                 "document_chunks_used": sum(
                     r.get("document_chunks_used", 0) for r in panel_results
@@ -1057,6 +1210,48 @@ class ImprovedChatOrchestrator:
         except Exception as e:
             logger.error(f"Aggregated synthesis failed: {e}")
             return None
+
+    async def compare_takes(
+        self,
+        user_input: str,
+        takes: List[Dict[str, Any]],
+        llm_client: LLMClient = None,
+    ) -> List[Dict[str, Any]]:
+        """Where the advisors' takes on a data answer disagree.
+
+        Same ``differences`` shape as the merge. Fewer than two takes, a
+        failed call or a reply that isn't JSON give an empty list.
+        """
+        if len(takes) < 2:
+            return []
+        perspectives = "\n\n".join(
+            f"### {t['persona_name']} ({t['persona_id']})\n{t['response']}" for t in takes
+        )
+        system_prompt = (
+            "You compare advisors' takes on a student's question. "
+            'Reply with JSON only, no code fences: {"differences": '
+            '[{"topic": "...", "positions": [{"persona_id": "...", "stance": "..."}]}]}. '
+            f"{DIFFERENCES_RULES} {NO_INVENTED_FIGURES}"
+        )
+        try:
+            effective_llm = llm_client or self.llm_client
+            raw = await effective_llm.generate(
+                system_prompt=system_prompt,
+                context=[{
+                    "role": "user",
+                    "content": f"The student asked:\n\"{user_input}\"\n\nThe advisors said:\n\n{perspectives}",
+                }],
+                temperature=0.0,
+                max_tokens=600,
+                response_mime_type="application/json",
+            )
+        except Exception as exc:  # noqa: BLE001 — no differences block
+            logger.warning("Compare call failed (%r); no differences", exc)
+            return []
+        parsed = _json_object(raw or "")
+        if parsed is None:
+            return []
+        return clean_differences(parsed.get("differences"), [t["persona_id"] for t in takes])
 
     async def _retrieve_relevant_documents(self, user_input: str, session_id: str, persona_id: str = "") -> str:
         """
@@ -1276,15 +1471,21 @@ When analyzing the document context:
         
         return instructions.get(persona_id, "Provide helpful guidance based on the document context.")
 
-    async def _build_enhanced_context_for_persona(self, session, persona, user_message: str, document_context: str) -> List[Dict[str, str]]:
+    async def _build_enhanced_context_for_persona(self, session, persona, user_message: str, document_context: str,
+                                                  extra_instructions: Optional[str] = None) -> List[Dict[str, str]]:
         """
         Build enhanced context that properly integrates document information with conversation history
         FIXED VERSION - Ensures document context is properly preserved for both providers
         """
         enhanced_context = []
 
-        # Get recent conversation history (last 6 messages for efficiency)
-        recent_messages = session.messages[-6:] if len(session.messages) > 6 else session.messages
+        # Recent history up to the student's latest message (at most 6
+        # messages), so the request ends on the user's turn. Anything after
+        # it (a data answer, advisors that answered first in parallel) is not
+        # sent as history: chat APIs such as Mistral's reject a request whose
+        # last message is the assistant's. A data answer reaches its takes
+        # through *extra_instructions* instead.
+        recent_messages = recent_until_user(session.messages, limit=6)
         
         # Check if we actually have meaningful document content
         has_documents = bool(document_context and document_context.strip() and len(document_context.strip()) > 50)
@@ -1337,6 +1538,15 @@ When analyzing the document context:
                     "role": message['role'],
                     "content": message['content']
                 })
+
+        if extra_instructions:
+            # In the final user turn, not the system message: the vLLM and
+            # BrainForge formatting drops system messages from the context.
+            last = enhanced_context[-1]
+            if len(enhanced_context) > 1 and last["role"] == "user":
+                last["content"] = f"{last['content']}\n\n{extra_instructions}"
+            else:
+                enhanced_context.append({"role": "user", "content": extra_instructions})
 
         return enhanced_context
     
