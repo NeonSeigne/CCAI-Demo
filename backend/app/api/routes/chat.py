@@ -9,14 +9,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.api.routes.chat_sessions import persist_message
+from app.api.routes.chat_sessions import persist_message, update_message
 from app.api.utils import get_or_create_session_for_request_async
-from app.api.visuals import build_visuals, sources_checked
+from app.api.visuals import build_visuals, sources_checked, summarize_visuals
 from app.core.auth import get_current_active_user
 from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
 from app.core.database import get_database
-from app.core.improved_orchestrator import planning_note
+from app.core.improved_orchestrator import DOMAIN_OF_TOOL, NO_INVENTED_FIGURES, planning_note
+from app.core.panel_review import proposal_index, review_proposal, reviewer_count
 from app.core.persona_filter import (
     get_available_persona_ids,
     get_requested_persona_ids,
@@ -108,6 +109,61 @@ def resolve_llm_clients(user: User) -> Dict[str, Any]:
 
     return {"orchestrator": orchestrator_client, "personas": persona_clients}
 
+# Data answers in these domains get the advisor panel (panel-answers phase 2);
+# events-only and places-only answers don't.
+PANEL_DATA_DOMAINS = ("academics", "planning")
+
+
+def wants_panel_on_data(tool_outputs: List[Dict[str, Any]], user: User) -> bool:
+    """Whether a tool answer gets the panel: the student hasn't turned the
+    panel off, the school runs it on data answers, and the answer used a
+    course or planning tool."""
+    if getattr(user, "show_panel", True) is False:
+        return False
+    if not get_settings().chat.panel_on_data_answers:
+        return False
+    return any(DOMAIN_OF_TOOL.get(o.get("name") or "") in PANEL_DATA_DOMAINS for o in tool_outputs or [])
+
+
+def data_take_instructions(answer: str, visuals: List[Dict[str, Any]]) -> str:
+    """What an advisor reads before adding a take to a data answer."""
+    cards = summarize_visuals(visuals)
+    return (
+        "(For the advisor: the app has already answered this message with "
+        f"campus data. Its answer:\n{answer}\n"
+        + (f"\nThe cards under it show:\n{cards}\n" if cards else "")
+        + "\nAdd your own judgement from your role in a few sentences: what "
+        "you would weigh or do. Do not restate the data or its numbers (grades, "
+        "GPAs, credits, seats, times); the student can already see them. "
+        f"{NO_INVENTED_FIGURES})"
+    )
+
+
+async def choose_advisors(
+    message: "ChatMessage",
+    sid: str,
+    user: User,
+    llm_client: Any,
+    k: int = 3,
+) -> List[str]:
+    """The advisors for this message: exactly the ones the student picked
+    (``active_advisors``), else the top *k* by relevance; both from the
+    advisors this school allows and the student hasn't turned off."""
+    available = get_available_persona_ids(
+        registered_ids=chat_orchestrator.list_personas(),
+        system_allowed=get_settings().personas.allowed_advisors,
+        user_disabled=user.disabled_advisors,
+    )
+    if message.active_advisors:
+        # Starter prompts and per-message advisor selections are exact:
+        # preserve the frontend's order and do not rerank the panel.
+        return get_requested_persona_ids(message.active_advisors, available)
+    # Unmapped/manual messages retain automatic relevance routing.
+    return await chat_orchestrator.get_top_personas(
+        session_id=sid, k=k, allowed_ids=available, llm_client=llm_client,
+    )
+
+
 # Enhanced data models
 class UserInput(BaseModel):
     user_input: str
@@ -145,7 +201,7 @@ class RequestAggregatedResponse(BaseModel):
 class ReplyToAdvisor(BaseModel):
     user_input: str
     advisor_id: str
-    original_message_id: str = None
+    original_message_id: Optional[str] = None
     chat_session_id: Optional[str] = None
 
 class PersonaQuery(BaseModel):
@@ -158,17 +214,165 @@ class SwitchChatRequest(BaseModel):
 class NewChatRequest(BaseModel):
     title: Optional[str] = "New Chat"
 
-ChatStreamEventType = Literal["error", "progress", "clarification", "advisor"]
+ChatStreamEventType = Literal["error", "progress", "clarification", "advisor", "answer_update", "review"]
 
 
 class ChatStreamLine(BaseModel):
-    """One NDJSON line from ``/chat-stream``."""
+    """One NDJSON line from ``/chat-stream``.
+
+    ``answer_update`` comes after a data answer's panel: ``{"message_id",
+    "response_group_id", "source_personas", "differences"}``, merged into
+    the data answer already shown (its ``persona_id`` is "orchestrator").
+
+    ``review`` comes after a data answer with a proposed change (phase 7):
+    ``{"message_id", "response_group_id", "proposal_id", "review":
+    [{"persona_id", "verdict": "fine" | "concern", "line"}]}``, set as
+    ``review`` on that answer's ``proposed_change`` visual. Sent only when at
+    least one advisor's review came back.
+    """
 
     type: ChatStreamEventType
     data: Dict[str, Any] = Field(default_factory=dict)
 
     def to_ndjson(self) -> str:
         return json.dumps(self.model_dump(mode="json"), ensure_ascii=False) + "\n"
+
+async def _data_panel(
+    sid: str,
+    session: Any,
+    answer: str,
+    visuals: List[Dict[str, Any]],
+    response_group_id: str,
+    answer_id: Optional[str],
+    orchestrator_llm: Any,
+    persona_llms: Optional[Dict[str, Any]],
+    *,
+    message: "ChatMessage",
+    user: User,
+    advisors: Optional[List[str]] = None,
+):
+    """The advisor panel under a data answer (panel-answers phases 2 and 3).
+
+    Yields, after the data answer was streamed: the ``panel`` progress event,
+    each advisor's take as it arrives (``type: "advisor"``, saved with the
+    answer's ``response_group_id``), then one ``answer_update`` line with
+    the takes' ``source_personas`` and their ``differences``, which are also
+    saved on the data answer. A take that fails is left out. *advisors*
+    already chosen (the review's) skip choosing again.
+    """
+    if advisors is None:
+        size = get_settings().chat.panel_size_on_data
+        advisors = await choose_advisors(message, sid, user, orchestrator_llm, k=size)
+    yield ChatStreamLine(type="progress", data={"phase": "panel", "advisors": advisors}).to_ndjson()
+    if not advisors:
+        return
+    instructions = data_take_instructions(answer, visuals)
+    done: asyncio.Queue = asyncio.Queue()
+
+    async def _take(pid: str) -> None:
+        result = None
+        try:
+            persona = chat_orchestrator.get_persona(pid)
+            if persona is not None:
+                result = await chat_orchestrator.generate_single_persona_response(
+                    session, persona, "short",
+                    llm_client=(persona_llms or {}).get(pid),
+                    extra_instructions=instructions,
+                )
+                if result.get("failed"):
+                    # The model call failed (the client's error result): no take.
+                    result = None
+        except Exception as exc:  # noqa: BLE001 — leave this take out
+            logger.warning("Data take failed for %s: %r", pid, exc)
+        await done.put(result)
+
+    tasks = [asyncio.create_task(_take(pid)) for pid in advisors]
+    takes: List[Dict[str, Any]] = []
+    for _ in tasks:
+        result = await done.get()
+        if not result:
+            continue
+        takes.append(result)
+        session.append_message(result["persona_id"], result["response"])
+        take_id = None
+        if message.chat_session_id:
+            take_id = await persist_message(
+                message.chat_session_id,
+                PersistMessage(
+                    type="advisor",
+                    persona_id=result["persona_id"],
+                    advisorName=result["persona_name"],
+                    content=result["response"],
+                    response_group_id=response_group_id,
+                ),
+            )
+        yield ChatStreamLine(
+            type="advisor",
+            data={
+                "persona_id": result["persona_id"],
+                "persona_name": result["persona_name"],
+                "content": result["response"],
+                "used_documents": result.get("used_documents", False),
+                "document_chunks_used": result.get("document_chunks_used", 0),
+                "response_group_id": response_group_id,
+                "message_id": take_id,
+            },
+        ).to_ndjson()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    if not takes:
+        return
+
+    # The answer names its advisors in the order they were asked.
+    source_personas = [pid for pid in advisors if any(t["persona_id"] == pid for t in takes)]
+    differences = await chat_orchestrator.compare_takes(
+        message.user_input, takes, llm_client=orchestrator_llm,
+    )
+    if message.chat_session_id and answer_id:
+        fields: Dict[str, Any] = {"source_personas": source_personas}
+        if differences:
+            fields["differences"] = differences
+        await update_message(message.chat_session_id, answer_id, fields)
+    yield ChatStreamLine(
+        type="answer_update",
+        data={
+            "message_id": answer_id,
+            "response_group_id": response_group_id,
+            "source_personas": source_personas,
+            "differences": differences,
+        },
+    ).to_ndjson()
+
+
+NO_ANSWERS = "None of the advisors could answer. Please try again."
+
+
+def _no_answers_line() -> str:
+    """The error line when every advisor on an open question failed."""
+    return ChatStreamLine(
+        type="error", data={"code": "NO_ADVISOR_ANSWERED", "detail": NO_ANSWERS},
+    ).to_ndjson()
+
+
+async def _review(
+    session: Any,
+    advisors: List[str],
+    proposal: Dict[str, Any],
+    user: User,
+    active_term: Optional[str],
+    persona_llms: Optional[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    """The panel's review of a proposal (phase 7) over the current plan, read
+    from the planner store. Never raises: a failed review is no review."""
+    from app.core.brief import term_plan
+
+    try:
+        context = tool_context_for(user, active_term)
+        plan = await term_plan(context.user_id, context.school, context.active_term) if context else None
+        return await review_proposal(chat_orchestrator, session, advisors, proposal, plan, persona_llms)
+    except Exception as exc:  # noqa: BLE001 — the card shows without the review
+        logger.warning("Panel review failed: %r", exc)
+        return []
+
 
 # TODO: Refactor this function into smaller composable helpers so it's more readable and maintainable.
 @router.post("/chat-stream")
@@ -272,8 +476,10 @@ async def chat_stream(
                             advisorName="Orchestrator",
                             content=tool_result.text,
                             visuals=visuals or None,
+                            response_group_id=response_group_id,
                         ),
                     )
+                # The data answer shows first; the panel never delays it.
                 yield ChatStreamLine(
                     type="advisor",
                     data={
@@ -283,37 +489,54 @@ async def chat_stream(
                         "used_documents": False,
                         "document_chunks_used": 0,
                         "visuals": visuals,
+                        "response_group_id": response_group_id,
                         "message_id": message_id,
                     },
                 ).to_ndjson()
+                # A proposed change gets the panel's review (phase 7), run
+                # alongside the takes; the same advisors give both.
+                review_task = None
+                chosen = None
+                at = proposal_index(visuals)
+                if at is not None and getattr(current_user, "show_panel", True) is not False:
+                    size = reviewer_count(get_settings().chat.panel_size_on_data)
+                    chosen = (await choose_advisors(
+                        message, sid, current_user, orchestrator_llm, k=size,
+                    ))[:size]
+                    if chosen:
+                        review_task = asyncio.create_task(_review(
+                            session, chosen, visuals[at]["proposal"], current_user,
+                            message.active_term, persona_llms,
+                        ))
+                if wants_panel_on_data(tool_result.tool_outputs, current_user):
+                    async for line in _data_panel(
+                        sid, session, tool_result.text, visuals, response_group_id,
+                        message_id, orchestrator_llm, persona_llms,
+                        message=message, user=current_user, advisors=chosen,
+                    ):
+                        yield line
+                if review_task is not None:
+                    review = await review_task
+                    if review:
+                        visuals[at] = {**visuals[at], "review": review}
+                        if message.chat_session_id and message_id:
+                            await update_message(message.chat_session_id, message_id, {"visuals": visuals})
+                        yield ChatStreamLine(
+                            type="review",
+                            data={
+                                "message_id": message_id,
+                                "response_group_id": response_group_id,
+                                "proposal_id": visuals[at]["proposal"].get("id"),
+                                "review": review,
+                            },
+                        ).to_ndjson()
                 yield ChatStreamLine(
                     type="progress",
                     data={"phase": "complete"},
                 ).to_ndjson()
                 return
 
-            # Filter personas by system whitelist and user preferences
-            available = get_available_persona_ids(
-                registered_ids=chat_orchestrator.list_personas(),
-                system_allowed=get_settings().personas.allowed_advisors,
-                user_disabled=current_user.disabled_advisors,
-            )
-
-            requested_personas = get_requested_persona_ids(
-                message.active_advisors,
-                available,
-            )
-            if message.active_advisors:
-                # Starter prompts and per-message advisor selections are exact:
-                # preserve the frontend's order and do not rerank the panel.
-                top_personas = requested_personas
-            else:
-                # Unmapped/manual messages retain automatic relevance routing.
-                top_personas = await chat_orchestrator.get_top_personas(
-                    session_id=sid,
-                    allowed_ids=available,
-                    llm_client=orchestrator_llm,
-                )
+            top_personas = await choose_advisors(message, sid, current_user, orchestrator_llm)
 
             # Guard against race condition where all selected advisors
             # become unavailable (e.g. service update) between preference
@@ -341,47 +564,48 @@ async def chat_stream(
                 ).to_ndjson()
                 return
 
+            yield ChatStreamLine(
+                type="progress", data={"phase": "panel", "advisors": top_personas},
+            ).to_ndjson()
+
             done_queue: asyncio.Queue = asyncio.Queue()
 
             async def _run(pid: str) -> None:
+                # An advisor that can't answer (removed mid-request, a failed
+                # model call, an error) puts None: it is left out like a
+                # failed take on a data answer, never streamed, saved, named
+                # in source_personas or merged.
+                result = None
                 try:
-                    # Guard against the persona being removed mid-request — return a
-                    # fallback response instead of crashing and hanging the stream.
                     persona = chat_orchestrator.get_persona(pid)
                     if persona is None:
                         logger.warning("Persona %s was unregistered before response generation", pid)
-                        await done_queue.put({
-                            "persona_id": pid,
-                            "persona_name": pid,
-                            "response": "This advisor is temporarily unavailable. Please try again.",
-                            "used_documents": False,
-                            "document_chunks_used": 0,
-                        })
-                        return
-                    persona_llm = (persona_llms or {}).get(pid)
-                    result = await chat_orchestrator.generate_single_persona_response(
-                        session, persona,
-                        message.response_length or "medium",
-                        llm_client=persona_llm,
-                    )
-                    session.append_message(pid, result["response"])
-                    await done_queue.put(result)
-                except Exception as e:
+                    else:
+                        persona_llm = (persona_llms or {}).get(pid)
+                        result = await chat_orchestrator.generate_single_persona_response(
+                            session, persona,
+                            message.response_length or "medium",
+                            llm_client=persona_llm,
+                        )
+                        if result.get("failed"):
+                            result = None
+                        else:
+                            session.append_message(pid, result["response"])
+                except Exception as e:  # noqa: BLE001 — leave this advisor out
                     logger.exception(f"chat-stream _run failed for {pid}: {e}")
-                    await done_queue.put({
-                        "persona_id": pid,
-                        "persona_name": getattr(persona, "name", pid),
-                        "response": f"I ran into a technical issue. Please try again. ({e!s})",
-                        "used_documents": False,
-                        "document_chunks_used": 0,
-                    })
+                    result = None
+                await done_queue.put(result)
 
             tasks = [asyncio.create_task(_run(pid)) for pid in top_personas]
 
             if message.response_mode == "panel":
                 # ---- Panel mode: yield each advisor response as it arrives ----
+                answered = 0
                 for _ in range(len(tasks)):
                     result = await done_queue.get()
+                    if not result:
+                        continue
+                    answered += 1
                     message_id = None
                     if message.chat_session_id:
                         message_id = await persist_message(
@@ -410,6 +634,8 @@ async def chat_stream(
                     ).to_ndjson()
 
                 await asyncio.gather(*tasks, return_exceptions=True)
+                if not answered:
+                    yield _no_answers_line()
 
             else:
                 # ---- Aggregated mode: collect all, synthesize, yield one ----
@@ -419,11 +645,14 @@ async def chat_stream(
                 ).to_ndjson()
 
                 panel_results = []
+                take_ids: Dict[str, Optional[str]] = {}
                 for _ in range(len(tasks)):
                     result = await done_queue.get()
+                    if not result:
+                        continue
                     panel_results.append(result)
                     if message.chat_session_id:
-                        await persist_message(
+                        take_ids[result["persona_id"]] = await persist_message(
                             message.chat_session_id,
                             PersistMessage(
                                 type="advisor",
@@ -438,6 +667,11 @@ async def chat_stream(
 
                 await asyncio.gather(*tasks, return_exceptions=True)
 
+                if not panel_results:
+                    yield _no_answers_line()
+                    yield ChatStreamLine(type="progress", data={"phase": "complete"}).to_ndjson()
+                    return
+
                 for result in panel_results:
                     yield ChatStreamLine(
                         type="advisor",
@@ -448,6 +682,8 @@ async def chat_stream(
                             "used_documents": result.get("used_documents", False),
                             "document_chunks_used": result.get("document_chunks_used", 0),
                             "response_group_id": response_group_id,
+                            # The stored take, for "Reply to {name}" (null when unsaved).
+                            "message_id": take_ids.get(result["persona_id"]),
                         },
                     ).to_ndjson()
 
@@ -475,6 +711,7 @@ async def chat_stream(
                                 content=synth_result["response"],
                                 is_aggregated=True,
                                 source_personas=synth_result["source_personas"],
+                                differences=synth_result.get("differences") or None,
                                 response_group_id=response_group_id,
                             ),
                         )
@@ -486,6 +723,7 @@ async def chat_stream(
                             "content": synth_result["response"],
                             "is_aggregated": True,
                             "source_personas": synth_result["source_personas"],
+                            "differences": synth_result.get("differences") or [],
                             "response_group_id": response_group_id,
                             "message_id": message_id,
                         },
@@ -564,6 +802,7 @@ async def request_aggregated_response(
                 content=result["response"],
                 is_aggregated=True,
                 source_personas=result["source_personas"],
+                differences=result.get("differences") or None,
                 response_group_id=request.response_group_id,
             ),
         )
@@ -783,133 +1022,138 @@ async def chat_with_specific_advisor(
             "response": error_content,
         }
 
+def reply_instructions(advisor_name: str, earlier_take: Optional[str]) -> str:
+    """What an advisor reads when the student talks to them alone."""
+    earlier = f" Your earlier reply:\n{earlier_take[:1200]}\n" if earlier_take else " "
+    return (
+        f"(For the advisor: the student is now talking with you, {advisor_name}, "
+        f"one on one, following up on what you said.{earlier}"
+        "Answer as yourself, from your role, without speaking for the other advisors. "
+        f"{NO_INVENTED_FIGURES})"
+    )
+
+
+def _earlier_take(messages: List[Dict[str, Any]], advisor_id: str) -> Optional[str]:
+    """The advisor's latest reply in the session before the student's new message."""
+    for msg in reversed(list(messages or [])[:-1]):
+        if isinstance(msg, dict) and msg.get("role") == advisor_id:
+            return msg.get("content")
+    return None
+
+
 @router.post("/reply-to-advisor")
 async def reply_to_advisor(
     reply: ReplyToAdvisor, request: Request,
     current_user: User = Depends(get_current_active_user),
-):
-    """Reply to a specific advisor with proper context - UPDATED"""
-    try:
-        if reply.advisor_id not in chat_orchestrator.personas:
-            raise HTTPException(status_code=404, detail=f"Advisor '{reply.advisor_id}' not found")
+) -> StreamingResponse:
+    """Talk to one advisor (panel-answers phase 5), streamed like ``/chat-stream``.
 
-        # Handle session management for existing chats
-        if reply.chat_session_id:
-            session_id = f"chat_{reply.chat_session_id}"
-        else:
-            session_id = await get_or_create_session_for_request_async(request)
-        
-        session = session_manager.get_session(session_id)
+    NDJSON lines: ``progress`` (``received``, then ``panel`` with the one
+    advisor), one ``advisor`` line (``is_reply: true``, ``reply_to``), then
+    ``progress`` ``complete``; or an ``error`` line when the model call
+    fails. The student's message and the reply are saved with
+    ``isReply: true`` and ``replyTo``. The advisor's request ends on the
+    student's turn (``recent_until_user``).
+    """
+    persona = chat_orchestrator.get_persona(reply.advisor_id)
+    if persona is None:
+        raise HTTPException(status_code=404, detail=f"Advisor '{reply.advisor_id}' not found")
+    reply_to = ReplyToRef(
+        advisorId=reply.advisor_id,
+        advisorName=persona.name,
+        messageId=reply.original_message_id or "",
+    )
 
-        if reply.chat_session_id:
-            await persist_message(
-                reply.chat_session_id,
-                PersistMessage(
-                    type="user",
-                    content=reply.user_input,
-                    replyTo=ReplyToRef(
-                        advisorId=reply.advisor_id,
-                        advisorName=chat_orchestrator.get_persona(reply.advisor_id).name,
-                        messageId=reply.original_message_id,
+    async def _event_generator():
+        try:
+            persona_llms = resolve_llm_clients(current_user)["personas"]
+            if reply.chat_session_id:
+                sid = f"chat_{reply.chat_session_id}"
+                if sid not in session_manager.sessions:
+                    sid = await get_or_create_session_for_request_async(
+                        request,
+                        chat_session_id=reply.chat_session_id,
+                        user_id=str(current_user.id),
+                    )
+            else:
+                sid = await get_or_create_session_for_request_async(request)
+            session = session_manager.get_session(sid)
+
+            response_group_id = str(ObjectId())
+            session.append_message("user", reply.user_input)
+            if reply.chat_session_id:
+                await persist_message(
+                    reply.chat_session_id,
+                    PersistMessage(
+                        type="user",
+                        content=reply.user_input,
+                        isReply=True,
+                        replyTo=reply_to,
+                        response_group_id=response_group_id,
                     ),
+                )
+            yield ChatStreamLine(type="progress", data={"phase": "received"}).to_ndjson()
+            yield ChatStreamLine(
+                type="progress", data={"phase": "panel", "advisors": [reply.advisor_id]},
+            ).to_ndjson()
+
+            result = await chat_orchestrator.generate_single_persona_response(
+                session, persona, "medium",
+                llm_client=(persona_llms or {}).get(reply.advisor_id),
+                extra_instructions=reply_instructions(
+                    persona.name, _earlier_take(getattr(session, "messages", []), reply.advisor_id),
                 ),
             )
+            if not result or result.get("failed"):
+                yield ChatStreamLine(
+                    type="error",
+                    data={"code": "ADVISOR_FAILED", "detail": f"{persona.name} couldn't answer. Please try again."},
+                ).to_ndjson()
+                yield ChatStreamLine(type="progress", data={"phase": "complete"}).to_ndjson()
+                return
 
-        # Find the original message being replied to for context
-        original_message = None
-        if reply.original_message_id:
-            for msg in session.messages:
-                if getattr(msg, 'id', None) == reply.original_message_id:
-                    original_message = msg.content
-                    break
-        
-        # Create context-aware input
-        contextual_input = reply.user_input
-        if original_message:
-            contextual_input = f"[Replying to your previous message: '{original_message[:100]}...'] {reply.user_input}"
-        
-        llm_clients = resolve_llm_clients(current_user)
-        advisor_llm = (llm_clients["personas"] or {}).get(reply.advisor_id)
-
-        result = await chat_orchestrator.chat_with_persona(
-            user_input=contextual_input,
-            persona_id=reply.advisor_id,
-            session_id=session_id,
-            llm_client=advisor_llm,
-        )
-        
-        # Handle response structure
-        if result.get("type") == "single_persona_response" and "persona" in result:
-            persona_data = result["persona"]
+            session.append_message(reply.advisor_id, result["response"])
+            message_id = None
             if reply.chat_session_id:
-                await persist_message(
+                message_id = await persist_message(
                     reply.chat_session_id,
                     PersistMessage(
                         type="advisor",
-                        persona_id=persona_data["persona_id"],
-                        advisorName=persona_data["persona_name"],
-                        content=persona_data["response"],
-                        isReply=True,
-                        replyTo=ReplyToRef(
-                            advisorId=reply.advisor_id,
-                            advisorName=persona_data["persona_name"],
-                            messageId=reply.original_message_id,
-                        ),
-                    ),
-                )
-            return {
-                "type": "advisor_reply",
-                "persona": persona_data["persona_name"],
-                "persona_id": persona_data["persona_id"],
-                "response": persona_data["response"],
-                "original_message_id": reply.original_message_id
-            }
-        elif "persona_id" in result and "response" in result:
-            if reply.chat_session_id:
-                await persist_message(
-                    reply.chat_session_id,
-                    PersistMessage(
-                        type="advisor",
-                        persona_id=result["persona_id"],
-                        advisorName=result["persona_name"],
+                        persona_id=reply.advisor_id,
+                        advisorName=persona.name,
                         content=result["response"],
+                        used_documents=result.get("used_documents", False),
+                        document_chunks_used=result.get("document_chunks_used", 0),
                         isReply=True,
-                        replyTo=ReplyToRef(
-                            advisorId=reply.advisor_id,
-                            advisorName=result["persona_name"],
-                            messageId=reply.original_message_id,
-                        ),
+                        replyTo=reply_to,
+                        response_group_id=response_group_id,
                     ),
                 )
-            return {
-                "type": "advisor_reply",
-                "persona": result["persona_name"],
-                "persona_id": result["persona_id"],
-                "response": result["response"],
-                "original_message_id": reply.original_message_id
-            }
-        else:
-            return {
-                "type": "error",
-                "persona": "System",
-                "response": "I'm having trouble generating a reply right now. Please try again."
-            }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in reply_to_advisor: {e}")
-        error_content = "Sorry, I encountered an error with your reply. Please try again."
-        if reply.chat_session_id:
-            await persist_message(
-                reply.chat_session_id,
-                PersistMessage(type="error", content=error_content),
-            )
-        return {
-            "type": "error",
-            "persona": "System",
-            "response": error_content,
-        }
+            yield ChatStreamLine(
+                type="advisor",
+                data={
+                    "persona_id": reply.advisor_id,
+                    "persona_name": persona.name,
+                    "content": result["response"],
+                    "used_documents": result.get("used_documents", False),
+                    "document_chunks_used": result.get("document_chunks_used", 0),
+                    "response_group_id": response_group_id,
+                    "message_id": message_id,
+                    "is_reply": True,
+                    "reply_to": reply_to.model_dump(),
+                },
+            ).to_ndjson()
+            yield ChatStreamLine(type="progress", data={"phase": "complete"}).to_ndjson()
+        except Exception as exc:  # noqa: BLE001 — the stream reports it
+            logger.error(f"reply-to-advisor error: {exc}")
+            logger.error(traceback.format_exc())
+            yield ChatStreamLine(type="error", data={"detail": str(exc)}).to_ndjson()
+
+    return StreamingResponse(
+        _event_generator(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 @router.post("/ask/")
 async def ask_question(

@@ -1,6 +1,6 @@
 import re
 
-from app.llm.llm_client import LLMClient
+from app.llm.llm_client import LLMClient, is_llm_error
 from typing import List, Dict
 
 SENTINEL = "</END>"
@@ -130,6 +130,9 @@ class Persona:
             temperature=temp_scaled,
             max_tokens=max_tokens,
         )
+        if is_llm_error(raw_text):
+            # Keep the failure marker; callers drop or label failed replies.
+            return raw_text
 
         return tidy_markdown(raw_text)
 

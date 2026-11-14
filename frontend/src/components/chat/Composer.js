@@ -1,5 +1,5 @@
 import React, {
-  useCallback, useEffect, useLayoutEffect, useRef, useState,
+  useCallback, useEffect, useId, useLayoutEffect, useRef, useState,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Popover } from '@mui/material';
@@ -12,6 +12,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { attachmentLabel, useChat } from '../../contexts/ChatContext';
 import { useChatDock } from '../../contexts/ChatDockContext';
 import { chatPlaceholder } from '../../utils/messageGroups';
+import {
+  AdvisorSuggestions, PanelChip, filterAdvisors, mentionQuery, useAdvisorChoices,
+} from './AdvisorMenu';
 import '../../styles/Composer.css';
 
 /**
@@ -227,7 +230,7 @@ function ChatComposer({ surface, prefill, placeholder }) {
   const navigate = useNavigate();
   const askOnChatPage = useAskOnChatPage();
   const { config } = useAppConfig();
-  const { authToken } = useAuth();
+  const { authToken, user } = useAuth();
   const features = SURFACES[surface] || SURFACES.chat;
   const onHome = surface === 'home';
   const {
@@ -236,6 +239,10 @@ function ChatComposer({ surface, prefill, placeholder }) {
   // Home starts a new chat, so an answer streaming elsewhere doesn't hold it.
   const isLoading = onHome ? false : chat.isLoading;
   const followUp = messages.some((message) => message.type === 'user');
+  // Choosing the panel and one-advisor mode belong to the chat, not home.
+  const oneAdvisor = onHome ? null : chat.oneAdvisor;
+  const canChoose = !onHome && Boolean(chat.chooseAdvisors) && user?.show_panel !== false;
+  const advisorChoices = useAdvisorChoices();
   // The dock closes and opens again; its text stays for the same conversation.
   const draftRef = surface === 'dock' ? dock?.draftRef : null;
 
@@ -250,7 +257,14 @@ function ChatComposer({ surface, prefill, placeholder }) {
   const textareaRef = useRef(null);
   const uploadRef = useRef(null);
   const plusBtnRef = useRef(null);
+  const inputRowRef = useRef(null);
+  const suggestionsId = `cc-mention-${useId().replace(/:/g, '')}`;
   const epochRef = useRef(sessionEpoch);
+  // `@` suggestions: the query after the @ (null when none) and the row Enter picks.
+  const [mention, setMention] = useState(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const suggestions = canChoose && mention !== null ? filterAdvisors(advisorChoices, mention) : [];
+  const suggesting = suggestions.length > 0;
 
   const appendText = useCallback((text) => setInputMessage((prev) => (prev ? `${prev} ${text}` : text)), []);
   const { isRecording, isTranscribing, toggleRecording } = useVoiceInput(authToken, appendText);
@@ -278,12 +292,47 @@ function ChatComposer({ surface, prefill, placeholder }) {
     if (onHome) askOnChatPage(inputMessage);
     else chat.send(inputMessage);
     setInputMessage('');
+    setMention(null);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
   };
 
+  const handleChange = (e) => {
+    const { value } = e.target;
+    setInputMessage(value);
+    const query = mentionQuery(value, e.target.selectionStart ?? value.length);
+    setMention(query);
+    if (query !== mention) setMentionIndex(0);
+  };
+
+  // Picking an advisor drops the "@query" and sends the next message to them.
+  const pickMention = (advisor) => {
+    const caret = textareaRef.current?.selectionStart ?? inputMessage.length;
+    const before = inputMessage.slice(0, caret).replace(/(^|\s)@[^\s@]*$/, '$1');
+    setInputMessage(`${before}${inputMessage.slice(caret)}`);
+    setMention(null);
+    chat.chooseAdvisors([advisor.id]);
+    textareaRef.current?.focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (!suggesting) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const step = e.key === 'ArrowDown' ? 1 : -1;
+      setMentionIndex((i) => (i + step + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      pickMention(suggestions[Math.min(mentionIndex, suggestions.length - 1)]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setMention(null);
+    }
+  };
+
   const handleKeyPress = (e) => {
+    if (suggesting) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -381,13 +430,28 @@ function ChatComposer({ surface, prefill, placeholder }) {
       )}
 
       <div className="floating-input-box">
-        <div className="text-input-row">
+        <div className="text-input-row" ref={inputRowRef}>
+          <AdvisorSuggestions
+            id={suggestionsId}
+            anchorEl={suggesting ? inputRowRef.current : null}
+            advisors={suggestions}
+            activeIndex={Math.min(mentionIndex, suggestions.length - 1)}
+            onPick={pickMention}
+          />
           <textarea
             ref={textareaRef}
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
             onKeyPress={handleKeyPress}
-            placeholder={placeholder || composerPlaceholder(surface, config, { followUp, page: dock?.placeholder })}
+            onBlur={() => setMention(null)}
+            placeholder={oneAdvisor
+              ? `Reply to ${oneAdvisor.name}`
+              : placeholder || composerPlaceholder(surface, config, { followUp, page: dock?.placeholder })}
+            aria-controls={suggesting ? suggestionsId : undefined}
+            aria-activedescendant={suggesting
+              ? `${suggestionsId}-${suggestions[Math.min(mentionIndex, suggestions.length - 1)].id}`
+              : undefined}
             aria-label="Message"
             className="main-textarea"
             disabled={isDisabled}
@@ -457,6 +521,7 @@ function ChatComposer({ surface, prefill, placeholder }) {
           </div>
 
           <div className="composer-end">
+            {canChoose && !oneAdvisor && <PanelChip />}
             {features.mic && (
               <button
                 onClick={toggleRecording}

@@ -27,9 +27,21 @@ jest.mock('../../api/campus', () => ({
   ...jest.requireActual('../../api/campus'),
   getCatalogCourse: jest.fn(() => Promise.reject(new Error('offline'))),
 }));
-jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
+let mockUser = null;
+jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token', user: mockUser }) }));
 jest.mock('../../contexts/AppConfigContext', () => ({
-  useAppConfig: () => ({ config: { app: {}, school: { slug: 'uva' } } }),
+  useAppConfig: () => ({
+    config: {
+      app: {},
+      school: { slug: 'uva' },
+      personas: {
+        items: [
+          { id: 'academic_planner', name: 'Academic Planner', image: 'icon://BookOpen' },
+          { id: 'career_coach', name: 'Career Coach', image: 'icon://Briefcase' },
+        ],
+      },
+    },
+  }),
 }));
 
 const card = (p = proposal(), extra = {}) => ({ type: 'proposed_change', proposal: p, ...extra });
@@ -77,6 +89,7 @@ const rowTexts = () => [...document.querySelectorAll('.vc-diff > li')].map((li) 
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUser = null;
   api.listPrograms.mockResolvedValue([]);
   api.getPlan.mockResolvedValue(view({ proposal: proposal() }));
 });
@@ -305,4 +318,58 @@ test('VisualBlock renders proposed_change; outside a provider it shows no button
   render(<VisualBlock visual={card()} />);
   expect(screen.getByRole('heading', { name: 'Proposed change' })).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Apply' })).not.toBeInTheDocument();
+});
+
+describe('Panel review', () => {
+  const REVIEW = [
+    { persona_id: 'academic_planner', verdict: 'fine', line: 'Prerequisites are met.' },
+    { persona_id: 'career_coach', verdict: 'concern', line: 'A heavy term while you job hunt.' },
+  ];
+
+  test('rows under the change, above Apply and Not now, with Fine and Concern chips', async () => {
+    renderCard(card(proposal(), { review: REVIEW }));
+    const section = screen.getByRole('region', { name: 'Panel review' });
+    const rows = within(section).getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent.replace(/check|warning|menu_book|work|person/g, ''))).toEqual([
+      'Academic Planner Prerequisites are met.Fine',
+      'Career Coach A heavy term while you job hunt.Concern',
+    ]);
+    expect(within(rows[0]).getByText('Fine')).toHaveClass('ap-verdict', 'is-fine');
+    expect(within(rows[1]).getByText('Concern')).toHaveClass('ap-verdict', 'is-concern');
+    // Under the change rows, before the buttons.
+    const apply = screen.getByRole('button', { name: 'Apply' });
+    // eslint-disable-next-line testing-library/no-node-access, no-bitwise
+    expect(document.querySelector('.vc-diff').compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // eslint-disable-next-line no-bitwise
+    expect(section.compareDocumentPosition(apply) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await settle();
+  });
+
+  test('no review, an empty one or a failed one: the card without the section; Apply is unchanged', async () => {
+    api.acceptProposal.mockResolvedValue(view({ proposal: null }));
+    for (const review of [undefined, [], [{ persona_id: 'career_coach', verdict: 'maybe', line: '' }]]) {
+      const { unmount } = renderCard(card(proposal(), { review }));
+      expect(screen.queryByRole('region', { name: 'Panel review' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Apply' })).toBeEnabled();
+      await settle();
+      unmount();
+    }
+  });
+
+  test('hidden when the student turned the panel off', async () => {
+    mockUser = { show_panel: false };
+    renderCard(card(proposal(), { review: REVIEW }));
+    expect(screen.queryByText('Panel review')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+    await settle();
+  });
+
+  test('Apply sends the same proposal with or without a review', async () => {
+    api.acceptProposal.mockResolvedValue(view({ proposal: null }));
+    renderCard(card(proposal(), { review: REVIEW }));
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    await waitFor(() => expect(api.acceptProposal).toHaveBeenCalledTimes(1));
+    expect(api.acceptProposal.mock.calls[0]).toContain(proposal().id);
+  });
 });

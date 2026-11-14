@@ -7,6 +7,7 @@ import Thread from './Thread';
 import { ChatProvider, useChat } from '../../contexts/ChatContext';
 
 jest.mock('../../contexts/AuthContext', () => ({ useAuth: () => ({ authToken: 'token' }) }));
+jest.mock('../../contexts/AppConfigContext', () => ({ useAppConfig: () => ({ config: { personas: { items: [] } } }) }));
 
 const api = (path) => `${process.env.REACT_APP_API_URL}${path}`;
 const json = (body) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
@@ -66,15 +67,14 @@ beforeEach(() => {
 });
 
 describe.each(['page', 'dock'])('the %s thread', (variant) => {
-  test('shows the question, one combined answer with its Checked chips and action row', async () => {
+  test('shows the question, one combined answer and its action row', async () => {
     const { container } = renderThread(variant);
     await openSaved();
 
     expect(screen.getByText('Is ECON 3010 hard?', { selector: '.user-message p' })).toBeInTheDocument();
     expect(screen.getByText(/Most students find/)).toBeInTheDocument();
     expect(screen.queryByText('One advisor of the panel.')).not.toBeInTheDocument();
-    const checked = screen.getByLabelText('Sources checked');
-    expect(within(checked).getByText('Courses')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Sources checked')).not.toBeInTheDocument();
     const answer = container.querySelector('.answer');
     expect(within(answer).getAllByRole('button', { name: /Copy|Good answer|Bad answer/ })).toHaveLength(3);
   });

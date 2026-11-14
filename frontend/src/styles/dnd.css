@@ -34,7 +34,7 @@
 }
 
 /* The Saved count rises once after a drop. */
-.dnd-pulse { animation: dnd-pulse 600ms ease-out; }
+.dnd-pulse { animation: dnd-pulse 600ms var(--ease); }
 
 @keyframes dnd-pulse {
   0% { transform: scale(1); }

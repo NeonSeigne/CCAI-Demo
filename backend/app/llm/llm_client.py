@@ -27,6 +27,16 @@ class ToolCallResult:
     tool_outputs: List[Dict[str, Any]] = field(default_factory=list)
 
 
+class LLMErrorText(str):
+    """What ``generate`` returns when the call failed: the client's apology,
+    still usable as text, but marked so callers can tell it from a reply."""
+
+
+def is_llm_error(value: Any) -> bool:
+    """Whether *value* is a failed ``generate`` call's result."""
+    return isinstance(value, LLMErrorText)
+
+
 class LLMClient(ABC):
     """Abstract base class for all LLM clients"""
 

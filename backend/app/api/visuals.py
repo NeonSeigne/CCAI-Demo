@@ -305,3 +305,48 @@ def build_visuals(tool_outputs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         elif isinstance(spec, dict) and spec.get("type"):
             visuals.append(spec)
     return visuals
+
+
+_COURSE_CARD_NAMES = {
+    "course_gpa": "grades",
+    "course_completion_rate": "grades",
+    "course_a_rate": "grades",
+    "course_class_size": "grades",
+    "course_grade_distribution": "grades",
+    "course_trends": "grades",
+    "course_prereq_map": "prerequisites",
+    "course_schedule": "sections",
+    "course_instructors": "instructors",
+}
+
+
+def summarize_visuals(visuals: List[Dict[str, Any]]) -> str:
+    """A short plain-text list of the cards under an answer, for the advisor
+    panel's context: what each shows, not its numbers."""
+    lines: List[str] = []
+    course_cards: Dict[str, List[str]] = {}
+    for visual in visuals or []:
+        kind = visual.get("type")
+        if kind in _COURSE_CARD_NAMES and visual.get("course"):
+            shown = course_cards.setdefault(visual["course"], [])
+            if _COURSE_CARD_NAMES[kind] not in shown:
+                shown.append(_COURSE_CARD_NAMES[kind])
+        elif kind == "next_courses_tree":
+            leads = ", ".join(c["identifier"] for c in visual.get("next_courses") or [])
+            lines.append(f"- Courses {visual.get('course')} leads to: {leads}")
+        elif kind == "course_shortlist":
+            items = ", ".join(
+                " ".join(filter(None, [i.get("id"), i.get("title")])) for i in visual.get("items") or []
+            )
+            lines.append(f"- Suggested courses: {items}")
+        elif kind == "proposed_change":
+            summary = (visual.get("proposal") or {}).get("summary")
+            lines.append(f"- Proposed plan change: {summary if isinstance(summary, str) and summary else 'a change to the plan'}")
+        elif kind == "event_list":
+            titles = ", ".join(e.get("title") for e in visual.get("events") or [] if e.get("title"))
+            lines.append(f"- Events: {titles}")
+        elif kind == "place_card":
+            names = ", ".join(p.get("name") for p in visual.get("places") or [] if p.get("name"))
+            lines.append(f"- Places: {names}")
+    lines = [f"- {course}: {', '.join(shown)}" for course, shown in course_cards.items()] + lines
+    return "\n".join(lines)

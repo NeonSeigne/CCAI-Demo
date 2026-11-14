@@ -411,3 +411,86 @@ test('a term opened while a send is creating its session is still sent', async (
   expect(await screen.findByText('Answer.')).toBeInTheDocument();
   expect(streamBody()).toMatchObject({ active_term: 'Fall 2027' });
 });
+
+test('a data answer shows at once; its takes and answer_update follow in the same exchange', async () => {
+  const stream = controllableStream();
+  routeFetch({ '/chat-stream': stream.respond });
+  function Panel() {
+    const { messages, send, thinkingAdvisors } = useChat();
+    const answer = messages.find((m) => m.persona_id === 'orchestrator');
+    return (
+      <>
+        <button type="button" onClick={() => send('Should I take ECON 3720?')}>Send</button>
+        <output aria-label="Advisors">{messages.filter((m) => m.type === 'advisor').map((m) => m.persona_id).join(',')}</output>
+        <output aria-label="Groups">{[...new Set(messages.filter((m) => m.type === 'advisor').map((m) => m.responseGroupId))].length}</output>
+        <output aria-label="Panel">{(answer?.source_personas || []).join(',')}</output>
+        <output aria-label="Differences">{(answer?.differences || []).map((d) => d.topic).join(',')}</output>
+        <output aria-label="Thinking">{thinkingAdvisors.join(',')}</output>
+      </>
+    );
+  }
+  renderProvider(<Panel />);
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+  await waitFor(() => expect(callsTo('/chat-stream')).toHaveLength(1));
+
+  stream.push({ type: 'advisor', data: { persona_id: 'orchestrator', persona_name: 'Orchestrator', content: 'Solid next step.' } });
+  await waitFor(() => expect(status('Advisors')).toHaveTextContent('orchestrator'));
+
+  stream.push({ type: 'progress', data: { phase: 'panel', advisors: ['planner', 'coach'] } });
+  await waitFor(() => expect(status('Thinking')).toHaveTextContent('system,planner,coach'));
+
+  stream.push({ type: 'advisor', data: { persona_id: 'coach', persona_name: 'Coach', content: 'Wait a term.' } });
+  await waitFor(() => expect(status('Advisors')).toHaveTextContent('orchestrator,coach'));
+  expect(status('Thinking')).toHaveTextContent('system,planner');
+
+  stream.push({ type: 'advisor', data: { persona_id: 'planner', persona_name: 'Planner', content: 'Take it now.' } });
+  stream.push({
+    type: 'answer_update',
+    data: {
+      source_personas: ['planner', 'coach'],
+      differences: [{ topic: 'Timing', positions: [{ persona_id: 'planner', stance: 'Now.' }, { persona_id: 'coach', stance: 'Later.' }] }],
+    },
+  });
+  stream.push({ type: 'progress', data: { phase: 'complete' } });
+  stream.end();
+
+  await waitFor(() => expect(status('Differences')).toHaveTextContent('Timing'));
+  expect(status('Panel')).toHaveTextContent('planner,coach');
+  expect(status('Advisors')).toHaveTextContent('orchestrator,coach,planner');
+  expect(status('Groups')).toHaveTextContent('1');
+});
+
+test('a review line sets the panel review on the answer\'s proposed change', async () => {
+  const stream = controllableStream();
+  routeFetch({ '/chat-stream': stream.respond });
+  function Review() {
+    const { messages, send } = useChat();
+    const answer = messages.find((m) => m.persona_id === 'orchestrator');
+    const card = (answer?.visuals || []).find((v) => v.type === 'proposed_change');
+    return (
+      <>
+        <button type="button" onClick={() => send('Move ECON 4010 to spring')}>Send</button>
+        <output aria-label="Review">{(card?.review || []).map((r) => `${r.persona_id}:${r.verdict}`).join(',')}</output>
+      </>
+    );
+  }
+  renderProvider(<Review />);
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+  await waitFor(() => expect(callsTo('/chat-stream')).toHaveLength(1));
+
+  stream.push({
+    type: 'advisor',
+    data: {
+      persona_id: 'orchestrator', persona_name: 'Orchestrator', content: 'I can move it.',
+      visuals: [{ type: 'proposed_change', proposal: { id: 'p1' } }],
+    },
+  });
+  stream.push({
+    type: 'review',
+    data: { proposal_id: 'p1', review: [{ persona_id: 'planner', verdict: 'fine', line: 'Prerequisites are met.' }] },
+  });
+  stream.push({ type: 'progress', data: { phase: 'complete' } });
+  stream.end();
+
+  await waitFor(() => expect(status('Review')).toHaveTextContent('planner:fine'));
+});

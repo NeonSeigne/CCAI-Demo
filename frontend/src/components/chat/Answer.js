@@ -10,24 +10,41 @@ import { useChat } from '../../contexts/ChatContext';
 import VisualBlock from '../visuals/VisualBlock';
 import CourseChip from '../visuals/CourseChip';
 import AnswerSources from '../visuals/AnswerSources';
+import PanelRow, { AdvisorAvatar, advisorFor } from './PanelRow';
+import AskedRow, { askedAdvisors } from './AskedRow';
+import Differences from './Differences';
+import BriefDialog, { BRIEF_TITLE } from './BriefDialog';
+import { isMainAnswer } from '../../utils/messageGroups';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppConfig } from '../../contexts/AppConfigContext';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
+import escapeCurrency from '../../utils/escapeCurrency';
 
 const THUMBS = [
   { value: 'up', icon: 'thumb_up', label: 'Good answer' },
   { value: 'down', icon: 'thumb_down', label: 'Bad answer' },
 ];
 
+/** Whether *message* is the chat's latest main answer (merged or data answer). */
+function isLatestMainAnswer(message, messages) {
+  const latest = [...(messages || [])].reverse().find(isMainAnswer);
+  return Boolean(latest) && latest.id === message?.id;
+}
+
 /**
- * The answer's meta row (ask-chat.html .meta): the "Checked" source chips,
- * then copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
+ * The answer's meta row (ask-chat.html .meta): copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
  * (design Q19). Thumbs are aria-pressed toggles saved to the chat; a failed
  * save puts the old state back. Answers that aren't saved show no thumbs.
+ * The latest main answer of a saved chat also gets "Brief for my advisor"
+ * (panel-answers phase 6) on the right, unless the panel is off.
  */
-function ActionRow({ message, checkedVisual }) {
+function ActionRow({ message, showPanel }) {
   const chat = useChat();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
+  const canBrief = showPanel && Boolean(chat?.sessionId) && isLatestMainAnswer(message, chat?.messages);
   const feedback = message.feedback ?? null;
   const storedId = 'message_id' in message ? message.message_id : message.id;
   const canRate = Boolean(chat?.rateAnswer && chat?.sessionId && storedId);
@@ -50,7 +67,6 @@ function ActionRow({ message, checkedVisual }) {
 
   return (
     <div className="answer-meta">
-      {checkedVisual && <VisualBlock visual={checkedVisual} />}
       <span className="answer-acts">
         <button type="button" className="answer-act" aria-label={copied ? 'Copied' : 'Copy'} onClick={copy}>
           <Icon name={copied ? 'check' : 'content_copy'} size={20} />
@@ -68,19 +84,42 @@ function ActionRow({ message, checkedVisual }) {
           </button>
         ))}
       </span>
+      {canBrief && (
+        <button type="button" className="answer-brief" onClick={() => setBriefOpen(true)}>
+          {BRIEF_TITLE}
+        </button>
+      )}
+      {briefOpen && <BriefDialog sessionId={chat.sessionId} onClose={() => setBriefOpen(false)} />}
     </div>
   );
 }
 
+/** A one-advisor reply's header: the advisor's avatar and name. */
+function ReplyHeader({ message }) {
+  const { config } = useAppConfig();
+  const advisor = advisorFor(message.persona_id, config?.personas?.items || [], message.advisorName);
+  return (
+    <header className={`ap-reply-head adv-${advisor.slot}`}>
+      <AdvisorAvatar advisor={advisor} size="sm" />
+      <b>{advisor.name}</b>
+    </header>
+  );
+}
+
 /**
- * One answer in the thread: the text, its cards, the Checked chips and the
- * action row. Courses open through `onCourseSelect`; a card's follow-up
- * question goes to `onAsk`.
+ * One answer in the thread: who was asked, the text, its cards, where the
+ * advisors differ and who answered (unless the student turned the panel
+ * off), its sources and the action row. A one-advisor reply has the
+ * advisor's name above it instead, and no panel. Courses open through
+ * `onCourseSelect`; a card's follow-up question goes to `onAsk`.
  */
-const Answer = ({ message, onCourseSelect, onAsk }) => {
-  // The "Checked" line leads the answer; every other visual follows the text.
+const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
+  const { user } = useAuth();
+  const chat = useChat();
+  const showPanel = user?.show_panel !== false;
+  const isReply = Boolean(message?.isReply);
+  // Every visual follows the text; the old "Checked" line gives way to Sources.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
-  const checkedVisual = visuals.find((visual) => visual?.type === 'sources_checked');
   const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
   // Minimal, safe preprocessing (keep Markdown structure intact)
   const preprocessMarkdown = (content) => {
@@ -94,8 +133,9 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
     processed = processed.split('\n').map(ln => ln.replace(/\s+$/, '')).join('\n');
 
     // 3) Line fixes outside fenced code: unicode bullets -> '-' (so GFM parses
-    //    lists), and a lone "$$...$$" line split across three lines, which is
-    //    the only form remark-math treats as display math.
+    //    lists), a lone "$$...$$" line split across three lines, which is
+    //    the only form remark-math treats as display math, and prices
+    //    ("$15") escaped so they don't open inline math.
     let inFence = false;
     processed = processed
       .split('\n')
@@ -107,7 +147,7 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
         if (inFence) return [line];
         const bulleted = line.replace(/^\s*[•●▪◦]\s+/, '- ');
         const display = bulleted.match(/^\s*\$\$((?:(?!\$\$).)+)\$\$\s*$/);
-        return display ? ['', '$$', display[1].trim(), '$$', ''] : [bulleted];
+        return display ? ['', '$$', display[1].trim(), '$$', ''] : [escapeCurrency(bulleted)];
       })
       .join('\n');
 
@@ -334,6 +374,10 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
     return (
       <div className="advisor-message-container is-plain">
         <div className="answer">
+          {showPanel && isMainAnswer(message) && (
+            <AskedRow advisorIds={askedAdvisors(message, chat?.exchangePanels)} />
+          )}
+          {isReply && <ReplyHeader message={message} />}
           {/* Enhanced markdown rendering with preprocessing */}
           <div className="advisor-message-text" style={{ color: 'var(--ink)' }}>
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
@@ -360,9 +404,13 @@ const Answer = ({ message, onCourseSelect, onAsk }) => {
             </div>
           )}
 
+          {showPanel && !isReply && <Differences differences={message?.differences} panel={panel} />}
+
+          {showPanel && isMainAnswer(message) && <PanelRow message={message} panel={panel} />}
+
           <AnswerSources visuals={cardVisuals} />
 
-          <ActionRow message={message} checkedVisual={checkedVisual} />
+          <ActionRow message={message} showPanel={showPanel} />
         </div>
       </div>
     );

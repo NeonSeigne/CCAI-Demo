@@ -27,7 +27,7 @@
   flex: 999 1 560px;
   min-width: 0;
   box-sizing: border-box;
-  padding: 56px 24px 64px;
+  padding: 48px 24px 64px;
 }
 
 .campus-kicker {
@@ -48,20 +48,20 @@
 }
 
 /* ---- Ask home: date, heading, composer, then the Next up board ----------- */
-.campus-home .ah-main { padding: 64px 36px 40px; }
+.campus-home .ah-main { padding: 64px 32px 40px; }
 
 .ah-column {
   max-width: 1040px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 .ah-hero { display: flex; flex-direction: column; }
 .ah-date { margin-bottom: 8px; font-size: 15px; font-weight: 500; color: var(--muted); }
 
-.ah-title-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 22px; }
+.ah-title-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 20px; }
 
 /* Phones only (design Q21): a 44px history icon opens Search chats. */
 .ah-history {
@@ -70,7 +70,7 @@
   height: 44px;
   flex: none;
   place-items: center;
-  margin: -8px -10px 0 auto;
+  margin: -8px -8px 0 auto;
   padding: 0;
   border: 0;
   border-radius: var(--r-full);
@@ -84,7 +84,7 @@
 .ah-hero h1 {
   margin: 0;
   font-size: 34px;
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
@@ -116,12 +116,12 @@
 .ah-panel-h {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 18px 22px 8px;
+  gap: 8px;
+  padding: 16px 20px 8px;
   border-bottom: 1px solid var(--rule);
 }
 
-.ah-tz { margin-left: auto; font-size: 13.5px; color: var(--muted); }
+.ah-tz { margin-left: auto; font-size: 14px; color: var(--muted); }
 
 .ah-panel-h h2 {
   margin: 0;
@@ -138,31 +138,32 @@
 
 .ah-evt-skeleton .pnl-block { height: 20px; }
 
-.ah-more { display: block; padding: 10px 20px 14px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
+.ah-more { display: block; padding: 8px 20px 12px; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; }
 .ah-more:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Event row: time (Unbounded) with the end under it, title and place, walk, actions. */
 .ah-evt {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr) auto auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   padding: 12px 20px;
 }
 
 .ah-time {
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   font-feature-settings: "tnum";
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .ah-time small {
   display: block;
   font-family: var(--font-app);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
   color: var(--muted);
@@ -186,8 +187,8 @@
 .ah-walk {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 4px 10px 4px 6px;
+  gap: 4px;
+  padding: 4px 8px 4px 8px;
   border-radius: var(--r-full);
   background: var(--good-tint);
   color: var(--good);
@@ -197,7 +198,7 @@
 }
 
 /* 38px icons with 44px hit areas (design Q19). */
-.ah-acts { display: flex; align-items: center; gap: 2px; margin: -3px; color: var(--muted); }
+.ah-acts { display: flex; align-items: center; gap: 2px; margin: -4px; color: var(--muted); }
 
 .ah-icon-btn {
   width: 44px;
@@ -247,7 +248,7 @@
   align-items: baseline;
   gap: 12px;
   min-height: 44px;
-  padding: 11px 20px;
+  padding: 12px 20px;
   box-sizing: border-box;
   border: 0;
   background: none;
@@ -266,7 +267,7 @@
   align-self: center;
   color: var(--muted);
   font-family: var(--font-code);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -277,8 +278,8 @@
   .ah-column { gap: 20px; }
   .ah-title-row { margin-bottom: 16px; }
   .ah-history { display: grid; }
-  .ah-hero h1 { font-size: 23px; }
-  .ah-evt { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; padding: 12px 16px; }
+  .ah-hero h1 { font-size: 23px; font-weight: 900; }
+  .ah-evt { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; padding: 12px 16px; }
   .ah-what b { display: -webkit-box; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .ah-acts { display: none; }
   .ah-cls, .ah-saved-row { padding-left: 16px; padding-right: 16px; }

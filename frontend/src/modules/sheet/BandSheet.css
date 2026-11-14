@@ -39,7 +39,7 @@
   position: relative;
   background: var(--band);
   color: var(--on-deep);
-  padding: 22px 24px 20px;
+  padding: 20px 24px 20px;
 }
 
 .pop-band-top {
@@ -48,7 +48,7 @@
   align-items: flex-start;
 }
 
-.pop-band-text { flex: 1; min-width: 0; padding-right: 44px; }
+.pop-band-text { flex: 1; min-width: 0; padding-right: 48px; }
 
 .pop-eyebrow {
   margin: 0 0 4px;
@@ -56,7 +56,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--on-deep-soft);
 }
@@ -72,7 +72,7 @@
   font-family: var(--font-display);
   font-size: 22px;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--on-deep);
 }
@@ -82,7 +82,7 @@
 
 .pop-clamp {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.5;
   white-space: pre-line;
 }
@@ -102,7 +102,7 @@
   background: none;
   color: var(--on-deep);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -113,20 +113,20 @@
 
 .pop-chips {
   list-style: none;
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pop-chip {
   display: inline-flex;
   align-items: center;
   height: 24px;
-  padding: 0 10px;
+  padding: 0 8px;
   border-radius: var(--r-full);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   background: var(--band-raised);
   color: var(--on-deep);
@@ -142,30 +142,30 @@
 
 .pop-actions--close { position: absolute; top: 16px; right: 16px; }
 
-/* Buttons: fully round, 42px. Primary is signal; the rest are surface with a control hairline. */
+/* Buttons: fully round, 44px. Primary is signal; the rest are surface with a control hairline. */
 .pop-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 42px;
-  padding: 0 18px;
+  height: 44px;
+  padding: 0 16px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 120ms ease-out, background-color 150ms ease-out;
+  transition: transform var(--dur-press) var(--ease), background-color var(--dur-hover) var(--ease);
 }
 
 .pop-btn:hover { background: var(--raised); }
 .pop-btn:active,
 .pop-icon-btn:active,
-.pop-save:active { transform: scale(0.95); }
+.pop-save:active { transform: scale(0.98); }
 
 .pop-btn--primary {
   background: var(--signal);
@@ -187,7 +187,7 @@
   background: var(--band-line);
   color: var(--on-deep);
   cursor: pointer;
-  transition: transform 120ms ease-out;
+  transition: transform var(--dur-press) var(--ease);
 }
 
 .pop-icon-btn:hover { background: color-mix(in srgb, var(--on-deep) 18%, transparent); }
@@ -199,8 +199,8 @@
 .pop-foot .pop-save,
 .pop-foot .cc-save {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
   background: var(--surface);
@@ -213,7 +213,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 8px 24px 22px;
+  padding: 8px 24px 20px;
 }
 
 /* Stat tiles on the band. */
@@ -221,34 +221,35 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .pop-number {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 12px 12px;
+  padding: 8px 12px 12px;
   border-radius: var(--r-lg);
   background: var(--band-raised);
   min-width: 0;
 }
 
-.pop-number-label { font-size: 12.5px; font-weight: 600; color: var(--on-deep-soft); }
+.pop-number-label { font-size: 13px; font-weight: 600; color: var(--on-deep-soft); }
 
 .pop-number-value {
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: 0;
   line-height: 1.15;
   color: var(--on-deep);
   overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
 }
 
 .pop-number-value small {
   font-family: var(--font-app);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -259,7 +260,7 @@
 .pop-number-value.is-a { color: var(--band-a-text); }
 .pop-number-value.is-df { color: var(--band-df-text); }
 
-.pop-number-sub { display: block; font-size: 12.5px; font-weight: 600; color: var(--on-deep-soft); }
+.pop-number-sub { display: block; font-size: 13px; font-weight: 600; color: var(--on-deep-soft); }
 
 /* Drag handle on a pop-up header (D4, D19: always visible). */
 .pop-grip {
@@ -270,7 +271,7 @@
   width: 24px;
   height: 36px;
   padding: 0;
-  margin-left: -10px;
+  margin-left: -8px;
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
@@ -293,7 +294,7 @@
 .pop-skel.is-light { background: var(--raised); }
 
 .pop-skel--title { width: 60%; height: 28px; }
-.pop-skel--line { width: 80%; height: 14px; margin-top: 10px; }
+.pop-skel--line { width: 80%; height: 14px; margin-top: 8px; }
 .pop-skel--label { width: 60px; height: 12px; }
 .pop-skel--number { width: 90px; height: 24px; margin-top: 4px; }
 .pop-skel--tab { width: 220px; height: 22px; }
@@ -316,7 +317,7 @@
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--surface);
-  padding: 16px 18px;
+  padding: 16px 16px;
   min-width: 0;
 }
 
@@ -326,15 +327,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
 .pop-tile-title {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
@@ -360,7 +361,7 @@
   display: inline-flex;
   gap: 2px;
   padding: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   border-radius: var(--r-full);
   background: var(--raised);
 }
@@ -368,9 +369,9 @@
 .pop-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 34px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 0;
   border-radius: var(--r-full);
   background: none;
@@ -383,19 +384,19 @@
 
 .pop-tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-rest); }
 
-.pop-tab-count { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pop-tab-count { font-size: 13px; font-weight: 700; color: var(--muted); }
 
-.pop-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-full); background: var(--raised); }
+.pop-seg { display: inline-flex; gap: 2px; padding: 4px; border-radius: var(--r-full); background: var(--raised); }
 
 .pop-seg-btn {
   min-height: 28px;
-  padding: 0 10px;
+  padding: 0 8px;
   border: 0;
   border-radius: var(--r-full);
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -404,14 +405,14 @@
 
 /* ---- Compact band (the place card) ---------------------------------------- */
 
-.pop-band--compact { padding: 18px 20px; }
+.pop-band--compact { padding: 16px 20px; }
 .pop-band--compact .pop-actions--close { top: 14px; right: 14px; z-index: 1; }
 .pop-band--compact .pop-icon-btn { width: 36px; height: 36px; }
-.pop-band--compact .pop-eyebrow { margin: 0; gap: 6px; }
+.pop-band--compact .pop-eyebrow { margin: 0; gap: 8px; }
 .pop-band--compact .pop-title { font-size: 21px; }
 .pop-band--compact .pop-numbers {
   grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
-  margin-top: 14px;
+  margin-top: 12px;
 }
 .pop-band--compact .pop-number-value {
   font-size: 16px;
@@ -424,7 +425,7 @@
 .pop-title[tabindex="-1"]:focus { outline: none; }
 .pop-title[tabindex="-1"]:focus-visible { outline: 2px solid var(--on-deep); outline-offset: 2px; }
 
-.pop-title-row { display: flex; align-items: center; gap: 4px; margin: 6px 0 0; }
+.pop-title-row { display: flex; align-items: center; gap: 4px; margin: 8px 0 0; }
 .pop-title-row .pop-grip { margin-left: -8px; }
 
 /* The grab bar: shown where the card is a bottom sheet (the map, on phones). */
@@ -432,7 +433,7 @@
   display: none;
   width: 40px;
   height: 5px;
-  margin: -6px auto 12px;
+  margin: -8px auto 12px;
   border-radius: 3px;
   background: var(--band-line);
 }
@@ -460,10 +461,10 @@
   box-shadow: none;
 }
 
-.pop-sheet .pop-foot { flex-wrap: nowrap; padding: 14px 20px 20px; }
+.pop-sheet .pop-foot { flex-wrap: nowrap; padding: 12px 20px 20px; }
 
 /* An icon-only action: round, 42px drawn, 44px to tap (design Q19). */
-.pop-btn--icon { position: relative; justify-content: center; width: 42px; padding: 0; }
+.pop-btn--icon { position: relative; justify-content: center; width: 44px; padding: 0; }
 .pop-btn--icon::after,
 .pop-foot .pop-save::after,
 .pop-foot .cc-save::after { content: ""; position: absolute; inset: -2px; }
@@ -472,14 +473,14 @@
 
 @media (max-width: 700px) {
   .pop-dialog-paper { width: 100%; }
-  .pop-band { padding: 18px 16px 16px; }
-  .pop-title { font-size: 18px; }
+  .pop-band { padding: 16px 16px 16px; }
+  .pop-title { font-size: 18px; font-weight: 800; }
   .pop-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pop-body { padding: 14px 16px 8px; }
+  .pop-body { padding: 12px 16px 8px; }
   .pop-foot { padding: 8px 16px 20px; }
   .pop-foot .pop-btn--primary { flex: 1; justify-content: center; }
   /* The place card keeps its own band and actions on phones. */
-  .pop-band.pop-band--compact { padding: 18px 20px; }
+  .pop-band.pop-band--compact { padding: 16px 20px; }
   .pop-sheet .pop-foot .pop-btn--primary { flex: 0 1 auto; }
 }
 

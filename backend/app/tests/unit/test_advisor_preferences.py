@@ -184,3 +184,32 @@ class TestUpdateAdvisorPreferences(unittest.TestCase):
             {"$set": {"disabled_advisors": []}},
         )
         self.assertEqual(result.disabled_advisors, [])
+
+    def test_show_panel_alone_leaves_disabled_advisors(self, mock_orch, mock_settings, mock_get_db):
+        mock_orch.list_personas.return_value = ALL_IDS
+        mock_settings.return_value = _mock_settings()
+        db = _mock_db()
+        mock_get_db.return_value = db
+
+        user = _make_fake_user(disabled_advisors=["theorist"])
+        body = AdvisorPreferencesRequest(show_panel=False)
+        result = asyncio.run(
+            update_advisor_preferences(body=body, current_user=user)
+        )
+
+        db.users.update_one.assert_called_once_with(
+            {"_id": user.id},
+            {"$set": {"show_panel": False}},
+        )
+        self.assertFalse(result.show_panel)
+        self.assertEqual(result.disabled_advisors, ["theorist"])
+
+    def test_show_panel_defaults_on(self, mock_orch, mock_settings, mock_get_db):
+        mock_orch.list_personas.return_value = ALL_IDS
+        mock_settings.return_value = _mock_settings()
+        mock_get_db.return_value = _mock_db()
+
+        result = asyncio.run(
+            get_advisor_preferences(current_user=_make_fake_user())
+        )
+        self.assertTrue(result.show_panel)

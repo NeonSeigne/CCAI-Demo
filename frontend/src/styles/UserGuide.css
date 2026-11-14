@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 18px 22px;
+  padding: 16px 20px;
 }
 
 .ug-title { flex: 1; font-size: 22px; letter-spacing: -0.03em; }
@@ -36,7 +36,7 @@
 }
 
 .ug-toc {
-  padding: 14px 10px;
+  padding: 12px 8px;
   border-right: 1px solid var(--rule);
   overflow: auto;
 }
@@ -46,7 +46,7 @@
   align-items: center;
   gap: 8px;
   height: 40px;
-  margin: 0 4px 10px;
+  margin: 0 4px 8px;
   padding: 0 16px;
   border: 1px solid var(--control);
   border-radius: var(--r-full);
@@ -80,14 +80,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 0;
   border-radius: var(--r-lg);
   background: none;
   color: var(--ink);
   font: inherit;
   font-family: var(--font-app);
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -99,11 +99,11 @@
 .ug-topic.is-on .ms { color: var(--tint-ink); }
 .ug-topic:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
-.ug-empty { padding: 14px; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; }
+.ug-empty { padding: 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; }
 
 .ug-chips { display: none; }
 
-.ug-read { overflow: auto; padding: 30px 40px 48px; }
+.ug-read { overflow: auto; padding: 32px 40px 48px; }
 
 .ug-content {
   max-width: 68ch;
@@ -112,12 +112,12 @@
   color: var(--ink);
 }
 
-.ug-content h1 { margin: 0 0 14px; font-size: 22px; }
-.ug-content h2 { margin: 28px 0 8px; font-size: 16px; }
-.ug-content h3 { margin: 22px 0 6px; font-size: 14px; }
+.ug-content h1 { margin: 0 0 12px; font-size: 22px; font-weight: 900; }
+.ug-content h2 { margin: 24px 0 8px; font-size: 16px; }
+.ug-content h3 { margin: 20px 0 8px; font-size: 14px; }
 .ug-content p { margin: 0 0 12px; }
 .ug-content ol,
-.ug-content ul { margin: 0 0 12px; padding-left: 22px; }
+.ug-content ul { margin: 0 0 12px; padding-left: 20px; }
 .ug-content ol { list-style: decimal; }
 .ug-content ul { list-style: disc; }
 .ug-content li { margin: 4px 0; padding-left: 4px; }
@@ -141,5 +141,5 @@
 
   .ug-chips .cc-chip { flex: none; }
   .ug-read { padding: 20px 20px 40px; }
-  .ug-content h1 { font-size: 20px; }
+  .ug-content h1 { font-size: 20px; font-weight: 900; }
 }

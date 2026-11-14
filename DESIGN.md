@@ -60,12 +60,12 @@ colors:
 typography:
   display:
     fontFamily: Unbounded
-    fontWeight: 700
+    fontWeight: 900
     fontSize: 28px
     letterSpacing: -0.03em
   heading:
     fontFamily: Unbounded
-    fontWeight: 700
+    fontWeight: 800
     fontSize: 16px
     letterSpacing: -0.02em
   body:
@@ -82,6 +82,10 @@ typography:
     fontWeight: 700
     fontSize: 0.78em
     fontFeature: tnum
+  figure:
+    fontFamily: IBM Plex Mono
+    fontWeight: 500
+    fontFeature: tnum
 rounded:
   sm: 8px
   md: 12px
@@ -90,18 +94,25 @@ rounded:
   2xl: 32px
   full: 9999px
 spacing:
-  xs: 4px
-  sm: 8px
-  md: 16px
-  lg: 24px
-  xl: 32px
-  2xl: 48px
+  # The only allowed gap, padding and margin values (Neon AI scale).
+  1: 4px
+  2: 8px
+  3: 12px
+  4: 16px
+  5: 20px
+  6: 24px
+  8: 32px
+  10: 40px
+  12: 48px
+  16: 64px
+  24: 96px
+  32: 128px
 components:
   button-primary:
     backgroundColor: "{colors.uva-signal}"
     textColor: "{colors.uva-on-signal}"
     rounded: "{rounded.full}"
-    height: 42px
+    height: 44px
   button-secondary:
     backgroundColor: "{colors.surface}"
     borderColor: "{colors.control}"
@@ -153,14 +164,22 @@ components:
 
 ## Typography
 
-Unbounded (Google Fonts, 500–800) carries headings, big numbers and course codes: wide, bold, unmistakable. Hanken Grotesk (Google Fonts, 400–800) is the body and UI face, the chrome font the owner chose in coder-cards v2. Material Symbols Rounded is the only icon font.
+Unbounded (Google Fonts, 700–900) carries headings and course codes: wide, bold, unmistakable. Hanken Grotesk (Google Fonts, 400–800) is the body and UI face, the chrome font the owner chose in coder-cards v2. IBM Plex Mono (500) carries figures and dates, as in the Neon AI brand. Material Symbols Rounded is the only icon font.
 
-- Page title 28px (23px on phone), section and card titles 14–16px, all Unbounded 700 at −0.02 to −0.03em.
+- Page title 28px (23px on phone) in Unbounded 900; section and card titles 14–16px in Unbounded 800; both at −0.02 to −0.03em.
 - Because Unbounded is wide, display sizes stay smaller than with a narrow face. Nothing larger than 34px in the app.
 - Body 15px Hanken 500, labels 13px 700. Bold is the house voice: nothing lighter than 500.
-- Course codes are Unbounded 700 at about 11px. JetBrains Mono is gone.
-- Tabular figures everywhere numbers line up.
-- Loading: `fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&family=Unbounded:wght@500..800` and `Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0`.
+- Course codes stay Unbounded 700 at about 11px. They're the app's signature, not figures.
+- Figures and dates are IBM Plex Mono 500 with tabular figures: credits, GPA, ratings, seats, walking minutes, event times and dates.
+- Use whole-pixel sizes from a short scale. No half sizes like 12.5px or 13.5px.
+- Loading: `fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..800&family=Unbounded:wght@700..900&family=IBM+Plex+Mono:wght@500` and `Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0`.
+
+## Spacing
+
+Every gap, padding and margin uses one of 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 96 or 128px (the Neon AI scale). No other values.
+
+- 4–12 inside components, 16–32 between elements, 48 and up between sections.
+- A 2px step is allowed only for nudges inside small controls.
 
 ## Layout
 
@@ -180,12 +199,24 @@ One radius ramp, ordered by nesting: a child is never rounder than its parent (c
 
 ## Components
 
-- **Buttons:** fully round, 42px (48px for a hero action). Primary is signal with on-signal text; secondary is surface with a control-colored hairline; ghost is text only. Press scales to 0.95. Icon-only buttons carry an aria-label.
+- **Buttons:** fully round, 44px (48px for a hero action). Primary is signal with on-signal text; secondary is surface with a control-colored hairline; ghost is text only. Press scales to 0.98. Icon-only buttons carry an aria-label.
+- **Focus:** every focusable control shows a 2px signal ring with a 2px offset, in both themes. Where signal is under 3:1 on the surface (CU's gold in light mode), the ring is tint-ink. On school-colored bands it stays on-deep.
+- **Touch targets:** at least 44×44px, even where the visible control is smaller.
 - **Theme toggle:** three stops (Auto, Light icon, Dark icon) with a sliding thumb in tint-strong. Above the profile row in the rail; in the header on phone.
 - **Nav rail item:** a fully round pill. Active is a white 14% fill with a filled icon. No side bars.
 - **Course card / pop-up:** a band (code in Unbounded, title, three stat tiles: average GPA colored by difficulty, rating, seats), then sections, grades and prerequisites, then actions.
-- **In-chat cards:** course card; prerequisite graph (done in green, this term ringed in signal, the asked course in band, "also opens" dashed; stacks vertically on phone); proposed change (before → after rows, Apply / Not now); difficulty card (four tiles, grade bars, GPA trend); schedule-fit shortlist; event list; place card with map; and a "Checked" line of tint chips.
-- **Event row:** time in Unbounded with the end time under it, title, place with a domain dot, a green walking-time pill, then calendar and save.
+- **In-chat cards:** course card; prerequisite graph (done in green, this term ringed in signal, the asked course in band, "also opens" dashed; stacks vertically on phone); proposed change (before → after rows, Apply / Not now); difficulty card (four tiles, grade bars, GPA trend); schedule-fit shortlist; event list; place card with map; and sources.
+- **Panel:** under a merged answer, one round button per advisor who answered: a 32px avatar (the advisor's icon in its ink, on its tint, with a 2px ring) and the name. Pressed, the button takes the advisor's tint and ring and opens that advisor's own reply in a 24px panel below; one open at a time, none at first. Students can turn the panel off in Settings ("Advisor panel"); off shows the merged answer only.
+- **Where they differ:** after an answer's cards and before the panel, a 24px panel (surface, hairline) titled "Where they differ" in Unbounded 800 14px. Each topic the advisors disagree on is a bold line, then one row per advisor: the 24px avatar, the name in bold and its stance. Shown only when the advisors really disagree and the panel is on.
+- **Asked:** above a merged or data answer, the label "Asked" (13px 700, muted), one 36px chip per advisor asked (the 24px avatar and the name in bold, surface with a hairline), then a 36px secondary "Add" button with a 44px hit area. While the answer streams it lists the advisors working on it; after, the ones who answered. Hidden when the panel is off.
+- **Panel chip and advisor menu:** in the composer, left of the mic and Send, a round 36px chip (44px hit area) with the chosen advisors' 24px avatars overlapping and "Same panel" (the last answer's advisors, chosen by default), the advisor's name when one is chosen, or "Auto" with its icon. It and Add open the advisor menu (the system menu, a sheet on phones): Auto as a radio row, a hairline, then one checkbox row per advisor the student can ask, each with its avatar. Typing @ in the composer shows the same rows over the box, filtered by what follows the @; picking one removes the @ text and chooses that advisor. Hidden in one-advisor mode and when the panel is off.
+- **One-advisor mode:** an open take has a secondary "Reply to {name}" button. It puts a banner at the top of the thread in the advisor's tint (24px radius, sticky): the 32px avatar on surface, the name in bold, and a secondary "Back to the panel" button on the right. The composer placeholder becomes "Reply to {name}". Replies show the advisor's 24px avatar and name above the text, with no Asked row, panel or differences.
+- **Panel review:** on a proposed change, under the change rows and above Apply and Not now, a section titled "Panel review" in Unbounded 800 14px. One row per advisor who reviewed it: the 24px avatar, the name in bold and its one line, then a 24px round verdict chip with an icon: "Fine" (good tint, good ink, check) or "Concern" (tint, tint-ink, warning). No section when the review is empty or failed, or when the panel is off.
+- **Brief for my advisor:** a secondary button at the right end of the latest main answer's action row, after copy and the thumbs, shown only while the panel is on. It opens a medium band-sheet dialog: the band reads "Brief for my advisor" with the close button; the sections, each titled in Unbounded 800 14px, are "My question", "What the panel said", "Where they differed" (the same rows as Where they differ), "My plan for {term}" (rows with the code in Unbounded 700, the title, and the credits in Plex Mono) and "Questions for you" (one 44px input per question, 16px radius, with round 44px remove and add icon buttons that carry aria-labels). Footer: "Copy" (primary) and "Download PDF" (secondary). Loading draws the sections in raised.
+- **Advisor colors:** advisors wear the course palette, in config order 1, 2, 3, 6, 5, 4 (blue, purple, teal, orange, green, pink), then two advisor-only colors, `--advisor-7` olive and `--advisor-8` bronze (light and dark), never the school color. The eight advisors at every school, in order: Academic Planner, Career Coach, Study Strategist, Campus Guide, Wellness Advisor, Writing Tutor, Money Advisor, Peer Mentor. The `color` fields in a school's persona config aren't used.
+- **Switch:** 48×28 pill with a 20px knob; off is raised with a control hairline, on is signal. 44px hit area.
+- **Sources (from Neon AI chat):** each source Ask used is a 36px pill citation with an icon and its name ("COMP SCI 300", "Memorial Union"), plus "+2" when more share it. Opening it shows a sources panel: rows with an icon tile, the name, the detail in Plex Mono (term, page, date) and the quoted excerpt in curly quotes. Uploaded files show as attachment cards: an icon tile, the name, and type and size in Plex Mono.
+- **Event row:** time in Plex Mono with the end time under it, title, place with a domain dot, a green walking-time pill, then calendar and save.
 - **Event detail:** band with a date block, kind and host, title, then tiles for starts-in (signal), time, walk and cost. About, details, map, other events at the same place, actions.
 - **Map:** OpenStreetMap tiles; round pins tinted by category, the selected one large in signal; a list with category chips; a place card with walk, open until, floors, access, today here and hours.
 - **Menus:** 24px popovers with 44px rows, an icon, a label and a right-aligned count or value. Selection is a tint row with a filled icon. They become bottom sheets on phone.
@@ -205,9 +236,23 @@ One radius ramp, ordered by nesting: a child is never rounder than its parent (c
 ## Motion
 
 - **Approach:** functional.
-- **Easing:** enter ease-out, exit ease-in, move ease-in-out (`cubic-bezier(.2,.7,.2,1)` for the toggle thumb and sheets).
-- **Duration:** press 120ms, toggle thumb 250ms, sheets and dialogs 250–300ms, theme change 300ms on color roles (instant under reduced motion).
+- **Easing:** one curve for everything, `cubic-bezier(0.16, 1, 0.3, 1)` (the Neon AI curve).
+- **Duration:** press 80ms, hover 140ms, entrance 420ms (rise 24px and fade in). Toggle thumb, sheets and dialogs 250–300ms; theme change 300ms on color roles.
+- **Transitions:** name the properties (color, background-color, border-color, opacity, transform). Never `transition: all`, and never animate width, height, top or left.
+- **Reduced motion:** show the final state at once.
 - **The one authored moment:** switching theme fades every color role together, the coder-cards v2 palette fade.
+
+## Copy
+
+From the Neon AI copy rules.
+
+- No exclamation points. No hype words (elevate, unleash, revolutionize, next-gen, game-changer, unlock).
+- Real figures only: real course, event and place data, never invented numbers.
+- No trailing period on headlines, labels, buttons or links. Only paragraphs of several sentences keep their periods.
+- Short sentences and everyday words. Say what the app checked and where an answer came from; never claim it is always right.
+- American English.
+- Credit line: "©2026 Neon AI" in sentences, "Neon.ai" only in the logo and the web address.
+- School names keep their own spelling, including the en dash in UW–Madison.
 
 ## Decisions Log
 | Date | Decision | Rationale |
@@ -218,3 +263,4 @@ One radius ramp, ordered by nesting: a child is never rounder than its parent (c
 | 2026-10-29 | Component shape, tokens and theme toggle from coder-cards v2 | Owner's stated taste: rounded, bold, light + dark |
 | 2026-10-29 | Unbounded for headings and codes, Hanken Grotesk for text | Owner request; Hanken is the font chosen in coder-cards v2 |
 | 2026-10-29 | UW toned down: #7D1015 rail, Badger red on small things | Owner request; ui-ux-pro-max color-dark-mode / accessible-pairs |
+| 2026-11-13 | Neon AI system underneath the school colors: spacing scale, one easing and timings, Plex Mono figures, 800/900 headings, signal focus ring, 44px targets, chat sources, copy rules | Owner request after comparing the Neon AI brand guidelines; school colors, sentence case, Material Symbols and the radius ramp stay |

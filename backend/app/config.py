@@ -142,6 +142,17 @@ class ChatPageConfig(BaseModel):
     examples: List[ExampleCategory] = []
 
 
+class ChatConfig(BaseModel):
+    """Ask's per-school behavior.
+
+    ``panel_on_data_answers`` runs the advisor panel under course and
+    planning answers (the tool path); ``panel_size_on_data`` is how many
+    advisors it asks there (each is a model call).
+    """
+    panel_on_data_answers: bool = True
+    panel_size_on_data: int = Field(default=2, ge=1, le=8)
+
+
 class OnboardingConfig(BaseModel):
     features: List[FeatureConfig] = []
     tour_title: str = ""
@@ -526,6 +537,7 @@ class AppSettings(BaseModel):
     homepage: HomepageConfig = HomepageConfig()
     login: LoginConfig = LoginConfig()
     chat_page: ChatPageConfig = ChatPageConfig()
+    chat: ChatConfig = ChatConfig()
     onboarding: OnboardingConfig = OnboardingConfig()
     canvas: CanvasConfig = CanvasConfig()
     personas: PersonasConfig = PersonasConfig()

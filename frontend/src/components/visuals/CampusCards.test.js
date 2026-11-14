@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import EventListCard, { groupEvents } from './EventListCard';
 import PlaceCard, { openUntilText } from './PlaceCard';
-import SourcesChecked from './SourcesChecked';
 import { SavedContext } from '../../contexts/SavedContext';
 import { downloadEventIcs } from '../../utils/ics';
 
@@ -174,18 +173,11 @@ describe('place card', () => {
   });
 });
 
-test('checked line names each domain', () => {
-  render(<SourcesChecked visual={{ type: 'sources_checked', domains: [{ id: 'student_life', label: 'Events' }, { id: 'campus', label: 'Campus map' }] }} />);
-  expect(screen.getByText('Events')).toBeInTheDocument();
-  expect(screen.getByText('Campus map')).toBeInTheDocument();
-});
-
 test('empty cards render nothing', () => {
   const { container } = render(
     <>
       <EventListCard visual={{ events: [] }} />
       <PlaceCard visual={{ places: [] }} />
-      <SourcesChecked visual={{ domains: [] }} />
     </>,
   );
   expect(container).toBeEmptyDOMElement();

@@ -7,7 +7,7 @@
   margin: 0;
   padding: 0;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: flex-end;
 }
 .crs-bar {
@@ -32,7 +32,7 @@
 .crs-bar.is-top .crs-bar-fill { background: var(--signal); }
 .crs-bar-pct { font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .crs-bar.is-top .crs-bar-pct { color: var(--ink); }
-.crs-bar-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.crs-bar-label { font-size: 13px; font-weight: 600; color: var(--muted); }
 
 /* Section rows with a seat tag (R8, Q14). */
 .crs-sections { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -41,7 +41,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: var(--r-md);
   background: var(--raised);
 }
@@ -52,7 +52,7 @@
 .crs-tag {
   display: inline-flex;
   align-items: center;
-  padding: 3px 9px;
+  padding: 4px 8px;
   border-radius: var(--r-sm);
   font-size: 13px;
   font-weight: 700;
@@ -76,7 +76,7 @@
   display: inline-flex;
   align-items: center;
   height: 28px;
-  padding: 0 10px;
+  padding: 0 8px;
   border: 0;
   border-radius: var(--r-full);
   background: var(--raised);
@@ -105,17 +105,17 @@ button.crs-prereq:hover { color: var(--ink); }
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: var(--r-lg);
   background: var(--band-raised);
   color: var(--band-text);
 }
 .crs-tile-label { font-size: 13px; font-weight: 600; color: var(--band-text-soft); }
 .crs-tile-value {
-  font-family: var(--font-display);
+  font-family: var(--font-figure);
   font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 .crs-tile-value small { font-family: var(--font-app); font-size: 13px; letter-spacing: 0; }
@@ -133,20 +133,20 @@ button.crs-prereq:hover { color: var(--ink); }
 
 /* Section rows: code, time, instructor, tag, with full-bleed rules. */
 .crs-sections--popup { gap: 0; }
-.crs-sections-more { margin: 0; padding: 8px 18px 0; color: var(--muted); font-size: 14px; font-weight: 600; }
+.crs-sections-more { margin: 0; padding: 8px 16px 0; color: var(--muted); font-size: 14px; font-weight: 600; }
 .crs-sections--popup .crs-section {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) auto auto;
-  gap: 14px;
-  padding: 11px 18px;
+  gap: 12px;
+  padding: 12px 16px;
   border-top: 1px solid var(--rule);
   border-radius: 0;
   background: transparent;
-  font-size: 14.5px;
+  font-size: 15px;
 }
 .crs-sections--popup .crs-section-code { font-family: var(--font-code); font-size: 11px; font-weight: 700; color: var(--muted); }
 .crs-sections--popup .crs-section-when { color: var(--ink); font-weight: 500; }
-.crs-sections--popup .crs-tag { padding: 3px 8px; border-radius: var(--r-full); font-size: 12.5px; }
+.crs-sections--popup .crs-tag { padding: 4px 8px; border-radius: var(--r-full); font-size: 13px; }
 .crs-sections--popup .crs-tag--waiting { background: var(--tint); color: var(--tint-ink); }
 /* Snapshot and full rows: the neutral tag with ink text (design Q14). */
 .crs-sections--popup .crs-tag--snapshot,

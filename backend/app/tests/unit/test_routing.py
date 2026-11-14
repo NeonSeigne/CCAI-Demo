@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -102,6 +103,19 @@ class TestClassifier(RoutingTestCase):
         result = await self.respond(self.llm('{"domains": []}'))
         self.assertEqual(self.passes(), [])
         self.assertFalse(result.used_tool)
+
+    async def test_advice_runs_no_tool_pass(self):
+        # "plan my week" around a job is advice for the panel, not the course planner.
+        result = await self.respond(
+            self.llm('{"domains": ["advice"]}'),
+            "I'm struggling to balance my classes with a part-time job. How should I plan my week?",
+        )
+        self.assertEqual(self.passes(), [])
+        self.assertFalse(result.used_tool)
+
+    async def test_advice_with_a_data_domain_keeps_the_data_domain(self):
+        await self.respond(self.llm('{"domains": ["advice", "academics"]}'))
+        self.assertEqual(self.passes(), [["course_search"]])
 
     async def test_unknown_or_unparseable_pick_falls_back_to_all_domains(self):
         for reply in ('{"domains": ["dining"]}', "not json", '{"other": 1}'):
@@ -227,6 +241,30 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(picked, ["campus"])
         self.assertIn("campus", prompts[0])
         self.assertNotIn("student_life", prompts[0])
+
+    def test_classifier_offers_advice_for_life_questions(self):
+        prompts = []
+
+        async def capture(**kwargs):
+            prompts.append(kwargs["system_prompt"])
+            return json.dumps({"domains": ["advice"]})
+
+        llm = MagicMock()
+        llm.generate = capture
+        picked = asyncio.run(ImprovedChatOrchestrator()._classify_domains(
+            llm, "How should I plan my week around my job?", ["academics", "planning"]))
+        self.assertEqual(picked, [])
+        domains = json.loads(re.search(r"Domains: (\{.*?\})\. ", prompts[0]).group(1))
+        self.assertEqual(list(domains), ["academics", "planning", "advice"])
+        self.assertIn("balancing classes with a job", domains["advice"])
+        self.assertIn("money", domains["advice"])
+        self.assertNotIn("what to take", domains["planning"])
+        self.assertIn('"plan my week" or "balance my classes" is not the planning domain', prompts[0])
+
+    def test_planning_pass_calls_no_tool_for_life_questions(self):
+        prompt = orch.planning_prompt("CU Boulder", "(empty plan)", 1, [], [])
+        self.assertIn("Questions about managing their time or week, a job, money, stress or "
+                      "study habits are not plan changes: call no tool.", prompt)
 
 
 if __name__ == "__main__":

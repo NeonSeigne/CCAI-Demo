@@ -43,11 +43,11 @@ beforeEach(() => {
 
 afterEach(() => { jest.restoreAllMocks(); });
 
-test('one page of panels: Profile, Password, Model, Theme, Delete account', async () => {
+test('one page of panels: Profile, Password, Model, Advisor panel, Theme, Delete account', async () => {
   renderPage();
   expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument();
   expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent))
-    .toEqual(['Profile', 'Password', 'Model', 'Theme', 'Delete account']);
+    .toEqual(['Profile', 'Password', 'Model', 'Advisor panel', 'Theme', 'Delete account']);
   expect(screen.getByLabelText('Email')).toHaveValue('ada@virginia.edu');
   expect(screen.getByLabelText('Email')).toBeDisabled();
   await screen.findByRole('option', { name: 'Openai' });
@@ -106,4 +106,21 @@ test('deleting needs DELETE typed, then signs out', async () => {
   fireEvent.click(remove);
   expect(await screen.findByText('Signed out')).toBeInTheDocument();
   expect(mockAuth.handleSignOut).toHaveBeenCalled();
+});
+
+test('the Advisor panel switch saves show_panel and updates the user', async () => {
+  mockAuth.handleUserUpdate.mockClear();
+  global.fetch.mockImplementation((url, options = {}) => {
+    if (url.endsWith('/api/me/advisor-preferences')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ show_panel: false }) });
+    }
+    return respond(url, options);
+  });
+  renderPage();
+  const toggle = screen.getByRole('switch', { name: 'Advisor panel' });
+  expect(toggle).toHaveAttribute('aria-checked', 'true');
+  fireEvent.click(toggle);
+  await waitFor(() => expect(mockAuth.handleUserUpdate).toHaveBeenCalledWith(expect.objectContaining({ show_panel: false })));
+  const call = global.fetch.mock.calls.find(([url]) => url.endsWith('/api/me/advisor-preferences'));
+  expect(call[1]).toMatchObject({ method: 'PUT', body: JSON.stringify({ show_panel: false }) });
 });

@@ -15,6 +15,13 @@
   --font-display: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-code: "Unbounded", "Hanken Grotesk", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-figure: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* Motion (DESIGN.md Motion): one curve; press, hover and entrance timings. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-press: 80ms;
+  --dur-hover: 140ms;
+  --dur-enter: 420ms;
 
   --bp-phone: 700px;
   --bp-desktop: 1100px;
@@ -39,6 +46,10 @@
   --course-4: #D6336C; --course-4-ink: #9C2754; --course-4-tint: #FBE8EF;
   --course-5: #1F9D55; --course-5-ink: #156B3A; --course-5-tint: #E3F4EA;
   --course-6: #E8730C; --course-6-ink: #8A4206; --course-6-tint: #FDEEDF;
+
+  /* Advisors 7 and 8, after the six course colours (Panel.css). */
+  --advisor-7: #6B8E23; --advisor-7-ink: #45601A; --advisor-7-tint: #EEF4DF;
+  --advisor-8: #A0673A; --advisor-8-ink: #6E4424; --advisor-8-tint: #F6ECE2;
 
   /* Difficulty by average GPA (D14, D15). The plain colour is for graphics; text uses -ink. */
   --difficulty-easier: #1F9D55; --difficulty-easier-ink: #156B3A; --difficulty-easier-tint: #E3F4EA;
@@ -76,6 +87,9 @@ html[data-theme="dark"] {
   --course-5: #5CC98A; --course-5-ink: #A6E6BF; --course-5-tint: #143323;
   --course-6: #F5A35C; --course-6-ink: #FAD0A8; --course-6-tint: #3A2614;
 
+  --advisor-7: #A3C766; --advisor-7-ink: #CFE5A6; --advisor-7-tint: #24301A;
+  --advisor-8: #D9A27A; --advisor-8-ink: #EBCBB2; --advisor-8-tint: #35251A;
+
   --difficulty-easier: #5CC98A; --difficulty-easier-ink: #7FDCA4; --difficulty-easier-tint: #143323;
   --difficulty-typical: #F5A35C; --difficulty-typical-ink: #F5B36E; --difficulty-typical-tint: #3A2614;
   --difficulty-harder: #F97066; --difficulty-harder-ink: #FF8F87; --difficulty-harder-tint: #3A1A18;
@@ -87,9 +101,10 @@ html[data-theme="dark"] {
   --gauge-track: #2B3039; --gauge-band: #2D5A40; --gauge-band-tint: #143323;
 }
 
-/* Focus ring, shared by every interactive element. */
+/* Focus ring, shared by every interactive element: the school's signal
+   colour, or its tint ink where signal is under 3:1 (schoolTheme.js). */
 :root {
-  --focus-ring: 2px solid var(--ink);
+  --focus-ring: 2px solid var(--focus);
   --focus-ring-offset: 2px;
 }
 
@@ -98,7 +113,7 @@ html[data-theme="dark"] {
   color: var(--ink);
 }
 
-/* One keyboard focus style everywhere: 2px ink ring, 2px off the element. */
+/* One keyboard focus style everywhere: 2px ring, 2px off the element. */
 :focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
@@ -125,7 +140,7 @@ html[data-theme="dark"] {
   top: 8px;
   left: 8px;
   z-index: 1000;
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 10px;
   background: var(--ink);
   color: var(--surface);

@@ -17,7 +17,7 @@
 
 .cc-save svg {
   fill: transparent;
-  transition: fill 150ms ease-out, color 150ms ease-out;
+  transition: fill var(--dur-hover) var(--ease), color var(--dur-hover) var(--ease);
 }
 
 .cc-save.is-saved { color: var(--ink); }

@@ -113,6 +113,7 @@ def create_user_response(user: User) -> UserResponse:
         email=user.email,
         academicStage=user.academicStage,
         researchArea=user.researchArea,
+        show_panel=user.show_panel,
         created_at=user.created_at,
         last_login=user.last_login
     )

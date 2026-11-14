@@ -23,7 +23,7 @@ export const LEGACY = {
   Lightbulb: 'lightbulb', List: 'list', Loader2: 'progress_activity', Lock: 'lock', LogOut: 'logout',
   Mail: 'mail', Map: 'map', MapPin: 'location_on', Maximize2: 'open_in_full', Menu: 'menu',
   MessageCircle: 'chat_bubble', MessageSquare: 'forum', Mic: 'mic', MicOff: 'mic_off',
-  MoreHorizontal: 'more_horiz', Navigation: 'near_me', Paperclip: 'attach_file', Pencil: 'edit',
+  MoreHorizontal: 'more_horiz', Navigation: 'near_me', Paperclip: 'attach_file', Pencil: 'edit', PiggyBank: 'savings',
   PenTool: 'edit_note', Phone: 'call', Plus: 'add', Printer: 'print', RefreshCw: 'refresh', Reply: 'reply',
   Search: 'search', Send: 'send', Server: 'dns', Settings2: 'tune', Sparkles: 'auto_awesome',
   Target: 'target', Trash2: 'delete', TrendingUp: 'trending_up', Upload: 'upload', User: 'person',

@@ -18,11 +18,13 @@ router = APIRouter()
 
 class AdvisorPreferencesRequest(BaseModel):
     disabled_advisors: Optional[List[str]] = None
+    show_panel: Optional[bool] = None
 
 
 class AdvisorPreferencesResponse(BaseModel):
     disabled_advisors: Optional[List[str]] = None
     available_advisors: List[str] = []
+    show_panel: bool = True
 
 
 def _build_response(user: User) -> AdvisorPreferencesResponse:
@@ -33,6 +35,7 @@ def _build_response(user: User) -> AdvisorPreferencesResponse:
     return AdvisorPreferencesResponse(
         disabled_advisors=user.disabled_advisors,
         available_advisors=available,
+        show_panel=user.show_panel,
     )
 
 
@@ -55,7 +58,8 @@ async def update_advisor_preferences(
 ):
     """
     Update advisor preferences for the authenticated user.
-    @param body: AdvisorPreferencesRequest containing the list of advisor IDs to disable
+    @param body: AdvisorPreferencesRequest with the advisor IDs to disable and/or
+        show_panel; only the fields sent are changed
     @param current_user: Authenticated user from dependency injection
     @return: AdvisorPreferencesResponse with updated disabled and available advisor IDs
     @raises HTTPException 400: If any provided advisor ID is not recognized
@@ -69,10 +73,15 @@ async def update_advisor_preferences(
                 detail=f"Unknown advisor IDs: {unknown}",
             )
 
-    db = get_database()
-    await db.users.update_one(
-        {"_id": current_user.id},
-        {"$set": {"disabled_advisors": body.disabled_advisors}},
-    )
-    current_user.disabled_advisors = body.disabled_advisors
+    sent = body.model_fields_set
+    updates = {}
+    if "disabled_advisors" in sent:
+        updates["disabled_advisors"] = body.disabled_advisors
+    if "show_panel" in sent and body.show_panel is not None:
+        updates["show_panel"] = body.show_panel
+    if updates:
+        db = get_database()
+        await db.users.update_one({"_id": current_user.id}, {"$set": updates})
+        for field, value in updates.items():
+            setattr(current_user, field, value)
     return _build_response(current_user)

@@ -197,3 +197,24 @@ test("a class is a selector's first class in one stylesheet only", () => {
     .map(([name, files]) => `.${name}: ${[...files].sort().join(', ')}`);
   expect(shared).toEqual([]);
 });
+
+// DESIGN.md Spacing: gaps, paddings and margins come from the Neon AI scale.
+const SPACING = new Set([0, 1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 96, 128]);
+
+test('padding, margin and gap use only the spacing scale', () => {
+  const decl = /(?:^|[\s;{])((?:padding|margin|gap|row-gap|column-gap)[a-z-]*)\s*:\s*([^;}]+)/g;
+  const found = allSources().filter(([rel]) => rel.endsWith('.css')).flatMap(([rel, text]) => (
+    [...withoutComments(text).matchAll(decl)]
+      .filter(([, , value]) => !value.includes('calc('))
+      .flatMap(([, prop, value]) => [...value.matchAll(/\b(\d+)px/g)]
+        .filter(([, n]) => !SPACING.has(Number(n)))
+        .map(([px]) => `${rel}: ${prop} ${px}`))
+  ));
+  expect(found).toEqual([]);
+});
+
+// DESIGN.md Motion: transitions name their properties.
+test('no transition: all', () => {
+  const found = allSources().filter(([, text]) => /transition:\s*all\b/.test(withoutComments(text))).map(([rel]) => rel);
+  expect(found).toEqual([]);
+});

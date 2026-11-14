@@ -1,7 +1,7 @@
 import httpx
 from typing import List
 import re
-from app.llm.llm_client import LLMClient
+from app.llm.llm_client import LLMClient, LLMErrorText
 from app.core.context_manager import get_context_manager
 import logging
 
@@ -57,16 +57,16 @@ class ImprovedOllamaClient(LLMClient):
                 
         except httpx.ConnectError:
             logger.error(f"Cannot connect to Ollama at {self.base_url}")
-            return "I'm unable to connect to the local AI service. Please ensure Ollama is running."
+            return LLMErrorText("I'm unable to connect to the local AI service. Please ensure Ollama is running.")
         except httpx.TimeoutException:
             logger.error("Ollama request timeout")
-            return "The AI service is taking too long to respond. Please try again."
+            return LLMErrorText("The AI service is taking too long to respond. Please try again.")
         except httpx.HTTPStatusError as e:
             logger.error(f"Ollama HTTP error: {e.response.status_code}")
-            return "The AI service encountered an error. Please try again."
+            return LLMErrorText("The AI service encountered an error. Please try again.")
         except Exception as e:
             logger.error(f"Unexpected error in Ollama client: {str(e)}")
-            return "I encountered an unexpected error. Please try again."
+            return LLMErrorText("I encountered an unexpected error. Please try again.")
     
     def _clean_response(self, response: str) -> str:
         """Clean up common response issues"""
