@@ -537,6 +537,19 @@ export function ChatProvider({ children }) {
                   : m
               )));
               break;
+            case 'review':
+              // The panel's review of a proposed change, on that card's visual.
+              setMessages((prev) => prev.map((m) => (
+                m.responseGroupId === responseGroupId && isMainAnswer(m) && Array.isArray(m.visuals)
+                  ? {
+                    ...m,
+                    visuals: m.visuals.map((v) => (
+                      v?.type === 'proposed_change' && v.proposal?.id === d.proposal_id ? { ...v, review: d.review || [] } : v
+                    )),
+                  }
+                  : m
+              )));
+              break;
             case 'clarification':
               setMessages((prev) => [...prev, {
                 id: generateMessageId(),

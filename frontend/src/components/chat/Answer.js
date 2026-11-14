@@ -13,6 +13,7 @@ import AnswerSources from '../visuals/AnswerSources';
 import PanelRow, { AdvisorAvatar, advisorFor } from './PanelRow';
 import AskedRow, { askedAdvisors } from './AskedRow';
 import Differences from './Differences';
+import BriefDialog, { BRIEF_TITLE } from './BriefDialog';
 import { isMainAnswer } from '../../utils/messageGroups';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppConfig } from '../../contexts/AppConfigContext';
@@ -25,15 +26,25 @@ const THUMBS = [
   { value: 'down', icon: 'thumb_down', label: 'Bad answer' },
 ];
 
+/** Whether *message* is the chat's latest main answer (merged or data answer). */
+function isLatestMainAnswer(message, messages) {
+  const latest = [...(messages || [])].reverse().find(isMainAnswer);
+  return Boolean(latest) && latest.id === message?.id;
+}
+
 /**
  * The answer's meta row (ask-chat.html .meta): copy, thumbs up and thumbs down as 36px round icons in 44px hit areas
  * (design Q19). Thumbs are aria-pressed toggles saved to the chat; a failed
  * save puts the old state back. Answers that aren't saved show no thumbs.
+ * The latest main answer of a saved chat also gets "Brief for my advisor"
+ * (panel-answers phase 6) on the right, unless the panel is off.
  */
-function ActionRow({ message }) {
+function ActionRow({ message, showPanel }) {
   const chat = useChat();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
+  const canBrief = showPanel && Boolean(chat?.sessionId) && isLatestMainAnswer(message, chat?.messages);
   const feedback = message.feedback ?? null;
   const storedId = 'message_id' in message ? message.message_id : message.id;
   const canRate = Boolean(chat?.rateAnswer && chat?.sessionId && storedId);
@@ -73,6 +84,12 @@ function ActionRow({ message }) {
           </button>
         ))}
       </span>
+      {canBrief && (
+        <button type="button" className="answer-brief" onClick={() => setBriefOpen(true)}>
+          {BRIEF_TITLE}
+        </button>
+      )}
+      {briefOpen && <BriefDialog sessionId={chat.sessionId} onClose={() => setBriefOpen(false)} />}
     </div>
   );
 }
@@ -393,7 +410,7 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
 
           <AnswerSources visuals={cardVisuals} />
 
-          <ActionRow message={message} />
+          <ActionRow message={message} showPanel={showPanel} />
         </div>
       </div>
     );

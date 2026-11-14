@@ -1,0 +1,118 @@
+/* Brief for my advisor (DESIGN.md Components): a band sheet dialog with the
+   question, the panel's summary, where they differed, the term's plan and
+   editable questions; Copy and Download PDF in the footer. Tokens only. */
+
+.ab .pop-foot { justify-content: flex-start; }
+
+.ab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 24px 12px;
+}
+
+.ab-sec { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+.ab-title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ab-text { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.ab-md p { margin: 0 0 8px; }
+.ab-md p:last-child { margin-bottom: 0; }
+.ab-md ul, .ab-md ol { margin: 0 0 8px; padding-left: 20px; }
+
+/* The plan: code, title, credits. */
+.ab-courses { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+.ab-course {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ab-course:last-child { border-bottom: 0; }
+
+.ab-code {
+  flex: none;
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.ab-course-title { flex: 1; min-width: 0; color: var(--ink); font-size: 15px; }
+
+.ab-credits {
+  flex: none;
+  color: var(--muted);
+  font-family: var(--font-figure);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Questions: one input each, remove beside it, add under the list. */
+.ab-questions { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.ab-question { display: flex; align-items: center; gap: 8px; }
+
+.ab-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--control);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color var(--dur-hover) var(--ease);
+}
+
+.ab-input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.ab-icon-btn {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--dur-hover) var(--ease), transform var(--dur-press) var(--ease);
+}
+
+.ab-icon-btn:hover { background: var(--raised); }
+.ab-icon-btn:active { transform: scale(0.98); }
+.ab-icon-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.ab-add { align-self: flex-start; }
+
+/* Loading: the sections drawn in raised. */
+.ab-skel-title { width: 160px; height: 16px; }
+.ab-skel-line { width: 100%; height: 16px; }
+
+@media (max-width: 700px) {
+  .ab-body { padding: 16px 16px 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-input, .ab-icon-btn { transition: none; }
+  .ab-icon-btn:active { transform: none; }
+}

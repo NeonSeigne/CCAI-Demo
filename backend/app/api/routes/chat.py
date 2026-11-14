@@ -17,6 +17,7 @@ from app.config import get_settings
 from app.core.bootstrap import chat_orchestrator, get_llm_client
 from app.core.database import get_database
 from app.core.improved_orchestrator import DOMAIN_OF_TOOL, NO_INVENTED_FIGURES, planning_note
+from app.core.panel_review import proposal_index, review_proposal, reviewer_count
 from app.core.persona_filter import (
     get_available_persona_ids,
     get_requested_persona_ids,
@@ -213,7 +214,7 @@ class SwitchChatRequest(BaseModel):
 class NewChatRequest(BaseModel):
     title: Optional[str] = "New Chat"
 
-ChatStreamEventType = Literal["error", "progress", "clarification", "advisor", "answer_update"]
+ChatStreamEventType = Literal["error", "progress", "clarification", "advisor", "answer_update", "review"]
 
 
 class ChatStreamLine(BaseModel):
@@ -222,6 +223,12 @@ class ChatStreamLine(BaseModel):
     ``answer_update`` comes after a data answer's panel: ``{"message_id",
     "response_group_id", "source_personas", "differences"}``, merged into
     the data answer already shown (its ``persona_id`` is "orchestrator").
+
+    ``review`` comes after a data answer with a proposed change (phase 7):
+    ``{"message_id", "response_group_id", "proposal_id", "review":
+    [{"persona_id", "verdict": "fine" | "concern", "line"}]}``, set as
+    ``review`` on that answer's ``proposed_change`` visual. Sent only when at
+    least one advisor's review came back.
     """
 
     type: ChatStreamEventType
@@ -242,6 +249,7 @@ async def _data_panel(
     *,
     message: "ChatMessage",
     user: User,
+    advisors: Optional[List[str]] = None,
 ):
     """The advisor panel under a data answer (panel-answers phases 2 and 3).
 
@@ -249,10 +257,12 @@ async def _data_panel(
     each advisor's take as it arrives (``type: "advisor"``, saved with the
     answer's ``response_group_id``), then one ``answer_update`` line with
     the takes' ``source_personas`` and their ``differences``, which are also
-    saved on the data answer. A take that fails is left out.
+    saved on the data answer. A take that fails is left out. *advisors*
+    already chosen (the review's) skip choosing again.
     """
-    size = get_settings().chat.panel_size_on_data
-    advisors = await choose_advisors(message, sid, user, orchestrator_llm, k=size)
+    if advisors is None:
+        size = get_settings().chat.panel_size_on_data
+        advisors = await choose_advisors(message, sid, user, orchestrator_llm, k=size)
     yield ChatStreamLine(type="progress", data={"phase": "panel", "advisors": advisors}).to_ndjson()
     if not advisors:
         return
@@ -341,6 +351,27 @@ def _no_answers_line() -> str:
     return ChatStreamLine(
         type="error", data={"code": "NO_ADVISOR_ANSWERED", "detail": NO_ANSWERS},
     ).to_ndjson()
+
+
+async def _review(
+    session: Any,
+    advisors: List[str],
+    proposal: Dict[str, Any],
+    user: User,
+    active_term: Optional[str],
+    persona_llms: Optional[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    """The panel's review of a proposal (phase 7) over the current plan, read
+    from the planner store. Never raises: a failed review is no review."""
+    from app.core.brief import term_plan
+
+    try:
+        context = tool_context_for(user, active_term)
+        plan = await term_plan(context.user_id, context.school, context.active_term) if context else None
+        return await review_proposal(chat_orchestrator, session, advisors, proposal, plan, persona_llms)
+    except Exception as exc:  # noqa: BLE001 — the card shows without the review
+        logger.warning("Panel review failed: %r", exc)
+        return []
 
 
 # TODO: Refactor this function into smaller composable helpers so it's more readable and maintainable.
@@ -462,13 +493,43 @@ async def chat_stream(
                         "message_id": message_id,
                     },
                 ).to_ndjson()
+                # A proposed change gets the panel's review (phase 7), run
+                # alongside the takes; the same advisors give both.
+                review_task = None
+                chosen = None
+                at = proposal_index(visuals)
+                if at is not None and getattr(current_user, "show_panel", True) is not False:
+                    size = reviewer_count(get_settings().chat.panel_size_on_data)
+                    chosen = (await choose_advisors(
+                        message, sid, current_user, orchestrator_llm, k=size,
+                    ))[:size]
+                    if chosen:
+                        review_task = asyncio.create_task(_review(
+                            session, chosen, visuals[at]["proposal"], current_user,
+                            message.active_term, persona_llms,
+                        ))
                 if wants_panel_on_data(tool_result.tool_outputs, current_user):
                     async for line in _data_panel(
                         sid, session, tool_result.text, visuals, response_group_id,
                         message_id, orchestrator_llm, persona_llms,
-                        message=message, user=current_user,
+                        message=message, user=current_user, advisors=chosen,
                     ):
                         yield line
+                if review_task is not None:
+                    review = await review_task
+                    if review:
+                        visuals[at] = {**visuals[at], "review": review}
+                        if message.chat_session_id and message_id:
+                            await update_message(message.chat_session_id, message_id, {"visuals": visuals})
+                        yield ChatStreamLine(
+                            type="review",
+                            data={
+                                "message_id": message_id,
+                                "response_group_id": response_group_id,
+                                "proposal_id": visuals[at]["proposal"].get("id"),
+                                "review": review,
+                            },
+                        ).to_ndjson()
                 yield ChatStreamLine(
                     type="progress",
                     data={"phase": "complete"},
