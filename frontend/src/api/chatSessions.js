@@ -26,3 +26,27 @@ export const setAnswerFeedback = (token, sessionId, messageId, feedback) => requ
   `/api/chat-sessions/${path(sessionId)}/messages/${path(messageId)}/feedback`,
   { method: 'PUT', body: { feedback } },
 );
+
+/**
+ * POST for the chat's brief for a human advisor (panel-answers phase 6):
+ * `{question, summary, differences: [{topic, positions: [{persona_id, name,
+ * stance}]}], plan: {term, courses: [{code, title, credits}], total_credits}
+ * | null, questions: [string]}`. 400 when the chat has no answer yet.
+ */
+export const getBrief = (token, id, options) => request(token, `/api/chat-sessions/${path(id)}/brief`, {
+  ...options, method: 'POST',
+});
+
+/** POST a (possibly edited) brief and resolve to its PDF as a Blob. */
+export async function getBriefPdf(token, id, brief) {
+  const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/chat-sessions/${path(id)}/brief/pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(brief),
+  });
+  if (!response.ok) throw new Error(`Brief PDF failed with status ${response.status}`);
+  return response.blob();
+}
