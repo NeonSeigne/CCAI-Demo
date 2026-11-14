@@ -74,19 +74,28 @@ Status: phases 1–3 built. The mockup has four boards: a panel answer, a one-ad
 - Saved replies carry `isReply` and `replyTo`, so a reloaded chat reopens in the same mode when its last message is a reply.
 - Tests: the banner shows and clears; messages route to the reply endpoint; reload restores the mode.
 
-### 6. Brief for my advisor (backend + frontend, medium)
+### 6. Brief for my advisor (backend + frontend, medium) — built
 
-- `POST /api/chat-sessions/{id}/brief` builds: the question, the panel's summary, where they differed, the plan for the active term (from the planner store, not the model), and questions for a human advisor.
-- The frontend shows it in a dialog. The questions are editable before copying.
-- Copy as text; Download PDF through `utils/file_export.py`.
-- Tests: the plan section matches the planner exactly; an empty chat returns a clear error; the PDF builds.
+- `POST /api/chat-sessions/{id}/brief` (`api/routes/chat_brief.py`, owner-scoped: another student's chat or a bad id is 404) builds from the saved chat (`core/brief.py`): `{"question", "summary", "differences", "plan", "questions"}`.
+  - `question` and `summary`: the latest main answer (merged or data answer; in an old chat without one, the latest advisor reply) and the user message in its response group.
+  - `differences`: that answer's saved `differences`, each position with the advisor's `name` (from the registry, else the saved `advisorName`).
+  - `plan`: `{"term", "courses": [{"code", "title", "credits"}], "total_credits"}` for the plan's term, read with `store.load` and checked by `service.report_for` (never the model; nothing is created when the student has no plan, which gives `null`). Credits are display strings: "3", or "4–5" when they vary; `null` when unknown.
+  - `questions`: one orchestrator call (the user's LLM config, else the default) over the recent questions and main answers, the differences and the latest exchange, sent as one user message, so the request ends on the user's turn. The prompt forbids numbers, prices, dates, requirements or rules the chat didn't contain. A failed call or a reply that isn't the JSON (one question per line also parses) gives `[]`; at most 6.
+  - A chat with no question and answer yet is 400 "This chat has no question with an answer yet".
+- `POST /api/chat-sessions/{id}/brief/pdf` takes the brief as the dialog holds it (questions edited) and returns `brief-for-my-advisor.pdf` through `file_export.generate_pdf_file_from_blocks`; text is escaped for its markup.
+- Frontend: `components/chat/BriefDialog.js` in the band-sheet dialog (`SheetDialog` medium, `BandSheet`), styles in `styles/Brief.css`. The "Brief for my advisor" button sits at the right of `Answer.js`'s action row on the latest main answer of a saved chat, only while `show_panel` isn't false. Loading draws the sections in raised (`PanelState`); a failed load shows the error with Retry (none for the 400). Questions are inputs with remove and add icon buttons; empty ones are dropped. Copy writes `briefText` (the same sections as the PDF); Download PDF posts the edited brief. Client: `getBrief`, `getBriefPdf` in `api/chatSessions.js`.
+- Differences from the plan: the plan is the plan's own term (`plan.term`), not the semester open in the view; the plain text and the PDF add a "Total: N credits" line under the plan, which the dialog doesn't show; sections with nothing in them (no differences, no plan) are left out.
+- Tests: `app/tests/unit/test_brief.py` (shape, owner scoping, bad id, empty chat 400, the questions call ends on the user's turn, failed questions call, the plan matches the planner's report exactly, no plan is null and creates nothing, the PDF builds and is owner-scoped, text order, markup escaped), `BriefDialog.test.js` (loading layout, Retry, editing questions, copy text, PDF request, sections left out, the button only on the latest main answer of a saved chat, hidden when the panel is off).
 
-### 7. Panel review on a change (backend + frontend, medium)
+### 7. Panel review on a change (backend + frontend, medium) — built
 
-- When the tool path produces a `proposed_change`, run 2–3 advisors with a review prompt over the proposal, the current plan and the course facts: `{"verdict": "fine" | "concern", "line": "..."}`.
-- Attach it to the visual as `review` and save it with the message. `ProposalCard` shows the rows under the change, above Apply and Not now.
-- Review never blocks Apply, and it runs only for proposals.
-- Tests: verdicts render; a failed review shows the card without the section; Apply is unchanged.
+- In `chat.py`'s tool path, when the visuals include a `proposed_change` and the student's `show_panel` isn't false, `choose_advisors` picks the reviewers (`active_advisors` exactly, else the top `chat.panel_size_on_data` kept to 2–3, from the allowed advisors the student hasn't turned off; at most 3). The same advisors give the data panel's takes, so advisors are chosen once.
+- `core/panel_review.py`: each reviewer runs through `generate_single_persona_response` with review instructions (so the request ends on the user's turn, as the takes do): the proposal's summary and its checked diff (course facts included, the week schedule left out) and the current plan for the open term (`brief.term_plan`, from the planner store). Each returns `{"verdict": "fine" | "concern", "line": "..."}`, one short sentence with no numbers. `parse_review` takes the JSON (fences and case allowed), trims the line to 200 characters and drops anything else; an advisor whose call fails or whose reply doesn't parse is left out.
+- The review runs alongside the takes, after the data answer was streamed and saved, so the answer never waits. When at least one row came back, `review: [{"persona_id", "verdict", "line"}]` is set on the visual, saved with the answer (`update_message` with the whole `visuals`), and streamed as a sibling line: `{"type": "review", "data": {"message_id", "response_group_id", "proposal_id", "review"}}` (documented on `ChatStreamLine`). `ChatContext.js` sets it on the main answer's `proposed_change` with that proposal id. The proposal itself is unchanged, so Apply does what it did.
+- `ProposalCard` renders `components/chat/PanelReview.js` under the change rows, above Apply and Not now: "Panel review", one row per advisor (avatar, bold name, line) and a "Fine" or "Concern" chip. No section when `review` is missing, empty or has no valid rows, or when the panel is off. Styles in `styles/Panel.css`.
+- Differences from the plan: the review line is a sibling `review` line, not part of `answer_update`; the review shows only on a pending card (not on Applied or the muted states); when a proposal gets a review, its data panel uses the review's 2–3 advisors.
+- Cost: 2–3 extra model calls per proposal, in parallel with the takes.
+- Tests: `app/tests/unit/test_panel_review.py` (parsing good, fenced, bad JSON and other verdicts; failed and unparsable calls dropped; at most 3; instructions read the change and the plan, not the schedule; review streamed and saved on the visual with the proposal unchanged; failed review sends nothing; no review with the panel off or without a proposal), `ProposalCard.test.js` (verdict rows above Apply, no section without a valid review, hidden with the panel off, Apply unchanged), `ChatContext.test.js` (the review line reaches the card's visual).
 
 ## Order
 
