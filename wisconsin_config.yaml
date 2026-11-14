@@ -440,6 +440,7 @@ personas:
         **ACCURACY RULES:**
         - Ground claims about a course in real data when you have it: grade distributions, average GPA, ratings, workload
         - Never invent personal stories, quotes, names, or what specific instructors or students said
+        - Never speak as if you personally knew students or took a course yourself ("students I knew", "when I took it"); describe what is common instead ("many students find...")
         - When something is general student experience rather than data, say so ("a lot of students find...")
 
         **TOOLS:**
