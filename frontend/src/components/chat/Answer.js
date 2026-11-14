@@ -10,10 +10,12 @@ import { useChat } from '../../contexts/ChatContext';
 import VisualBlock from '../visuals/VisualBlock';
 import CourseChip from '../visuals/CourseChip';
 import AnswerSources from '../visuals/AnswerSources';
-import PanelRow from './PanelRow';
+import PanelRow, { AdvisorAvatar, advisorFor } from './PanelRow';
+import AskedRow, { askedAdvisors } from './AskedRow';
 import Differences from './Differences';
 import { isMainAnswer } from '../../utils/messageGroups';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAppConfig } from '../../contexts/AppConfigContext';
 import { groupCourseVisuals } from '../visuals/CourseAnswerCard';
 import ErrorBoundary from '../ErrorBoundary';
 import escapeCurrency from '../../utils/escapeCurrency';
@@ -75,15 +77,30 @@ function ActionRow({ message }) {
   );
 }
 
+/** A one-advisor reply's header: the advisor's avatar and name. */
+function ReplyHeader({ message }) {
+  const { config } = useAppConfig();
+  const advisor = advisorFor(message.persona_id, config?.personas?.items || [], message.advisorName);
+  return (
+    <header className={`ap-reply-head adv-${advisor.slot}`}>
+      <AdvisorAvatar advisor={advisor} size="sm" />
+      <b>{advisor.name}</b>
+    </header>
+  );
+}
+
 /**
- * One answer in the thread: the text, its cards, where the advisors differ
- * and who answered (unless the student turned the panel off), its sources
- * and the action row. Courses open through `onCourseSelect`; a card's follow-up
- * question goes to `onAsk`.
+ * One answer in the thread: who was asked, the text, its cards, where the
+ * advisors differ and who answered (unless the student turned the panel
+ * off), its sources and the action row. A one-advisor reply has the
+ * advisor's name above it instead, and no panel. Courses open through
+ * `onCourseSelect`; a card's follow-up question goes to `onAsk`.
  */
 const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
   const { user } = useAuth();
+  const chat = useChat();
   const showPanel = user?.show_panel !== false;
+  const isReply = Boolean(message?.isReply);
   // Every visual follows the text; the old "Checked" line gives way to Sources.
   const visuals = Array.isArray(message?.visuals) ? message.visuals : [];
   const cardVisuals = groupCourseVisuals(visuals.filter((visual) => visual?.type !== 'sources_checked'));
@@ -340,6 +357,10 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
     return (
       <div className="advisor-message-container is-plain">
         <div className="answer">
+          {showPanel && isMainAnswer(message) && (
+            <AskedRow advisorIds={askedAdvisors(message, chat?.exchangePanels)} />
+          )}
+          {isReply && <ReplyHeader message={message} />}
           {/* Enhanced markdown rendering with preprocessing */}
           <div className="advisor-message-text" style={{ color: 'var(--ink)' }}>
             <ErrorBoundary fallback={<p>{message?.content || message?.text}</p>}>
@@ -366,7 +387,7 @@ const Answer = ({ message, panel = [], onCourseSelect, onAsk }) => {
             </div>
           )}
 
-          {showPanel && <Differences differences={message?.differences} panel={panel} />}
+          {showPanel && !isReply && <Differences differences={message?.differences} panel={panel} />}
 
           {showPanel && isMainAnswer(message) && <PanelRow message={message} panel={panel} />}
 

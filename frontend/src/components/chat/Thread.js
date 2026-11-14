@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { FileText, MessageCircle, Sparkles } from '../icons';
 import Answer from './Answer';
+import AskedRow from './AskedRow';
 import ChatThinking from './ChatThinking';
+import OneAdvisorBanner from './OneAdvisorBanner';
+import { useAuth } from '../../contexts/AuthContext';
 import { useChat } from '../../contexts/ChatContext';
-import groupMessages from '../../utils/messageGroups';
+import groupMessages, { isMainAnswer } from '../../utils/messageGroups';
 import { useOpenCourse } from '../../utils/openCourse';
 
 /**
@@ -105,8 +108,9 @@ function shownAnswers(group, groupViews) {
 
 function ThreadMessages({ variant }) {
   const {
-    messages, thinkingAdvisors, groupViews, synthesizingGroups, send,
+    messages, thinkingAdvisors, groupViews, synthesizingGroups, send, pendingGroup, exchangePanels,
   } = useChat();
+  const { user } = useAuth();
   const openCourse = useOpenCourse();
   const groups = useMemo(() => groupMessages(messages), [messages]);
   const endRef = useRef(null);
@@ -116,6 +120,12 @@ function ThreadMessages({ variant }) {
     endRef.current?.scrollIntoView?.(scroll);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, thinkingAdvisors]);
+
+  // The exchange still waiting for its answer shows who it asked.
+  const answered = pendingGroup && messages.some((m) => m.responseGroupId === pendingGroup && isMainAnswer(m));
+  const pendingAsked = user?.show_panel !== false && pendingGroup && !answered
+    ? exchangePanels?.[pendingGroup] || []
+    : [];
 
   const ask = (text) => send(text);
   const selectCourse = (identifier) => {
@@ -147,6 +157,11 @@ function ThreadMessages({ variant }) {
           </div>
         );
       })}
+      {pendingAsked.length > 0 && (
+        <div className="response-group">
+          <div className="single-response-wide"><AskedRow advisorIds={pendingAsked} /></div>
+        </div>
+      )}
       <ChatThinking thinkingAdvisors={thinkingAdvisors} />
       <div ref={endRef} />
     </>
@@ -159,6 +174,7 @@ export default function Thread({ variant = 'page' }) {
   if (variant === 'dock') {
     return (
       <div className="cc-dock-messages">
+        <OneAdvisorBanner />
         <ThreadMessages variant="dock" />
       </div>
     );
@@ -175,6 +191,7 @@ export default function Thread({ variant = 'page' }) {
       )}
       <div className="messages-list">
         <div className="messages-scroll">
+          <OneAdvisorBanner />
           <ThreadMessages variant="page" />
         </div>
       </div>

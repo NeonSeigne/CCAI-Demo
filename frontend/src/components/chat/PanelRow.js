@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Icon, LEGACY } from '../icons';
 import { useAppConfig } from '../../contexts/AppConfigContext';
+import { useChat } from '../../contexts/ChatContext';
 import '../../styles/Panel.css';
 
 // Advisor colours (DESIGN.md Components): the course palette in this order,
@@ -36,7 +37,9 @@ export function panelAdvisors(message, panel = [], personas = []) {
   return ids.map((id) => {
     const reply = replies.find((m) => m.persona_id === id);
     if (!reply) return null;
-    return { ...advisorFor(id, personas, reply.advisorName), content: reply.content };
+    // The stored take: loaded ones carry it as `id`, streamed ones as `message_id`.
+    const messageId = ('message_id' in reply ? reply.message_id : reply.id) ?? null;
+    return { ...advisorFor(id, personas, reply.advisorName), content: reply.content, messageId };
   }).filter(Boolean);
 }
 
@@ -51,10 +54,11 @@ export function AdvisorAvatar({ advisor, size = 'md' }) {
 /**
  * Who answered (DESIGN.md Components, "Panel"): one button per advisor under
  * the merged answer. Tapping one shows that advisor's own reply; none is open
- * at first.
+ * at first. An open take offers "Reply to {name}" (one-advisor mode).
  */
 export default function PanelRow({ message, panel }) {
   const { config } = useAppConfig();
+  const chat = useChat();
   const [open, setOpen] = useState(null);
   const takeId = useId();
   const advisors = panelAdvisors(message, panel, config?.personas?.items || []);
@@ -87,6 +91,18 @@ export default function PanelRow({ message, panel }) {
           <div className="ap-take-text">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{current.content}</ReactMarkdown>
           </div>
+          {chat?.talkTo && (
+            <div className="ap-take-acts">
+              <button
+                type="button"
+                className="cc-btn ap-take-reply"
+                onClick={() => chat.talkTo(current, current.messageId)}
+              >
+                <Icon name="reply" size={18} />
+                <span>{`Reply to ${current.name}`}</span>
+              </button>
+            </div>
+          )}
         </article>
       )}
     </section>

@@ -102,3 +102,111 @@
 
 .ap-diff-position p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; }
 .ap-diff-position b { font-weight: 700; }
+
+/* An advisor's icon keeps its ink inside menu rows, which mute their icons. */
+.ap-avatar > .ms { color: var(--adv-ink) !important; }
+
+/* Asked (DESIGN.md Components): above a main answer, who was asked, then Add. */
+.ap-asked { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+.ap-asked-label { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+.ap-asked-list { display: contents; margin: 0; padding: 0; list-style: none; }
+
+.ap-asked-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.ap-asked-add,
+.ap-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  box-sizing: border-box;
+  border: 1px solid var(--control);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--dur-hover) var(--ease), transform var(--dur-press) var(--ease);
+}
+
+.ap-asked-add { padding: 0 16px 0 12px; }
+.ap-chip { flex: none; padding: 0 12px 0 4px; }
+.ap-chip > .ms { margin-left: 8px; color: var(--muted); }
+
+/* 44px hit areas around the 36px chips. */
+.ap-asked-add::after,
+.ap-chip::after { content: ""; position: absolute; inset: -4px 0; }
+
+.ap-asked-add:hover,
+.ap-chip:hover { background: var(--raised); }
+.ap-asked-add:active,
+.ap-chip:active { transform: scale(0.98); }
+.ap-asked-add:focus-visible,
+.ap-chip:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-ring-offset); }
+
+/* The chosen advisors' avatars, overlapping. */
+.ap-stack { display: inline-flex; padding-left: 4px; }
+.ap-stack > .ap-avatar + .ap-avatar { margin-left: -8px; }
+
+.ap-chip-label { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* @ suggestions: the menu's rows over the composer (above the dock). */
+.ap-suggest-popper { z-index: 1400; }
+
+.ap-suggest { width: 260px; max-width: calc(100vw - 32px); margin: 0 0 8px; list-style: none; }
+
+.ap-suggest-item { cursor: pointer; }
+.ap-suggest-item.is-active { background: var(--raised); }
+
+/* Reply to {name}, under an open take. */
+.ap-take-acts { display: flex; }
+.ap-take-reply { font-size: 14px; }
+
+/* A one-advisor reply's header. */
+.ap-reply-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+.ap-reply-head b { font-weight: 700; }
+
+/* One-advisor mode: the advisor's tint across the top of the thread. */
+.ap-banner {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 8px 8px 12px;
+  border-radius: var(--r-xl);
+  background: var(--adv-tint);
+  color: var(--ink);
+}
+
+.ap-banner .ap-avatar { background: var(--surface); }
+.ap-banner-name { min-width: 0; flex: 1 1 auto; font-size: 15px; font-weight: 700; }
+.ap-banner-back { flex: none; font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-asked-add,
+  .ap-chip { transition: none; }
+  .ap-asked-add:active,
+  .ap-chip:active { transform: none; }
+}
