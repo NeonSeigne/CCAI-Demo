@@ -48,6 +48,27 @@ export function attachmentLine(item) {
 
 const proposalOf = (visual) => visual.proposal || visual;
 
+const sameIds = (a = [], b = []) => a.length === b.length && a.every((id, i) => id === b[i]);
+
+/** The advisors a saved chat last asked: its latest main answer's source_personas. */
+export function restoredPanel(messages = []) {
+  const answer = [...messages].reverse().find((m) => m.type === 'advisor' && isMainAnswer(m));
+  return Array.isArray(answer?.source_personas) ? answer.source_personas : [];
+}
+
+/** The one advisor a saved chat was talking to, when its last message is a reply. */
+export function restoredReply(messages = []) {
+  const last = messages[messages.length - 1];
+  if (!last?.isReply) return null;
+  const id = last.replyTo?.advisorId || (last.type === 'advisor' ? last.persona_id : null);
+  if (!id) return null;
+  return {
+    id,
+    name: last.replyTo?.advisorName || last.advisorName || id,
+    messageId: last.replyTo?.messageId || null,
+  };
+}
+
 /** The server's longest chat title. */
 export const TITLE_MAX = 200;
 
@@ -57,7 +78,7 @@ export function titleFor(text) {
 }
 
 export function ChatProvider({ children }) {
-  const { authToken } = useAuth();
+  const { authToken, user } = useAuth();
   const planner = usePlanner();
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +95,25 @@ export function ChatProvider({ children }) {
   const [synthesizingGroups, setSynthesizingGroups] = useState({});
   const [attachments, setAttachments] = useState([]);
   const [activeTerm, setActiveTerm] = useState(null);
+  // Choosing the panel (panel-answers phase 4): the advisors the next message
+  // goes to ([] is Auto: chosen by relevance), the last exchange's advisors
+  // ("Same panel"), the advisors each exchange asked (its panel event), the
+  // exchange still waiting for its answer, and the advisors the student can
+  // choose (the school's minus the ones turned off; null until loaded).
+  const [nextAdvisors, setNextAdvisors] = useState([]);
+  const [lastPanel, setLastPanel] = useState([]);
+  const [exchangePanels, setExchangePanels] = useState({});
+  const [pendingGroup, setPendingGroup] = useState(null);
+  const [availableAdvisors, setAvailableAdvisors] = useState(null);
+  // Talking to one advisor (phase 5): { id, name, messageId } or null.
+  const [oneAdvisor, setOneAdvisor] = useState(null);
+  const panelOn = user?.show_panel !== false;
+  const panelOnRef = useRef(panelOn);
+  panelOnRef.current = panelOn;
+  const nextAdvisorsRef = useRef(nextAdvisors);
+  nextAdvisorsRef.current = nextAdvisors;
+  const oneAdvisorRef = useRef(oneAdvisor);
+  oneAdvisorRef.current = oneAdvisor;
   // Latest values for calls that may run from a stale closure.
   const attachmentsRef = useRef(attachments);
   attachmentsRef.current = attachments;
@@ -101,6 +141,15 @@ export function ChatProvider({ children }) {
     setIsLoading(false);
     setThinkingAdvisors([]);
     setSynthesizingGroups({});
+    setPendingGroup(null);
+  };
+
+  // A new conversation starts on Auto, with the whole panel.
+  const resetPanelChoice = (panel = [], reply = null) => {
+    setNextAdvisors(panel);
+    setLastPanel(panel);
+    setExchangePanels({});
+    setOneAdvisor(reply);
   };
 
   const appendMessage = (message) => {
@@ -189,12 +238,15 @@ export function ChatProvider({ children }) {
           const conversation = conversationRef.current;
           setSessionId(id);
           setSessionTitle('');
-          setMessages(result.context.messages.map((msg) => ({
+          const loaded = result.context.messages.map((msg) => ({
             ...msg,
             timestamp: parseServerTime(msg.timestamp),
             persona_id: msg.persona_id || msg.advisor || msg.advisorId,
             responseGroupId: msg.response_group_id || null,
-          })));
+          }));
+          setMessages(loaded);
+          // Follow-ups keep the chat's last panel, or its one advisor.
+          resetPanelChoice(restoredPanel(loaded), restoredReply(loaded));
           setSessionEpoch((prev) => prev + 1);
 
           const sessionResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/chat-sessions/${id}`, {
@@ -222,6 +274,7 @@ export function ChatProvider({ children }) {
     setSessionId(id);
     setSessionTitle(title);
     setUploadedDocuments([]);
+    resetPanelChoice();
     setSessionEpoch((prev) => prev + 1);
   };
 
@@ -273,6 +326,25 @@ export function ChatProvider({ children }) {
 
   useEffect(() => () => streamsRef.current.forEach((controller) => controller.abort()), []);
 
+  // The advisors the student can choose: the school's, minus the ones they turned off.
+  useEffect(() => {
+    setAvailableAdvisors(null);
+    if (!authToken) return undefined;
+    let live = true;
+    Promise.resolve()
+      .then(() => fetch(`${process.env.REACT_APP_API_URL}/api/me/advisor-preferences`, {
+        headers: { 'Authorization': `Bearer ${authToken}` },
+      }))
+      .then((response) => (response?.ok ? response.json() : null))
+      .then((data) => {
+        if (!live || !Array.isArray(data?.available_advisors)) return;
+        const off = new Set(data.disabled_advisors || []);
+        setAvailableAdvisors(data.available_advisors.filter((id) => !off.has(id)));
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [authToken]);
+
   const streamChat = async (userInput, id, activeAdvisorIds, signal) => {
     const body = {
       user_input: userInput,
@@ -295,12 +367,42 @@ export function ChatProvider({ children }) {
     return response;
   };
 
+  // One-advisor mode: the same NDJSON lines, from one advisor.
+  const streamReply = async (userInput, id, advisor, signal) => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/reply-to-advisor`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        user_input: userInput,
+        advisor_id: advisor.id,
+        original_message_id: advisor.messageId || null,
+        chat_session_id: id || sessionId,
+      }),
+      signal,
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response;
+  };
+
   // Send a message (with any attached chips as leading lines) and stream the
   // reply. `fresh` drops the current conversation first; sending then creates
   // a session titled after the question. The chips clear once the stream
   // opens, so a failed send keeps them.
+  //
+  // Without `activeAdvisorIds` the message goes to the chosen panel
+  // (`nextAdvisors`; Auto when empty or the panel is off), or, in one-advisor
+  // mode, to that advisor through /reply-to-advisor.
   const send = async (text, activeAdvisorIds = null, { fresh = false } = {}) => {
     if (!text.trim()) return;
+
+    const reply = fresh ? null : oneAdvisorRef.current;
+    const chosen = !fresh && panelOnRef.current && nextAdvisorsRef.current.length
+      ? nextAdvisorsRef.current
+      : null;
+    const advisors = reply ? null : (activeAdvisorIds ?? chosen);
 
     const attached = attachmentsRef.current;
     const inputMessage = attached.length
@@ -319,6 +421,7 @@ export function ChatProvider({ children }) {
       setSessionId(null);
       setSessionTitle('');
       setUploadedDocuments([]);
+      resetPanelChoice();
     } else {
       setMessages((prev) => [...prev, userMessage]);
     }
@@ -331,10 +434,13 @@ export function ChatProvider({ children }) {
     latestSendRef.current = sendNumber;
 
     setIsLoading(true);
-    setThinkingAdvisors(['system']);
+    setThinkingAdvisors(reply ? [reply.id] : ['system']);
 
     const aggregatedMode = responseMode === 'aggregated';
     const responseGroupId = 'grp_' + generateMessageId();
+    if (!reply) setPendingGroup(responseGroupId);
+    // Who answered this exchange: the main answer's source_personas.
+    let exchangeAdvisors = null;
     // Always collect this exchange's advisor responses so the panel is stored
     // even when aggregated mode is the default — the user can toggle to it.
     const collectedAdvisorResponses = [];
@@ -356,7 +462,9 @@ export function ChatProvider({ children }) {
         await updateSessionTitle(id, titleFor(text), isLive);
       }
 
-      const response = await streamChat(inputMessage, id, activeAdvisorIds, controller.signal);
+      const response = reply
+        ? await streamReply(inputMessage, id, reply, controller.signal)
+        : await streamChat(inputMessage, id, advisors, controller.signal);
       if (!isLive()) return;
       if (attached.length) setAttachments((prev) => prev.filter((a) => !attached.some((b) => sameItem(a, b))));
 
@@ -403,12 +511,18 @@ export function ChatProvider({ children }) {
                 source_personas: d.source_personas || null,
                 differences: d.differences || null,
                 visuals: d.visuals || null,
+                isReply: Boolean(d.is_reply),
+                replyTo: d.reply_to || null,
               };
               collectedAdvisorResponses.push(msg);
               handOffProposals(msg.visuals);
               setThinkingAdvisors((prev) => prev.filter((a) => a !== d.persona_id));
-              if (isMainAnswer(msg)) mainShown = true;
-              if (!aggregatedMode || mainShown) {
+              if (isMainAnswer(msg)) {
+                mainShown = true;
+                if (msg.source_personas?.length) exchangeAdvisors = msg.source_personas;
+              }
+              // A one-advisor reply is the whole answer: it shows at once.
+              if (!aggregatedMode || mainShown || msg.isReply) {
                 shownIds.add(msg.id);
                 setMessages((prev) => [...prev, msg]);
               }
@@ -416,6 +530,7 @@ export function ChatProvider({ children }) {
             }
             case 'answer_update':
               // A data answer's panel: who answered and where they differ.
+              if (d.source_personas?.length) exchangeAdvisors = d.source_personas;
               setMessages((prev) => prev.map((m) => (
                 m.responseGroupId === responseGroupId && isMainAnswer(m)
                   ? { ...m, source_personas: d.source_personas || null, differences: d.differences || null }
@@ -438,6 +553,8 @@ export function ChatProvider({ children }) {
               if (d.phase === 'panel' && Array.isArray(d.advisors)) {
                 // The advisors now working on it; each leaves as its reply arrives.
                 setThinkingAdvisors((prev) => [...new Set([...prev, ...d.advisors])]);
+                // The Asked row shows them until the answer names who answered.
+                if (!reply) setExchangePanels((prev) => ({ ...prev, [responseGroupId]: d.advisors }));
               }
               if (d.phase === 'synthesizing') {
                 setSynthesizingGroups((prev) => ({ ...prev, [responseGroupId]: true }));
@@ -469,6 +586,12 @@ export function ChatProvider({ children }) {
       }
       setGroupViews((prev) => ({ ...prev, [responseGroupId]: hasAggregated ? 'aggregated' : 'panel' }));
       setSynthesizingGroups((prev) => { const n = { ...prev }; delete n[responseGroupId]; return n; });
+      if (!reply) {
+        // Follow-ups go to the same panel until the student changes it.
+        const asked = exchangeAdvisors || [];
+        setLastPanel(asked);
+        setNextAdvisors(asked);
+      }
 
     } catch (error) {
       if (error?.name === 'AbortError' || !isLive()) return;
@@ -484,6 +607,7 @@ export function ChatProvider({ children }) {
       if (isLive() && latestSendRef.current === sendNumber) {
         setIsLoading(false);
         setThinkingAdvisors([]);
+        setPendingGroup(null);
       }
       bumpSessions();
     }
@@ -546,6 +670,20 @@ export function ChatProvider({ children }) {
     }
   };
 
+  // The next message's panel ([] is Auto). Choosing a panel leaves one-advisor mode.
+  const chooseAdvisors = (ids) => {
+    setNextAdvisors(Array.isArray(ids) ? ids : []);
+    setOneAdvisor(null);
+  };
+
+  // "Reply to {name}": talk to one advisor ({ id, name }) about their take.
+  const talkTo = (advisor, messageId = null) => {
+    if (!advisor?.id) return;
+    setOneAdvisor({ id: advisor.id, name: advisor.name || advisor.id, messageId });
+  };
+
+  const backToPanel = () => setOneAdvisor(null);
+
   const value = {
     messages,
     isLoading,
@@ -573,6 +711,16 @@ export function ChatProvider({ children }) {
     rateAnswer,
     activeTerm,
     setActiveTerm,
+    nextAdvisors,
+    lastPanel,
+    samePanel: nextAdvisors.length > 0 && sameIds(nextAdvisors, lastPanel),
+    chooseAdvisors,
+    availableAdvisors,
+    exchangePanels,
+    pendingGroup,
+    oneAdvisor,
+    talkTo,
+    backToPanel,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

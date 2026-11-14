@@ -59,20 +59,22 @@ Status: phases 1–3 built. The mockup has four boards: a panel answer, a one-ad
 - Frontend: `components/chat/Differences.js`, a "Where they differ" block after the cards and before the panel row, only when the list isn't empty and the panel is on. Styles in `styles/Panel.css`.
 - Tests: `test_response_mode.py` (parsing with and without differences, bad JSON, cut-off JSON, compare call), `Differences.test.js` (block renders positions with advisor names; hides when empty or the panel is off).
 
-### 4. Choose the panel (frontend, small)
+### 4. Choose the panel (frontend, small) — built
 
-- The "Asked" row above the answer: the advisors working on it (from phase 2's panel event), with Add.
-- "Add" on the Asked row opens the advisor menu (available minus disabled), sending `active_advisors` on the next message.
-- The composer chip ("Same panel") keeps the last panel for follow-ups; tapping it opens the same menu; "Auto" goes back to automatic choice.
-- Typing `@` in the composer suggests advisors; picking one sets `active_advisors` to that advisor.
-- Tests: the chosen ids reach `/chat-stream`; disabled advisors don't appear.
+- The "Asked" row above the answer (`components/chat/AskedRow.js`): the answer's `source_personas`; while it streams, the advisors from phase 2's panel event (`exchangePanels` in `ChatContext.js`; an open question's row shows under the question until the merged answer arrives). Then Add. Hidden when `show_panel` is false or nobody was asked.
+- "Add" on the Asked row opens the advisor menu (`components/chat/AdvisorMenu.js`, on the system `Menu`): Auto, then a checkbox row per advisor from `/api/config` that `GET /api/me/advisor-preferences` lists as available and not disabled. The menu edits one shared choice, `nextAdvisors` in `ChatContext.js`, sent as `active_advisors` on the next message.
+- The composer chip keeps the last panel for follow-ups: after each exchange `nextAdvisors` becomes the advisors who answered it ("Same panel"); a reopened chat starts from its last answer's `source_personas`. Tapping the chip opens the same menu; "Auto" (an empty choice) sends `active_advisors: null`. Differs from the plan: a custom choice of one advisor shows that advisor's name; several show only their avatars. The chip is hidden on home, in one-advisor mode and when the panel is off (then nothing is sent).
+- Typing `@` in the composer suggests advisors (the same rows, filtered by the text after the @; arrows, Enter or Tab, Escape); picking one removes the `@query` and sets the choice to that advisor.
+- Backend: an advisor that fails on the open-question path (`failed: True`, an error, or removed mid-request) is dropped like a data take: not streamed, saved, named in `source_personas` or merged. If every advisor fails the stream ends with an `error` line (`NO_ADVISOR_ANSWERED`) and no merge. Aggregated-mode takes now stream their stored `message_id`.
+- Tests: `PanelChoice.test.js` (Asked from `source_personas` and from the panel event; Add and the menu set `active_advisors`; disabled advisors don't appear; Same panel and Auto; `@` suggestions), `test_advisor_reply.py` (failed advisors dropped on the open path).
 
-### 5. Talk to one advisor (frontend + backend, medium)
+### 5. Talk to one advisor (frontend + backend, medium) — built
 
-- "Reply to {advisor}" on an open take enters a one-advisor thread: a banner in the advisor's tint with "Back to the panel", and the composer placeholder "Reply to {advisor}".
-- Messages go to `/reply-to-advisor`. Make it stream (same NDJSON lines as `/chat-stream`) so it feels like the rest of Ask.
-- Saved replies carry `isReply` and `replyTo`, so a reloaded chat reopens in the same mode when its last message is a reply.
-- Tests: the banner shows and clears; messages route to the reply endpoint; reload restores the mode.
+- "Reply to {advisor}" on an open take (`PanelRow.js`) enters one-advisor mode (`oneAdvisor` in `ChatContext.js`): a banner at the top of the thread in the advisor's tint with "Back to the panel" (`OneAdvisorBanner.js`), and the composer placeholder "Reply to {advisor}". Choosing a panel in the advisor menu or with `@` also leaves the mode.
+- Messages go to `/reply-to-advisor`, which now streams the same NDJSON lines as `/chat-stream`: `progress` `received`, `progress` `panel` with the one advisor, one `advisor` line (with `is_reply: true`, `reply_to` and `message_id`), then `progress` `complete`; a failed model call gives an `error` line and nothing saved. The advisor reads the student's message last (`recent_until_user`), with its own earlier reply in the instructions. The old JSON response is gone; nothing in the frontend called it.
+- The student's message and the reply are saved with `isReply: true`, `replyTo` (`advisorId`, `advisorName`, `messageId` of the take) and a shared `response_group_id`, so a reloaded chat reopens in the same mode when its last message is a reply.
+- A reply shows as one advisor's answer: the advisor's avatar and name above the text, no Asked row, panel row or differences.
+- Tests: `PanelChoice.test.js` (the banner shows and clears; messages route to the reply endpoint; reload restores the mode), `test_advisor_reply.py` (the reply streams, saves `isReply` and `replyTo` and ends on the user's turn; a failed reply isn't saved).
 
 ### 6. Brief for my advisor (backend + frontend, medium)
 
