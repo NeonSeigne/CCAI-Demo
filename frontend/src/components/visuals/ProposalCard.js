@@ -5,19 +5,24 @@ import {
 } from '../planner/proposalDiff';
 import useAcceptProposal from '../planner/useAcceptProposal';
 import ContextLink from '../ContextLink';
+import PanelReview from '../chat/PanelReview';
 import { Icon } from '../icons';
 import '../../styles/CourseVisuals.css';
 
 /**
  * Chat card for a `proposed_change` visual (design 2A, 6A, 11A; chat-prereq, Q8, R10).
  *
- * visual: {type: 'proposed_change', proposal: {id, status, ops, diff, expires_at}}
+ * visual: {type: 'proposed_change', proposal: {id, status, ops, diff, expires_at},
+ *          review?: [{persona_id, verdict: 'fine' | 'concern', line}]}
  * (a bare proposal with `id` and `diff` is accepted too; `status: 'checking'`
  * or a missing diff shows the Checking state).
  *
  * Apply and Not now go through the shared PlannerContext, so the card and
  * the plan views always show the same outcome. Outside a PlannerProvider the
  * card shows the proposal without buttons.
+ *
+ * `review` (panel-answers phase 7) shows as the "Panel review" rows under the
+ * change, above Apply and Not now; it never changes what Apply does.
  */
 
 const MUTED = {
@@ -232,6 +237,7 @@ export default function ProposalCard({ visual }) {
         )}
         {localError && state !== 'refused' && <Failure text={localError} />}
         {held && <Failure text="Couldn't save" onRetry={planner.retry} />}
+        <PanelReview review={visual?.review} />
       </div>
       {canAct && (
         <div className="vc-foot">

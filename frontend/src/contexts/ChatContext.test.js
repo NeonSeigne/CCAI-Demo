@@ -459,3 +459,38 @@ test('a data answer shows at once; its takes and answer_update follow in the sam
   expect(status('Advisors')).toHaveTextContent('orchestrator,coach,planner');
   expect(status('Groups')).toHaveTextContent('1');
 });
+
+test('a review line sets the panel review on the answer\'s proposed change', async () => {
+  const stream = controllableStream();
+  routeFetch({ '/chat-stream': stream.respond });
+  function Review() {
+    const { messages, send } = useChat();
+    const answer = messages.find((m) => m.persona_id === 'orchestrator');
+    const card = (answer?.visuals || []).find((v) => v.type === 'proposed_change');
+    return (
+      <>
+        <button type="button" onClick={() => send('Move ECON 4010 to spring')}>Send</button>
+        <output aria-label="Review">{(card?.review || []).map((r) => `${r.persona_id}:${r.verdict}`).join(',')}</output>
+      </>
+    );
+  }
+  renderProvider(<Review />);
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+  await waitFor(() => expect(callsTo('/chat-stream')).toHaveLength(1));
+
+  stream.push({
+    type: 'advisor',
+    data: {
+      persona_id: 'orchestrator', persona_name: 'Orchestrator', content: 'I can move it.',
+      visuals: [{ type: 'proposed_change', proposal: { id: 'p1' } }],
+    },
+  });
+  stream.push({
+    type: 'review',
+    data: { proposal_id: 'p1', review: [{ persona_id: 'planner', verdict: 'fine', line: 'Prerequisites are met.' }] },
+  });
+  stream.push({ type: 'progress', data: { phase: 'complete' } });
+  stream.end();
+
+  await waitFor(() => expect(status('Review')).toHaveTextContent('planner:fine'));
+});
